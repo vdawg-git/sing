@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "esnext",
+    "sourceMap": false,
+    "moduleResolution": "Node",
+    "skipLibCheck": true,
+    "strict": true,
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "@src/*": ["./src/*"],
+      "@sing-main/*": ["../main/src/*"]
+    },
+
+    "types": ["node"],
+
+    "baseUrl": "."
+  },
+  "include": [
+    "src/**/*.ts",
+    "contracts.d.ts",
+    "../../types/**/*.d.ts",
+    "preload.ts",
+    "../../types/Track.ts",
+    "../main/src/lib/Metadata.ts",
+    "../main/src/lib/Crud.ts",
+    "../main/src/lib/Sync.ts"
+  ],
+  "exclude": ["**/*.spec.ts", "**/*.test.ts"]
+}

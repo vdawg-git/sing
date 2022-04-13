@@ -1,0 +1,156 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../packages/main/public/masterDB.db"
+}
+
+model Track {
+  id       Int     @id @default(autoincrement())
+  title    String?
+  filepath String  @unique
+
+  playCount Int? @default(0) // Todo implement play stats
+  skipCount Int? @default(0)
+
+  coverPath String?
+  coverMD5  String?
+
+  trackNo     Int?
+  trackNoOf   Int?
+  diskNo      Int?
+  diskNoOf    Int?
+  year        Int?
+  artist      String?
+  artists     String? /// Stringified JSON Array
+  albumartist String?
+  album       String?
+  date        String?
+
+  originaldate    String?
+  originalyear    Int?
+  comment         String? /// Stringified JSON Array
+  genre           String? /// Stringified JSON Array
+  composer        String? /// Stringified JSON Array
+  lyrics          String? /// Stringified JSON Array
+  albumsort       String?
+  titlesort       String?
+  work            String?
+  artistsort      String?
+  albumartistsort String?
+  composersort    String?
+  lyricist        String? /// Stringified JSON Array
+  writer          String? /// Stringified JSON Array
+  conductor       String? /// Stringified JSON Array
+  remixer         String? /// Stringified JSON Array
+  arranger        String? /// Stringified JSON Array
+  engineer        String? /// Stringified JSON Array
+  producer        String? /// Stringified JSON Array
+  djmixer         String? /// Stringified JSON Array
+  mixer           String? /// Stringified JSON Array
+  technician      String? /// Stringified JSON Array
+  label           String? /// Stringified JSON Array
+  grouping        String?
+  subtitle        String? /// Stringified JSON Array
+  description     String? /// Stringified JSON Array
+  longDescription String?
+  discsubtitle    String? /// Stringified JSON Array
+  totaltracks     String?
+  totaldiscs      String?
+  movementTotal   Int?
+  compilation     Boolean?
+  bpm             Int?
+  mood            String?
+  media           String?
+  catalogNumber   String? /// Stringified JSON Array
+  podcast         Boolean?
+  podcasturl      String?
+  releasestatus   String?
+  releasetype     String? /// Stringified JSON Array
+  releasecountry  String?
+  script          String?
+  language        String?
+  copyright       String?
+  license         String?
+  encodedby       String?
+  encodersettings String?
+  gapless         Boolean?
+  barcode         String?
+  isrc            String? /// Stringified JSON Array
+  asin            String?
+
+  musicbrainz_recordingid    String?
+  musicbrainz_trackid        String?
+  musicbrainz_albumid        String?
+  musicbrainz_artistid       String? /// Stringified JSON Array
+  musicbrainz_albumartistid  String? /// Stringified JSON Array
+  musicbrainz_releasegroupid String?
+  musicbrainz_workid         String?
+  musicbrainz_trmid          String?
+  musicbrainz_discid         String?
+  acoustid_id                String?
+  acoustid_fingerprint       String?
+  musicip_puid               String?
+  musicip_fingerprint        String?
+
+  website             String?
+  performerInstrument String? /// Stringified JSON Array
+  averageLevel        Int?
+  peakLevel           Int?
+  notes               String? /// Stringified JSON Array
+  originalalbum       String?
+  originalartist      String?
+
+  discogs_artist_id         String? /// Stringified JSON Array
+  discogs_release_id        Int?
+  discogs_label_id          Int?
+  discogs_master_release_id Int?
+  discogs_votes             Int?
+  discogs_rating            Int?
+
+  replaygain_track_gain_ratio Int?
+  replaygain_track_peak_ratio Int?
+  replaygain_track_gain       String? /// Stringified JSON Array
+  replaygain_track_peak       String? /// Stringified JSON Array
+  replaygain_album_gain       String? /// Stringified JSON Array
+  replaygain_album_peak       String? /// Stringified JSON Array
+  replaygainUndoLeftChannel   Int?
+  replaygainUndoRightChannel  Int?
+  replaygain_track_minmax     String? /// Stringified JSON Array
+
+  key               String?
+  category          String? /// Stringified JSON Array
+  hdVideo           Int?
+  keywords          String? /// Stringified JSON Array
+  movement          String?
+  movementIndexNo   Int?
+  movementIndexNoOf Int?
+  podcastId         String?
+  showMovement      Boolean?
+  stik              Int?
+
+  container        String?
+  tagTypes         String? /// Stringified JSON Array
+  duration         Float?
+  bitrate          Float?
+  sampleRate       Int?
+  bitsPerSample    Int?
+  tool             String?
+  codec            String?
+  codecProfile     String?
+  lossless         Boolean?
+  numberOfChannels Int?
+  numberOfSamples  Int?
+  audioMD5         String?
+  chapters         String? /// Stringified JSON Array
+  creationTime     String?
+  modificationTime String?
+  trackGain        Float?
+  trackPeakLevel   Float?
+  albumGain        Float?
+}

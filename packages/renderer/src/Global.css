@@ -1,0 +1,49 @@
+/**==================================================================
+**			Font 
+**=================================================================*/
+@font-face {
+	font-family: "Outfit";
+	src: url("./fonts/Outfit[wght].ttf");
+	font-weight: 400;
+	font-style: normal;
+}
+
+body {@apply text-white}
+
+/**==================================================================
+**			Scrollbar 
+**=================================================================*/
+
+body {
+	scrollbar-gutter: stable;
+}
+
+::-webkit-scrollbar {
+	position: absolute;
+	width: 12px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background-color: theme(colors.grey.600);
+	border-radius: 9999px;
+}
+
+/**==================================================================
+**			Miscellaneous 
+**=================================================================*/
+body { overflow:hidden}
+
+/**==================================================================
+**			Disable default HTML drag behaviour
+**=================================================================*/
+*,
+*::after,
+*::before {
+	-webkit-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-app-region: no-drag;
+}

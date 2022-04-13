@@ -1,0 +1,11 @@
+export const GET_PATH = "get/path"
+export const GET_TRACKS = "get/tracks"
+export const SET_USER_SETTINGS = "set/userSettings"
+export const GET_USER_SETTINGS = "get/userSettings"
+export const SYNC = "sync"
+export const OPEN_DIR = "open-directory"
+export const OPEN_MUSIC_FOLDER = "open-music-folder"
+export const TEST = "test"
+export const ON_TRACKS_ADDED = "on/tracks-added"
+export const ON_TRACKS_UPDATED = "on/tracks-added"
+export const listener = [ON_TRACKS_UPDATED, "ttest"] as const
