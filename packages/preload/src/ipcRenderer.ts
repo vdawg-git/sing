@@ -1,9 +1,12 @@
 import type { Track } from "@prisma/client"
 import { ipcRenderer } from "electron"
-import type { IUserSettings, IUserSettingsKey } from "@main/lib/UserSettings"
+import type {
+  IUserSettings,
+  IUserSettingsKey,
+} from "@sing-main/lib/UserSettings"
 import * as consts from "./Channels"
 
-export async function getTracks(): Promise<Track[]> {
+export async function getTracks(): Promise<NullValuesToOptional<Track>[]> {
   return await ipcRenderer.invoke(consts.GET_TRACKS)
 }
 

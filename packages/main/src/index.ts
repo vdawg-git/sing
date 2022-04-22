@@ -2,11 +2,9 @@ import { app } from "electron"
 import { restoreOrCreateWindow } from "@/mainWindow"
 import { copyFileSync } from "fs"
 import { checkFileExists } from "./Helper"
+import { devDBPath, productionDBPath } from "./lib/CustomPrismaClient"
 import { join } from "path"
 import ipc from "../../preload/src/ipcMain"
-
-const devDBPath = join(__dirname, "../public/devDB.local.db")
-const productionDBPath = join(app.getPath("userData"), "productionDB.db")
 
 // Check if database exists. If not copy the empty master to make it available
 if (!checkFileExists(import.meta.env.DEV ? devDBPath : productionDBPath)) {
@@ -33,7 +31,7 @@ app.on("second-instance", restoreOrCreateWindow)
 /**
  * Disable Hardware Acceleration for linux platforms
  */
-if (process.platform === "linux") app.disableHardwareAcceleration()
+// if (process.platform === "linux") app.disableHardwareAcceleration()
 
 /**
  * Shout down background process if all windows was closed
@@ -64,8 +62,8 @@ if (import.meta.env.DEV) {
   app
     .whenReady()
     .then(() => import("electron-devtools-installer"))
-    .then(({ default: installExtension, VUEJS3_DEVTOOLS }) =>
-      installExtension(VUEJS3_DEVTOOLS, {
+    .then(({ default: installExtension }) =>
+      installExtension("ckolcbmkjpjmangdbmnkpjigpkddpogn", {
         loadExtensionOptions: {
           allowFileAccess: true,
         },
@@ -77,10 +75,10 @@ if (import.meta.env.DEV) {
 /**
  * Check new app version in production mode only
  */
-if (import.meta.env.PROD) {
-  app
-    .whenReady()
-    .then(() => import("electron-updater"))
-    .then(({ autoUpdater }) => autoUpdater.checkForUpdatesAndNotify())
-    .catch((e) => console.error("Failed check updates:", e))
-}
+// if (import.meta.env.PROD) {
+//   app
+//     .whenReady()
+//     .then(() => import("electron-updater"))
+//     .then(({ autoUpdater }) => autoUpdater.checkForUpdatesAndNotify())
+//     .catch((e) => console.error("Failed check updates:", e))
+// }

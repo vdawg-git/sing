@@ -4,19 +4,18 @@
   import Tracks from "@/lib/stores/TracksStore"
   import player from "../manager/PlayerManager"
   import type { ISourceType } from "@/types/Types"
-  import type { Track as ITrack } from "@prisma/client"
 
   const sourceType: ISourceType = "ALL_TRACKS"
 </script>
 
 <main
   class="
-		w-full h-screen max-h-screen overflow-auto 
-		 flex items-start content-start justify-start
-		sm:ml-2 md:ml-6 lg:ml-10 overflow-x-clip"
+		flex h-screen max-h-screen w-full 
+		 content-start items-start justify-start overflow-auto
+		overflow-x-clip sm:ml-2 md:ml-6 lg:ml-10"
 >
-  <div class="p-6 mx-auto max-w-[1560px] w-full mt-32">
-    <h1 class="text-4xl mb-10  ">My Tracks</h1>
+  <div class="mx-auto mt-32 w-full max-w-[1560px] p-6 ">
+    <h1 class="mb-10 text-4xl  ">My Tracks</h1>
     {#await $Tracks}
       <p>...loading</p>
     {:then tracks}

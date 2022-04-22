@@ -1,4 +1,13 @@
 {
+  "extends": "@tsconfig/svelte/tsconfig.json",
+  "include": [
+    "./**/*",
+    "types/**/*.d.ts",
+    "../../types/**/*.d.ts",
+    "../preload/contracts.d.ts"
+  ],
+  "exclude": ["./assets/**/*"],
+
   "compilerOptions": {
     "module": "esnext",
     "target": "esnext",
@@ -8,23 +17,14 @@
     "strict": true,
     "isolatedModules": true,
 
-    "types": ["node", "unplugin-icons/types/svelte"],
+    "types": ["node", "svelte", "unplugin-icons/types/svelte"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@sing-main/*": ["../main/src/*"],
+      "@sing-preload/*": ["../preload/src/*"],
+      "@sing-types/*": ["../../types/*"]
     },
     "lib": ["ESNext", "dom", "dom.iterable"]
-  },
-
-  "include": [
-    "src/**/*.svelte",
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/types/**/*.d.ts",
-    "../../types/**/*.d.ts",
-    "../preload/contracts.d.ts",
-    "src/types/types.d.ts",
-    "../../types/Track.ts"
-  ],
-  "exclude": ["**/*.spec.ts", "**/*.test.ts"]
+  }
 }

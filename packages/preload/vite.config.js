@@ -3,7 +3,6 @@ import { builtinModules } from "module"
 import { join } from "path"
 
 const PACKAGE_ROOT = __dirname
-console.warn(join(PACKAGE_ROOT, "../main/src") + "\\")
 /**
  * @type {import('vite').UserConfig}
  * @see https://vitejs.dev/config/
@@ -14,8 +13,9 @@ const config = {
   envDir: process.cwd(),
   resolve: {
     alias: {
-      "@/": join(PACKAGE_ROOT, "src") + "/",
-      "@main/": join(PACKAGE_ROOT, "../main/src") + "/",
+      "@": join(PACKAGE_ROOT, "src") + "/",
+      "@sing-types": join(PACKAGE_ROOT, "..", "..", "types") + "/",
+      "@sing-main": join(PACKAGE_ROOT, "..", "main", "src") + "/",
     },
   },
   build: {
@@ -34,18 +34,14 @@ const config = {
         "@prisma",
         "@prisma/client",
         "electron-store",
-        "@main/lib/Sync",
         "music-metadata",
-        "@main/*",
-        "chalk",
-        "stream",
-        "strtok3",
         "fs",
         "fs/promises",
         "path",
-        "@main/lib/Sync",
         "electron-updater",
         "original-fs",
+        "prisma",
+        "@sing-main/lib/Crud",
         ...builtinModules.flatMap((p) => [p, `node:${p}`]),
       ],
       output: {

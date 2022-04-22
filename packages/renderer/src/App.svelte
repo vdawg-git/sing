@@ -2,20 +2,18 @@
   import Sidebar from "./lib/organisms/Sidebar.svelte"
   import MyTracks from "./lib/pages/MyTracks.svelte"
   import Playbar from "./lib/organisms/Playbar.svelte"
-  import playerManager from "./lib/manager/PlayerManager"
   import QueueBar from "./lib/organisms/QueueBar.svelte"
-  import { onDestroy } from "svelte"
+  import tracksStore from "@/lib/stores/TracksStore"
+  import c from "ansicolor"
 
-  import trackStore from "./lib/stores/TracksStore"
-  trackStore.subscribe((_) => {})
+  console.log(c.bgGreen.underline(" XXXX "))
+
+  tracksStore.subscribe((_) => {})
 
   let showQueue = false
-  let queueIcon: Node
-
-  onDestroy(() => playerManager.destroy())
 </script>
 
-<main class="bg-grey-900 text-white select-none ">
+<main class="select-none bg-grey-900 text-white ">
   <div class="flex">
     <Sidebar />
     <MyTracks />

@@ -10,13 +10,30 @@
  * @see https://vitejs.dev/guide/env-and-mode.html#env-files Vite Env Variables Doc
  */
 interface ImportMetaEnv {
-
   /**
    * The value of the variable is set in scripts/watch.js and depend on packages/main/vite.config.js
    */
-  readonly VITE_DEV_SERVER_URL: undefined | string;
+  readonly VITE_DEV_SERVER_URL: undefined | string
 }
 
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
+
+// from https://stackoverflow.com/questions/69676439/create-constant-array-type-from-an-object-type
+type TupleUnion<FieldKeys extends string, Result extends any[] = []> = {
+  [Key in FieldKeys]: Exclude<FieldKeys, Key> extends never
+    ? [...Result, Key]
+    : TupleUnion<Exclude<FieldKeys, Key>, [...Result, Key]>
+}
+
+// from https://stackoverflow.com/questions/58409603/generate-a-type-where-each-nullable-value-becomes-optional
+type NonNull<T> = T extends null ? never : T
+type NullableKeys<T> = NonNullable<
+  {
+    [K in keyof T]: T[K] extends NonNull<T[K]> ? never : K
+  }[keyof T]
+>
+
+type NullValuesToOptional<T> = Omit<T, NullableKeys<T>> &
+  Partial<Pick<T, NullableKeys<T>>>

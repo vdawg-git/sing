@@ -11,3 +11,5 @@ export interface IProccessedTrackFailed {
   track: Prisma.TrackCreateInput
   error: Error
 }
+
+export type ITrack = NullValuesToOptional<Track>

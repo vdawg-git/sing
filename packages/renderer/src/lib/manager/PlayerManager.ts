@@ -1,6 +1,6 @@
 import player from "./Player"
-import queueStore from "../stores/QueueStore"
-import type { Track as ITrack } from "@prisma/client"
+import queueStore from "@/lib/stores/QueueStore"
+import type { ITrack } from "@sing-types/Track"
 import { derived, writable } from "svelte/store"
 import type { Unsubscriber } from "svelte/store"
 import type {
@@ -11,8 +11,8 @@ import type {
   ISourceType,
   ILazyQueue,
 } from "../../types/Types"
-import tracksStore from "../stores/TracksStore"
-import indexStore from "../stores/PlayIndex"
+import tracksStore from "@/lib/stores/TracksStore"
+import indexStore from "@/lib/stores/PlayIndex"
 
 // Create stores / state
 const playLoopStore = writable<IPlayLoop>("NONE")
@@ -29,10 +29,6 @@ initStores()
 export const currentTrack = derived(
   [queueStore, indexStore],
   ([$queue, $index]) => {
-    console.group("currentTrack")
-    console.dir($queue[$index]?.track?.title ?? $queue[$index]?.track?.filepath)
-    console.groupEnd()
-
     return $queue[$index]
   }
 )
@@ -44,10 +40,6 @@ export const nextTracks = derived(
   [queueStore, indexStore],
   ([$queue, $index]) => $queue.slice($index + 1)
 )
-
-const manager = createPlayerManager()
-
-export default manager
 
 function createPlayerManager() {
   let $playLoop: IPlayLoop = "LOOP_QUEUE"
@@ -65,14 +57,10 @@ function createPlayerManager() {
   // Subscribe to all stores and get the unsubscribers
   const unsubscribers: Unsubscriber[] = [
     queueStore.subscribe(($newQueue) => {
-      console.group("UPDATED QUEUE")
-      console.table($queue.map((e) => e.track))
-      console.groupEnd()
       $queue = $newQueue
     }),
     indexStore.subscribe(($newIndex) => {
       $index = $newIndex
-      console.log(`New index:\t${$newIndex}`)
     }),
     playLoopStore.subscribe(($loop) => ($playLoop = $loop)),
     playModeStore.subscribe(($mode) => ($playMode = $mode)),
@@ -127,9 +115,7 @@ function createPlayerManager() {
 
   function playTrack(track: ITrack) {
     playStateStore.set("PLAYING")
-    console.group("PLAYING")
     player.play(track.filepath)
-    console.groupEnd()
   }
 
   function resume() {
@@ -162,7 +148,6 @@ function createPlayerManager() {
   }
 
   function pause() {
-    console.log("pause")
     playStateStore.set("PAUSED")
     player.pause()
   }
@@ -185,12 +170,14 @@ function createPlayerManager() {
 function initStores() {
   const unsubTracks = tracksStore.subscribe(async ($tracks) => {
     $tracks = await $tracks
+    if (!$tracks.length) return
+
     const queueItems: IQueueItem[] = $tracks.map((track, index) => {
       return { isManuallyAdded: false, track, index }
     })
     queueStore.set(queueItems)
     indexStore.set(0)
-    player.setSource($tracks[0].filepath)
+    // player.setSource($tracks[0].filepath)
   })
   unsubTracks()
 }
@@ -204,3 +191,6 @@ export const sourceID = { subscribe: sourceIDStore.subscribe }
 export const playState = { subscribe: playStateStore.subscribe }
 export const volume = { subscribe: volumeStore.subscribe }
 // export const played = { subscribe: playedStore.subscribe }
+
+const manager = createPlayerManager()
+export default manager

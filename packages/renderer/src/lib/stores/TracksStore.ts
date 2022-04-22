@@ -1,33 +1,50 @@
-import { readable } from "svelte/store"
-import type { Track as ITrack } from "@Prisma/client"
+import { readable, type Subscriber } from "svelte/store"
+import type { ITrack } from "@sing-types/Track"
+import picocolors from "picocolors"
 
-export default readable<Promise<ITrack[]> | ITrack[]>(
-  window.api.getTracks().then((tracks) => tracks.sort(sortAlphabetically)),
-  (set) => {
-    window.api.listen("on/tracks-added", (tracks: ITrack[]) => {
-      updateStore(tracks)
-    })
+export default readable<Promise<ITrack[]> | ITrack[]>(initValue(), updateStore)
 
-    return () => {
-      console.warn("Tracks Store unmounted")
-      window.api.removeListener("on/tracks-added", updateStore)
-    } // Remove listener when last store subscriber is removed
-
-    function updateStore(tracks: ITrack[]) {
-      const newValue = [] as ITrack[]
-
-      for (const track of tracks) {
-        newValue.push(track)
-      }
-
-      console.group("Updated tracks store")
-      console.table(newValue)
+async function initValue() {
+  return window.api.getTracks().then((tracks) => {
+    if (!Array.isArray(tracks)) {
+      console.group(picocolors.red("Received tracks are not valid"))
+      console.error(tracks)
       console.groupEnd()
 
-      set(newValue.sort(sortAlphabetically))
+      return []
     }
+    const result = tracks.sort(sortAlphabetically)
+    return result
+  })
+}
+
+function updateStore(set: Subscriber<ITrack[] | Promise<ITrack[]>>) {
+  window.api.listen("on/tracks-added", (tracks: ITrack[]) => {
+    updateStore(tracks)
+  })
+
+  // Return unsubscribe function
+  return () => window.api.removeListener("on/tracks-added", updateStore)
+
+  function updateStore(tracks: ITrack[]) {
+    if (!tracks) {
+      console.group(
+        picocolors.red("Received tracks at tracksStore -> update are not valid")
+      )
+      console.error(tracks)
+      console.groupEnd()
+
+      return []
+    }
+    const newValue = [] as ITrack[]
+
+    for (const track of tracks) {
+      newValue.push(track)
+    }
+
+    set(newValue.sort(sortAlphabetically))
   }
-)
+}
 
 function sortAlphabetically(a: ITrack, b: ITrack) {
   const titleA = a.title ? a.title.toLowerCase() : "!"

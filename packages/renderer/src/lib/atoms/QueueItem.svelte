@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Track as ITrack } from "@prisma/client"
+  import type { ITrack } from "@sing-types/Track"
   import IconClose from "virtual:icons/heroicons-outline/x"
   // import { setAttributesOnElement } from "../../Helper"
 
@@ -17,7 +17,7 @@
 
 <main
   class="
-  flex justify-between items-center w-full 
+  flex w-full items-center justify-between 
   "
   class:opacity-70={state === "HAS_PLAYED"}
   data-trackid={track.id}
@@ -27,11 +27,24 @@
   data-testQueuePlayedIndex={testQueuePlayedIndex}
 >
   <div class="flex gap-3">
-    <img src={track.coverPath} alt={track.title + "cover"} class="h-12 w-12" />
+    {#if track?.coverPath}
+      <img
+        src={track.coverPath}
+        alt={track?.title + "cover"}
+        class="h-12 w-12"
+        class:opacity-70={state === "HAS_PLAYED"}
+      />
+    {:else}
+      <div class="h-12 w-12 bg-grey-700" />
+    {/if}
     <div class="flex flex-col justify-center">
-      <div class="text-sm">{track.title}</div>
-      <div class="text-grey-300 text-sm">{track.artist}</div>
+      <div class="text-sm">{track?.title ? track.title : "Unknown"}</div>
+      <div class="text-sm text-grey-300">
+        {track?.artist ? track.artist : "Unknown"}
+      </div>
     </div>
   </div>
-  <IconClose class="w-6 h-6 text-grey-300" />
+  <div>
+    <IconClose class="h-6 w-6 text-grey-300" />
+  </div>
 </main>

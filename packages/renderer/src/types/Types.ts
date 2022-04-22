@@ -1,4 +1,4 @@
-import type { Track as ITrack } from "@prisma/client"
+import type { ITrack } from "@sing-types/Track"
 import { type SvelteComponentDev } from "svelte/internal"
 
 export type IPlayState = "PLAYING" | "PAUSED" | "STOPPED"

@@ -1,7 +1,5 @@
-import type { Track as ITrack } from "@prisma/client"
-
 function createPlayer() {
-  let audio = new Audio()
+  let audio = document.createElement("audio")
 
   audio.defaultPlaybackRate = 1
   // @ts-expect-error

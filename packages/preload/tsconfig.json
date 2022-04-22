@@ -9,8 +9,9 @@
     "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
     "paths": {
-      "@src/*": ["./src/*"],
-      "@sing-main/*": ["../main/src/*"]
+      "@/*": ["./src/*"],
+      "@sing-main/*": ["../main/src/*"],
+      "@sing-types/*": ["../../types/*"]
     },
 
     "types": ["node"],

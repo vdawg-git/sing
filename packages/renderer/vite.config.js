@@ -5,9 +5,7 @@ import { join } from "path"
 import { builtinModules } from "module"
 import { svelte } from "@sveltejs/vite-plugin-svelte"
 import Icons from "unplugin-icons/vite"
-import WindiCSS from "vite-plugin-windicss"
 import { promises as fs } from "fs"
-import { FileSystemIconLoader } from "unplugin-icons/loaders"
 
 const PACKAGE_ROOT = __dirname
 
@@ -20,12 +18,13 @@ const config = {
   root: PACKAGE_ROOT,
   resolve: {
     alias: {
-      "@/": join(PACKAGE_ROOT, "src") + "/",
-      "@sharedTypes/*": join(PACKAGE_ROOT, "..", "..", "types") + "/",
+      "@": join(PACKAGE_ROOT, "src") + "/",
+      "@sing-types": join(PACKAGE_ROOT, "..", "..", "types") + "/",
+      "@sing-main": join(PACKAGE_ROOT, "..", "main", "src") + "/",
+      "@sing-preload": join(PACKAGE_ROOT, "..", "preload", "src") + "/",
     },
   },
   plugins: [
-    WindiCSS(),
     Icons({
       compiler: "svelte",
       customCollections: {
@@ -36,7 +35,7 @@ const config = {
           ),
       },
     }),
-    svelte(),
+    svelte({ hot: !process.env.VITEST }),
   ],
   base: "",
   server: {
@@ -56,8 +55,12 @@ const config = {
     emptyOutDir: true,
     brotliSize: false,
   },
+  define: {
+    "import.meta.vitest": undefined,
+  },
   test: {
-    environment: "happy-dom",
+    environment: "jsdom",
+    globals: true,
   },
 }
 

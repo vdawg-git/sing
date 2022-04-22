@@ -6,7 +6,7 @@ async function createWindow() {
   const browserWindow = new BrowserWindow({
     width: 1280,
     height: 744,
-    show: false, // Use 'ready-to-show' event to show window
+    show: import.meta.env.DEV, // Use 'ready-to-show' event to show window whenin production
     webPreferences: {
       nativeWindowOpen: true,
       webviewTag: false, // The webview tag is not recommended. Consider alternatives like iframe or Electron's BrowserView. https://www.electronjs.org/docs/latest/api/webview-tag#warning
@@ -15,15 +15,17 @@ async function createWindow() {
       webSecurity: !import.meta.env.DEV,
     },
   })
-
+  browserWindow.removeMenu()
   /**
    * If you install `show: true` then it can cause issues when trying to close the window.
    * Use `show: false` and listener events `ready-to-show` to fix these issues.
    *
+   * Do however use it in dev to make location.reload() work properly
+   *
    * @see https://github.com/electron/electron/issues/25012
    */
   browserWindow.on("ready-to-show", () => {
-    browserWindow?.show()
+    if (!import.meta.env.DEV) browserWindow?.show()
 
     if (import.meta.env.DEV) {
       browserWindow?.webContents.openDevTools()
@@ -50,14 +52,11 @@ async function createWindow() {
  */
 export async function restoreOrCreateWindow() {
   let window = BrowserWindow.getAllWindows().find((w) => !w.isDestroyed())
-
   if (window === undefined) {
     window = await createWindow()
   }
-
   if (window.isMinimized()) {
     window.restore()
   }
-
   window.focus()
 }

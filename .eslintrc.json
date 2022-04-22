@@ -6,11 +6,12 @@
     "browser": false
   },
   "extends": [
-    "airbnb",
     "eslint:recommended",
     /** @see https://github.com/typescript-eslint/typescript-eslint/tree/master/packages/eslint-plugin#recommended-configs */
     "plugin:@typescript-eslint/recommended",
     "plugin:@recommended-requiring-type-checking",
+    "airbnb",
+    "plugin:unicorn/recommended",
     "prettier"
   ],
   "parser": "@typescript-eslint/parser",

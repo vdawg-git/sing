@@ -14,10 +14,14 @@ const prisma = createPrismaClient()
 
 export default async function syncDirectories() {
   const foldersToSync = userSettingsStore.get("musicFolders")
-  if (!foldersToSync)
-    throw new Error(
+  if (!foldersToSync) {
+    console.error(
       "No folders to sync from are saved in the user settings store"
     )
+
+    deleteNonExistentTracks([]) // delete all tracks
+    return { added: [] }
+  }
 
   const unresolvedDirs: Promise<IProccessedTrack[]>[] = []
 

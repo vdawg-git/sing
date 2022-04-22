@@ -14,7 +14,7 @@ const config = {
   envDir: process.cwd(),
   resolve: {
     alias: {
-      "@/": join(PACKAGE_ROOT, "src") + "/",
+      "@": join(PACKAGE_ROOT, "src") + "/",
     },
   },
   build: {
@@ -33,8 +33,6 @@ const config = {
         "electron-devtools-installer",
         "@prisma/client",
         "electron-store",
-        "@main/*",
-        "@main/lib/Crud",
         ...builtinModules.flatMap((p) => [p, `node:${p}`]),
       ],
       output: {

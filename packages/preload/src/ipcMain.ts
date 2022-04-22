@@ -1,8 +1,8 @@
 import type { Track } from "@prisma/client"
 import { IpcMainInvokeEvent, ipcMain } from "electron"
 import { app, dialog } from "electron"
-// @ts-expect-error
-import * as slash from "slash"
+import slash from "slash"
+import type { ITrack } from "@sing-types/Track"
 import { Tracks } from "../../main/src/lib/Crud"
 import syncDirectories from "../../main/src/lib/Sync"
 import userSettingsStore, {
@@ -12,7 +12,7 @@ import userSettingsStore, {
 import * as consts from "./Channels"
 
 export default function ipcInit(): void {
-  ipcMain.handle(consts.GET_TRACKS, async (_event): Promise<Track[]> => {
+  ipcMain.handle(consts.GET_TRACKS, async (_event): Promise<ITrack[]> => {
     return await Tracks.get({
       select: {
         id: true,
@@ -77,21 +77,4 @@ export default function ipcInit(): void {
     async (_event: IpcMainInvokeEvent, setting: IUserSettingsKey) =>
       userSettingsStore.get(setting)
   )
-
-  ipcMain.on(consts.TEST, (event, args: String[]) => {
-    console.log("TEST", args)
-    const testTracks = args.map((track, index) => {
-      return {
-        cover:
-          "file://C:UsersCHRISAppDataRoamingdroolcovers/2b468dbe7076ab7110b2b8bb1e95b0d2.jpeg",
-        id: index,
-        title: track,
-        artist: `artist ${track}`,
-        album: `album ${track}`,
-        duration: 1000,
-      }
-    })
-
-    event.sender.send("ttest", testTracks)
-  })
 }

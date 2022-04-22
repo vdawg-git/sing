@@ -8,7 +8,6 @@
   import QueueItem from "../atoms/QueueItem.svelte"
   import { fly } from "svelte/transition"
   import { sineInOut } from "svelte/easing"
-  import { flip } from "svelte/animate"
   import { writable, get } from "svelte/store"
   import { onDestroy } from "svelte"
 
@@ -34,14 +33,12 @@
 {#if show}
   <main
     class="
-      w-[25rem] bg-grey-700/60
-      h-[calc(100vh-2.5rem)]
-      absolute z-40 right-0 bottom-0
-      backdrop-blur-xl
-      rounded-3xl
-      border-grey-500 border
-      flex
+      absolute right-0 bottom-0 z-40 flex h-[calc(100vh-2.5rem)] w-[25rem]
       flex-col
+      rounded-3xl
+      border border-grey-500
+      bg-grey-700/60
+      backdrop-blur
 
     "
     transition:fly={{
@@ -52,72 +49,74 @@
     }}
     data-testid="queueBar"
   >
-    <div class="p-6 pb-0  grow-0 shrink-0">Play queue</div>
+    <div class=" backdrop-blur-none">
+      <div class="shrink-0 grow-0  p-6 pb-0">Play queue</div>
 
-    <div
-      class="
-        overflow-y-auto 
-        px-6 pr-4 pt-0 my-6 
-        flex flex-col gap-6
-        scrollbar
+      <div
+        class="
+        scrollbar 
+        my-6 flex flex-col gap-6 
+        overflow-y-auto px-6 pr-4
+        pt-0
       "
-      bind:this={scroller}
-      on:scroll={() => scrollPosition.set(scroller.scrollTop)}
-    >
-      <!---- Played Tracks --->
-      {#if $playedTracks.length > 0}
-        <div class="flex flex-col gap-2">
-          {#each $playedTracks as { track }, index (index)}
-            <QueueItem
-              {track}
-              state="HAS_PLAYED"
-              testid={index === $playIndex - 1
-                ? "queuePreviousTrack"
-                : undefined}
-              testQueuePlayedIndex={index}
-              testgroup="queueUPreviousTracks"
-            />
-          {/each}
-        </div>
-      {/if}
-
-      <!---- Currently playing track --->
-      <div class="">
-        <div class="mb-2 text-xs uppercase font-semibold text-grey-300">
-          Currently playing
-        </div>
-        <QueueItem
-          track={$currentTrack.track}
-          state="PLAYING"
-          testid="queueCurrentTrack"
-        />
-      </div>
-
-      <!---- Next Tracks --->
-      {#if $nextTracks.length > 0}
-        <div class="">
-          <div class="mb-2 text-xs uppercase font-semibold text-grey-300">
-            Next up
-          </div>
+        bind:this={scroller}
+        on:scroll={() => scrollPosition.set(scroller.scrollTop)}
+      >
+        <!---- Played Tracks --->
+        {#if $playedTracks.length > 0}
           <div class="flex flex-col gap-2">
-            {#each $nextTracks as { track }, index (index)}
+            {#each $playedTracks as { track }, index (index)}
               <QueueItem
                 {track}
-                testid={index === 0 ? "queueNextTrack" : undefined}
-                testQueueNextIndex={index}
-                testgroup="queueNextTracks"
+                state="HAS_PLAYED"
+                testid={index === $playIndex - 1
+                  ? "queuePreviousTrack"
+                  : undefined}
+                testQueuePlayedIndex={index}
+                testgroup="queueUPreviousTracks"
               />
             {/each}
           </div>
+        {/if}
+
+        <!---- Currently playing track --->
+        <div class="">
+          <div class="mb-2 text-xs font-semibold uppercase text-grey-300">
+            Currently playing
+          </div>
+          <QueueItem
+            track={$currentTrack.track}
+            state="PLAYING"
+            testid="queueCurrentTrack"
+          />
         </div>
-      {/if}
-      <!---- Spacer element for scrollbar --->
-      <div class="min-h-[4.5rem] w-full opacity-0" />
+
+        <!---- Next Tracks --->
+        {#if $nextTracks.length > 0}
+          <div class="">
+            <div class="mb-2 text-xs font-semibold uppercase text-grey-300">
+              Next up
+            </div>
+            <div class="flex flex-col gap-2">
+              {#each $nextTracks as { track }, index (index)}
+                <QueueItem
+                  {track}
+                  testid={index === 0 ? "queueNextTrack" : undefined}
+                  testQueueNextIndex={index}
+                  testgroup="queueNextTracks"
+                />
+              {/each}
+            </div>
+          </div>
+        {/if}
+        <!---- Spacer element for scrollbar --->
+        <div class="min-h-[4.5rem] w-full opacity-0" />
+      </div>
     </div>
   </main>
 {/if}
 
-<style>
+<style lang="postcss">
   .scrollbar {
     scrollbar-gutter: stable;
   }

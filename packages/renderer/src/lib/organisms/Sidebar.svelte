@@ -19,17 +19,17 @@
     { name: "Genre", icon: IconGenre, callback: tmp },
   ]
 
-  function tmp() {}
+  function tmp() {} // Callback function for the sidebar items
 </script>
 
 <div
-  class="custom_style w-[15.5rem] flex-shrink-0 h-screen bg-grey-800 rounded-2xl p-6"
+  class="custom_style h-screen w-[15.5rem] flex-shrink-0 rounded-2xl bg-grey-800 p-6"
 >
   <div class="mb-10 flex justify-between">
-    <Logo class="w-6 h-6  text-white/50" />
+    <Logo class="h-6 w-6  text-white/50" />
     <Menu>
       <MenuItem on:click={(e) => window.api.sync()}>
-        <IconRefresh slot="icon" class="text-grey-300 w-6 h-6 mr-3" />
+        <IconRefresh slot="icon" class="mr-3 h-6 w-6 text-grey-300" />
         <div slot="text">Refresh</div>
       </MenuItem>
     </Menu>
@@ -40,7 +40,7 @@
       <svelte:component
         this={menuItem.icon}
         slot="icon"
-        class="text-grey-300 w-6 h-6 mr-3"
+        class="mr-3 h-6 w-6 text-grey-300"
       />
       <div slot="text">{menuItem.name}</div>
     </SidebarItem>

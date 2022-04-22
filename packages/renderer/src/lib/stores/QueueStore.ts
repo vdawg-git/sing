@@ -1,6 +1,6 @@
 import { derived, writable } from "svelte/store"
-import type { IQueueItem } from "../../types/Types"
-import type { Track as ITrack } from "@prisma/client"
+import type { IQueueItem } from "@/types/Types"
+import type { ITrack } from "@sing-types/Track"
 
 function createQueueStore() {
   const { subscribe, set, update } = writable<IQueueItem[]>([])
