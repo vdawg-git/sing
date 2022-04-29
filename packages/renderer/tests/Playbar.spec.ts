@@ -34,6 +34,7 @@ describe("Playbar", async () => {
       it("does not display artist when store is undefined", () => {
         // @ts-expect-error
         const playbar = render(Playbar)
+
         expect(playbar.queryByTestId(id.playbarArtist)).toBeNull()
       })
 

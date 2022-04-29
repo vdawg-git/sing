@@ -20,7 +20,9 @@
 >
   <div
     on:click={() => (showModal = true)}
-    class="group flex w-full grow cursor-pointer flex-col items-center justify-center text-grey-300 transition-colors ease-in-out hover:text-white"
+    class="
+      group flex w-full grow cursor-pointer flex-col items-center justify-center text-grey-300 transition-colors ease-in-out hover:text-white
+      "
     data-testid="noContentModalButton"
   >
     <IconPlusCircle

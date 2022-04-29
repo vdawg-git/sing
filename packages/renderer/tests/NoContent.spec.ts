@@ -4,15 +4,9 @@ import { describe, expect, test } from "vitest"
 import { testIDs } from "./Consts"
 import MockedApi from "./MockElectronApi"
 
+window.api = MockedApi
+
 describe("No Content page", () => {
-  beforeEach(() => {
-    window.api = MockedApi
-  })
-
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-
   test("should render text", () => {
     const page = render(NoContent)
 
@@ -28,7 +22,6 @@ describe("No Content page", () => {
 
     const button = page.getByTestId(testIDs.noContentModalButton)
     await fireEvent.click(button)
-    console.log(testIDs.modal)
     expect(page.getByTestId(testIDs.modal)).toBeTruthy()
   })
 })

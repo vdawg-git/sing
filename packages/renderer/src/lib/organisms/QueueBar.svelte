@@ -11,7 +11,7 @@
   import { writable, get } from "svelte/store"
   import { onDestroy } from "svelte"
 
-  export let show = false
+  export let show: boolean
 
   const scrollPosition = writable(0)
   let scroller: HTMLElement
@@ -28,6 +28,8 @@
   function scrollToLastPosition() {
     scroller.scroll(0, get(scrollPosition))
   }
+
+  if (show === undefined) throw new Error("Prop `show` is undefined")
 </script>
 
 {#if show}
@@ -39,7 +41,6 @@
       border border-grey-500
       bg-grey-700/60
       backdrop-blur
-
     "
     transition:fly={{
       x: 400,
@@ -54,16 +55,16 @@
 
       <div
         class="
-        scrollbar 
-        my-6 flex flex-col gap-6 
-        overflow-y-auto px-6 pr-4
-        pt-0
-      "
+          scrollbar 
+          my-6 flex flex-col gap-6 
+          overflow-y-auto px-6 pr-4
+          pt-0
+        "
         bind:this={scroller}
         on:scroll={() => scrollPosition.set(scroller.scrollTop)}
       >
         <!---- Played Tracks --->
-        {#if $playedTracks.length > 0}
+        {#if $playedTracks}
           <div class="flex flex-col gap-2">
             {#each $playedTracks as { track }, index (index)}
               <QueueItem
@@ -80,19 +81,21 @@
         {/if}
 
         <!---- Currently playing track --->
-        <div class="">
-          <div class="mb-2 text-xs font-semibold uppercase text-grey-300">
-            Currently playing
+        {#if $currentTrack}
+          <div class="">
+            <div class="mb-2 text-xs font-semibold uppercase text-grey-300">
+              Currently playing
+            </div>
+            <QueueItem
+              track={$currentTrack.track}
+              state="PLAYING"
+              testid="queueCurrentTrack"
+            />
           </div>
-          <QueueItem
-            track={$currentTrack.track}
-            state="PLAYING"
-            testid="queueCurrentTrack"
-          />
-        </div>
+        {/if}
 
         <!---- Next Tracks --->
-        {#if $nextTracks.length > 0}
+        {#if $nextTracks}
           <div class="">
             <div class="mb-2 text-xs font-semibold uppercase text-grey-300">
               Next up
@@ -116,8 +119,8 @@
   </main>
 {/if}
 
-<style lang="postcss">
-  .scrollbar {
+<style>
+  /* .scrollbar {
     scrollbar-gutter: stable;
   }
 
@@ -133,5 +136,5 @@
   .scrollbar::-webkit-scrollbar-thumb {
     @apply bg-grey-600;
     border-radius: 9999px;
-  }
+  } */
 </style>
