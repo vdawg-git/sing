@@ -4,23 +4,42 @@ import c from "ansicolor"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { readable, writable } from "svelte/store"
 import mockElectronApi from "./MockElectronApi"
-import mockedPlayer from "./__mocks__/@/lib/manager/Player"
+import mockedPlayer from "./mocks/Player"
 import mockTracksData from "./MockTracksData"
 import type { SvelteComponentDev } from "svelte/internal"
 import tracksStore from "@/lib/stores/TracksStore"
 
 vi.mock("@/lib/manager/Player", () => mockedPlayer)
+vi.mock("@/lib/stores/TracksStore", () => {
+  return {
+    default: { subscribe: vi.fn(writable(mockTracksData).subscribe) },
+  }
+})
+
+vi.mocked(tracksStore.subscribe).mockImplementation((callback) => {
+  console.log("Mocked callback called")
+
+  callback([])
+
+  return vi.fn()
+})
+
+import QueueBarComponent from "@/lib/organisms/QueueBar.svelte"
 window.api = mockElectronApi
 
-let QueueBarComponent: typeof SvelteComponentDev
+// const tracksStoreSpy = vi.spyOn(tracksStore, "subscribe")
+
+// tracksStoreSpy.mockImplementation((callback) => {
+//   console.log("Mock store to be empty")
+
+//   callback([])
+
+//   return vi.fn()
+// })
 
 describe("behaves correctly when the queue has valid tracks", async () => {
   beforeEach(async () => {
     console.log(c.magenta("beforeEach Queue filled"))
-
-    QueueBarComponent = (await import(
-      "@/lib/organisms/QueueBar.svelte"
-    )) as unknown as typeof SvelteComponentDev
   })
 
   it("displays upcoming queue items", async () => {
@@ -35,7 +54,7 @@ describe("behaves correctly when the queue has valid tracks", async () => {
     expect(elements.length >= 1).toBeTruthy()
   })
 
-  it("displays no played queue items yet", () => {
+  it("displays no played queue items yet", async () => {
     console.log(c.magenta("Queue  filled test"))
 
     const { container } = render(QueueBarComponent, { show: true })
@@ -68,10 +87,6 @@ describe("behaves correctly when queue is empty", async () => {
     console.log(c.blue("beforeEach Queue empty"))
 
     window.api.getTracks = async () => []
-
-    QueueBarComponent = (await import(
-      "@/lib/organisms/QueueBar.svelte"
-    )) as unknown as typeof SvelteComponentDev
   })
 
   afterEach(() => {

@@ -5,7 +5,7 @@ import c from "ansicolor"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { readable, writable } from "svelte/store"
 import MockElectronApi from "./MockElectronApi"
-import mockedPlayer from "./__mocks__/@/lib/manager/Player"
+import mockedPlayer from "./mocks/Player"
 import MockTracksData from "./MockTracksData"
 // import Playbar from "@/lib/organisms/Playbar.svelte"
 
