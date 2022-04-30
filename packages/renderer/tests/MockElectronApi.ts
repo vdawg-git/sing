@@ -7,10 +7,11 @@ import type {
 } from "@sing-main/lib/UserSettings"
 import * as consts from "@sing-preload/Channels"
 import tracksData from "./MockTracksData"
+import { vi } from "vitest"
 
 function createMockedElectronAPI(): typeof IipcRenderer {
   return {
-    getTracks,
+    getTracks: vi.fn(() => getTracks()),
     sync,
     setUserSettings,
     openDirectory,

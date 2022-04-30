@@ -7,39 +7,40 @@ import mockElectronApi from "./MockElectronApi"
 import mockedPlayer from "./mocks/Player"
 import mockTracksData from "./MockTracksData"
 import type { SvelteComponentDev } from "svelte/internal"
-import tracksStore from "@/lib/stores/TracksStore"
 
 vi.mock("@/lib/manager/Player", () => mockedPlayer)
-vi.mock("@/lib/stores/TracksStore", () => {
-  return {
-    default: { subscribe: vi.fn(writable(mockTracksData).subscribe) },
-  }
-})
+// vi.mock("@/lib/stores/TracksStore", () => {
+//   return {
+//     default: { subscribe: vi.fn(writable(mockTracksData).subscribe) },
+//   }
+// })
 
-vi.mocked(tracksStore.subscribe).mockImplementation((callback) => {
-  console.log("Mocked callback called")
-
-  callback([])
-
-  return vi.fn()
-})
-
-import QueueBarComponent from "@/lib/organisms/QueueBar.svelte"
-window.api = mockElectronApi
-
-// const tracksStoreSpy = vi.spyOn(tracksStore, "subscribe")
-
-// tracksStoreSpy.mockImplementation((callback) => {
-//   console.log("Mock store to be empty")
+// vi.mocked(tracksStore.subscribe).mockImplementation((callback) => {
+//   console.log("Mocked callback called")
 
 //   callback([])
 
 //   return vi.fn()
 // })
 
+vi.stubGlobal("api", mockElectronApi)
+
+let QueueBarComponent: typeof SvelteComponentDev
+// afterEach(async () => {
+//   vitest.resetModules()
+// })
+
+beforeAll(() => {
+  vitest.resetModules()
+})
+
 describe("behaves correctly when the queue has valid tracks", async () => {
   beforeEach(async () => {
     console.log(c.magenta("beforeEach Queue filled"))
+
+    QueueBarComponent = (await import(
+      "@/lib/organisms/QueueBar.svelte"
+    )) as unknown as typeof SvelteComponentDev
   })
 
   it("displays upcoming queue items", async () => {
@@ -86,11 +87,19 @@ describe("behaves correctly when queue is empty", async () => {
   beforeEach(async () => {
     console.log(c.blue("beforeEach Queue empty"))
 
-    window.api.getTracks = async () => []
+    vitest.mocked(window.api.getTracks).mockImplementation(async () => {
+      console.log(c.blue.bgBlack("Get tracks mocked as empty"))
+
+      return []
+    })
+
+    QueueBarComponent = (await import(
+      "@/lib/organisms/QueueBar.svelte"
+    )) as unknown as typeof SvelteComponentDev
   })
 
-  afterEach(() => {
-    window.api.getTracks = async () => mockTracksData
+  afterEach(async () => {
+    vi.resetModules()
   })
 
   it("does not display items as already played", () => {
@@ -107,7 +116,6 @@ describe("behaves correctly when queue is empty", async () => {
 
   it("does not display items as upcoming", async () => {
     console.log(c.blue("Queue empty test"))
-    console.log(await window.api.getTracks())
 
     const component = render(QueueBarComponent, { show: true })
 
