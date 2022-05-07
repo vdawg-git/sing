@@ -23,7 +23,7 @@
 </script>
 
 <div
-  class="custom_style h-screen w-[15.5rem] flex-shrink-0 rounded-2xl bg-grey-800 p-6"
+  class="custom_style h-screen w-[15.5rem] flex-shrink-0 rounded-3xl bg-grey-800/50 p-6 outline outline-1 outline-grey-200/20"
 >
   <div class="mb-10 flex justify-between">
     <Logo class="h-6 w-6  text-white/50" />
@@ -49,8 +49,6 @@
 
 <style>
   .custom_style {
-    box-shadow: 0px 0px 24px 0px rgba(0, 0, 0, 0.5),
-      0px 0px 4px 0px rgba(0, 0, 0, 1),
-      inset 4px 4px 8px 0px rgba(255, 255, 255, 0.04);
+    box-shadow: 0px 0px 24px 0px rgba(0, 0, 0, 0.5);
   }
 </style>

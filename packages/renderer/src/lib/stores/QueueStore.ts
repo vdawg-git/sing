@@ -18,8 +18,8 @@ function createQueueStore() {
         .slice(currentIndex)
         .filter((item) => item.isManuallyAdded)
 
-      const newQueueItems: IQueueItem[] = tracks.map((track, index) => {
-        return { isManuallyAdded: false, track, index: index + $queue.length }
+      const newQueueItems: IQueueItem[] = tracks.map((track) => {
+        return { isManuallyAdded: false, track, queueID: Symbol() }
       })
 
       return [...played, ...manuallyAdded, ...newQueueItems]
@@ -32,10 +32,10 @@ function createQueueStore() {
 
   function setCurrent(track: ITrack, index: number) {
     update(($queue) => {
-      const newQueueItem = {
+      const newQueueItem: IQueueItem = {
         isManuallyAdded: false,
         track,
-        index,
+        queueID: Symbol(track?.title + " " + "queueID"),
       }
       $queue.splice(index, 0, newQueueItem)
       return $queue

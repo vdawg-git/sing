@@ -1,5 +1,5 @@
 <script lang="ts">
-  import TrackItem from "../molecules/trackItem.svelte"
+  import TrackItem from "../molecules/TrackItem.svelte"
   import NoContent from "../organisms/NoContent.svelte"
   import Tracks from "@/lib/stores/TracksStore"
   import player from "../manager/PlayerManager"
@@ -22,16 +22,22 @@
       {#if tracks.length === 0}
         <NoContent />
       {:else}
-        <div class="w-full  table border-collapse">
+        <div class="w-full flex flex-col">
           <div
-            class="table-header-group uppercase text-left  text-xs text-grey-300"
+            class="
+              uppercase text-left text-xs text-grey-300 
+              w-full flex py-4
+            "
           >
-            <div class="table-cell p-4 pl-16 pb-6">Track</div>
-            <div class="table-cell p-4 pl-2 ">Artist</div>
-            <div class="table-cell p-4 pl-2">Album</div>
-            <div class="table-cell p-4 pr-0 text-right">Length</div>
+            <div class="mr-6 flex flex-1 basis-44">
+              <div class="w-16" />
+              <div>Track</div>
+            </div>
+            <div class="mr-6 flex-1 basis-32">Artist</div>
+            <div class="mr-6 flex-1 basis-32">Album</div>
+            <div class="text-right flex-1 basis-12">Length</div>
           </div>
-          <div class="table-row-group">
+          <div class="w-full">
             {#each tracks as track, index}
               <TrackItem
                 {track}
@@ -41,7 +47,7 @@
             {/each}
           </div>
           <!---- Add empty element to make allow scrolling elements behind playbar -->
-          <div class="table-row-group h-24" />
+          <div class=" h-24 w-full" />
         </div>
       {/if}
     {/await}

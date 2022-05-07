@@ -82,6 +82,6 @@ function createPlayer() {
 }
 
 // type IPlaySatus = "PAUSED" | "PLAYING" | "STOPPED"
-const player = createPlayer()
+const audioPlayer = createPlayer()
 
-export default player
+export default audioPlayer

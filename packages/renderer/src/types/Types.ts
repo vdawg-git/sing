@@ -1,5 +1,4 @@
 import type { ITrack } from "@sing-types/Track"
-import { type SvelteComponentDev } from "svelte/internal"
 
 export type IPlayState = "PLAYING" | "PAUSED" | "STOPPED"
 export type ISourceType =
@@ -11,10 +10,9 @@ export type ISourceType =
   | "ARTIST"
 export type IPlayMode = "DEFAULT" | "REPEAT" | "SHUFFLE"
 export type IPlayLoop = "NONE" | "LOOP_QUEUE" | "LOOP_TRACK"
-export type ILazyQueue = (index: number) => ITrack | undefined
 
 export interface IQueueItem {
-  index: number
-  isManuallyAdded: boolean
-  track: ITrack
+  readonly queueID: symbol
+  readonly isManuallyAdded: boolean
+  readonly track: ITrack
 }

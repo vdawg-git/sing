@@ -1,4 +1,4 @@
-import { writable, type Unsubscriber } from "svelte/store"
+import { writable } from "svelte/store"
 
 function createIndexStore() {
   const { set, update, subscribe } = writable(0)

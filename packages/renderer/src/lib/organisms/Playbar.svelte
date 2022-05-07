@@ -6,6 +6,8 @@
   import IconQueue from "virtual:icons/heroicons-outline/view-list"
   import IconRepeat from "virtual:icons/fluent/arrow-repeat-all-16-filled"
   import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
+  import QueueBar from "./QueueBar.svelte"
+  import { secondsToDuration } from "@/Helper"
 
   import player, { currentTrack, playState } from "@/lib/manager/PlayerManager"
   import { createEventDispatcher } from "svelte"
@@ -15,10 +17,15 @@
 
   $: track = $currentTrack?.track
 
-  let progress = 0
+  let trackProgress = 0
+  let showQueue = false
+
+  function handleClickQueueIcon() {
+    showQueue = !showQueue
+  }
 </script>
 
-<div
+<main
   class="
     custom_shadow absolute inset-x-0  bottom-0 
     z-50 grid h-[6rem] w-full 
@@ -34,10 +41,10 @@
     class="mr-6 flex max-w-fit shrink grow basis-[20rem] gap-4 overflow-hidden text-ellipsis"
   >
     <!---- Cover -->
-    {#if track?.title}
+    {#if track?.coverPath}
       <img
         class="h-14 w-14 bg-grey-600"
-        alt={track?.title + " " + " cover"}
+        alt={track?.title || "Title" + " " + " cover"}
         src={track?.coverPath}
         data-testid="playbarCover"
       />
@@ -127,13 +134,16 @@
       >
         <div
           class="h-1 rounded-full bg-grey-300"
-          style="width: {progress * 100}%;"
+          style="width: {trackProgress * 100}%;"
           data-testid="seekbarProgressbar"
-          data-progress={progress * 100}
+          data-progress={trackProgress * 100}
         />
       </div>
-      <div class="text-xs text-grey-300" data-testid="seekbaarDuriation">
-        {!!track ? track.duration : ""}
+      <div
+        class="min-w-[1.5rem] text-right text-xs text-grey-300"
+        data-testid="seekbaarDuriation"
+      >
+        {!!track ? secondsToDuration(track.duration || 0) : ""}
       </div>
     </div>
   </div>
@@ -155,11 +165,16 @@
       class="button  "
       data-testid="playbarQueueIcon"
       disabled={!track}
+      on:click={handleClickQueueIcon}
     >
       <IconQueue class="h-6 w-6  sm:h-6" />
     </button>
   </div>
-</div>
+</main>
+
+{#if showQueue}
+  <QueueBar />
+{/if}
 
 <style lang="postcss">
   .custom_shadow {

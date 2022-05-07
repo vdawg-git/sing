@@ -1,6 +1,5 @@
 import type * as IipcRenderer from "@sing-preload/ipcRenderer"
 import type { ITrack } from "@sing-types/Track"
-
 import type {
   IUserSettings,
   IUserSettingsKey,
@@ -35,22 +34,21 @@ async function sync() {
 }
 
 async function setUserSettings<Key extends IUserSettingsKey>(
-  setting: Key,
-  value: IUserSettings[Key]
+  _setting: Key,
+  _value: IUserSettings[Key]
 ) {
   return
 }
 
-async function openDirectory(options: Electron.OpenDialogOptions = {}) {
+async function openDirectory(_options: Electron.OpenDialogOptions = {}) {
   return "F:/test/test"
 }
 async function openMusicFolder() {
   return "F:/test/music"
 }
 
-async function getPath(name: string) {
+async function getPath(_name: string) {
   throw new Error("not implemented")
-  return
 }
 
 async function getUserSetting(setting: IUserSettingsKey) {
@@ -69,7 +67,7 @@ async function getUserSetting(setting: IUserSettingsKey) {
 
 function listen(
   channel: typeof consts.listener[number],
-  callback: (args: any) => any
+  _callback: (args: any) => any
 ) {
   if (!consts.listener.includes(channel))
     throw new Error(`Invalid channel to listen to: ${channel}`)
@@ -79,7 +77,7 @@ function listen(
 
 function removeListener(
   channel: typeof consts.listener[number],
-  callback: (args: any) => any
+  _callback: (args: any) => any
 ) {
   if (!consts.listener.includes(channel))
     throw new Error(`Invalid channel to listen to: ${channel}`)
@@ -87,6 +85,6 @@ function removeListener(
   return
 }
 
-function send(channel: typeof consts.listener[number], message: string) {
+function send(_channel: typeof consts.listener[number], _message: string) {
   return
 }

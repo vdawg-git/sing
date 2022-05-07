@@ -64,7 +64,7 @@ export function truncatePath(path: string, length: number): string {
 
 export function secondsToDuration(seconds: number) {
   const minutes = Math.floor(seconds / 60)
-  const sec = (seconds % 60).toPrecision(2)
+  const sec = String(Math.round(seconds % 60)).padStart(2, "0")
 
   return minutes + ":" + sec
 }

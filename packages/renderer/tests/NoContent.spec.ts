@@ -1,13 +1,13 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/svelte"
+import { fireEvent, render, screen } from "@testing-library/svelte"
 import NoContent from "../src/lib/organisms/NoContent.svelte"
-import { describe, expect, test } from "vitest"
-import { testIDs } from "./Consts"
+import { describe, expect, it } from "vitest"
+import { TEST_IDS } from "../src/Consts"
 import MockedApi from "./MockElectronApi"
 
 window.api = MockedApi
 
 describe("No Content page", () => {
-  test("should render text", () => {
+  it("should render text", () => {
     const page = render(NoContent)
 
     expect(
@@ -17,11 +17,19 @@ describe("No Content page", () => {
     ).toBeTruthy()
   })
 
-  test("opens modal when clicked", async () => {
+  it("does not show the modal on load", async () => {
+    render(NoContent)
+
+    expect(screen.queryByTestId(TEST_IDS.modal)).toBeNull()
+  })
+
+  it("opens modal when clicked", async () => {
     const page = render(NoContent)
 
-    const button = page.getByTestId(testIDs.noContentModalButton)
+    const button = page.getByTestId(TEST_IDS.noContentModalButton)
+    expect(page.queryByTestId(TEST_IDS.modal)).toBeNull()
+
     await fireEvent.click(button)
-    expect(page.getByTestId(testIDs.modal)).toBeTruthy()
+    expect(page.getByTestId(TEST_IDS.modal)).toBeTruthy()
   })
 })
