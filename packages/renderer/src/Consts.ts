@@ -66,7 +66,7 @@ export const TEST_IDS: ITestIDs = testIDNames.reduce((acc, name) => {
 
 export const TEST_GROUPS: ITestGroups = testGroupNames.reduce((acc, name) => {
   if (!acc?.asQuery) acc["asQuery"] = {}
-  acc[name] = `[data-testgroup=${name}]`
+  acc[name] = name
   acc.asQuery[name] = `[data-testgroup=${name}]`
 
   return acc

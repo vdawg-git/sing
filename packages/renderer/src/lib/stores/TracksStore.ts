@@ -29,7 +29,7 @@ function updateStore(set: Subscriber<ITrack[] | Promise<ITrack[]>>) {
   function updateStore(tracks: ITrack[]) {
     if (!tracks) {
       console.group(
-        picocolors.red("Received tracks at tracksStore -> update are not valid")
+        picocolors.red("Received tracks at tracksStore -> update is not valid")
       )
       console.error(tracks)
       console.groupEnd()

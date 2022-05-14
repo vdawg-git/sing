@@ -3,9 +3,6 @@
   import MyTracks from "./lib/pages/MyTracks.svelte"
   import Playbar from "./lib/organisms/Playbar.svelte"
   import tracksStore from "@/lib/stores/TracksStore"
-  import c from "ansicolor"
-
-  console.log(c.bgGreen.underline(" XXXX "))
 
   tracksStore.subscribe((_) => {})
 

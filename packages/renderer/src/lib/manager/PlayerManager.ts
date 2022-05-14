@@ -1,8 +1,11 @@
+import { derived, writable } from "svelte/store"
 import audioPlayer from "@/lib/manager/AudioPlayer"
 import queueStore from "@/lib/stores/QueueStore"
+import tracksStore from "@/lib/stores/TracksStore"
+import indexStore from "@/lib/stores/PlayIndex"
 import type { ITrack } from "@sing-types/Track"
-import { derived, writable } from "svelte/store"
 import type { Unsubscriber } from "svelte/store"
+import { get } from "svelte/store"
 import type {
   IQueueItem,
   IPlayLoop,
@@ -10,8 +13,6 @@ import type {
   IPlayState,
   ISourceType,
 } from "@/types/Types"
-import tracksStore from "@/lib/stores/TracksStore"
-import indexStore from "@/lib/stores/PlayIndex"
 
 // Create stores / state
 const playLoopStore = writable<IPlayLoop>("NONE")
@@ -57,7 +58,7 @@ function createPlayerManager() {
   let $sourceID: String = ""
   let $playState: IPlayState = "STOPPED"
   let $queue: IQueueItem[] = []
-  let $index: number = -1
+  let $currentIndex: number = -1
   let $currentTrack: IQueueItem
   let $volume = 1
 
@@ -67,7 +68,7 @@ function createPlayerManager() {
       $queue = $newQueue
     }),
     indexStore.subscribe(($newIndex) => {
-      $index = $newIndex
+      $currentIndex = $newIndex
     }),
     playLoopStore.subscribe(($loop) => ($playLoop = $loop)),
     playModeStore.subscribe(($mode) => ($playMode = $mode)),
@@ -81,14 +82,16 @@ function createPlayerManager() {
   ]
 
   return {
-    playSource,
-    pause,
-    next,
-    previous,
-    setMuted,
-    isMuted,
-    resume,
+    deleteQueueItemAtIndex,
     destroy,
+    isMuted,
+    next,
+    pause,
+    playQueueIndex,
+    playSource,
+    previous,
+    resume,
+    setMuted,
   }
 
   /**
@@ -101,14 +104,14 @@ function createPlayerManager() {
     fromIndex: number
   ) {
     indexStore.increment()
-    queueStore.setCurrent(track, $index)
+    queueStore.setCurrent(track, $currentIndex)
 
     const sourcePreviousTracks = sourceTracks.slice(0, fromIndex)
     const sourceUpcomingTracks = sourceTracks.slice(fromIndex + 1) // +1 to remove the new current track of it
 
     queueStore.setUpcomingFromSource(
       [...sourceUpcomingTracks, ...sourcePreviousTracks],
-      $index + 1
+      $currentIndex + 1
     )
 
     playTrack($currentTrack.track)
@@ -166,23 +169,35 @@ function createPlayerManager() {
     audioPlayer.pause()
     audioPlayer.setSource("")
   }
+
+  function playQueueIndex(index: number): void {
+    indexStore.set(index)
+
+    audioPlayer.play($currentTrack.track.filepath)
+  }
+
+  function deleteQueueItemAtIndex(index: number): void {
+    queueStore.deleteIndex(index)
+
+    if ($currentTrack.index === index && $playState === "PLAYING") {
+      next()
+    }
+  }
 }
 
-function initStores() {
-  const unsubTracks = tracksStore.subscribe(async ($tracks) => {
-    $tracks = await $tracks
-    if (!$tracks.length) return
+async function initStores() {
+  const tracks = await get(tracksStore)
 
-    const queueItems: IQueueItem[] = $tracks.map((track) => {
-      return {
-        isManuallyAdded: false,
-        track,
-        queueID: Symbol(track?.title + " " + "queueID"),
-      }
-    })
-    queueStore.set(queueItems)
-    indexStore.set(0)
-    // player.setSource($tracks[0].filepath)
+  if (!tracks.length) return
+
+  const queueItems: IQueueItem[] = tracks.map((track, index) => {
+    return {
+      index,
+      isManuallyAdded: false,
+      track,
+      queueID: Symbol(track?.title + " " + "queueID"),
+    }
   })
-  unsubTracks()
+  queueStore.set(queueItems)
+  indexStore.set(0)
 }

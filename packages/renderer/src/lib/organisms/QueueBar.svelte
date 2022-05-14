@@ -29,14 +29,12 @@
   function scrollToLastPosition() {
     scroller.scroll(0, scrollPosition)
   }
-
-  function handlePlay() {}
 </script>
 
 <main
   class="
     custom 
-    absolute right-6 bottom-0 z-40 
+    absolute right-6   bottom-0 z-40 
     h-[calc(100vh-5.5rem)] w-[25rem]
     rounded-3xl border border-grey-500 bg-grey-800/80
     backdrop-blur-md
@@ -46,7 +44,6 @@
     duration: 600,
     easing: sineInOut,
     opacity: 100,
-    delay: 10,
   }}
   data-testid="queueBar"
 >
@@ -83,7 +80,7 @@
                 : undefined}
               testQueuePlayedIndex={index}
               testgroup="queuePreviousTracks"
-              on:play={handlePlay}
+              on:dblclick={() => player.playQueueIndex(queueItemData.index)}
             />
           {/each}
         </div>
@@ -99,7 +96,7 @@
             queueItemData={$currentTrack}
             state="PLAYING"
             testId="queueCurrentTrack"
-            on:play={handlePlay}
+            on:dblclick={() => player.pause()}
           />
         </div>
       {/if}
@@ -117,7 +114,7 @@
                 testId={index === 0 ? "queueNextTrack" : undefined}
                 testQueueNextIndex={index}
                 testgroup="queueNextTracks"
-                on:play={handlePlay}
+                on:dblclick={() => player.playQueueIndex(queueItemData.index)}
               />
             {/each}
           </div>

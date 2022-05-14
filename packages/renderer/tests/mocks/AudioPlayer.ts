@@ -1,4 +1,5 @@
 function createPlayer() {
+  let testIsPlaying = false
   let audio = document.createElement("audio")
 
   audio.defaultPlaybackRate = 1
@@ -54,16 +55,8 @@ function createPlayer() {
   }
 
   function play(src: string): void {
-    console.log(`Playing ${src}`)
     setSource(src)
-    try {
-      audio.play()
-    } catch (e) {
-      console.group("Error with play in player")
-      console.error(e)
-      console.error(`filepath: \t ${src}`)
-      console.groupEnd()
-    }
+    testIsPlaying = true
   }
 
   function setSource(src: string) {
@@ -75,8 +68,7 @@ function createPlayer() {
   }
 
   function setOutputDevice(output: string) {
-    // @ts-expect-error
-    audio.setSinkId(output)
+    // audio.setSinkId(output)
   }
 }
 

@@ -4,7 +4,7 @@
   import type { IQueueItem } from "@/types/Types"
   import { createEventDispatcher } from "svelte"
   import IconClose from "virtual:icons/heroicons-outline/x"
-  import { TEST_IDS } from "@/Consts"
+  import { TEST_IDS, TEST_GROUPS } from "@/Consts"
   type ITestIDs =
     | typeof TEST_IDS.queueCurrentTrack
     | typeof TEST_IDS.queuePreviousTrack
@@ -41,12 +41,6 @@
   $: track = queueItemData.track
 
   const dispatch = createEventDispatcher()
-
-  function handleDoubleClick(): void {
-    dispatch("play", {
-      queueItemData,
-    })
-  }
 </script>
 
 <main
@@ -60,7 +54,7 @@
   data-testgroup={testgroup}
   data-testQueueNextIndex={testQueueNextIndex}
   data-testQueuePlayedIndex={testQueuePlayedIndex}
-  on:dblclick={handleDoubleClick}
+  on:dblclick
 >
   <div class="flex grow gap-3">
     {#if track?.coverPath}
@@ -88,7 +82,7 @@
       </span>
     </div>
   </div>
-  <div class="shrink-0 grow-0">
+  <div class="shrink-0 grow-0" data-testgroup={TEST_GROUPS.queueItemDeleteIcon}>
     <IconClose class="mr-2 h-6 w-6 text-grey-300 hover:text-white" />
   </div>
   <div

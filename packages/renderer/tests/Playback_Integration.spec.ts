@@ -9,7 +9,7 @@ import {
 } from "@testing-library/svelte"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import mockElectronApi from "./MockElectronApi"
-import mockedPlayer from "./mocks/Player"
+import mockedPlayer from "./mocks/AudioPlayer"
 import type { SvelteComponentDev } from "svelte/internal"
 import type { ITrack } from "@sing-types/Track"
 import mockedTracksData from "./MockTracksData"

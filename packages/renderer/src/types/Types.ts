@@ -12,6 +12,7 @@ export type IPlayMode = "DEFAULT" | "REPEAT" | "SHUFFLE"
 export type IPlayLoop = "NONE" | "LOOP_QUEUE" | "LOOP_TRACK"
 
 export interface IQueueItem {
+  index: number
   readonly queueID: symbol
   readonly isManuallyAdded: boolean
   readonly track: ITrack

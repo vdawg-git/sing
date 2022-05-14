@@ -5,34 +5,43 @@ import type { ITrack } from "@sing-types/Track"
 function createQueueStore() {
   const { subscribe, set, update } = writable<IQueueItem[]>([])
 
-  return { subscribe, reset, set, update, setUpcomingFromSource, setCurrent }
+  return {
+    subscribe,
+    reset,
+    set,
+    update,
+    setUpcomingFromSource,
+    setCurrent,
+    deleteIndex: (index: number | number[]) =>
+      update(($queue) => {
+        return deleteIndex($queue, index)
+      }),
+  }
 
   function reset(index: number): void {
     update(($queue) => $queue.slice(0, index + 1))
   }
 
-  function setUpcomingFromSource(tracks: ITrack[], currentIndex: number) {
+  function setUpcomingFromSource(tracks: ITrack[], queueIndex: number): void {
     update(($queue) => {
-      const played = $queue.slice(0, currentIndex)
+      const played = $queue.slice(0, queueIndex)
       const manuallyAdded = $queue
-        .slice(currentIndex)
+        .slice(queueIndex)
         .filter((item) => item.isManuallyAdded)
 
-      const newQueueItems: IQueueItem[] = tracks.map((track) => {
-        return { isManuallyAdded: false, track, queueID: Symbol() }
-      })
+      const newQueueItems: IQueueItem[] = mapTracksToQueueItem(
+        tracks,
+        queueIndex
+      )
 
       return [...played, ...manuallyAdded, ...newQueueItems]
     })
   }
 
-  function setPlayNext() {}
-
-  function setPlayLater() {}
-
   function setCurrent(track: ITrack, index: number) {
     update(($queue) => {
       const newQueueItem: IQueueItem = {
+        index,
         isManuallyAdded: false,
         track,
         queueID: Symbol(track?.title + " " + "queueID"),
@@ -41,6 +50,37 @@ function createQueueStore() {
       return $queue
     })
   }
+}
+
+export function mapTracksToQueueItem(
+  tracks: ITrack[],
+  continueFromIndex: number
+): IQueueItem[] {
+  return tracks.map((track, i) => {
+    return {
+      index: continueFromIndex + i,
+      queueID: Symbol(track?.title + " " + "queueID"),
+      track,
+      isManuallyAdded: false,
+    }
+  })
+}
+
+export function remapIndexes(
+  queueItems: IQueueItem[],
+  continueFromIndex: number
+): IQueueItem[] {
+  return queueItems.map((item, i) => {
+    item.index = continueFromIndex + 1 + i
+    return item
+  })
+}
+
+export function deleteIndex(
+  queueItems: IQueueItem[],
+  indexes: number[] | number
+): IQueueItem[] {
+  return queueItems.filter(() => {})
 }
 
 const queue = createQueueStore()

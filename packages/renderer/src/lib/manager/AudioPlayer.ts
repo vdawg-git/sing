@@ -1,5 +1,5 @@
 function createPlayer() {
-  let audio = document.createElement("audio")
+  let audio = new window.Audio()
 
   audio.defaultPlaybackRate = 1
   // @ts-expect-error
