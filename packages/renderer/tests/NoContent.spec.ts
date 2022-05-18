@@ -1,10 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/svelte"
-import NoContent from "../src/lib/organisms/NoContent.svelte"
+import NoContent from "@/lib/organisms/NoContent.svelte"
 import { describe, expect, it } from "vitest"
-import { TEST_IDS } from "../src/Consts"
+import { TEST_IDS } from "@/Consts"
 import MockedApi from "./MockElectronApi"
 
-window.api = MockedApi
+vi.stubGlobal("api", MockedApi)
 
 describe("No Content page", () => {
   it("should render text", () => {

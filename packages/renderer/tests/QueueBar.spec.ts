@@ -12,13 +12,20 @@ import mockElectronApi from "./MockElectronApi"
 import mockedPlayer from "./mocks/AudioPlayer"
 import type { SvelteComponentDev } from "svelte/internal"
 import type { ITrack } from "@sing-types/Track"
-import mockedTracksData from "./MockTracksData"
+import trackFactory from "./factories/trackFactory"
+
+const mockedTracks = trackFactory.buildList(20)
+
 vi.mock("@/lib/manager/AudioPlayer", () => {
   return { default: mockedPlayer }
 })
 vi.stubGlobal("api", mockElectronApi)
 
-import { currentTrack, nextTracks } from "@/lib/manager/PlayerManager"
+import {
+  currentTrack,
+  nextTracks,
+  playState,
+} from "@/lib/manager/PlayerManager"
 import { get } from "svelte/store"
 
 let QueueBarComponent: typeof SvelteComponentDev
@@ -31,11 +38,11 @@ beforeEach(async () => {
   )) as unknown as typeof SvelteComponentDev
 })
 
-describe("behaves correctly when the queue has valid tracks", async () => {
+describe("with valid data", async () => {
   beforeEach(async () => {
     vitest
       .mocked(window.api.getTracks)
-      .mockImplementation(async (): Promise<ITrack[]> => mockedTracksData)
+      .mockImplementation(async (): Promise<ITrack[]> => mockedTracks)
   })
 
   describe("displays", async () => {
@@ -69,7 +76,7 @@ describe("behaves correctly when the queue has valid tracks", async () => {
       vitest
         .mocked(window.api.getTracks)
         .mockImplementationOnce(async (): Promise<ITrack[]> => {
-          const data = Array(21).fill(mockedTracksData).flat()
+          const data = Array(21).fill(mockedTracks).flat()
           return data
         })
 
@@ -120,7 +127,7 @@ describe("behaves correctly when the queue has valid tracks", async () => {
       const queueBar = render(QueueBarComponent)
       const { container } = queueBar
 
-      const desiredAmount = Math.min(mockedTracksData.length - 1, 20) // Current track takes one spot
+      const desiredAmount = Math.min(mockedTracks.length - 1, 20) // Current track takes one spot
 
       expect(
         container.querySelectorAll(group.asQuery.queueNextTracks).length ===
@@ -137,42 +144,45 @@ describe("behaves correctly when the queue has valid tracks", async () => {
 
       expect(nextTrackElements.length).toBeGreaterThan(1)
 
-      nextTracks.subscribe(($nextTracks) => {
-        for (const [index, queueItem] of nextTrackElements.entries()) {
-          expect(() =>
-            queueItem.textContent?.includes(
-              $nextTracks[index].track?.title ||
-                $nextTracks[index].track.filepath.split("/").at(-1) ||
-                "TS dont cry"
-            )
-          ).toBeTruthy()
-        }
-      })
+      const $nextTracks = get(nextTracks)
+      for (const [index, queueItem] of nextTrackElements.entries()) {
+        expect(() =>
+          queueItem.textContent?.includes(
+            $nextTracks[index].track?.title ||
+              $nextTracks[index].track.filepath.split("/").at(-1) ||
+              "TS dont cry"
+          )
+        ).toBeTruthy()
+      }
     })
   })
 
   describe("does", async () => {
-    it("switches to the track when it is double clicked", async () => {
-      const component = render(QueueBarComponent)
+    describe("play", async () => {
+      it("switches to the track when it is double clicked", async () => {
+        const component = render(QueueBarComponent)
 
-      const currentTrack = component.getByTestId(id.queueCurrentTrack)
-      const nextTrack = component.getByTestId(id.queueNextTrack)
+        const currentTrack = component.getByTestId(id.queueCurrentTrack)
+        const nextTrack = component.getByTestId(id.queueNextTrack)
 
-      await fireEvent.doubleClick(nextTrack)
+        await fireEvent.doubleClick(nextTrack)
 
-      const newPreviousTrack = component.getByTestId(id.queuePreviousTrack)
-      const newCurrentTrack = component.getByTestId(id.queueCurrentTrack)
-      const newNextTrack = component.getByTestId(id.queueNextTrack)
+        const newPreviousTrack = component.getByTestId(id.queuePreviousTrack)
+        const newCurrentTrack = component.getByTestId(id.queueCurrentTrack)
+        const newNextTrack = component.getByTestId(id.queueNextTrack)
 
-      expect(
-        () => currentTrack.innerText === newPreviousTrack.innerText
-      ).toBeTruthy()
+        expect(
+          () => currentTrack.innerText === newPreviousTrack.innerText
+        ).toBeTruthy()
 
-      expect(
-        () => nextTrack.innerText === newCurrentTrack.innerText
-      ).toBeTruthy()
+        expect(
+          () => nextTrack.innerText === newCurrentTrack.innerText
+        ).toBeTruthy()
 
-      expect(() => nextTrack.innerText !== newNextTrack.innerText).toBeTruthy()
+        expect(
+          () => nextTrack.innerText !== newNextTrack.innerText
+        ).toBeTruthy()
+      })
     })
 
     //TODO implement remove queue item
@@ -180,24 +190,8 @@ describe("behaves correctly when the queue has valid tracks", async () => {
       it("removes queue item", async () => {
         const component = render(QueueBarComponent)
 
-        const track = component.getByTestId(id.queueNextTrack)
-        const deleteIcon = track.querySelector(
-          group.asQuery.queueItemDeleteIcon
-        )
-
-        if (!deleteIcon) throw new Error("No delete icon found for queue item") // for typescript
-
-        await fireEvent.doubleClick(deleteIcon)
-
-        expect(waitForElementToBeRemoved(track)).to.not.toThrow()
-      })
-
-      it("remaps the indexes", async () => {
-        const component = render(QueueBarComponent)
-        const previousIndex = get(nextTracks)[0].index
-
-        const track = component.getByTestId(id.queueNextTrack)
-        const deleteIcon = track.querySelector(
+        const nextTrack = component.getByTestId(id.queueNextTrack)
+        const deleteIcon = nextTrack.querySelector(
           group.asQuery.queueItemDeleteIcon
         )
 
@@ -205,9 +199,29 @@ describe("behaves correctly when the queue has valid tracks", async () => {
 
         await fireEvent.click(deleteIcon)
 
-        const newIndex = get(nextTracks)[0].index
+        const newNextTrack = component.getByTestId(id.queueNextTrack)
 
-        expect(newIndex).toBe(previousIndex)
+        expect(nextTrack.textContent).not.toEqual(newNextTrack.textContent)
+      })
+
+      it("keeps the current track when already played items get removed", async () => {
+        const component = render(QueueBarComponent)
+        const oldNextTrack = component.getByTestId(id.queueNextTrack)
+
+        await fireEvent.dblClick(oldNextTrack)
+
+        const previousTrack = component.getByTestId(id.queuePreviousTrack)
+        const deleteIcon = previousTrack.querySelector(
+          group.asQuery.queueItemDeleteIcon
+        )
+        const oldCurrentTrack = component.getByTestId(id.queueCurrentTrack)
+
+        if (!deleteIcon) throw new Error("No delete icon found")
+        await fireEvent.click(deleteIcon)
+
+        const newCurrentTrack = component.getByTestId(id.queueCurrentTrack)
+
+        expect(newCurrentTrack.textContent).toBe(oldCurrentTrack.textContent)
       })
 
       it("goes to the next track if the current track gets deleted", async () => {
@@ -227,7 +241,32 @@ describe("behaves correctly when the queue has valid tracks", async () => {
 
         const newCurrentTrack = component.getByTestId(id.queueCurrentTrack)
 
-        expect(newCurrentTrack.innerText).toMatch(oldNextTitle)
+        expect(newCurrentTrack.textContent).toMatch(oldNextTitle)
+      })
+
+      it("removes the correct track after multiple others got deleted", async () => {
+        const component = render(QueueBarComponent)
+
+        const amountToRemove = 5
+
+        for (let i = 0; i < amountToRemove; i++) {
+          const oldCurrentTrack = component.getByTestId(id.queueCurrentTrack)
+          const oldNextTrack = component.getByTestId(id.queueNextTrack)
+
+          const deleteIcon = oldCurrentTrack.querySelector(
+            group.asQuery.queueItemDeleteIcon
+          )
+          if (!deleteIcon)
+            throw new Error("No delete icon found for queue item")
+          await fireEvent.click(deleteIcon)
+
+          const newCurrentTrack = component.getByTestId(id.queueCurrentTrack)
+
+          expect(
+            newCurrentTrack.textContent,
+            `Failed at deletion: ${i + 1}`
+          ).toBe(oldNextTrack.textContent)
+        }
       })
     })
 

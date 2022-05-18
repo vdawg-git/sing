@@ -6,7 +6,6 @@ import { TEST_IDS as id, TEST_GROUPS as group } from "@/Consts"
 //   waitForElementToBeRemoved,
 // } from "@testing-library/svelte"
 import mockElectronApi from "./MockElectronApi"
-import mockedTracksData from "./MockTracksData"
 vi.stubGlobal("api", mockElectronApi)
 vi.mock("@/lib/manager/AudioPlayer", () => {
   return { default: mockedAudioPlayer }
@@ -20,6 +19,7 @@ import player, {
   currentTrack,
   playIndex,
   nextTracks,
+  playState,
 } from "@/lib/manager/PlayerManager"
 import type { ITrack } from "@sing-types/Track"
 import queueItemFactory from "./factories/queueItemFactory"
@@ -47,6 +47,28 @@ describe("fn: playQueueIndex", async () => {
       newCurrentTrack.queueID === $queue.at(indexToGo)?.queueID
     ).toBeTruthy()
   })
+
+  it("sets the state to 'playing'", async () => {
+    const indexToGo = 20
+    player.playQueueIndex(indexToGo)
+
+    expect(get(playState)).toBe("PLAYING")
+  })
 })
 
-describe("fn: deleteQueueItemAtIndex", async () => {})
+describe("fn: removeIndexFromQueue", async () => {
+  it("keeps the current track when a previously played item gets removed", async () => {
+    player.next()
+    player.next()
+
+    const oldCurrentTrack = get(currentTrack)
+
+    player.removeIndexFromQueue(get(playIndex) - 1)
+
+    const newCurrentTrack = get(currentTrack)
+
+    expect(oldCurrentTrack.track?.title).toBe(newCurrentTrack.track.title)
+  })
+})
+
+// describe("fn: deleteQueueItemAtIndex", async () => {})

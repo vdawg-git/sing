@@ -1,11 +1,11 @@
 import { TEST_IDS as id } from "../src/Consts"
 import { fireEvent, render, waitFor, screen } from "@testing-library/svelte"
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import mockElectronApi from "./MockElectronApi"
+import mockElectronApi, { mockedApiTracks } from "./MockElectronApi"
 import "./setupBasicMocks"
 import mockedPlayer from "./mocks/AudioPlayer"
-import mockTracksData from "./MockTracksData"
 import type { SvelteComponentDev } from "svelte/internal"
+import trackFactory from "./factories/trackFactory"
 
 vi.mock("@/lib/manager/AudioPlayer", () => {
   return { default: mockedPlayer }
@@ -21,29 +21,40 @@ afterEach(() => {
 describe("behaves correctly with valid queue", async () => {
   beforeEach(async () => {
     vi.mocked(window.api.getTracks).mockImplementation(
-      async () => mockTracksData
+      async () => mockedApiTracks
     )
     Playbar = (await import(
       "@/lib/organisms/Playbar.svelte"
     )) as unknown as typeof SvelteComponentDev
   })
+
   it("renders the cover if the current track has a cover", async () => {
     const playbar = render(Playbar)
+
     expect(playbar.getByTestId(id.playbarCover).nodeName === "IMG").toBeTruthy()
   })
+
   it("does not render a cover if the current track has no cover", async () => {
-    const trackWithNoCover = mockTracksData[0]
+    const trackWithNoCover = trackFactory.build()
     delete trackWithNoCover.coverPath
-    vi.mocked(window.api.getTracks).mockImplementation(async () => [
-      trackWithNoCover,
-      ...mockTracksData.splice(0, 1),
-    ])
+
+    const newMockedApiTracks = [trackWithNoCover, ...trackFactory.buildList(20)]
+
+    vi.mocked(window.api.getTracks).mockImplementation(
+      async () => newMockedApiTracks
+    )
+    vi.resetModules()
     const Playbar = (await import(
       "@/lib/organisms/Playbar.svelte"
     )) as unknown as typeof SvelteComponentDev
     const playbar = render(Playbar)
+
+    vi.mocked(window.api.getTracks).mockImplementation(
+      async () => mockedApiTracks
+    )
     expect(playbar.getByTestId(id.playbarCover).nodeName === "DIV").toBeTruthy()
   })
+
   it("opens the queuebar when clicked on the icon", async () => {
     const playbar = render(Playbar)
     const queueIcon = playbar.getByTestId(id.playbarQueueIcon)
@@ -51,6 +62,7 @@ describe("behaves correctly with valid queue", async () => {
     expect(playbar.getByTestId(id.queueBar)).toBeTruthy()
     expect(playbar.getByTestId(id.queueCurrentTrack)).toBeTruthy()
   })
+
   it("closes the queuebar when clicked on the icon while the queue is open", async () => {
     const playbar = render(Playbar)
     const queueIcon = playbar.getByTestId(id.playbarQueueIcon)
@@ -71,20 +83,24 @@ describe("behaves correctly with valid queue", async () => {
       expect(playbar.queryByTestId(id.queueCurrentTrack)).toBeNull()
     })
   })
+
   it("displays the next song title when pressing the forward button", async () => {
     render(Playbar)
     const button = screen.getByTestId(id.playbarNextButton)
     await fireEvent.click(button)
     const title = screen.getByTestId(id.playbarTitle).textContent
-    expect(title === (mockTracksData[1]?.title || "Unknown")).toBeTruthy()
+    expect(title).toMatch(mockedApiTracks[1]?.title ?? "Unknown")
   })
+
   it("displays the next song artist when pressing the forward button", async () => {
     render(Playbar)
     const button = screen.getByTestId(id.playbarNextButton)
     await fireEvent.click(button)
     const artist = screen.getByTestId(id.playbarArtist).textContent
-    expect(artist === (mockTracksData[1]?.artist || "Unknown")).toBeTruthy()
+
+    expect(artist === (mockedApiTracks[1]?.artist || "Unknown")).toBeTruthy()
   })
+
   it("displays the previous song artist when pressing the back button", async () => {
     render(Playbar)
     const forwardButton = screen.getByTestId(id.playbarNextButton)
@@ -92,8 +108,9 @@ describe("behaves correctly with valid queue", async () => {
     await fireEvent.click(forwardButton)
     await fireEvent.click(previousButton)
     const artist = screen.getByTestId(id.playbarArtist).textContent
-    expect(artist === (mockTracksData[0]?.artist || "Unknown")).toBeTruthy()
+    expect(artist === (mockedApiTracks[0]?.artist || "Unknown")).toBeTruthy()
   })
+
   it("displays the previous song title when pressing the back button", async () => {
     render(Playbar)
     const forwardButton = screen.getByTestId(id.playbarNextButton)
@@ -101,8 +118,9 @@ describe("behaves correctly with valid queue", async () => {
     await fireEvent.click(forwardButton)
     await fireEvent.click(previousButton)
     const title = screen.getByTestId(id.playbarTitle).textContent
-    expect(title === (mockTracksData[0]?.title || "Unknown")).toBeTruthy()
+    expect(title === (mockedApiTracks[0]?.title || "Unknown")).toBeTruthy()
   })
+
   it.todo("renders the format of the current duration properly", async () => {})
   it.todo("renders the format of the total duration properly", async () => {})
 })

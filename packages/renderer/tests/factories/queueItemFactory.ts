@@ -3,10 +3,11 @@ import { Factory } from "fishery"
 import trackFactory from "./trackFactory"
 
 const queueItemFactory = Factory.define<IQueueItem>(({ sequence }) => {
-  sequence = sequence - 1
+  sequence -= 1
+  const index = sequence
 
   return {
-    index: sequence,
+    index,
     queueID: Symbol(`${sequence} queueID Test`),
     track: trackFactory.build(),
     isManuallyAdded: false,

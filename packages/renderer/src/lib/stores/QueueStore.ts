@@ -12,9 +12,9 @@ function createQueueStore() {
     update,
     setUpcomingFromSource,
     setCurrent,
-    deleteIndex: (index: number | number[]) =>
+    removeIndex: (index: number | number[]) =>
       update(($queue) => {
-        return deleteIndex($queue, index)
+        return removeIndex($queue, index)
       }),
   }
 
@@ -68,19 +68,37 @@ export function mapTracksToQueueItem(
 
 export function remapIndexes(
   queueItems: IQueueItem[],
-  continueFromIndex: number
+  indexToStart: number = 0
 ): IQueueItem[] {
-  return queueItems.map((item, i) => {
-    item.index = continueFromIndex + 1 + i
-    return item
+  return queueItems.slice(0).map((item, i) => {
+    const newIndex = indexToStart + i
+
+    const clonedItem = {
+      ...item,
+      index: newIndex,
+      queueID: Symbol(`${newIndex} ${item.track?.title || "Unknown"}`),
+    }
+    return clonedItem
   })
 }
 
-export function deleteIndex(
+export function removeIndex(
   queueItems: IQueueItem[],
   indexes: number[] | number
 ): IQueueItem[] {
-  return queueItems.filter(() => {})
+  const cleaned = remove(queueItems, indexes)
+
+  return remapIndexes(cleaned)
+
+  function remove(queueItems: IQueueItem[], indexes: number | number[]) {
+    if (typeof indexes === "number") {
+      const result = queueItems.slice(0)
+      result.splice(indexes, 1)
+      return result
+    }
+
+    return queueItems.filter((_, i) => !indexes.includes(i))
+  }
 }
 
 const queue = createQueueStore()

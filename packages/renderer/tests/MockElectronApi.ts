@@ -5,12 +5,17 @@ import type {
   IUserSettingsKey,
 } from "@sing-main/lib/UserSettings"
 import * as consts from "@sing-preload/Channels"
-import tracksData from "./MockTracksData"
 import { vi } from "vitest"
+import trackFactory from "./factories/trackFactory"
+
+trackFactory.rewindSequence()
+const tracks = trackFactory.buildList(20)
+
+export const mockedApiTracks: readonly ITrack[] = tracks
 
 function createMockedElectronAPI(): typeof IipcRenderer {
   return {
-    getTracks: vi.fn(() => getTracks()),
+    getTracks: vi.fn(() => Promise.resolve(mockedApiTracks)),
     sync,
     setUserSettings,
     openDirectory,
@@ -24,10 +29,6 @@ function createMockedElectronAPI(): typeof IipcRenderer {
 }
 
 export default createMockedElectronAPI()
-
-async function getTracks(): Promise<ITrack[]> {
-  return tracksData
-}
 
 async function sync() {
   return

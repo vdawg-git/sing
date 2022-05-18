@@ -29,14 +29,19 @@
   function scrollToLastPosition() {
     scroller.scroll(0, scrollPosition)
   }
+
+  function handleRemove(index: number) {
+    player.removeIndexFromQueue(index)
+  }
 </script>
 
 <main
   class="
     custom 
-    absolute right-6   bottom-0 z-40 
-    h-[calc(100vh-5.5rem)] w-[25rem]
-    rounded-3xl border border-grey-500 bg-grey-800/80
+     absolute   right-6 bottom-0 
+    z-40 h-[calc(100vh-5.5rem)]
+    w-[25rem] rounded-3xl border border-grey-500
+    bg-grey-800/80
     backdrop-blur-md
   "
   transition:fly={{
@@ -57,11 +62,12 @@
     <div
       class="
           scrollbar 
-          my-6  grid
-          max-h-full grow grid-flow-row
-          gap-6 overflow-y-auto
-          px-4
-          pr-4 pt-2
+          mask  mb-6 mt-0
+          grid max-h-full grow
+          grid-flow-row gap-6
+          overflow-y-auto
+          px-4 pr-4
+          pt-2
         "
       bind:this={scroller}
       on:scroll={() => {
@@ -69,6 +75,7 @@
       }}
     >
       <!---- Played Tracks --->
+      <div class="h-1" />
       {#if $playedTracks.length > 0}
         <div class="mb-4 flex flex-col gap-4">
           {#each $playedTracks as queueItemData, index (queueItemData.queueID)}
@@ -81,6 +88,7 @@
               testQueuePlayedIndex={index}
               testgroup="queuePreviousTracks"
               on:dblclick={() => player.playQueueIndex(queueItemData.index)}
+              on:remove={() => handleRemove(queueItemData.index)}
             />
           {/each}
         </div>
@@ -97,6 +105,7 @@
             state="PLAYING"
             testId="queueCurrentTrack"
             on:dblclick={() => player.pause()}
+            on:remove={() => handleRemove($currentTrack.index)}
           />
         </div>
       {/if}
@@ -115,6 +124,7 @@
                 testQueueNextIndex={index}
                 testgroup="queueNextTracks"
                 on:dblclick={() => player.playQueueIndex(queueItemData.index)}
+                on:remove={() => handleRemove(queueItemData.index)}
               />
             {/each}
           </div>
@@ -147,5 +157,16 @@
 
   .custom {
     box-shadow: 0px 0px 24px 0px rgba(0, 0, 0, 0.5);
+  }
+
+  .mask {
+    -webkit-mask-image: linear-gradient(
+      to top,
+      black,
+      black 90%,
+      transparent 97%
+    );
+
+    /* background: linear-gradient(to top, black, black 92%, white 97%); */
   }
 </style>

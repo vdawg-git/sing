@@ -7,14 +7,11 @@ import {
 } from "@testing-library/svelte"
 
 import mockElectronApi from "./MockElectronApi"
-import type { ITrack } from "@sing-types/Track"
-import mockedTracksData from "./MockTracksData"
 import queueStore, {
-  deleteIndex,
+  removeIndex,
   mapTracksToQueueItem,
   remapIndexes,
 } from "@/lib/stores/QueueStore"
-import { get } from "svelte/store"
 import trackFactory from "./factories/trackFactory"
 import queueItemFactory from "./factories/queueItemFactory"
 
@@ -27,6 +24,7 @@ afterEach(async () => {
 beforeEach(async () => {
   // Set up mock data
   queueStore.set(queueItemFactory.buildList(25))
+  queueItemFactory.rewindSequence()
 })
 
 describe("fn: setUpcomingFromSource", async () => {
@@ -54,7 +52,7 @@ describe("fn: remapIndexes", async () => {
 
   it("maps the indexes of the new tracks correctly", async () => {
     const queueItems = queueItemFactory.buildList(20)
-    const continueFromIndex = 50
+    const continueFromIndex = 10
 
     const newItems = remapIndexes(queueItems, continueFromIndex)
 
@@ -64,14 +62,25 @@ describe("fn: remapIndexes", async () => {
       )
     }).toBeTruthy()
   })
+
+  it("creates a ´new symbol for the mapped items", async () => {
+    const queueItems = queueItemFactory.buildList(20)
+    const continueFromIndex = 10
+
+    const newItems = remapIndexes(queueItems, continueFromIndex)
+
+    for (let i = 10; i < 20; i++) {
+      expect(newItems[i].queueID).to.not.equal(queueItems[i].queueID)
+    }
+  })
 })
 
-describe("fn: removeIndexes", async () => {
-  it("does return an array the correct length", async () => {
+describe("fn: deleteIndex", async () => {
+  it("does return an array with the correct length", async () => {
     const queueItems = queueItemFactory.buildList(20)
     const indexes = [0, 1, 2, 3]
 
-    const newItems = deleteIndex(queueItems, indexes)
+    const newItems = removeIndex(queueItems, indexes)
 
     expect(newItems).toHaveLength(16)
   })
@@ -80,30 +89,32 @@ describe("fn: removeIndexes", async () => {
     const queueItems = queueItemFactory.buildList(20)
     const indexes = [0, 1, 2, 3]
 
-    const newItems = deleteIndex(queueItems, indexes)
+    const newItems = removeIndex(queueItems, indexes)
 
     for (const [i, item] of newItems.entries()) {
-      expect(item).toBe(queueItems[5 + i])
+      expect(item.track.title).toBe(queueItems[4 + i].track.title)
     }
   })
 
   it("deletes a single item correctly", async () => {
+    queueItemFactory.rewindSequence()
     const queueItems = queueItemFactory.buildList(20)
-    const index = 4
+    const index = 2
 
-    const newItems = deleteIndex(queueItems, index)
+    const newItems = removeIndex(queueItems, index)
 
-    expect(newItems[4]).toBe(queueItems[5])
+    expect(newItems[index].track.title).toBe(queueItems[index + 1].track.title)
   })
 
   it("remaps the indexes correctly", async () => {
+    queueItemFactory.rewindSequence()
     const queueItems = queueItemFactory.buildList(20)
     const indexes = [2, 3, 8]
 
-    const newItems = deleteIndex(queueItems, indexes)
+    const newItems = removeIndex(queueItems, indexes)
 
-    for (const [i, item] of newItems.entries()) {
-      expect(item.index).toBe(i)
+    for (const [index, item] of newItems.entries()) {
+      expect(item.index).toBe(index)
     }
   })
 })

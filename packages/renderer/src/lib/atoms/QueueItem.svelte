@@ -41,6 +41,10 @@
   $: track = queueItemData.track
 
   const dispatch = createEventDispatcher()
+
+  function handleRemoveClick() {
+    dispatch("remove")
+  }
 </script>
 
 <main
@@ -82,7 +86,11 @@
       </span>
     </div>
   </div>
-  <div class="shrink-0 grow-0" data-testgroup={TEST_GROUPS.queueItemDeleteIcon}>
+  <div
+    class="shrink-0 grow-0"
+    data-testgroup={TEST_GROUPS.queueItemDeleteIcon}
+    on:click|stopPropagation={handleRemoveClick}
+  >
     <IconClose class="mr-2 h-6 w-6 text-grey-300 hover:text-white" />
   </div>
   <div

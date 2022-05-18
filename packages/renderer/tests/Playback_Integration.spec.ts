@@ -8,11 +8,11 @@ import {
   cleanup,
 } from "@testing-library/svelte"
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import mockElectronApi from "./MockElectronApi"
+import mockElectronApi, { mockedApiTracks } from "./MockElectronApi"
 import mockedPlayer from "./mocks/AudioPlayer"
 import type { SvelteComponentDev } from "svelte/internal"
 import type { ITrack } from "@sing-types/Track"
-import mockedTracksData from "./MockTracksData"
+
 vi.mock("@/lib/manager/AudioPlayer", () => {
   return { default: mockedPlayer }
 })
@@ -31,7 +31,9 @@ describe("playbar and queuebar", async () => {
   beforeEach(async () => {
     vitest
       .mocked(window.api.getTracks)
-      .mockImplementation(async (): Promise<ITrack[]> => mockedTracksData)
+      .mockImplementation(
+        async (): Promise<readonly ITrack[]> => mockedApiTracks
+      )
 
     QueueBarComponent = (await import(
       "@/lib/organisms/QueueBar.svelte"

@@ -9,8 +9,9 @@ const trackFactory = Factory.define<ITrack>(({ sequence }) => {
     title: `Title ${sequence}`,
     artist: `Artist ${sequence}`,
     album: `Album ${sequence}`,
-    filepath: `C:/Users/Music/file-${sequence}`,
-    duration: 12.4542524,
+    filepath: `C:/Users/Music/file-${sequence}.mp3`,
+    coverPath: `C:/Users/Music/cover-${sequence}.jpg`,
+    duration: 12 + 1 / sequence,
   }
 })
 

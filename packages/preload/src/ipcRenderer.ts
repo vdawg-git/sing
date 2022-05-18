@@ -5,8 +5,9 @@ import type {
   IUserSettingsKey,
 } from "@sing-main/lib/UserSettings"
 import * as consts from "./Channels"
+import { ITrack } from "@sing-types/Track"
 
-export async function getTracks(): Promise<NullValuesToOptional<Track>[]> {
+export async function getTracks(): Promise<readonly ITrack[]> {
   return await ipcRenderer.invoke(consts.GET_TRACKS)
 }
 

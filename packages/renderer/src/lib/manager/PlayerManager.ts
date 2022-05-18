@@ -82,7 +82,7 @@ function createPlayerManager() {
   ]
 
   return {
-    deleteQueueItemAtIndex,
+    removeIndexFromQueue,
     destroy,
     isMuted,
     next,
@@ -173,14 +173,18 @@ function createPlayerManager() {
   function playQueueIndex(index: number): void {
     indexStore.set(index)
 
-    audioPlayer.play($currentTrack.track.filepath)
+    playTrack($currentTrack.track)
   }
 
-  function deleteQueueItemAtIndex(index: number): void {
-    queueStore.deleteIndex(index)
+  function removeIndexFromQueue(index: number): void {
+    queueStore.removeIndex(index)
 
-    if ($currentTrack.index === index && $playState === "PLAYING") {
-      next()
+    if (index < $currentIndex) {
+      indexStore.decrement() // So that the current track stays the same
+    }
+
+    if ($currentIndex === index && $playState === "PLAYING") {
+      playTrack($currentTrack.track)
     }
   }
 }
