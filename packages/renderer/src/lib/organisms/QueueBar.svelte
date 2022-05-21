@@ -75,7 +75,10 @@
       }}
     >
       <!---- Played Tracks --->
-      <div class="h-1" />
+      <!-- Spacer -->
+      <div class="h-2" />
+
+      <!-- Played -->
       {#if $playedTracks.length > 0}
         <div class="mb-4 flex flex-col gap-4">
           {#each $playedTracks as queueItemData, index (queueItemData.queueID)}
@@ -161,10 +164,10 @@
 
   .mask {
     -webkit-mask-image: linear-gradient(
-      to top,
-      black,
-      black 90%,
-      transparent 97%
+      to bottom,
+      transparent 12px,
+      black 44px,
+      black
     );
 
     /* background: linear-gradient(to top, black, black 92%, white 97%); */
