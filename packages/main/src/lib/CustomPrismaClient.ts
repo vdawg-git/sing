@@ -8,6 +8,7 @@ export const productionDBPath = path.join(
   "productionDB.db"
 )
 export const dbPath = import.meta.env.DEV ? devDBPath : productionDBPath
+console.log(dbPath)
 
 export const url = "file:" + dbPath
 

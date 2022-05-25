@@ -5,13 +5,16 @@ import { checkFileExists } from "./Helper"
 import { devDBPath, productionDBPath } from "./lib/CustomPrismaClient"
 import { join } from "path"
 import ipc from "../../preload/src/ipcMain"
+import c from "ansicolor"
+
+console.log(c.bgDarkGray.black("  Main script started  "))
 
 // Check if database exists. If not copy the empty master to make it available
 if (!checkFileExists(import.meta.env.DEV ? devDBPath : productionDBPath)) {
   if (import.meta.env.DEV) {
     copyFileSync(join(__dirname, "../public/masterDB.db"), devDBPath)
   } else {
-    copyFileSync(".masterDB", productionDBPath)
+    copyFileSync(join(__dirname, "masterDB.db"), productionDBPath)
   }
 }
 
@@ -56,7 +59,7 @@ app
   .catch((e) => console.error("Failed create window:", e))
 
 /**
- * Install Vue.js or some other devtools in development mode only
+ * Install devtools
  */
 if (import.meta.env.DEV) {
   app

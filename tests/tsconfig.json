@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "esnext",
+    "sourceMap": false,
+    "moduleResolution": "Node",
+    "skipLibCheck": true,
+    "strict": true,
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "types": ["node"],
+
+    "baseUrl": ".",
+    "paths": {
+      "@sing-renderer/*": ["../packages/renderer/src/*"],
+      "@sing-main/*": ["../packages/main/src/*"],
+      "@sing-preload/*": ["../packages/preload/src/*"]
+    }
+  },
+  "include": ["./**/*"]
+}

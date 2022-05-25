@@ -63,7 +63,7 @@
   <div class="flex grow gap-3">
     {#if track?.coverPath}
       <img
-        src={track.coverPath}
+        src={"file://" + track.coverPath}
         alt={track?.title + "cover"}
         class="h-12 w-12 rounded"
         class:opacity-70={state === "HAS_PLAYED"}

@@ -45,7 +45,7 @@
       <img
         class="h-14 w-14 bg-grey-600"
         alt={track?.title || "Title" + " " + " cover"}
-        src={track?.coverPath}
+        src={"file://" + track?.coverPath}
         data-testid="playbarCover"
       />
     {:else}
@@ -162,7 +162,7 @@
     </button>
     <button
       on:click|stopPropagation={() => clickQueueIcon()}
-      class="button  "
+      class="button"
       data-testid="playbarQueueIcon"
       disabled={!track}
       on:click={handleClickQueueIcon}

@@ -1,4 +1,5 @@
 <script lang="ts" context="module">
+  import {TEST_IDS} from "@/Consts"
   // Save this state across component destruction without an extra store
   let scrollPosition: number = 0
 </script>
@@ -80,7 +81,7 @@
 
       <!-- Played -->
       {#if $playedTracks.length > 0}
-        <div class="mb-4 flex flex-col gap-4">
+        <div class="mb-4 flex flex-col gap-4" data-testid="{TEST_IDS.queueBarPlayedTracks}">
           {#each $playedTracks as queueItemData, index (queueItemData.queueID)}
             <QueueItem
               {queueItemData}
@@ -119,7 +120,7 @@
           <div class="mb-3 text-xs font-semibold uppercase text-grey-300">
             Next up
           </div>
-          <div class="flex flex-col gap-4">
+          <div class="flex flex-col gap-4" data-testid="{TEST_IDS.queueBarNextTracks}">
             {#each nextTracksDisplayed as queueItemData, index (queueItemData.queueID)}
               <QueueItem
                 {queueItemData}

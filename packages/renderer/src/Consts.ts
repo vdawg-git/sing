@@ -16,17 +16,18 @@ const testIDNames = [
   "playbarTitle",
   "playbarVolumeIcon",
   "queueBar",
+  "queueBarNextTracks",
+  "queueBarPlayedTracks",
+  "queueCurrentTrack",
   "queueCurrentTrackArtist",
   "queueCurrentTrackTitle",
-  "queuePreviousTrackTitle",
-  "queueNextTrackTitle",
-  "queueNextTrackArtist",
-  "queuePreviousTrackArtist",
-  "queueCurrentTrack",
   "queueNextTrack",
+  "queueNextTrackArtist",
+  "queueNextTrackTitle",
   "queuePlayedTracks",
   "queuePreviousTrack",
-  "queueUpNextTracks",
+  "queuePreviousTrackArtist",
+  "queuePreviousTrackTitle",
   "seekbaarDuriation",
   "seekbarCurrentTime",
   "seekbarProgressbar",
@@ -35,7 +36,7 @@ const testIDNames = [
 const testGroupNames = [
   "queueItemDeleteIcon",
   "queueNextTracks",
-  "queueUPreviousTracks",
+  "queuePreviousTracks",
 ] as const
 ////////////////////////////////
 
