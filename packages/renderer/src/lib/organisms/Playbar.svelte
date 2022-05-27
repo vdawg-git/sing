@@ -8,6 +8,7 @@
   import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
   import QueueBar from "./QueueBar.svelte"
   import { secondsToDuration } from "@/Helper"
+  import {TEST_IDS as test} from "@/Consts"
 
   import player, { currentTrack, playState } from "@/lib/manager/PlayerManager"
   import { createEventDispatcher } from "svelte"
@@ -34,7 +35,7 @@
     border border-grey-500 bg-grey-700/80 px-6
     backdrop-blur-xl
   "
-  data-testid="playbar"
+  data-testid="{test.playbar}"
 >
   <!-- Cover and meta data-->
   <div
@@ -46,10 +47,10 @@
         class="h-14 w-14 bg-grey-600"
         alt={track?.title || "Title" + " " + " cover"}
         src={"file://" + track?.coverPath}
-        data-testid="playbarCover"
+        data-testid="{test.playbarCover}"
       />
     {:else}
-      <div class="w-14 h-14 bg-grey-600" data-testid="playbarCover" />
+      <div class="w-14 h-14 bg-grey-600" data-testid="{test.playbarCover}" />
     {/if}
 
     <!---- Meta -->
@@ -57,20 +58,20 @@
       <div class="mt-1 max-w-full overflow-hidden">
         <div
           class="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-lg"
-          data-testid="playbarTitle"
+          data-testid="{test.playbarTitle}"
         >
           {track?.title ?? track?.filepath.split("/").at(-1)}
         </div>
         <div class="flex max-w-full gap-3">
           <div
             class="shrink-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm text-grey-300"
-            data-testid="playbarArtist"
+            data-testid="{test.playbarArtist}"
           >
             {track?.artist ?? "Unknown"}
           </div>
           <div
             class="shrink-[10000] overflow-hidden text-ellipsis whitespace-nowrap text-sm text-grey-300"
-            data-testid="playbarAlbum"
+            data-testid="{test.playbarAlbum}"
           >
             {track?.album ?? ""}
           </div>
@@ -79,15 +80,15 @@
     {/if}
   </div>
 
-  <!------------------------------------>
-  <!---- Playback controls -->
+  <!---------------------------------->
+  <!---- Playback controls          -->
   <!---- Pause / Play / Next buttons-->
   <div class="flex min-w-[20rem] max-w-[62.5rem]  flex-col items-center">
     <div class="mb-1 flex items-center gap-6 text-white ">
       <!---- Backwards button-->
       <button
         on:click={() => player.previous()}
-        data-testid="playbarBackButton"
+        data-testid="{test.playbarBackButton}"
         disabled={!$currentTrack}
         class="button rotate-180"
       >
@@ -97,7 +98,7 @@
       {#if $playState === "PLAYING"}
         <button
           on:click={() => player.pause()}
-          data-testid="playbarPauseButton"
+          data-testid="{test.playbarPauseButton}"
           disabled={!$currentTrack}
           class="button"
         >
@@ -106,7 +107,7 @@
       {:else}
         <button
           on:click={() => player.resume()}
-          data-testid="playbarPlayButton"
+          data-testid="{test.playbarPlayButton}"
           disabled={!$currentTrack}
           class="button"
         >
@@ -116,7 +117,7 @@
       <!---- Forward button-->
       <button
         on:click={() => player.next()}
-        data-testid="playbarNextButton"
+        data-testid="{test.playbarNextButton}"
         disabled={!track}
         class="button"
       >
@@ -125,23 +126,23 @@
     </div>
     <!----- Seekbar -->
     <div class="flex h-4 w-full  shrink items-center justify-center gap-4">
-      <div class="text-xs text-grey-300" data-testid="seekbarCurrentTime">
+      <div class="text-xs text-grey-300" data-testid="{test.seekbarCurrentTime}">
         {!!track ? "0:00" : ""}
       </div>
       <div
         class="h-1 w-full  shrink overflow-hidden rounded-full bg-grey-600"
-        data-testid="seekbar"
+        data-testid="{test.seekbar}"
       >
         <div
           class="h-1 rounded-full bg-grey-300"
           style="width: {trackProgress * 100}%;"
-          data-testid="seekbarProgressbar"
+          data-testid="{test.seekbarProgressbar}"
           data-progress={trackProgress * 100}
         />
       </div>
       <div
         class="min-w-[1.5rem] text-right text-xs text-grey-300"
-        data-testid="seekbaarDuriation"
+        data-testid="{test.seekbarDuration}"
       >
         {!!track ? secondsToDuration(track.duration || 0) : ""}
       </div>
@@ -151,19 +152,19 @@
 
   <!---- Other controls-->
   <div class="flex gap-6 justify-self-end">
-    <button data-testid="playbarVolumeIcon" class="button" disabled={!track}>
+    <button data-testid="{test.playbarVolumeIcon}" class="button" disabled={!track}>
       <IconVolume class="h-6 w-6  sm:h-6" />
     </button>
-    <button data-testid="playbarModeIcon" class="button" disabled={!track}>
+    <button data-testid="{test.playbarModeIcon}" class="button" disabled={!track}>
       <IconShuffle class="h-6 w-6 sm:h-6" />
     </button>
-    <button data-testid="playbarLoopIcon" class="button" disabled={!track}>
+    <button data-testid="{test.playbarLoopIcon}" class="button" disabled={!track}>
       <IconRepeat class="h-6 w-6 sm:h-6" />
     </button>
     <button
       on:click|stopPropagation={() => clickQueueIcon()}
       class="button"
-      data-testid="playbarQueueIcon"
+      data-testid="{test.playbarQueueIcon}"
       disabled={!track}
       on:click={handleClickQueueIcon}
     >

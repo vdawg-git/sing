@@ -16,7 +16,12 @@ function createPlayer() {
     getSource,
 
     resume() {
-      audio.play()
+      try {
+        audio.play()
+      } catch (e) {
+        console.error(e)
+        console.error(`filepath: \t ${audio.src}`)
+      }
     },
 
     pause() {
@@ -37,6 +42,7 @@ function createPlayer() {
     setMuted(muted: boolean) {
       audio.muted = muted
     },
+
     isMuted() {
       return audio.muted
     },
@@ -45,9 +51,10 @@ function createPlayer() {
       return audio.duration
     },
 
-    setSeek(seekTo: number) {
-      audio.currentTime = seekTo
+    setSeek(seekToPercentage: number) {
+      audio.currentTime = (audio.duration / 100) * seekToPercentage
     },
+
     getSeek() {
       return audio.currentTime
     },
@@ -55,20 +62,17 @@ function createPlayer() {
   }
 
   function play(src: string): void {
-    console.log(`Playing ${src}`)
     setSource(src)
     try {
       audio.play()
     } catch (e) {
-      console.group("Error with play in player")
       console.error(e)
       console.error(`filepath: \t ${src}`)
-      console.groupEnd()
     }
   }
 
   function setSource(src: string) {
-    audio.src = src
+    audio.src = "file://" + src
   }
 
   function getSource() {
@@ -81,7 +85,6 @@ function createPlayer() {
   }
 }
 
-// type IPlaySatus = "PAUSED" | "PLAYING" | "STOPPED"
 const audioPlayer = createPlayer()
 
 export default audioPlayer

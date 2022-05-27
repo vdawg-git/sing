@@ -64,7 +64,7 @@ model Track {
   totaldiscs      String?
   movementTotal   Int?
   compilation     Boolean?
-  bpm             Int?
+  bpm             Float?
   mood            String?
   media           String?
   catalogNumber   String? /// Stringified JSON Array

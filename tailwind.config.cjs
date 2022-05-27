@@ -34,6 +34,10 @@ module.exports = {
         100: "#D6D3D1",
         50: "#E9E8E7",
       },
+      orange: {
+        500: "#FFA234",
+        800: "#9F582F"
+      },
       white: "#F3F2EA",
       black: colors.black,
       green: colors.green,
