@@ -62,7 +62,9 @@ export function truncatePath(path: string, length: number): string {
   }
 }
 
-export function secondsToDuration(seconds: number) {
+export function secondsToDuration(seconds: number | undefined | null): string {
+  if (seconds === undefined || seconds === null) return ""
+
   const minutes = Math.floor(seconds / 60)
   const sec = String(Math.round(seconds % 60)).padStart(2, "0")
 

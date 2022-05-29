@@ -32,7 +32,7 @@ const testIDNames = [
   "seekbar",
   "seekbarProgressbarKnob",
   "seekbarCurrentTime",
-  "seekbarDuration",
+  "seekbarTotalDuration",
   "seekbarProgressbar",
 ] as const
 

@@ -1,5 +1,5 @@
 <script lang="ts" context="module">
-  import {TEST_IDS} from "@/Consts"
+  import { TEST_IDS as test } from "@/Consts"
   // Save this state across component destruction without an extra store
   let scrollPosition: number = 0
 </script>
@@ -51,7 +51,7 @@
     easing: sineInOut,
     opacity: 100,
   }}
-  data-testid="queueBar"
+  data-testid={test.queueBar}
 >
   <div
     class="flex h-full max-h-full flex-col overflow-hidden backdrop-blur-none"
@@ -81,13 +81,16 @@
 
       <!-- Played -->
       {#if $playedTracks.length > 0}
-        <div class="mb-4 flex flex-col gap-4" data-testid="{TEST_IDS.queueBarPlayedTracks}">
+        <div
+          class="mb-4 flex flex-col gap-4"
+          data-testid={test.queueBarPlayedTracks}
+        >
           {#each $playedTracks as queueItemData, index (queueItemData.queueID)}
             <QueueItem
               {queueItemData}
               state="HAS_PLAYED"
               testId={index === $playIndex - 1
-                ? "queuePreviousTrack"
+                ? test.queuePreviousTrack
                 : undefined}
               testQueuePlayedIndex={index}
               testgroup="queuePreviousTracks"
@@ -120,7 +123,10 @@
           <div class="mb-3 text-xs font-semibold uppercase text-grey-300">
             Next up
           </div>
-          <div class="flex flex-col gap-4" data-testid="{TEST_IDS.queueBarNextTracks}">
+          <div
+            class="flex flex-col gap-4"
+            data-testid={test.queueBarNextTracks}
+          >
             {#each nextTracksDisplayed as queueItemData, index (queueItemData.queueID)}
               <QueueItem
                 {queueItemData}

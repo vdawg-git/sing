@@ -71,6 +71,7 @@
     {:else}
       <div class="h-12 w-12 bg-grey-700" />
     {/if}
+
     <div class="grid grow-0 grid-flow-row items-center">
       <span
         class="overflow-hidden text-ellipsis whitespace-nowrap text-sm"
@@ -79,7 +80,7 @@
         {track?.title ? track.title : "Unknown"}
       </span>
       <span
-        class="overflow-hidden text-ellipsis whitespace-nowrap text-sm text-grey-300"
+        class="-mt-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm text-grey-300"
         data-testid={testArtistID}
       >
         {track?.artist ? track.artist : "Unknown"}

@@ -1,16 +1,20 @@
 <script lang="ts">
-  import IconPause from "virtual:icons/bi/pause-fill"
-  import IconPlay from "virtual:icons/bi/play-fill"
-  import IconNext from "virtual:icons/heroicons-solid/fast-forward"
+  import IconPause from "virtual:icons/heroicons-outline/pause"
+  import IconPlay from "virtual:icons/heroicons-outline/play"
+  import IconNext from "virtual:icons/heroicons-outline/fast-forward"
   import IconVolume from "virtual:icons/heroicons-outline/volume-up"
   import IconQueue from "virtual:icons/heroicons-outline/view-list"
   import IconRepeat from "virtual:icons/fluent/arrow-repeat-all-16-filled"
   import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
   import QueueBar from "./QueueBar.svelte"
-  import { secondsToDuration } from "@/Helper"
-  import {TEST_IDS as test} from "@/Consts"
+  import Seekbar from "../molecules/Seekbar.svelte"
+  import { TEST_IDS as test } from "@/Consts"
 
-  import player, { currentTrack, playState } from "@/lib/manager/PlayerManager"
+  import player, {
+    currentTrack,
+    playState,
+    currentTime,
+  } from "@/lib/manager/PlayerManager"
   import { createEventDispatcher } from "svelte"
 
   const dispatcher = createEventDispatcher()
@@ -18,7 +22,6 @@
 
   $: track = $currentTrack?.track
 
-  let trackProgress = 0
   let showQueue = false
 
   function handleClickQueueIcon() {
@@ -28,15 +31,21 @@
 
 <main
   class="
-    custom_shadow absolute inset-x-0  bottom-0 
-    z-50 grid h-[6rem] w-full 
-    grid-cols-3 
-    items-center justify-between  rounded-3xl  
-    border border-grey-500 bg-grey-700/80 px-6
-    backdrop-blur-xl
+    custom_shadow  Í  absolute inset-x-0
+    bottom-0 z-50 grid h-[72px]
+    w-full 
+    grid-cols-3 items-center  justify-between  
+    rounded-3xl border border-grey-500 bg-grey-700/80
+    px-6 backdrop-blur-xl
   "
-  data-testid="{test.playbar}"
+  data-testid={test.playbar}
 >
+  <div class="absolute top-0 flex w-screen justify-center">
+    <div class="w-[40%]">
+      <Seekbar currentTime={$currentTime} duration={track?.duration} />
+    </div>
+  </div>
+
   <!-- Cover and meta data-->
   <div
     class="mr-6 flex max-w-fit shrink grow basis-[20rem] gap-4 overflow-hidden text-ellipsis"
@@ -47,10 +56,10 @@
         class="h-14 w-14 bg-grey-600"
         alt={track?.title || "Title" + " " + " cover"}
         src={"file://" + track?.coverPath}
-        data-testid="{test.playbarCover}"
+        data-testid={test.playbarCover}
       />
     {:else}
-      <div class="w-14 h-14 bg-grey-600" data-testid="{test.playbarCover}" />
+      <div class="w-14 h-14 bg-grey-600" data-testid={test.playbarCover} />
     {/if}
 
     <!---- Meta -->
@@ -58,20 +67,20 @@
       <div class="mt-1 max-w-full overflow-hidden">
         <div
           class="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-lg"
-          data-testid="{test.playbarTitle}"
+          data-testid={test.playbarTitle}
         >
           {track?.title ?? track?.filepath.split("/").at(-1)}
         </div>
         <div class="flex max-w-full gap-3">
           <div
             class="shrink-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm text-grey-300"
-            data-testid="{test.playbarArtist}"
+            data-testid={test.playbarArtist}
           >
             {track?.artist ?? "Unknown"}
           </div>
           <div
             class="shrink-[10000] overflow-hidden text-ellipsis whitespace-nowrap text-sm text-grey-300"
-            data-testid="{test.playbarAlbum}"
+            data-testid={test.playbarAlbum}
           >
             {track?.album ?? ""}
           </div>
@@ -88,7 +97,7 @@
       <!---- Backwards button-->
       <button
         on:click={() => player.previous()}
-        data-testid="{test.playbarBackButton}"
+        data-testid={test.playbarBackButton}
         disabled={!$currentTrack}
         class="button rotate-180"
       >
@@ -98,7 +107,7 @@
       {#if $playState === "PLAYING"}
         <button
           on:click={() => player.pause()}
-          data-testid="{test.playbarPauseButton}"
+          data-testid={test.playbarPauseButton}
           disabled={!$currentTrack}
           class="button"
         >
@@ -107,7 +116,7 @@
       {:else}
         <button
           on:click={() => player.resume()}
-          data-testid="{test.playbarPlayButton}"
+          data-testid={test.playbarPlayButton}
           disabled={!$currentTrack}
           class="button"
         >
@@ -117,15 +126,15 @@
       <!---- Forward button-->
       <button
         on:click={() => player.next()}
-        data-testid="{test.playbarNextButton}"
+        data-testid={test.playbarNextButton}
         disabled={!track}
         class="button"
       >
-        <IconNext class="h-8 w-8 " />
+        <IconNext class="h-8 w-8 " stroke-width="0" />
       </button>
     </div>
     <!----- Seekbar -->
-    <div class="flex h-4 w-full  shrink items-center justify-center gap-4">
+    <!-- <div class="flex h-4 w-full  shrink items-center justify-center gap-4">
       <div class="text-xs text-grey-300" data-testid="{test.seekbarCurrentTime}">
         {!!track ? "0:00" : ""}
       </div>
@@ -146,29 +155,33 @@
       >
         {!!track ? secondsToDuration(track.duration || 0) : ""}
       </div>
-    </div>
+    </div> -->
   </div>
   <!------///----->
 
   <!---- Other controls-->
   <div class="flex gap-6 justify-self-end">
-    <button data-testid="{test.playbarVolumeIcon}" class="button" disabled={!track}>
+    <button
+      data-testid={test.playbarVolumeIcon}
+      class="button"
+      disabled={!track}
+    >
       <IconVolume class="h-6 w-6  sm:h-6" />
     </button>
-    <button data-testid="{test.playbarModeIcon}" class="button" disabled={!track}>
+    <button data-testid={test.playbarModeIcon} class="button" disabled={!track}>
       <IconShuffle class="h-6 w-6 sm:h-6" />
     </button>
-    <button data-testid="{test.playbarLoopIcon}" class="button" disabled={!track}>
+    <button data-testid={test.playbarLoopIcon} class="button" disabled={!track}>
       <IconRepeat class="h-6 w-6 sm:h-6" />
     </button>
     <button
       on:click|stopPropagation={() => clickQueueIcon()}
       class="button"
-      data-testid="{test.playbarQueueIcon}"
+      data-testid={test.playbarQueueIcon}
       disabled={!track}
       on:click={handleClickQueueIcon}
     >
-      <IconQueue class="h-6 w-6  sm:h-6" />
+      <IconQueue class="h-6 w-6 sm:h-6" />
     </button>
   </div>
 </main>

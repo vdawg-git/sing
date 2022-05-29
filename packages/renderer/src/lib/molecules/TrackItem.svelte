@@ -93,7 +93,7 @@
 </main>
 
 <style lang="postcss">
-  .contain {
+  /* .contain {
     contain: strict;
-  }
+  } */
 </style>

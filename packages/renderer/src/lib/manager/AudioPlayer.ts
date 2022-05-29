@@ -9,6 +9,8 @@ function createPlayer() {
   audio.muted = false
 
   return {
+    audio,
+
     play,
 
     setSource,
@@ -55,7 +57,7 @@ function createPlayer() {
       audio.currentTime = (audio.duration / 100) * seekToPercentage
     },
 
-    getSeek() {
+    getCurrentTime() {
       return audio.currentTime
     },
     setOutputDevice,

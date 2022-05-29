@@ -21,7 +21,7 @@ body {@apply text-white}
 /** --------------------------------------------------------------
 **      Workaround tailwind bug
 ** ----------------------------------------------------------------*/
-:root {
+:root, ::before, ::after {
 	--tw-backdrop-blur: blur(0);
 	 --tw-backdrop-brightness: brightness(100%);
 	 --tw-backdrop-contrast: contrast(100%);
@@ -59,6 +59,8 @@ body {
 /**==================================================================
 **			Miscellaneous 
 **=================================================================*/
+
+/* Disable scrollbars on viewport */
 body { overflow:hidden}
 
 /**==================================================================
