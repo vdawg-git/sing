@@ -55,7 +55,7 @@ describe("with valid data", async () => {
 
     it("displays no played queue items yet", async () => {
       const { container } = render(QueueBarComponent)
-      const elements = container.querySelectorAll(group.queueUPreviousTracks)
+      const elements = container.querySelectorAll(group.queuePreviousTracks)
 
       expect(elements.length === 0).toBeTruthy()
     })
@@ -226,10 +226,7 @@ describe("with valid data", async () => {
 
       it("goes to the next track if the current track gets deleted", async () => {
         const component = render(QueueBarComponent)
-        const oldNextTrack = get(nextTracks)[0]
-        if (!oldNextTrack.track.title)
-          throw new Error("No track title found for queue item") // for typescript
-        const oldNextTitle = oldNextTrack.track.title
+        const oldNextTrack = component.getByTestId(id.queueNextTrack)
 
         const oldCurrentTrack = component.getByTestId(id.queueCurrentTrack)
         const deleteIcon = oldCurrentTrack.querySelector(
@@ -241,10 +238,16 @@ describe("with valid data", async () => {
 
         const newCurrentTrack = component.getByTestId(id.queueCurrentTrack)
 
-        expect(newCurrentTrack.textContent).toMatch(oldNextTitle)
+        if (!oldNextTrack.textContent)
+          throw new Error(
+            "oldCurrentTrack.textContent should be text, but is" +
+              oldNextTrack.textContent
+          )
+
+        expect(newCurrentTrack.textContent).toMatch(oldNextTrack.textContent)
       })
 
-      it("removes the correct track after multiple others got deleted", async () => {
+      it("removes the correct track after current track has been deleted multiple times", async () => {
         const component = render(QueueBarComponent)
 
         const amountToRemove = 5

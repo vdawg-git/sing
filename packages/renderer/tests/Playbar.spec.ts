@@ -218,15 +218,13 @@ describe("behaves correctly with no tracks", () => {
     it("Track duration is empty when store returns undefined", () => {
       const playbar = render(Playbar)
       expect(
-        playbar.getByTestId(id.seekbaarDuriation).innerText === undefined
+        playbar.getByTestId(id.seekbarCurrentTime).innerText === undefined
       ).toBeTruthy()
     })
 
-    it("Progressbar is at 0% when store returns undefined", () => {
+    it("Progressbar has no width when store returns undefined", () => {
       const playbar = render(Playbar)
-      expect(
-        playbar.getByTestId(id.seekbarProgressbar).style.width === "0%"
-      ).toBeTruthy()
+      expect(playbar.getByTestId(id.seekbarProgressbar).style.width).toBe("")
     })
   })
 })

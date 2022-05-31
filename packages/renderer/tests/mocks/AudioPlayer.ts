@@ -9,6 +9,10 @@ function createPlayer() {
   audio.muted = false
 
   return {
+    audio,
+
+    getCurrentTime: vi.fn(() => 100),
+
     play,
 
     setSource,

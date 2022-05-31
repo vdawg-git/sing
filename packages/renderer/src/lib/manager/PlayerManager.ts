@@ -1,18 +1,17 @@
-import { derived, writable } from "svelte/store"
 import audioPlayer from "@/lib/manager/AudioPlayer"
+import indexStore from "@/lib/stores/PlayIndex"
 import queueStore from "@/lib/stores/QueueStore"
 import tracksStore from "@/lib/stores/TracksStore"
-import indexStore from "@/lib/stores/PlayIndex"
-import type { ITrack } from "@sing-types/Track"
-import type { Unsubscriber } from "svelte/store"
-import { get } from "svelte/store"
 import type {
-  IQueueItem,
   IPlayLoop,
   IPlayMode,
   IPlayState,
+  IQueueItem,
   ISourceType,
 } from "@/types/Types"
+import type { ITrack } from "@sing-types/Track"
+import type { Unsubscriber } from "svelte/store"
+import { derived, get, writable } from "svelte/store"
 
 // Create stores / state
 const playLoopStore = writable<IPlayLoop>("NONE")
@@ -243,7 +242,7 @@ function createPlayerManager() {
 async function initStores() {
   const tracks = await get(tracksStore)
 
-  if (!tracks.length) return
+  if (!tracks?.length) return
 
   const queueItems: IQueueItem[] = tracks.map((track, index) => {
     return {
@@ -255,4 +254,5 @@ async function initStores() {
   })
   queueStore.set(queueItems)
   indexStore.set(0)
+  audioPlayer.setSource(queueItems[0].track.filepath)
 }

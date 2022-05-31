@@ -1,10 +1,10 @@
 <script lang="ts" context="module">
-  import { TEST_IDS as test } from "@/Consts"
   // Save this state across component destruction without an extra store
   let scrollPosition: number = 0
 </script>
 
 <script lang="ts">
+  import { TEST_IDS as test } from "@/Consts"
   import player, {
     playedTracks,
     nextTracks,

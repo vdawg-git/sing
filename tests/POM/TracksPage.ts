@@ -1,6 +1,6 @@
 import { Page } from "playwright"
-import createParentPage from "./Base"
+import createBasePage from "./Base"
 
 export default function createTracksPage(page: Page) {
-  return { ...createParentPage(page) }
+  return { ...createBasePage(page) }
 }

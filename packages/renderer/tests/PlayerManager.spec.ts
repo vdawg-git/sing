@@ -28,6 +28,12 @@ afterEach(async () => {
   vi.resetModules()
 })
 
+it("load the source of the first track on load", async () => {
+  const source = get(currentTrack).track.filepath
+
+  expect(source).toContain(".")
+})
+
 describe("fn: playQueueIndex", async () => {
   beforeEach(async () => {
     queueItemFactory.rewindSequence()

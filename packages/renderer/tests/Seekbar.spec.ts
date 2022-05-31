@@ -23,9 +23,25 @@ beforeEach(async () => {
   )) as unknown as typeof SvelteComponentDev
 })
 
-describe("seekbar", async () => {
-  // it("changes the current time of the track on click", async () => {
-  //   const seekbar = render(Seekbar)
-  //    seekbar.
-  // })
+describe("check testids", async () => {
+  it("has the knob id", async () => {
+    const component = render(Seekbar)
+    expect(component.getByTestId(id.seekbarProgressbarKnob))
+  })
+  it("has the seekbar id", async () => {
+    const component = render(Seekbar)
+    expect(component.getByTestId(id.seekbar))
+  })
+  it("has the progressbar id", async () => {
+    const component = render(Seekbar)
+    expect(component.getByTestId(id.seekbarProgressbar))
+  })
+  it("has the totalDuration id", async () => {
+    const component = render(Seekbar)
+    expect(component.getByTestId(id.seekbarTotalDuration))
+  })
+  it("has the currentTime id", async () => {
+    const component = render(Seekbar)
+    expect(component.getByTestId(id.seekbarCurrentTime))
+  })
 })

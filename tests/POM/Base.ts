@@ -2,32 +2,26 @@ import type { Page, Locator, ConsoleMessage } from "playwright"
 import { TEST_IDS as id } from "../../packages/renderer/src/Consts"
 import { isImage } from "./Helper"
 
-export default function createParentPage(page: Page) {
-  const playbarPlayButton = page.locator(
-    id.asQuery.noBrackets.playbarPlayButton
-  )
-  const playbarNextButton = page.locator(
-    id.asQuery.noBrackets.playbarNextButton
-  )
-  const playbarBackButton = page.locator(
-    id.asQuery.noBrackets.playbarBackButton
-  )
-  const playbarQueueIcon = page.locator(id.asQuery.noBrackets.playbarQueueIcon)
-  const nextTracks = page.locator(id.asQuery.noBrackets.queueBarNextTracks)
-  const previousTracks = page.locator(id.asQuery.noBrackets.queuePlayedTracks)
-  const seekbar = page.locator(id.asQuery.noBrackets.seekbarProgressbar)
-  const playbarCover = page.locator(id.asQuery.noBrackets.playbarCover)
-  const nextQueueTrack = page.locator(id.asQuery.noBrackets.queueNextTrack)
-  const queueBar = page.locator(id.asQuery.noBrackets.queueBar)
-  const currentTime = page.locator(id.asQuery.noBrackets.seekbarCurrentTime)
-  const totalDuration = page.locator(id.asQuery.noBrackets.seekbarDuration)
+export default function createBasePage(page: Page) {
+  const playbarPlayButton = page.locator(id.asQuery.playbarPlayButton)
+  const playbarNextButton = page.locator(id.asQuery.playbarNextButton)
+  const playbarBackButton = page.locator(id.asQuery.playbarBackButton)
+  const playbarQueueIcon = page.locator(id.asQuery.playbarQueueIcon)
+  const nextTracks = page.locator(id.asQuery.queueBarNextTracks)
+  const previousTracks = page.locator(id.asQuery.queuePlayedTracks)
+  const progressbar = page.locator(id.asQuery.seekbarProgressbar)
+  const playbarCover = page.locator(id.asQuery.playbarCover)
+  const nextQueueTrack = page.locator(id.asQuery.queueNextTrack)
+  const queueBar = page.locator(id.asQuery.queueBar)
+  const currentTime = page.locator(id.asQuery.seekbarCurrentTime)
+  const totalDuration = page.locator(id.asQuery.seekbarProgressbar)
 
   return {
     createErrorListener,
     clickSeekbar,
     reload,
     clickPlay,
-    playNext,
+    goToNextTrack,
     playPrevious,
     openQueue,
     getNextTracks,
@@ -39,10 +33,35 @@ export default function createParentPage(page: Page) {
     getCurrentTime,
     getTotalDuration,
     hoverSeekbar,
+    waitForProgressBarToGrow,
   }
 
   async function reload() {
     page.evaluate(() => window.location.reload())
+  }
+
+  async function waitForProgressBarToGrow(
+    startWidth: number,
+    endWith: number | undefined = undefined
+  ) {
+    if (endWith) {
+      await page.waitForFunction(() => {
+        return (
+          document
+            .querySelector(id.asQuery.seekbarProgressbar)
+            ?.getBoundingClientRect().width || 0 >= endWith
+        )
+      }),
+        endWith
+    } else {
+      await page.waitForFunction(() => {
+        return (
+          document
+            .querySelector(id.asQuery.seekbarProgressbar)
+            ?.getBoundingClientRect().width || 0 > 0
+        )
+      })
+    }
   }
 
   async function getCoverPath() {
@@ -73,22 +92,22 @@ export default function createParentPage(page: Page) {
   }
 
   async function clickPlay() {
-    return playbarPlayButton.click()
+    return playbarPlayButton.click({ timeout: 2000 })
   }
 
-  async function playNext() {
-    return playbarNextButton.click()
+  async function goToNextTrack() {
+    return playbarNextButton.click({ timeout: 2000 })
   }
 
   async function playPrevious() {
-    return playbarBackButton.click()
+    return playbarBackButton.click({ timeout: 2000 })
   }
 
   async function playNextTrackFromQueue() {
-    await nextQueueTrack.dblclick()
+    await nextQueueTrack.dblclick({ timeout: 2000 })
   }
   async function openQueue() {
-    await playbarQueueIcon.click()
+    await playbarQueueIcon.click({ timeout: 1500 })
     await queueBar.isVisible()
   }
 
@@ -101,14 +120,16 @@ export default function createParentPage(page: Page) {
   }
 
   async function getProgressBarWidth() {
-    return (await seekbar.boundingBox())?.width
+    return (await progressbar.boundingBox({ timeout: 3000 }))?.width
   }
 
   async function clickSeekbar(percentage: number) {
-    const x = ((await seekbar.boundingBox())?.width ?? 0) * (percentage / 100)
-    const y = ((await seekbar.boundingBox())?.y ?? 0) / 2
+    const x =
+      ((await progressbar.boundingBox({ timeout: 2000 }))?.width ?? 0) *
+      (percentage / 100)
+    const y = ((await progressbar.boundingBox({ timeout: 2000 }))?.y ?? 0) / 2
 
-    seekbar.click({
+    progressbar.click({
       position: {
         x,
         y,
@@ -117,21 +138,21 @@ export default function createParentPage(page: Page) {
   }
 
   async function getCurrentTime(): Promise<number> {
-    await seekbar.hover()
+    await progressbar.hover()
     const time = convertDisplayTimeToSeconds(await currentTime.innerText())
 
     return time
   }
 
   async function getTotalDuration() {
-    await seekbar.hover()
+    await progressbar.hover({ timeout: 2000 })
     const time = convertDisplayTimeToSeconds(await totalDuration.innerText())
 
     return time
   }
 
   async function hoverSeekbar() {
-    await seekbar.hover()
+    await progressbar.hover({ timeout: 2000 })
   }
 }
 

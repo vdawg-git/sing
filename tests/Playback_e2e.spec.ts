@@ -57,20 +57,50 @@ it("does not throw an error when playing a queue item", async () => {
   )
 })
 
-it("progresses the seekbar", async () => {
+it.only("progresses the seekbar when playing first song", async () => {
   const page = await electronApp.firstWindow()
   const tracksPage = createTracksPage(page)
   await tracksPage.reload()
 
   const oldWidth = await tracksPage.getProgressBarWidth()
+  console.log(oldWidth)
 
   await tracksPage.clickPlay()
-  setTimeout(() => {}, 100)
+
+  if (oldWidth !== 0)
+    throw new Error(
+      "Beginning width of progressesBar is not 0, but " + oldWidth
+    )
+  await tracksPage.waitForProgressBarToGrow(oldWidth)
+
+  const newWidth = await tracksPage.getProgressBarWidth()
+
+  if (oldWidth === undefined) throw new Error("oldWidth is undefined") // for typescript
+  if (newWidth === undefined) throw new Error("newWidth is undefined")
+
+  console.log(oldWidth, newWidth)
+
+  expect(newWidth).toBeGreaterThan(oldWidth)
+})
+
+it.only("progresses the seekbar when playing second song", async () => {
+  const page = await electronApp.firstWindow()
+  const tracksPage = createTracksPage(page)
+  await tracksPage.reload()
+  tracksPage.goToNextTrack()
+
+  const oldWidth = await tracksPage.getProgressBarWidth()
+  console.log(oldWidth)
+
+  await tracksPage.clickPlay()
+  setTimeout(() => {}, 2000)
 
   const newWidth = await tracksPage.getProgressBarWidth()
 
   if (oldWidth === undefined) throw new Error("oldWidth is undefined")
   if (newWidth === undefined) throw new Error("newWidth is undefined")
+
+  console.log(oldWidth, newWidth)
 
   expect(newWidth).toBeGreaterThan(oldWidth)
 })
