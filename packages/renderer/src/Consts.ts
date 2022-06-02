@@ -30,14 +30,18 @@ const testIDNames = [
   "queuePreviousTrackArtist",
   "queuePreviousTrackTitle",
   "seekbar",
-  "seekbarProgressbarKnob",
   "seekbarCurrentTime",
-  "seekbarTotalDuration",
   "seekbarProgressbar",
+  "seekbarProgressbarKnob",
+  "seekbarTotalDuration",
+  "volumeSlider",
 ] as const
 
 const testGroupNames = [
+  "queueItemArtist",
+  "queueItemCover",
   "queueItemDeleteIcon",
+  "queueItemTitle",
   "queueNextTracks",
   "queuePreviousTracks",
 ] as const
@@ -48,10 +52,6 @@ type ITestIDs = {
 } & {
   readonly asQuery: {
     readonly [i in typeof testIDNames[number]]: `[data-testid=${i}]`
-  } & {
-    readonly noBrackets: {
-      readonly [i in typeof testIDNames[number]]: `data-testgroup=${i}`
-    }
   }
 }
 
@@ -60,10 +60,6 @@ type ITestGroups = {
 } & {
   readonly asQuery: {
     readonly [i in typeof testGroupNames[number]]: `[data-testgroup=${i}]`
-  } & {
-    readonly noBrackets: {
-      readonly [i in typeof testGroupNames[number]]: `data-testgroup=${i}`
-    }
   }
 }
 
@@ -73,18 +69,19 @@ export const TEST_IDS: ITestIDs = testIDNames.reduce((acc, name) => {
 
   acc[name] = name
   acc.asQuery[name] = `[data-testid=${name}]`
-  acc.asQuery.noBrackets[name] = `data-testid=${name}`
 
   return acc
 }, {} as any)
 
-export const TEST_GROUPS: ITestGroups = testGroupNames.reduce((acc, name) => {
-  if (!acc?.asQuery) acc["asQuery"] = {}
-  if (!acc.asQuery?.noBrackets) acc["asQuery"]["noBrackets"] = {}
+export const TEST_ATTRIBUTE: ITestGroups = testGroupNames.reduce(
+  (acc, name) => {
+    if (!acc?.asQuery) acc["asQuery"] = {}
+    if (!acc.asQuery?.noBrackets) acc["asQuery"]["noBrackets"] = {}
 
-  acc[name] = name
-  acc.asQuery[name] = `[data-testgroup=${name}]`
-  acc.asQuery.noBrackets[name] = `data-testgroup=${name}`
+    acc[name] = name
+    acc.asQuery[name] = `[data-testgroup=${name}]`
 
-  return acc
-}, {} as any)
+    return acc
+  },
+  {} as any
+)

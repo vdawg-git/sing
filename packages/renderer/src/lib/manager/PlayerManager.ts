@@ -191,13 +191,15 @@ function createPlayerManager() {
   }
 
   function previous() {
-    resetCurrentTime()
     indexStore.update((index) => {
       if (index <= 0) return $queue.length - 1
       return index - 1
     })
+    resetCurrentTime()
 
-    if ($playState === "STOPPED" || $playState === "PAUSED") return
+    if ($playState === "STOPPED" || $playState === "PAUSED")
+      audioPlayer.setSource($currentTrack.track.filepath)
+
     audioPlayer.play($currentTrack.track.filepath)
   }
 

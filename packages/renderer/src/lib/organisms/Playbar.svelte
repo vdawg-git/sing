@@ -4,8 +4,7 @@
   import IconNext from "virtual:icons/heroicons-outline/fast-forward"
   import IconVolume from "virtual:icons/heroicons-outline/volume-up"
   import IconQueue from "virtual:icons/heroicons-outline/view-list"
-  import IconRepeat from "virtual:icons/fluent/arrow-repeat-all-16-filled"
-  import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
+
   import QueueBar from "./QueueBar.svelte"
   import Seekbar from "../molecules/Seekbar.svelte"
   import { TEST_IDS as test } from "@/Consts"
@@ -15,10 +14,6 @@
     playState,
     currentTime,
   } from "@/lib/manager/PlayerManager"
-  import { createEventDispatcher } from "svelte"
-
-  const dispatcher = createEventDispatcher()
-  const clickQueueIcon = () => dispatcher("clickQueueIcon")
 
   $: track = $currentTrack?.track
 
@@ -26,6 +21,10 @@
 
   function handleClickQueueIcon() {
     showQueue = !showQueue
+  }
+
+  function handleSeek({ detail: percentage }: CustomEvent) {
+    player.seekTo(percentage)
   }
 </script>
 
@@ -42,7 +41,11 @@
 >
   <div class="absolute top-0 flex w-screen justify-center">
     <div class="w-[40%]">
-      <Seekbar currentTime={$currentTime} duration={track?.duration} />
+      <Seekbar
+        currentTime={$currentTime}
+        duration={track?.duration}
+        on:seek={(e) => handleSeek(e)}
+      />
     </div>
   </div>
 
@@ -133,29 +136,6 @@
         <IconNext class="h-8 w-8 " stroke-width="0" />
       </button>
     </div>
-    <!----- Seekbar -->
-    <!-- <div class="flex h-4 w-full  shrink items-center justify-center gap-4">
-      <div class="text-xs text-grey-300" data-testid="{test.seekbarCurrentTime}">
-        {!!track ? "0:00" : ""}
-      </div>
-      <div
-        class="h-1 w-full  shrink overflow-hidden rounded-full bg-grey-600"
-        data-testid="{test.seekbar}"
-      >
-        <div
-          class="h-1 rounded-full bg-grey-300"
-          style="width: {trackProgress * 100}%;"
-          data-testid="{test.seekbarProgressbar}"
-          data-progress={trackProgress * 100}
-        />
-      </div>
-      <div
-        class="min-w-[1.5rem] text-right text-xs text-grey-300"
-        data-testid="{test.seekbarDuration}"
-      >
-        {!!track ? secondsToDuration(track.duration || 0) : ""}
-      </div>
-    </div> -->
   </div>
   <!------///----->
 
@@ -168,18 +148,19 @@
     >
       <IconVolume class="h-6 w-6  sm:h-6" />
     </button>
+    <!--- To be developed and tested
     <button data-testid={test.playbarModeIcon} class="button" disabled={!track}>
       <IconShuffle class="h-6 w-6 sm:h-6" />
     </button>
     <button data-testid={test.playbarLoopIcon} class="button" disabled={!track}>
       <IconRepeat class="h-6 w-6 sm:h-6" />
     </button>
+    -->
     <button
-      on:click|stopPropagation={() => clickQueueIcon()}
       class="button"
       data-testid={test.playbarQueueIcon}
       disabled={!track}
-      on:click={handleClickQueueIcon}
+      on:click|stopPropagation={handleClickQueueIcon}
     >
       <IconQueue class="h-6 w-6 sm:h-6" />
     </button>

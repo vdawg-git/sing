@@ -1,75 +1,81 @@
 import type { Page, Locator, ConsoleMessage } from "playwright"
-import { TEST_IDS as id } from "../../packages/renderer/src/Consts"
-import { isImage } from "./Helper"
+import {
+  TEST_IDS as id,
+  TEST_ATTRIBUTE as testAttr,
+} from "../../packages/renderer/src/Consts"
+import { convertDisplayTimeToSeconds, isImage } from "../Helper"
 
 export default function createBasePage(page: Page) {
-  const playbarPlayButton = page.locator(id.asQuery.playbarPlayButton)
-  const playbarNextButton = page.locator(id.asQuery.playbarNextButton)
-  const playbarBackButton = page.locator(id.asQuery.playbarBackButton)
-  const playbarQueueIcon = page.locator(id.asQuery.playbarQueueIcon)
+  const currentTime = page.locator(id.asQuery.seekbarCurrentTime)
+  const currentTrack = page.locator(id.asQuery.playbarTitle)
+  const nextQueueTrack = page.locator(id.asQuery.queueNextTrack)
+  const nextTrack = page.locator(id.asQuery.queueNextTrack)
   const nextTracks = page.locator(id.asQuery.queueBarNextTracks)
+  const playbarBackButton = page.locator(id.asQuery.playbarBackButton)
+  const playbarCover = page.locator(id.asQuery.playbarCover)
+  const playbarNextButton = page.locator(id.asQuery.playbarNextButton)
+  const playbarPlayButton = page.locator(id.asQuery.playbarPlayButton)
+  const playbarQueueIcon = page.locator(id.asQuery.playbarQueueIcon)
+  const previousTrack = page.locator(id.asQuery.queuePreviousTrack)
   const previousTracks = page.locator(id.asQuery.queuePlayedTracks)
   const progressbar = page.locator(id.asQuery.seekbarProgressbar)
-  const playbarCover = page.locator(id.asQuery.playbarCover)
-  const nextQueueTrack = page.locator(id.asQuery.queueNextTrack)
+  const progressBarKnob = page.locator(id.asQuery.seekbarProgressbarKnob)
   const queueBar = page.locator(id.asQuery.queueBar)
-  const currentTime = page.locator(id.asQuery.seekbarCurrentTime)
-  const totalDuration = page.locator(id.asQuery.seekbarProgressbar)
+  const seekbar = page.locator(id.asQuery.seekbar)
+  const totalDuration = page.locator(id.asQuery.seekbarTotalDuration)
 
   return {
-    createErrorListener,
-    clickSeekbar,
-    reload,
     clickPlay,
-    goToNextTrack,
-    playPrevious,
-    openQueue,
+    dragKnob,
+    clickSeekbar,
+    createErrorListener,
+    getCoverPath,
+    getCurrentTime,
     getNextTracks,
     getPreviousTracks,
     getProgressBarWidth,
-    getCoverPath,
-    isRenderingPlaybarCover,
-    playNextTrackFromQueue,
-    getCurrentTime,
     getTotalDuration,
+    goToNextTrack,
     hoverSeekbar,
+    isRenderingPlaybarCover,
+    openQueue,
+    playNextTrackFromQueue,
+    playPrevious,
+    reload,
     waitForProgressBarToGrow,
+    waitForTrackToChange: waitForTrackToChangeTo,
+    getNextTrack,
+    getPreviousTrack,
+    getCurrentTrack,
   }
 
   async function reload() {
     page.evaluate(() => window.location.reload())
   }
 
-  async function waitForProgressBarToGrow(
-    startWidth: number,
-    endWith: number | undefined = undefined
-  ) {
-    if (endWith) {
-      await page.waitForFunction(() => {
-        return (
-          document
-            .querySelector(id.asQuery.seekbarProgressbar)
-            ?.getBoundingClientRect().width || 0 >= endWith
-        )
-      }),
-        endWith
-    } else {
-      await page.waitForFunction(() => {
-        return (
-          document
-            .querySelector(id.asQuery.seekbarProgressbar)
-            ?.getBoundingClientRect().width || 0 > 0
-        )
-      })
-    }
+  async function waitForProgressBarToGrow(desiredWidth: number) {
+    const selector = id.asQuery.seekbarProgressbar
+
+    await page.waitForFunction(
+      ({ selector, desiredWidth }) => {
+        const progressBar = document.querySelector(selector)
+        const width = progressBar?.getBoundingClientRect().width || 0
+
+        if (width > desiredWidth) return true
+        return false
+      },
+      { selector, desiredWidth }
+    )
   }
 
   async function getCoverPath() {
-    return playbarCover.evaluate((element) => element.getAttribute("src"))
+    return playbarCover.evaluate((element: HTMLElement) =>
+      element.getAttribute("src")
+    )
   }
 
   async function isRenderingPlaybarCover() {
-    return playbarCover.evaluate((element) => {
+    return playbarCover.evaluate((element: HTMLElement) => {
       if (!isImage(element)) return false
 
       return !!element.naturalWidth
@@ -123,41 +129,89 @@ export default function createBasePage(page: Page) {
     return (await progressbar.boundingBox({ timeout: 3000 }))?.width
   }
 
+  async function getNextTrack(): Promise<String | undefined> {
+    const element = await nextTrack.elementHandle()
+    const titleElement = await element?.$(testAttr.asQuery.queueItemTitle)
+    return titleElement?.innerText()
+  }
+  async function getPreviousTrack(): Promise<String | undefined> {
+    const element = await previousTrack.elementHandle()
+    const titleElement = await element?.$(testAttr.asQuery.queueItemTitle)
+    return titleElement?.innerText()
+  }
+  async function getCurrentTrack(): Promise<String | undefined> {
+    const element = await currentTrack.elementHandle()
+    return element?.innerText()
+  }
+
+  async function waitForTrackToChangeTo(
+    waitFor: "Next track" | "Previous track"
+  ): Promise<void>
+  async function waitForTrackToChangeTo(waitFor: string): Promise<void> {
+    if (waitFor === "Next track" || waitFor === "Previous track") {
+      const nextTitle =
+        waitFor === "Next track"
+          ? await getNextTrack()
+          : await getPreviousTrack()
+      if (!nextTitle) return undefined
+
+      return waitTitleToBecomeThat(nextTitle)
+    } else {
+      return waitTitleToBecomeThat(waitFor)
+    }
+
+    async function waitTitleToBecomeThat(that: String) {
+      const selector = id.asQuery.playbarTitle
+
+      await page.waitForFunction(
+        ({ that, selector }) => {
+          const currentTitle = document.querySelector(selector)?.textContent
+
+          return currentTitle === that
+        },
+        { that, selector }
+      )
+    }
+  }
+
   async function clickSeekbar(percentage: number) {
     const x =
-      ((await progressbar.boundingBox({ timeout: 2000 }))?.width ?? 0) *
+      ((await seekbar.boundingBox({ timeout: 1000 }))?.width ?? 0) *
       (percentage / 100)
-    const y = ((await progressbar.boundingBox({ timeout: 2000 }))?.y ?? 0) / 2
 
-    progressbar.click({
+    await seekbar.click({
       position: {
         x,
-        y,
+        y: 0,
       },
+      timeout: 1000,
+      force: true,
+    })
+  }
+
+  async function dragKnob(amount: number) {
+    await progressBarKnob.dragTo(seekbar, {
+      targetPosition: { x: amount, y: 0 },
     })
   }
 
   async function getCurrentTime(): Promise<number> {
-    await progressbar.hover()
-    const time = convertDisplayTimeToSeconds(await currentTime.innerText())
+    await hoverSeekbar()
+    const time = convertDisplayTimeToSeconds(
+      await currentTime.innerText({ timeout: 3000 })
+    )
 
     return time
   }
 
   async function getTotalDuration() {
-    await progressbar.hover({ timeout: 2000 })
+    await hoverSeekbar()
     const time = convertDisplayTimeToSeconds(await totalDuration.innerText())
 
     return time
   }
 
   async function hoverSeekbar() {
-    await progressbar.hover({ timeout: 2000 })
+    await seekbar.hover({ timeout: 2000 })
   }
-}
-
-function convertDisplayTimeToSeconds(displayTime: string) {
-  const [minutes, seconds] = displayTime.split(":").map((x) => Number(x))
-
-  return minutes * 60 + seconds
 }

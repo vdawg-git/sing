@@ -4,9 +4,7 @@
   import Playbar from "./lib/organisms/Playbar.svelte"
   import tracksStore from "@/lib/stores/TracksStore"
 
-  tracksStore.subscribe((_) => {})
-
-  let showQueue = false
+  tracksStore.subscribe((_) => {}) // Never undload tracks
 </script>
 
 <main class="select-none bg-grey-900 text-white ">
@@ -14,5 +12,5 @@
     <Sidebar />
     <MyTracks />
   </div>
-  <Playbar on:clickQueueIcon={() => (showQueue = !showQueue)} />
+  <Playbar />
 </main>

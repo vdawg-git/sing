@@ -3,26 +3,12 @@ import { _electron as electron } from "playwright"
 import { afterAll, beforeAll, describe, expect, it, test } from "vitest"
 import createTracksPage from "./POM/TracksPage"
 import { join } from "path"
+import { launchElectron } from "./Helper"
 
 let electronApp: ElectronApplication
 
 beforeAll(async () => {
-  // electronApp = await electron.launch({
-  //   args: ["."],
-  // })
-  const mainPath = join(
-    __dirname,
-    "..",
-    "packages",
-    "main",
-    "dist",
-    "index.cjs"
-  )
-  console.log(mainPath)
-
-  electronApp = await electron.launch({
-    args: [mainPath],
-  })
+  electronApp = await launchElectron()
 })
 
 afterAll(async () => {
@@ -57,13 +43,12 @@ it("does not throw an error when playing a queue item", async () => {
   )
 })
 
-it.only("progresses the seekbar when playing first song", async () => {
+it("progresses the seekbar when playing first song", async () => {
   const page = await electronApp.firstWindow()
   const tracksPage = createTracksPage(page)
   await tracksPage.reload()
 
   const oldWidth = await tracksPage.getProgressBarWidth()
-  console.log(oldWidth)
 
   await tracksPage.clickPlay()
 
@@ -78,29 +63,29 @@ it.only("progresses the seekbar when playing first song", async () => {
   if (oldWidth === undefined) throw new Error("oldWidth is undefined") // for typescript
   if (newWidth === undefined) throw new Error("newWidth is undefined")
 
-  console.log(oldWidth, newWidth)
-
   expect(newWidth).toBeGreaterThan(oldWidth)
 })
 
-it.only("progresses the seekbar when playing second song", async () => {
+it("progresses the seekbar when playing second song", async () => {
   const page = await electronApp.firstWindow()
   const tracksPage = createTracksPage(page)
   await tracksPage.reload()
-  tracksPage.goToNextTrack()
 
   const oldWidth = await tracksPage.getProgressBarWidth()
-  console.log(oldWidth)
 
+  await tracksPage.goToNextTrack()
   await tracksPage.clickPlay()
-  setTimeout(() => {}, 2000)
+
+  if (oldWidth !== 0)
+    throw new Error(
+      "Beginning width of progressesBar is not 0, but " + oldWidth
+    )
+  await tracksPage.waitForProgressBarToGrow(oldWidth)
 
   const newWidth = await tracksPage.getProgressBarWidth()
 
-  if (oldWidth === undefined) throw new Error("oldWidth is undefined")
+  if (oldWidth === undefined) throw new Error("oldWidth is undefined") // for typescript
   if (newWidth === undefined) throw new Error("newWidth is undefined")
-
-  console.log(oldWidth, newWidth)
 
   expect(newWidth).toBeGreaterThan(oldWidth)
 })
@@ -126,7 +111,7 @@ it("displays the current time when hovering the seekbar", async () => {
 
   await tracksPage.hoverSeekbar()
 
-  expect(tracksPage.getCurrentTime()).toBe(0)
+  expect(await tracksPage.getCurrentTime()).toBe(0)
 })
 
 it("displays the total time when hovering the seekbar", async () => {
@@ -136,31 +121,22 @@ it("displays the total time when hovering the seekbar", async () => {
 
   await tracksPage.hoverSeekbar()
 
-  expect(tracksPage.getTotalDuration()).toBeGreaterThan(0)
+  expect(await tracksPage.getTotalDuration()).toBeGreaterThan(0)
 })
 
-it("does not display the total time when not hovering the seekbar", async () => {
+it("goes to the next track in queue after the current has finished", async () => {
   const page = await electronApp.firstWindow()
   const tracksPage = createTracksPage(page)
   await tracksPage.reload()
+  await tracksPage.openQueue()
 
-  expect(tracksPage.getTotalDuration()).toThrow()
-})
+  const oldNextTrack = await tracksPage.getNextTrack()
 
-it("does not display the total time when not hovering the seekbar", async () => {
-  const page = await electronApp.firstWindow()
-  const tracksPage = createTracksPage(page)
-  await tracksPage.reload()
+  await tracksPage.clickSeekbar(99)
+  await tracksPage.clickPlay()
+  await tracksPage.waitForTrackToChange("Next track")
 
-  expect(tracksPage.getCurrentTime()).toThrow()
-})
+  const newCurrentTrack = await tracksPage.getCurrentTrack()
 
-it.todo(
-  "goes to the next track in queue after the current has finished",
-  async () => {}
-)
-
-test.todo("Main window web content", async () => {
-  const page = await electronApp.firstWindow()
-  const element = await page.$("#app", { strict: true })
+  expect(oldNextTrack).toBe(newCurrentTrack)
 })

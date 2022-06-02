@@ -1,19 +1,20 @@
 <script lang="ts">
   import { TEST_IDS as test } from "@/Consts"
   import { secondsToDuration } from "@/Helper"
-  import type { MouseInputEvent } from "electron"
-  import player from "@/lib/manager/PlayerManager"
+  import { createEventDispatcher } from "svelte"
 
   export let currentTime: number | undefined | null
   export let duration: number | undefined | null
   $: progress = ((currentTime ?? 0) / (duration ?? 0)) * 100
+
+  const dispatcher = createEventDispatcher()
 
   let seekbar: HTMLElement
 
   function handleSeekClick(event: MouseEvent) {
     const percentage = getSeekPercentage(event)
 
-    player.seekTo(percentage)
+    dispatcher("seek", percentage)
   }
 
   function getSeekPercentage({ clientX }: MouseEvent) {
