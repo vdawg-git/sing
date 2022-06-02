@@ -16,6 +16,7 @@ export default function createBasePage(page: Page) {
   const playbarNextButton = page.locator(id.asQuery.playbarNextButton)
   const playbarPlayButton = page.locator(id.asQuery.playbarPlayButton)
   const playbarQueueIcon = page.locator(id.asQuery.playbarQueueIcon)
+  const playBarVolumeIcon = page.locator(id.asQuery.playbarVolumeIcon)
   const previousTrack = page.locator(id.asQuery.queuePreviousTrack)
   const previousTracks = page.locator(id.asQuery.queuePlayedTracks)
   const progressbar = page.locator(id.asQuery.seekbarProgressbar)
@@ -23,18 +24,24 @@ export default function createBasePage(page: Page) {
   const queueBar = page.locator(id.asQuery.queueBar)
   const seekbar = page.locator(id.asQuery.seekbar)
   const totalDuration = page.locator(id.asQuery.seekbarTotalDuration)
+  const volumeSlider = page.locator(id.asQuery.volumeSlider)
+  const volumeSliderInner = page.locator(id.asQuery.volumeSliderInner)
 
   return {
     clickPlay,
-    dragKnob,
     clickSeekbar,
     createErrorListener,
+    dragKnob,
     getCoverPath,
     getCurrentTime,
+    getCurrentTrack,
+    getNextTrack,
     getNextTracks,
+    getPreviousTrack,
     getPreviousTracks,
     getProgressBarWidth,
     getTotalDuration,
+    getVolume,
     goToNextTrack,
     hoverSeekbar,
     isRenderingPlaybarCover,
@@ -42,11 +49,9 @@ export default function createBasePage(page: Page) {
     playNextTrackFromQueue,
     playPrevious,
     reload,
+    setVolume,
     waitForProgressBarToGrow,
-    waitForTrackToChange: waitForTrackToChangeTo,
-    getNextTrack,
-    getPreviousTrack,
-    getCurrentTrack,
+    waitForTrackToChangeTo,
   }
 
   async function reload() {
@@ -213,5 +218,46 @@ export default function createBasePage(page: Page) {
 
   async function hoverSeekbar() {
     await seekbar.hover({ timeout: 2000 })
+  }
+
+  /**
+   * @description Returns current volume between 0 and 100
+   * */
+  async function getVolume(): Promise<number | undefined> {
+    await playBarVolumeIcon.hover({ timeout: 2500 })
+
+    const totalHeight = (await volumeSlider.boundingBox({ timeout: 2500 }))
+      ?.height
+    const sliderHeight = (
+      await volumeSliderInner.boundingBox({ timeout: 2500 })
+    )?.height
+
+    if (totalHeight === undefined || sliderHeight === undefined)
+      return undefined
+
+    return (sliderHeight / totalHeight) * 100
+  }
+
+  /**
+   * @param volume The volume to set between 0 and 100
+   */
+  async function setVolume(volume: number): Promise<void> {
+    await playBarVolumeIcon.hover({ timeout: 2500 })
+
+    const totalHeight = (await volumeSlider.boundingBox())?.height
+
+    if (totalHeight === undefined) {
+      console.error("height of volume slider is undefined")
+      return
+    }
+
+    const y = totalHeight * (volume * 0.01)
+
+    await volumeSlider.click({
+      position: {
+        y,
+        x: 0,
+      },
+    })
   }
 }

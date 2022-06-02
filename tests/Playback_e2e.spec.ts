@@ -134,9 +134,30 @@ it("goes to the next track in queue after the current has finished", async () =>
 
   await tracksPage.clickSeekbar(99)
   await tracksPage.clickPlay()
-  await tracksPage.waitForTrackToChange("Next track")
+  await tracksPage.waitForTrackToChangeTo("Next track")
 
   const newCurrentTrack = await tracksPage.getCurrentTrack()
 
   expect(oldNextTrack).toBe(newCurrentTrack)
+})
+
+it("changes the volume", async () => {
+  const page = await electronApp.firstWindow()
+  const tracksPage = createTracksPage(page)
+  await tracksPage.reload()
+
+  const oldVolume = await tracksPage.getVolume()
+  if (oldVolume === undefined) throw new Error("Could not get volume")
+
+  if (oldVolume <= 90) {
+    await tracksPage.setVolume(100)
+    const newVolume = await tracksPage.getVolume()
+
+    expect(newVolume).toBeGreaterThan(oldVolume)
+  } else {
+    await tracksPage.setVolume(0)
+    const newVolume = await tracksPage.getVolume()
+
+    expect(newVolume).toBeLessThan(oldVolume)
+  }
 })

@@ -4,6 +4,7 @@
   import IconNext from "virtual:icons/heroicons-outline/fast-forward"
   import IconVolume from "virtual:icons/heroicons-outline/volume-up"
   import IconQueue from "virtual:icons/heroicons-outline/view-list"
+  import VolumeControl from "@/lib/molecules/VolumeControl.svelte"
 
   import QueueBar from "./QueueBar.svelte"
   import Seekbar from "../molecules/Seekbar.svelte"
@@ -141,13 +142,8 @@
 
   <!---- Other controls-->
   <div class="flex gap-6 justify-self-end">
-    <button
-      data-testid={test.playbarVolumeIcon}
-      class="button"
-      disabled={!track}
-    >
-      <IconVolume class="h-6 w-6  sm:h-6" />
-    </button>
+    <VolumeControl />
+
     <!--- To be developed and tested
     <button data-testid={test.playbarModeIcon} class="button" disabled={!track}>
       <IconShuffle class="h-6 w-6 sm:h-6" />

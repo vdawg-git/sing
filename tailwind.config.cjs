@@ -35,8 +35,16 @@ module.exports = {
         50: "#E9E8E7",
       },
       orange: {
-        500: "#FFA234",
-        800: "#9F582F"
+        500: "#FF6C2D",
+        800: "#A74B17",
+      },
+      amber: {
+        500: "#FF9D29",
+      },
+      yellow: {
+        300: "#F7D560",
+        500: "#FFCF29",
+        700: "#AD7B19",
       },
       white: "#F3F2EA",
       black: colors.black,

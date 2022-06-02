@@ -40,7 +40,7 @@
       data-testid={test.seekbarProgressbar}
       style="width: {progress}%"
       class="
-        pointer-events-none relative h-full rounded-full bg-orange-500
+        pointer-events-none relative h-full rounded-full bg-amber-500
         transition-[width] duration-[102ms] ease-linear
         "
     >
@@ -48,14 +48,14 @@
         data-testid={test.seekbarProgressbarKnob}
         class="
           shadow_small blurred
-          pointer-events-auto absolute -top-[6px] -right-2 h-3 w-3 rounded-full bg-orange-500  opacity-0 backdrop-blur-3xl delay-100 duration-[150ms]  group-hover:opacity-100
+          pointer-events-auto absolute -top-[6px] -right-2 h-3 w-3 rounded-full bg-amber-500  opacity-0 backdrop-blur-3xl delay-100 duration-[150ms]  group-hover:opacity-100
         "
       >
         <div
           data-testid={test.seekbarCurrentTime}
           class="
              pointer-events-none absolute right-0 -bottom-1   -translate-x-6 rounded-md bg-grey-700/50
-            px-2 text-sm text-grey-200 backdrop-blur-sm 
+            px-2 text-sm text-grey-100 backdrop-blur-sm 
           "
         >
           {secondsToDuration(currentTime)}
@@ -65,7 +65,7 @@
     <div
       data-testid={test.seekbarTotalDuration}
       class="
-       blurred  pointer-events-none absolute -bottom-2 right-0 translate-x-[calc(100%+12px)]  rounded-md bg-grey-700/50 px-2 text-sm text-grey-200 opacity-0 backdrop-blur-3xl delay-150 duration-[120ms] group-hover:opacity-100
+       blurred  pointer-events-none absolute -bottom-2 right-0 translate-x-[calc(100%+12px)]  rounded-md bg-grey-700/50 px-2 text-sm text-grey-100 opacity-0 backdrop-blur-3xl delay-150 duration-[120ms] group-hover:opacity-100
       "
     >
       {secondsToDuration(duration)}

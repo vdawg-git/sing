@@ -63,6 +63,7 @@
   "dependencies": {
     "@prisma/client": "^3.14.0",
     "ansicolor": "^1.1.100",
+    "d3-interpolate": "^3.0.1",
     "electron-store": "^8.0.1",
     "electron-updater": "5.0.1",
     "music-metadata": "^7.12.3",

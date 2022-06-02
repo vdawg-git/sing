@@ -35,6 +35,7 @@ const testIDNames = [
   "seekbarProgressbarKnob",
   "seekbarTotalDuration",
   "volumeSlider",
+  "volumeSliderInner",
 ] as const
 
 const testGroupNames = [

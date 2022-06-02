@@ -178,27 +178,6 @@ describe("behaves correctly with no tracks", () => {
       ).toBeTruthy()
     })
 
-    it("Loop mode button is disabled when store is undefined", () => {
-      const playbar = render(Playbar)
-      expect(
-        playbar.getByTestId(id.playbarLoopIcon).hasAttribute("disabled")
-      ).toBeTruthy()
-    })
-
-    it("Play mode button is disabled when store is undefined", () => {
-      const playbar = render(Playbar)
-      expect(
-        playbar.getByTestId(id.playbarModeIcon).hasAttribute("disabled")
-      ).toBeTruthy()
-    })
-
-    it("Volume button is disabled when store is undefined", () => {
-      const playbar = render(Playbar)
-      expect(
-        playbar.getByTestId(id.playbarVolumeIcon).hasAttribute("disabled")
-      ).toBeTruthy()
-    })
-
     it("Queue button is disabled when store is undefined", () => {
       const playbar = render(Playbar)
       expect(
