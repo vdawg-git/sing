@@ -1,9 +1,9 @@
 import type { Page, Locator, ConsoleMessage } from "playwright"
 import {
   TEST_IDS as id,
-  TEST_ATTRIBUTE as testAttr,
-} from "../../packages/renderer/src/Consts"
-import { convertDisplayTimeToSeconds, isImage } from "../Helper"
+  testAttr as testAttr,
+} from "../../packages/renderer/src/TestConsts"
+import { convertDisplayTimeToSeconds, isImageElement } from "../Helper"
 
 export default function createBasePage(page: Page) {
   const currentTime = page.locator(id.asQuery.seekbarCurrentTime)
@@ -25,6 +25,7 @@ export default function createBasePage(page: Page) {
   const seekbar = page.locator(id.asQuery.seekbar)
   const totalDuration = page.locator(id.asQuery.seekbarTotalDuration)
   const volumeSlider = page.locator(id.asQuery.volumeSlider)
+  const testAudioElement = page.locator(id.asQuery.testAudioELement)
   const volumeSliderInner = page.locator(id.asQuery.volumeSliderInner)
 
   return {
@@ -42,13 +43,15 @@ export default function createBasePage(page: Page) {
     getProgressBarWidth,
     getTotalDuration,
     getVolume,
+    getVolumeState,
     goToNextTrack,
     hoverSeekbar,
     hoverVolumeIcon,
+    isPlaying: isPlayingAudio,
     isRenderingPlaybarCover,
     openQueue,
     playNextTrackFromQueue,
-    playPrevious,
+    goToPreviousTrack,
     reload,
     setVolume,
     waitForProgressBarToGrow,
@@ -57,6 +60,26 @@ export default function createBasePage(page: Page) {
 
   async function reload() {
     page.evaluate(() => window.location.reload())
+  }
+
+  async function isPlayingAudio(): Promise<boolean> {
+    const isPlaying = await testAudioElement.evaluate((e) => {
+      if (!isMediaElement(e))
+        throw new Error("Element is not a media element, but " + e.nodeName)
+
+      return !(e.paused || e.ended)
+
+      function isMediaElement(
+        e: HTMLElement | SVGElement
+      ): e is HTMLMediaElement {
+        if (e.nodeName === "AUDIO") return true
+        if (e.nodeName === "VIDEO") return true
+
+        return false
+      }
+    })
+
+    return isPlaying
   }
 
   async function waitForProgressBarToGrow(desiredWidth: number) {
@@ -82,7 +105,7 @@ export default function createBasePage(page: Page) {
 
   async function isRenderingPlaybarCover() {
     return playbarCover.evaluate((element: HTMLElement) => {
-      if (!isImage(element)) return false
+      if (!isImageElement(element)) return false
 
       return !!element.naturalWidth
     })
@@ -111,7 +134,7 @@ export default function createBasePage(page: Page) {
     return playbarNextButton.click({ timeout: 2000 })
   }
 
-  async function playPrevious() {
+  async function goToPreviousTrack() {
     return playbarBackButton.click({ timeout: 2000 })
   }
 
@@ -225,47 +248,68 @@ export default function createBasePage(page: Page) {
     await playBarVolumeIcon.hover({ timeout: 2500, force: true })
   }
 
-  /**
-   * @description Returns current volume between 0 and 100
-   * */
-  async function getVolume(): Promise<number | undefined> {
-    await hoverVolumeIcon()
+  async function getVolumeState(): Promise<number> {
+    const volume = await testAudioElement.evaluate((e) => {
+      const x = e as unknown as HTMLAudioElement
 
-    const totalHeight = (await volumeSlider.boundingBox({ timeout: 2000 }))
-      ?.height
-    const sliderHeight = (
-      await volumeSliderInner.boundingBox({ timeout: 2000 })
-    )?.height
+      return x.volume
+    })
 
-    if (totalHeight === undefined || sliderHeight === undefined)
-      return undefined
-
-    return (sliderHeight / totalHeight) * 100
+    return volume
   }
 
-  /**
-   * @param volume The volume to set between 0 and 100
-   */
+  async function getVolume(): Promise<number> {
+    await hoverVolumeIcon()
+
+    const heightTotal = (await volumeSlider.boundingBox())?.height
+    const sliderHeight = (await volumeSliderInner.boundingBox())?.height
+
+    if (heightTotal === undefined || sliderHeight === undefined) return 0
+
+    return sliderHeight / heightTotal
+  }
+
   async function setVolume(volume: number): Promise<void> {
     await hoverVolumeIcon()
 
-    const totalHeight = (await volumeSlider.boundingBox({ timeout: 2000 }))
-      ?.height
+    const { height, width } = (await volumeSlider.boundingBox({
+      timeout: 2000,
+    })) || { height: undefined, width: undefined }
 
-    if (totalHeight === undefined) {
-      console.error("height of volume slider is undefined")
-      return
+    if (height === undefined) {
+      throw new Error("height of volume slider is undefined")
+    }
+    if (width === undefined) {
+      throw new Error("width of volume slider is undefined")
     }
 
-    const y = totalHeight * (volume * 0.01)
+    const heightToReach = height * volume
+    const x = width || 12 * 0.5
 
     await volumeSlider.click({
       position: {
-        y,
-        x: 0,
+        y: heightToReach,
+        x, // Do not click on the border
       },
-      force: true,
       timeout: 2000,
     })
+
+    await validateAndWaitForAnimation()
+
+    async function validateAndWaitForAnimation(
+      height: number | undefined = undefined,
+      previousHeight: number | undefined = undefined
+    ) {
+      const newElementHeight = (await volumeSliderInner.boundingBox())?.height
+      if (newElementHeight === undefined)
+        throw new Error("height of volume gradient is undefined")
+
+      if (newElementHeight !== previousHeight) {
+        await page.waitForTimeout(10)
+        await validateAndWaitForAnimation(newElementHeight, height)
+      } else {
+        return newElementHeight === heightToReach
+      }
+    }
   }
 }

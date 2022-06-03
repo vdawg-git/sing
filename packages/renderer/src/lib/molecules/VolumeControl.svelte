@@ -1,18 +1,18 @@
 <script lang="ts">
   import IconVolume from "virtual:icons/heroicons-outline/volume-up"
-  import { TEST_IDS as testID } from "@/Consts"
+  import { TEST_IDS as testID } from "@/TestConsts"
   import { spring } from "svelte/motion"
   import { fade } from "svelte/transition"
 
   export let disabled = false
-  export let value = 50
+  export let value = 1
 
-  const animatedValue = spring(value * 0.01, {
-    damping: 0.3,
-    stiffness: 0.1,
+  const animatedValue = spring(value, {
+    damping: 0.2,
+    stiffness: 0.09,
   })
   $: {
-    animatedValue.set(value * 0.01)
+    animatedValue.set(value)
   }
 
   let showSlider = false
@@ -42,33 +42,40 @@
 
   {#if showSlider}
     <div
-      class="absolute bottom-0  -translate-x-[44px] -translate-y-[60px] -rotate-90 cursor-pointer"
+      class="absolute bottom-0  -translate-x-[44px] -translate-y-[60px] -rotate-90"
       out:fade={{ duration: 220 }}
     >
       <div
-        data-testid={testID.volumeSlider}
         class="
-          shadow_ flex h-6 w-28 origin-center translate-x-5   overflow-hidden rounded-2xl  border border-grey-300 align-middle
-        "
+      shadow_ relative flex h-6 w-28 origin-center translate-x-5 overflow-hidden 
+      rounded-2xl border border-grey-300 align-middle
+      "
       >
         <!---- Input ---->
         <input
+          data-testid={testID.volumeSlider}
           type="range"
           name="volume slider"
           id="volume_slider"
           min="0"
-          max="100"
+          max="1"
+          step="0.01"
           bind:value
           class="input_"
         />
-        <!---- Inner fill ---->
+        <!---- Inner gradient ---->
+        <!---- Mask ---->
         <div
           data-testid={testID.volumeSliderInner}
-          class="pointer-events-none absolute left-0 bottom-0 z-10  h-full overflow-hidden"
+          class="
+            pointer-events-none
+            absolute inset-0  z-20  h-6 overflow-hidden bg-red-600
+            "
           style="width: {$animatedValue > 0 ? $animatedValue * 100 : 0}%;"
         >
+          <!---- Fill ---->
           <div
-            class="absolute h-full min-w-[112px] bg-gradient-to-r from-amber-500 to-orange-500"
+            class="absolute inset-0 h-6 min-w-[112px] bg-gradient-to-r from-amber-500 to-orange-500"
           />
         </div>
       </div>
@@ -84,6 +91,7 @@
     width: 112px;
     height: 24px;
     background-color: red;
+    cursor: pointer;
 
     &:focus {
       outline: none;

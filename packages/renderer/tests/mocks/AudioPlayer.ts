@@ -7,21 +7,10 @@ function createPlayer() {
   audio.volume = 1
   audio.muted = false
 
-  if (import.meta.env.DEV) {
-    audio.onplay = () => {
-      window.testAPI.isAudioPlaying = true
-    }
-
-    audio.onended = setTestPlayStateToFalse
-    audio.onpause = setTestPlayStateToFalse
-
-    function setTestPlayStateToFalse() {
-      window.testAPI.isAudioPlaying = false
-    }
-  }
-
   return {
     audio,
+
+    destroy: vi.fn(),
 
     getCurrentTime: vi.fn(() => 100),
 

@@ -124,7 +124,7 @@ it("displays the total time when hovering the seekbar", async () => {
   expect(await tracksPage.getTotalDuration()).toBeGreaterThan(0)
 })
 
-it.only("goes to the next track in queue after the current has finished", async () => {
+it("goes to the next track in queue after the current has finished", async () => {
   const page = await electronApp.firstWindow()
   const tracksPage = createTracksPage(page)
   await tracksPage.reload()
@@ -141,23 +141,61 @@ it.only("goes to the next track in queue after the current has finished", async 
   expect(oldNextTrack).toBe(newCurrentTrack)
 })
 
-it("changes the volume", async () => {
+it("changes the volume when clicking the slider", async () => {
   const page = await electronApp.firstWindow()
   const tracksPage = createTracksPage(page)
   await tracksPage.reload()
 
   const oldVolume = await tracksPage.getVolume()
-  if (oldVolume === undefined) throw new Error("Could not get volume")
 
-  if (oldVolume <= 90) {
-    await tracksPage.setVolume(100)
-    const newVolume = await tracksPage.getVolume()
+  await tracksPage.setVolume(0.5)
+  const newVolume = await tracksPage.getVolume()
 
-    expect(newVolume).toBeGreaterThan(oldVolume)
-  } else {
-    await tracksPage.setVolume(0)
-    const newVolume = await tracksPage.getVolume()
-
-    expect(newVolume).toBeLessThan(oldVolume)
-  }
+  expect(newVolume).not.toBe(oldVolume)
+  expect(newVolume).toBeCloseTo(0.5, 1)
 }, 50000)
+
+it("visualizes the volume correctly", async () => {
+  const page = await electronApp.firstWindow()
+  const tracksPage = createTracksPage(page)
+
+  const internalVolume = await tracksPage.getVolumeState()
+  const sliderHeight = await tracksPage.getVolume()
+
+  expect(internalVolume).toBeCloseTo(sliderHeight, 1)
+})
+
+it("does not play music when paused and going to the previous track", async () => {
+  const page = await electronApp.firstWindow()
+  const tracksPage = createTracksPage(page)
+  await tracksPage.reload()
+
+  await tracksPage.goToNextTrack()
+  await tracksPage.goToPreviousTrack()
+
+  const isPlaying = await tracksPage.isPlaying()
+
+  expect(isPlaying).toBe(false)
+})
+
+it("does not play music when paused and going to the next track", async () => {
+  const page = await electronApp.firstWindow()
+  const tracksPage = createTracksPage(page)
+  await tracksPage.reload()
+
+  await tracksPage.goToNextTrack()
+
+  const isPlaying = await tracksPage.isPlaying()
+
+  expect(isPlaying).toBe(false)
+})
+
+it("does not play music when just opened", async () => {
+  const page = await electronApp.firstWindow()
+  const tracksPage = createTracksPage(page)
+  await tracksPage.reload()
+
+  const isPlaying = await tracksPage.isPlaying()
+
+  expect(isPlaying).toBe(false)
+})

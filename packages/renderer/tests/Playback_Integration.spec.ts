@@ -1,12 +1,5 @@
-import { TEST_IDS as id, TEST_GROUPS as group } from "../src/Consts"
-import {
-  render,
-  fireEvent,
-  waitForElementToBeRemoved,
-  act,
-  screen,
-  cleanup,
-} from "@testing-library/svelte"
+import { TEST_IDS as id } from "@/TestConsts"
+import { render, fireEvent, screen, cleanup } from "@testing-library/svelte"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import mockElectronApi, { mockedApiTracks } from "./MockElectronApi"
 import mockedPlayer from "./mocks/AudioPlayer"

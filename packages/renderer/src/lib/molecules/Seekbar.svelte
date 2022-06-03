@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { TEST_IDS as test } from "@/Consts"
+  import { TEST_IDS as test } from "@/TestConsts"
   import { secondsToDuration } from "@/Helper"
   import { createEventDispatcher } from "svelte"
 
@@ -41,7 +41,7 @@
       style="width: {progress}%"
       class="
         pointer-events-none relative h-full rounded-full bg-amber-500
-        transition-[width] duration-[102ms] ease-linear
+        transition-[width] duration-[60ms] ease-in
         "
     >
       <div

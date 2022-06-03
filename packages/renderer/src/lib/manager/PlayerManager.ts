@@ -62,7 +62,6 @@ function createPlayerManager() {
   let $currentIndex: number = -1
   let $currentTrack: IQueueItem
   let $currentTime: number
-  let $volume = 1
   let seekAnimationID: number
 
   // Subscribe to all stores and get the unsubscribers
@@ -78,7 +77,6 @@ function createPlayerManager() {
     sourceTypeStore.subscribe(($source) => ($sourceType = $source)),
     sourceIDStore.subscribe(($id) => ($sourceID = $id)),
     playStateStore.subscribe(handlePlayStateUpdate),
-    volumeStore.subscribe(handleVolumeChange),
     currentTrack.subscribe(
       ($newCurrentTrack) => ($currentTrack = $newCurrentTrack)
     ),
@@ -89,9 +87,9 @@ function createPlayerManager() {
 
   // Events
   audioPlayer.audio.onended = handleTrackEnded
+  audioPlayer.audio.onvolumechange = onVolumeChange
 
   return {
-    removeIndexFromQueue,
     destroy,
     isMuted,
     next,
@@ -99,9 +97,11 @@ function createPlayerManager() {
     playQueueIndex,
     playSource,
     previous,
+    removeIndexFromQueue,
     resume,
-    setMuted,
     seekTo,
+    setMuted,
+    setVolume,
   }
 
   function handleTrackEnded() {
@@ -117,18 +117,14 @@ function createPlayerManager() {
     } else {
       cancelIntervalUpdateTime()
     }
-
-    if (import.meta.env.DEV) {
-      window.testAPI.playState = newState
-    }
   }
 
-  function handleVolumeChange(newVolume: number) {
-    $volume = newVolume
+  function onVolumeChange() {
+    volumeStore.set(audioPlayer.getVolume())
+  }
 
-    if (import.meta.env.DEV) {
-      window.testAPI.volume = newVolume
-    }
+  function setVolume(newVolume: number) {
+    audioPlayer.setVolume(newVolume)
   }
 
   function seekTo(percentage: number) {
@@ -211,8 +207,9 @@ function createPlayerManager() {
 
     if ($playState === "STOPPED" || $playState === "PAUSED")
       audioPlayer.setSource($currentTrack.track.filepath)
-
-    audioPlayer.play($currentTrack.track.filepath)
+    else {
+      audioPlayer.play($currentTrack.track.filepath)
+    }
   }
 
   function pause() {
@@ -230,8 +227,7 @@ function createPlayerManager() {
 
   function destroy() {
     unsubscribers.forEach((unsubscribe) => unsubscribe())
-    audioPlayer.pause()
-    audioPlayer.setSource("")
+    audioPlayer.destroy()
   }
 
   function playQueueIndex(index: number): void {

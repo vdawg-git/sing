@@ -8,7 +8,7 @@ import {
   IProccessedTrackFailed,
   IProccessedTrackValid,
 } from "../../../../types/Track"
-import { SUPPORTED_MUSIC_FORMATS } from "./consts"
+import { SUPPORTED_MUSIC_FORMATS } from "./FileFormats"
 
 const prisma = createPrismaClient()
 

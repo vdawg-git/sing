@@ -36,6 +36,7 @@ const testIDNames = [
   "seekbarTotalDuration",
   "volumeSlider",
   "volumeSliderInner",
+  "testAudioELement",
 ] as const
 
 const testGroupNames = [
@@ -74,15 +75,12 @@ export const TEST_IDS: ITestIDs = testIDNames.reduce((acc, name) => {
   return acc
 }, {} as any)
 
-export const TEST_ATTRIBUTE: ITestGroups = testGroupNames.reduce(
-  (acc, name) => {
-    if (!acc?.asQuery) acc["asQuery"] = {}
-    if (!acc.asQuery?.noBrackets) acc["asQuery"]["noBrackets"] = {}
+export const testAttr: ITestGroups = testGroupNames.reduce((acc, name) => {
+  if (!acc?.asQuery) acc["asQuery"] = {}
+  if (!acc.asQuery?.noBrackets) acc["asQuery"]["noBrackets"] = {}
 
-    acc[name] = name
-    acc.asQuery[name] = `[data-testgroup=${name}]`
+  acc[name] = name
+  acc.asQuery[name] = `[data-testgroup=${name}]`
 
-    return acc
-  },
-  {} as any
-)
+  return acc
+}, {} as any)

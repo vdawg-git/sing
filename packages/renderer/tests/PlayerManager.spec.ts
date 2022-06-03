@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import { TEST_IDS as id, TEST_GROUPS as group } from "@/Consts"
+import { TEST_IDS as id, testAttr } from "@/TestConsts"
 // import {
 //   render,
 //   fireEvent,

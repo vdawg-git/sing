@@ -4,11 +4,11 @@
   import type { IQueueItem } from "@/types/Types"
   import { createEventDispatcher } from "svelte"
   import IconClose from "virtual:icons/heroicons-outline/x"
-  import { TEST_IDS, TEST_ATTRIBUTE } from "@/Consts"
+  import { TEST_IDS as testID, testAttr } from "@/TestConsts"
   type ITestIDs =
-    | typeof TEST_IDS.queueCurrentTrack
-    | typeof TEST_IDS.queuePreviousTrack
-    | typeof TEST_IDS.queueNextTrack
+    | typeof testID.queueCurrentTrack
+    | typeof testID.queuePreviousTrack
+    | typeof testID.queueNextTrack
     | undefined
 
   export let queueItemData: IQueueItem
@@ -21,18 +21,12 @@
   // set up test ids
   $: [testTitleID, testArtistID] = (() => {
     switch (testId) {
-      case TEST_IDS.queueCurrentTrack:
-        return [
-          TEST_IDS.queueCurrentTrackTitle,
-          TEST_IDS.queueCurrentTrackArtist,
-        ]
-      case TEST_IDS.queuePreviousTrack:
-        return [
-          TEST_IDS.queuePreviousTrackTitle,
-          TEST_IDS.queuePreviousTrackArtist,
-        ]
-      case TEST_IDS.queueNextTrack:
-        return [TEST_IDS.queueNextTrackTitle, TEST_IDS.queueNextTrackArtist]
+      case testID.queueCurrentTrack:
+        return [testID.queueCurrentTrackTitle, testID.queueCurrentTrackArtist]
+      case testID.queuePreviousTrack:
+        return [testID.queuePreviousTrackTitle, testID.queuePreviousTrackArtist]
+      case testID.queueNextTrack:
+        return [testID.queueNextTrackTitle, testID.queueNextTrackArtist]
       default:
         return [undefined, undefined]
     }
@@ -67,7 +61,7 @@
         alt={track?.title + "cover"}
         class="h-12 w-12 rounded"
         class:opacity-70={state === "HAS_PLAYED"}
-        data-testgroup={TEST_ATTRIBUTE.queueItemCover}
+        data-testgroup={testAttr.queueItemCover}
       />
     {:else}
       <div class="h-12 w-12 bg-grey-700" />
@@ -77,14 +71,14 @@
       <span
         class="overflow-hidden text-ellipsis whitespace-nowrap text-sm"
         data-testid={testTitleID}
-        data-testgroup={TEST_ATTRIBUTE.queueItemTitle}
+        data-testgroup={testAttr.queueItemTitle}
       >
         {track?.title ? track.title : "Unknown"}
       </span>
       <span
         class="-mt-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm text-grey-300"
         data-testid={testArtistID}
-        data-testgroup={TEST_ATTRIBUTE.queueItemArtist}
+        data-testgroup={testAttr.queueItemArtist}
       >
         {track?.artist ? track.artist : "Unknown"}
       </span>
@@ -92,7 +86,7 @@
   </div>
   <div
     class="shrink-0 grow-0"
-    data-testgroup={TEST_ATTRIBUTE.queueItemDeleteIcon}
+    data-testgroup={testAttr.queueItemDeleteIcon}
     on:click|stopPropagation={handleRemoveClick}
   >
     <IconClose class="mr-2 h-6 w-6 text-grey-300 hover:text-white" />

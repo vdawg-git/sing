@@ -1,4 +1,4 @@
-import { TEST_IDS as id, TEST_ATTRIBUTE as testAttr } from "../src/Consts"
+import { TEST_IDS as id, testAttr } from "../src/TestConsts"
 import {
   render,
   fireEvent,

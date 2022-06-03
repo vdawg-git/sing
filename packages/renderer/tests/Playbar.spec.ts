@@ -1,4 +1,4 @@
-import { TEST_IDS as id } from "../src/Consts"
+import { TEST_IDS as id } from "../src/TestConsts"
 import { fireEvent, render, waitFor, screen } from "@testing-library/svelte"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import mockElectronApi, { mockedApiTracks } from "./MockElectronApi"

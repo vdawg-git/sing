@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/svelte"
 import NoContent from "@/lib/organisms/NoContent.svelte"
 import { describe, expect, it } from "vitest"
-import { TEST_IDS } from "@/Consts"
+import { TEST_IDS } from "@/TestConsts"
 import MockedApi from "./MockElectronApi"
 
 vi.stubGlobal("api", MockedApi)

@@ -4,7 +4,7 @@
 </script>
 
 <script lang="ts">
-  import { TEST_IDS as test } from "@/Consts"
+  import { TEST_IDS as test } from "@/TestConsts"
   import player, {
     playedTracks,
     nextTracks,

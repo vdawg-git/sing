@@ -1,5 +1,10 @@
+import { TEST_IDS } from "@/TestConsts"
+
 function createPlayer() {
-  let audio = new window.Audio()
+  let audio = document.createElement("audio")
+  audio.style.display = "none"
+  audio.setAttribute("data-testid", TEST_IDS.testAudioELement)
+  document.body.appendChild(audio)
 
   audio.defaultPlaybackRate = 1
   // @ts-expect-error
@@ -61,6 +66,8 @@ function createPlayer() {
       return audio.currentTime
     },
     setOutputDevice,
+
+    destroy,
   }
 
   function play(src: string): void {
@@ -84,6 +91,12 @@ function createPlayer() {
   function setOutputDevice(output: string) {
     // @ts-expect-error
     audio.setSinkId(output)
+  }
+
+  function destroy() {
+    audio.pause()
+    audio.src = ""
+    audio.remove()
   }
 }
 

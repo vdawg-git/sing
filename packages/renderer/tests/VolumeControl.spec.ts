@@ -1,7 +1,7 @@
 import { fireEvent, render } from "@testing-library/svelte"
 import type { SvelteComponentDev } from "svelte/internal"
 import { beforeEach, expect, it, vi } from "vitest"
-import { TEST_IDS as id } from "../src/Consts"
+import { TEST_IDS as id } from "@/TestConsts"
 import "./setupBasicMocks"
 
 let VolumeControl: typeof SvelteComponentDev
@@ -30,7 +30,7 @@ it("changes the icon on click", async () => {
 
 it("sets the internal volume value to zero on click", async () => {
   const dom = render(VolumeControl, {
-    props: { value: 100 },
+    props: { value: 1 },
   })
 
   const $$ = dom.component.$$

@@ -2,23 +2,33 @@
   import IconPause from "virtual:icons/heroicons-outline/pause"
   import IconPlay from "virtual:icons/heroicons-outline/play"
   import IconNext from "virtual:icons/heroicons-outline/fast-forward"
-  import IconVolume from "virtual:icons/heroicons-outline/volume-up"
   import IconQueue from "virtual:icons/heroicons-outline/view-list"
   import VolumeControl from "@/lib/molecules/VolumeControl.svelte"
+  import { onDestroy, onMount } from "svelte"
 
   import QueueBar from "./QueueBar.svelte"
   import Seekbar from "../molecules/Seekbar.svelte"
-  import { TEST_IDS as test } from "@/Consts"
+  import { TEST_IDS as test } from "@/TestConsts"
 
   import player, {
     currentTrack,
     playState,
     currentTime,
+    volume as volumeStore,
   } from "@/lib/manager/PlayerManager"
 
   $: track = $currentTrack?.track
 
   let showQueue = false
+
+  let volume: number = 1
+  $: {
+    player.setVolume(volume)
+  }
+
+  onMount(() => {
+    volume = $volumeStore
+  })
 
   function handleClickQueueIcon() {
     showQueue = !showQueue
@@ -27,6 +37,8 @@
   function handleSeek({ detail: percentage }: CustomEvent) {
     player.seekTo(percentage)
   }
+
+  onDestroy(player.destroy)
 </script>
 
 <main
@@ -142,7 +154,7 @@
 
   <!---- Other controls-->
   <div class="flex gap-6 justify-self-end">
-    <VolumeControl />
+    <VolumeControl bind:value={volume} />
 
     <!--- To be developed and tested
     <button data-testid={test.playbarModeIcon} class="button" disabled={!track}>

@@ -24,6 +24,19 @@ export function convertDisplayTimeToSeconds(displayTime: string) {
   return minutes * 60 + seconds
 }
 
-export function isImage(element: Element): element is HTMLImageElement {
+export function isImageElement(element: Element): element is HTMLImageElement {
   return element?.tagName === "IMG"
+}
+
+export function isSVGElement(element: Element): element is SVGElement {
+  if (element.nodeName === "svg") return true
+
+  return false
+}
+
+export function isMediaElement(element: Element): element is HTMLMediaElement {
+  if (element.nodeName === "audio") return true
+  if (element.nodeName === "video") return true
+
+  return false
 }
