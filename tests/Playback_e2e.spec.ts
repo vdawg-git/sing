@@ -124,7 +124,7 @@ it("displays the total time when hovering the seekbar", async () => {
   expect(await tracksPage.getTotalDuration()).toBeGreaterThan(0)
 })
 
-it("goes to the next track in queue after the current has finished", async () => {
+it.only("goes to the next track in queue after the current has finished", async () => {
   const page = await electronApp.firstWindow()
   const tracksPage = createTracksPage(page)
   await tracksPage.reload()
@@ -160,4 +160,4 @@ it("changes the volume", async () => {
 
     expect(newVolume).toBeLessThan(oldVolume)
   }
-})
+}, 50000)

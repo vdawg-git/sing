@@ -1,5 +1,4 @@
 function createPlayer() {
-  let testIsPlaying = false
   let audio = document.createElement("audio")
 
   audio.defaultPlaybackRate = 1
@@ -7,6 +6,19 @@ function createPlayer() {
   audio.playbackRate = 1
   audio.volume = 1
   audio.muted = false
+
+  if (import.meta.env.DEV) {
+    audio.onplay = () => {
+      window.testAPI.isAudioPlaying = true
+    }
+
+    audio.onended = setTestPlayStateToFalse
+    audio.onpause = setTestPlayStateToFalse
+
+    function setTestPlayStateToFalse() {
+      window.testAPI.isAudioPlaying = false
+    }
+  }
 
   return {
     audio,
@@ -60,7 +72,6 @@ function createPlayer() {
 
   function play(src: string): void {
     setSource(src)
-    testIsPlaying = true
   }
 
   function setSource(src: string) {
@@ -76,7 +87,6 @@ function createPlayer() {
   }
 }
 
-// type IPlaySatus = "PAUSED" | "PLAYING" | "STOPPED"
 const player = createPlayer()
 
 export default player

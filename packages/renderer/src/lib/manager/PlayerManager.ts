@@ -77,8 +77,8 @@ function createPlayerManager() {
     playModeStore.subscribe(($mode) => ($playMode = $mode)),
     sourceTypeStore.subscribe(($source) => ($sourceType = $source)),
     sourceIDStore.subscribe(($id) => ($sourceID = $id)),
-    playStateStore.subscribe(($state) => handlePlayStateUpdate($state)),
-    volumeStore.subscribe(($newVolume) => ($volume = $newVolume)),
+    playStateStore.subscribe(handlePlayStateUpdate),
+    volumeStore.subscribe(handleVolumeChange),
     currentTrack.subscribe(
       ($newCurrentTrack) => ($currentTrack = $newCurrentTrack)
     ),
@@ -116,6 +116,18 @@ function createPlayerManager() {
       intervalUpdateTime()
     } else {
       cancelIntervalUpdateTime()
+    }
+
+    if (import.meta.env.DEV) {
+      window.testAPI.playState = newState
+    }
+  }
+
+  function handleVolumeChange(newVolume: number) {
+    $volume = newVolume
+
+    if (import.meta.env.DEV) {
+      window.testAPI.volume = newVolume
     }
   }
 
@@ -246,15 +258,7 @@ async function initStores() {
 
   if (!tracks?.length) return
 
-  const queueItems: IQueueItem[] = tracks.map((track, index) => {
-    return {
-      index,
-      isManuallyAdded: false,
-      track,
-      queueID: Symbol(track?.title + " " + "queueID"),
-    }
-  })
-  queueStore.set(queueItems)
+  queueStore.setUpcomingFromSource(tracks, 0)
   indexStore.set(0)
-  audioPlayer.setSource(queueItems[0].track.filepath)
+  audioPlayer.setSource(tracks[0].filepath)
 }

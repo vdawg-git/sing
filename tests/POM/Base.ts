@@ -44,6 +44,7 @@ export default function createBasePage(page: Page) {
     getVolume,
     goToNextTrack,
     hoverSeekbar,
+    hoverVolumeIcon,
     isRenderingPlaybarCover,
     openQueue,
     playNextTrackFromQueue,
@@ -220,16 +221,20 @@ export default function createBasePage(page: Page) {
     await seekbar.hover({ timeout: 2000 })
   }
 
+  async function hoverVolumeIcon() {
+    await playBarVolumeIcon.hover({ timeout: 2500, force: true })
+  }
+
   /**
    * @description Returns current volume between 0 and 100
    * */
   async function getVolume(): Promise<number | undefined> {
-    await playBarVolumeIcon.hover({ timeout: 2500 })
+    await hoverVolumeIcon()
 
-    const totalHeight = (await volumeSlider.boundingBox({ timeout: 2500 }))
+    const totalHeight = (await volumeSlider.boundingBox({ timeout: 2000 }))
       ?.height
     const sliderHeight = (
-      await volumeSliderInner.boundingBox({ timeout: 2500 })
+      await volumeSliderInner.boundingBox({ timeout: 2000 })
     )?.height
 
     if (totalHeight === undefined || sliderHeight === undefined)
@@ -242,9 +247,10 @@ export default function createBasePage(page: Page) {
    * @param volume The volume to set between 0 and 100
    */
   async function setVolume(volume: number): Promise<void> {
-    await playBarVolumeIcon.hover({ timeout: 2500 })
+    await hoverVolumeIcon()
 
-    const totalHeight = (await volumeSlider.boundingBox())?.height
+    const totalHeight = (await volumeSlider.boundingBox({ timeout: 2000 }))
+      ?.height
 
     if (totalHeight === undefined) {
       console.error("height of volume slider is undefined")
@@ -258,6 +264,8 @@ export default function createBasePage(page: Page) {
         y,
         x: 0,
       },
+      force: true,
+      timeout: 2000,
     })
   }
 }

@@ -46,13 +46,13 @@
       out:fade={{ duration: 220 }}
     >
       <div
+        data-testid={testID.volumeSlider}
         class="
-        shadow_ flex h-6 w-28 origin-center translate-x-5   overflow-hidden rounded-2xl  border border-grey-300 align-middle
-      "
+          shadow_ flex h-6 w-28 origin-center translate-x-5   overflow-hidden rounded-2xl  border border-grey-300 align-middle
+        "
       >
         <!---- Input ---->
         <input
-          data-testid={testID.volumeSlider}
           type="range"
           name="volume slider"
           id="volume_slider"

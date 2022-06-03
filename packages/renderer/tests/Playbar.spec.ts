@@ -207,3 +207,20 @@ describe("behaves correctly with no tracks", () => {
     })
   })
 })
+
+describe("changes the playback state", async () => {
+  beforeEach(async () => {
+    vi.mocked(window.api.getTracks).mockImplementation(
+      async () => mockedApiTracks
+    )
+    Playbar = (await import(
+      "@/lib/organisms/Playbar.svelte"
+    )) as unknown as typeof SvelteComponentDev
+  })
+
+  it("mutes when clicking the volume icon", async () => {})
+
+  it("unmutes when pressing the muted volume icon", async () => {})
+
+  it("changes the volume when settings the slider value", async () => {})
+})

@@ -1,13 +1,13 @@
-import { TEST_IDS as id } from "../src/Consts"
-import { fireEvent, render, waitFor, screen } from "@testing-library/svelte"
-import { beforeEach, describe, expect, it, vi } from "vitest"
-import "./setupBasicMocks"
+import { fireEvent, render } from "@testing-library/svelte"
 import type { SvelteComponentDev } from "svelte/internal"
+import { beforeEach, expect, it, vi } from "vitest"
+import { TEST_IDS as id } from "../src/Consts"
+import "./setupBasicMocks"
 
-let volumeControl: typeof SvelteComponentDev
+let VolumeControl: typeof SvelteComponentDev
 
 beforeEach(async () => {
-  volumeControl = (await import(
+  VolumeControl = (await import(
     "@/lib/molecules/VolumeControl.svelte"
   )) as unknown as typeof SvelteComponentDev
 })
@@ -17,30 +17,27 @@ afterEach(async () => {
 })
 
 it("changes the icon on click", async () => {
-  const component = render(volumeControl)
+  const component = render(VolumeControl)
 
-  const oldIcon = component.getByTestId(id.asQuery.playbarQueueIcon)
+  const oldIcon = component.getByTestId(id.playbarVolumeIcon)
 
-  await fireEvent.click(component.container)
+  await fireEvent.click(oldIcon)
 
-  const newIcon = component.getByTestId(id.asQuery.playbarQueueIcon)
+  const newIcon = component.getByTestId(id.playbarVolumeIcon)
 
-  expect(newIcon).not.toEqual(oldIcon)
+  expect(newIcon).not.toBe(oldIcon)
 })
 
 it("sets the internal volume value to zero on click", async () => {
-  const { component } = render(volumeControl, {
-    volume: 100,
+  const dom = render(VolumeControl, {
+    props: { value: 100 },
   })
 
-  const oldVolume = component.$$.props.amount
+  const $$ = dom.component.$$
 
-  console.log(component.$$.props.amount)
-  console.log(oldVolume)
+  await fireEvent.click(dom.getByTestId(id.playbarVolumeIcon))
 
-  await fireEvent.click(component.container)
-
-  const newVolume = component.$$.props.amount
+  const newVolume = $$.ctx[$$.props["value"]]
 
   expect(newVolume).toBe(0)
 })
