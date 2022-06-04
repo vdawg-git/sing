@@ -1,5 +1,6 @@
 <script lang="ts">
   import IconVolume from "virtual:icons/heroicons-outline/volume-up"
+  import IconVolumeMuted from "virtual:icons/heroicons-outline/volume-off"
   import { TEST_IDS as testID } from "@/TestConsts"
   import { spring } from "svelte/motion"
   import { fade } from "svelte/transition"
@@ -16,6 +17,8 @@
   }
 
   let showSlider = false
+  let volumeBeforeMute: number | undefined = [value][0] // dont be reactive on value
+  $: muted = value === 0
 
   let timeout: NodeJS.Timeout
 
@@ -27,29 +30,51 @@
   function handleMouseEnter() {
     clearTimeout(timeout)
 
-    showSlider = true
+    timeout = setTimeout(() => (showSlider = true), 50)
+  }
+
+  function toggleMute() {
+    if (muted) {
+      if (volumeBeforeMute) {
+        value = volumeBeforeMute
+        volumeBeforeMute = undefined
+      } else {
+        value = 1
+      }
+    } else {
+      volumeBeforeMute = value
+      value = 0
+    }
   }
 </script>
 
 <main
-  class="group relative"
+  class="group relative h-6"
   on:mouseenter={handleMouseEnter}
   on:mouseleave={handleMouseLeave}
 >
-  <button data-testid={testID.playbarVolumeIcon} {disabled}>
-    <IconVolume class="h-6 w-6 sm:h-6" />
+  <button
+    data-testid={testID.playbarVolumeIcon}
+    {disabled}
+    on:click={toggleMute}
+  >
+    {#if !muted}
+      <IconVolume class="h-6 w-6" />
+    {:else}
+      <IconVolumeMuted class="h-6 w-6" />
+    {/if}
   </button>
 
   {#if showSlider}
     <div
-      class="absolute bottom-0  -translate-x-[44px] -translate-y-[60px] -rotate-90"
+      class=" pointer-events-none  absolute bottom-0 -translate-x-[44px] -translate-y-[60px] -rotate-90"
       out:fade={{ duration: 220 }}
     >
       <div
         class="
-      shadow_ relative flex h-6 w-28 origin-center translate-x-5 overflow-hidden 
-      rounded-2xl border border-grey-300 align-middle
-      "
+          shadow_ pointer-events-auto relative z-30 flex h-6 w-28 origin-center translate-x-5
+         overflow-hidden rounded-2xl border border-grey-300 align-middle
+        "
       >
         <!---- Input ---->
         <input

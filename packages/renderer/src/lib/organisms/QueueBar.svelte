@@ -40,7 +40,7 @@
   class="
     custom 
      absolute   right-6 bottom-0 
-    z-40 h-[calc(100vh-5.5rem)]
+    z-10 h-[calc(100vh-5.5rem)]
     w-[25rem] rounded-3xl border border-grey-500
     bg-grey-800/80
     backdrop-blur-md

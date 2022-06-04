@@ -1,5 +1,5 @@
 <script lang="ts">
-  import FolderButton from "../atoms/FolderButton.svelte"
+  import FolderPicker from "../atoms/FolderPicker.svelte"
   import { isSubdirectory } from "@/Helper"
 
   export let paths: string[] = []
@@ -58,11 +58,11 @@
 <div class=" text-grey-200" data-testid="folderPickerModal">
   <div class="grid" />
   {#if paths.length === 0}
-    <FolderButton on:folderAdded={(e) => handleFolderAdded(e.detail)} />
+    <FolderPicker on:folderAdded={(e) => handleFolderAdded(e.detail)} />
   {:else}
     {#each paths as path (path)}
       <div>
-        <FolderButton
+        <FolderPicker
           {path}
           on:folderRemoved={(e) => handleFolderRemoved(e.detail)}
           on:folderEdited={(e) => handleFolderEdited(e.detail)}
@@ -70,6 +70,6 @@
         />
       </div>
     {/each}
-    <FolderButton on:folderAdded={(e) => handleFolderAdded(e.detail)} />
+    <FolderPicker on:folderAdded={(e) => handleFolderAdded(e.detail)} />
   {/if}
 </div>

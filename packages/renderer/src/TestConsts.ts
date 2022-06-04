@@ -32,11 +32,13 @@ const testIDNames = [
   "seekbar",
   "seekbarCurrentTime",
   "seekbarProgressbar",
+  "settingsFolders",
+  "settingsFoldersSaveButton",
   "seekbarProgressbarKnob",
   "seekbarTotalDuration",
+  "testAudioELement",
   "volumeSlider",
   "volumeSliderInner",
-  "testAudioELement",
 ] as const
 
 const testGroupNames = [
@@ -46,6 +48,7 @@ const testGroupNames = [
   "queueItemTitle",
   "queueNextTracks",
   "queuePreviousTracks",
+  "settingsFolder",
 ] as const
 ////////////////////////////////
 

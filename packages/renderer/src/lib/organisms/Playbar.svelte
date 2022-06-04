@@ -43,10 +43,9 @@
 
 <main
   class="
-    custom_shadow  Í  absolute inset-x-0
-    bottom-0 z-50 grid h-[72px]
-    w-full 
-    grid-cols-3 items-center  justify-between  
+    custom_shadow absolute inset-x-0
+    bottom-0 z-20 grid h-[72px]
+    w-full grid-cols-3 items-center  justify-between  
     rounded-3xl border border-grey-500 bg-grey-700/80
     px-6 backdrop-blur-xl
   "
@@ -153,7 +152,7 @@
   <!------///----->
 
   <!---- Other controls-->
-  <div class="flex gap-6 justify-self-end">
+  <div class="flex items-center gap-6 justify-self-end">
     <VolumeControl bind:value={volume} />
 
     <!--- To be developed and tested
@@ -170,7 +169,7 @@
       disabled={!track}
       on:click|stopPropagation={handleClickQueueIcon}
     >
-      <IconQueue class="h-6 w-6 sm:h-6" />
+      <IconQueue class="h-6 w-6" />
     </button>
   </div>
 </main>

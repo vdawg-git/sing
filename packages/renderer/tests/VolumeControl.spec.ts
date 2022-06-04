@@ -1,4 +1,4 @@
-import { fireEvent, render } from "@testing-library/svelte"
+import { fireEvent, render, screen } from "@testing-library/svelte"
 import type { SvelteComponentDev } from "svelte/internal"
 import { beforeEach, expect, it, vi } from "vitest"
 import { TEST_IDS as id } from "@/TestConsts"
@@ -17,15 +17,16 @@ afterEach(async () => {
 })
 
 it("changes the icon on click", async () => {
-  const component = render(VolumeControl)
+  const dom = render(VolumeControl, { value: 1 })
 
-  const oldIcon = component.getByTestId(id.playbarVolumeIcon)
+  const button = dom.getByTestId(id.playbarVolumeIcon)
+  const oldHtml = dom.container.innerHTML
 
-  await fireEvent.click(oldIcon)
+  await fireEvent.click(button)
 
-  const newIcon = component.getByTestId(id.playbarVolumeIcon)
+  const newHtml = dom.container.innerHTML
 
-  expect(newIcon).not.toBe(oldIcon)
+  expect(newHtml).not.toEqual(oldHtml)
 })
 
 it("sets the internal volume value to zero on click", async () => {
@@ -34,10 +35,37 @@ it("sets the internal volume value to zero on click", async () => {
   })
 
   const $$ = dom.component.$$
+  const oldVolume = $$.ctx[$$.props["value"]]
 
   await fireEvent.click(dom.getByTestId(id.playbarVolumeIcon))
 
   const newVolume = $$.ctx[$$.props["value"]]
 
+  expect(oldVolume).toBe(1)
   expect(newVolume).toBe(0)
+})
+
+it("restores the previous volume when clickong on the muted icon", async () => {
+  const dom = render(VolumeControl, {
+    props: { value: 1 },
+  })
+
+  const $$ = dom.component.$$
+  const oldVolume = $$.ctx[$$.props["value"]]
+
+  await fireEvent.click(dom.getByTestId(id.playbarVolumeIcon))
+  await fireEvent.click(dom.getByTestId(id.playbarVolumeIcon))
+
+  const newVolume = $$.ctx[$$.props["value"]]
+
+  expect(newVolume).toBe(oldVolume)
+})
+
+it("sets the correct value for the volume on creation", async () => {
+  const dom = render(VolumeControl, { value: 1 })
+
+  const $$ = dom.component.$$
+  const volume = $$.ctx[$$.props["value"]]
+
+  expect(volume).toBe(1)
 })

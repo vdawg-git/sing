@@ -1,4 +1,4 @@
-import type { Page, Locator, ConsoleMessage } from "playwright"
+import type { Page } from "playwright"
 import {
   TEST_IDS as id,
   testAttr as testAttr,
