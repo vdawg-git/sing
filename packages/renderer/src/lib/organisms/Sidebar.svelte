@@ -22,7 +22,7 @@
   function tmp() {} // Callback function for the sidebar items
 </script>
 
-<div
+<nav
   class="custom_style h-screen w-[15.5rem] flex-shrink-0 rounded-3xl bg-grey-800/50 p-6 outline outline-1 outline-grey-200/20"
 >
   <div class="mb-10 flex justify-between">
@@ -45,7 +45,7 @@
       <div slot="text">{menuItem.name}</div>
     </SidebarItem>
   {/each}
-</div>
+</nav>
 
 <style>
   .custom_style {

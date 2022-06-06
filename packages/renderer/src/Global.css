@@ -63,6 +63,13 @@ body {
 /* Disable scrollbars on viewport */
 body { overflow:hidden}
 
+/* Hide focus outline created by svelte-navigator */
+h1, h2, h3, h4, h5, h6 {
+	&:focus {
+		outline: none;
+	}
+}
+
 /**==================================================================
 **			Disable default HTML drag behaviour
 **=================================================================*/

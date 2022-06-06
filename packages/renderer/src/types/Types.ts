@@ -17,3 +17,5 @@ export interface IQueueItem {
   readonly isManuallyAdded: boolean
   readonly track: ITrack
 }
+
+export type AnyObject = { [P in number | string | symbol]: any }

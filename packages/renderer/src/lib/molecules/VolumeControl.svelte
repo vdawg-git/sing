@@ -73,7 +73,7 @@
       <div
         class="
           shadow_ pointer-events-auto relative z-30 flex h-6 w-28 origin-center translate-x-5
-         overflow-hidden rounded-2xl border border-grey-300 align-middle
+         overflow-hidden rounded-2xl border align-middle outline-grey-300
         "
       >
         <!---- Input ---->

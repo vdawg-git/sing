@@ -11,10 +11,10 @@ import "./setupBasicMocks"
 import mockElectronApi from "./MockElectronApi"
 import mockedPlayer from "./mocks/AudioPlayer"
 import type { SvelteComponentDev } from "svelte/internal"
-import type { ITrack } from "@sing-types/Track"
+import type { ITrack } from "@sing-types/Types"
 import trackFactory from "./factories/trackFactory"
 
-const mockedTracks = trackFactory.buildList(20)
+const mockedTracks = trackFactory.buildList(35)
 
 vi.mock("@/lib/manager/AudioPlayer", () => {
   return { default: mockedPlayer }
@@ -52,7 +52,7 @@ describe("with valid data", async () => {
         testAttr.asQuery.queueNextTracks
       )
 
-      expect(elements.length >= 1).toBeTruthy()
+      expect(elements.length).toBeGreaterThan(2)
     })
 
     it("displays no played queue items yet", async () => {
@@ -133,17 +133,15 @@ describe("with valid data", async () => {
       const desiredAmount = Math.min(mockedTracks.length - 1, 20) // Current track takes one spot
 
       expect(
-        container.querySelectorAll(testAttr.asQuery.queueNextTracks).length ===
-          desiredAmount
-      ).toBeTruthy()
+        container.querySelectorAll(testAttr.asQuery.queueNextTracks)
+      ).lengthOf(desiredAmount)
     })
 
     it("displays the upcoming tracks from the queue", async () => {
-      const queueBar = render(QueueBarComponent)
-      const { container } = queueBar
-      const nextTrackElements = container.querySelectorAll(
-        testAttr.asQuery.queueNextTracks
-      )
+      const dom = render(QueueBarComponent)
+      const nextTrackElements = dom.getByTestId(
+        id.queueBarNextTracks
+      ).childNodes
 
       expect(nextTrackElements.length).toBeGreaterThan(1)
 

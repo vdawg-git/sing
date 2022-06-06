@@ -2,7 +2,7 @@ import type { Track } from "@prisma/client"
 import { IpcMainInvokeEvent, ipcMain } from "electron"
 import { app, dialog } from "electron"
 import slash from "slash"
-import type { ITrack } from "@sing-types/Track"
+import type { ITrack } from "@sing-types/Types"
 import { Tracks } from "../../main/src/lib/Crud"
 import syncDirectories from "../../main/src/lib/Sync"
 import userSettingsStore, {
@@ -10,6 +10,7 @@ import userSettingsStore, {
   IUserSettingsKey,
 } from "../../main/src/lib/UserSettings"
 import * as consts from "./Channels"
+import { OpenDialogReturnValue } from "electron/main"
 
 export default function ipcInit(): void {
   ipcMain.handle(consts.GET_TRACKS, async (_event): Promise<ITrack[]> => {
@@ -60,17 +61,20 @@ export default function ipcInit(): void {
     return slash(app.getPath(name))
   })
 
-  ipcMain.handle(consts.OPEN_MUSIC_FOLDER, async (_event) => {
-    let { filePaths, canceled } = await dialog.showOpenDialog({
-      title: "Pick folder",
-      defaultPath: app.getPath("music"),
-      properties: ["openDirectory", "dontAddToRecent", "multiSelections"],
-    })
+  ipcMain.handle(
+    consts.OPEN_MUSIC_FOLDER,
+    async (_event): Promise<OpenDialogReturnValue> => {
+      let { filePaths, canceled } = await dialog.showOpenDialog({
+        title: "Pick folder",
+        defaultPath: app.getPath("music"),
+        properties: ["openDirectory", "dontAddToRecent", "multiSelections"],
+      })
 
-    filePaths = filePaths.map((filePath) => slash(filePath)) // Convert to UNIX path
+      filePaths = filePaths.map((filePath) => slash(filePath)) // Convert to UNIX path
 
-    return { filePaths, canceled }
-  })
+      return { filePaths, canceled }
+    }
+  )
 
   ipcMain.handle(
     consts.GET_USER_SETTINGS,

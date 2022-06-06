@@ -27,7 +27,7 @@ export default function createFolderSettingsPage(page: Page) {
   async function removeFolder(folderIndex: number): Promise<void> {}
 
   async function getFoldersAmount(): Promise<number> {
-    const selector = testAttr.asQuery.settingsFolder
+    const selector = testAttr.asQuery.folderInput
 
     const amount = await page.evaluate((selector) => {
       return document.querySelectorAll(selector).length

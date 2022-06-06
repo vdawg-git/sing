@@ -199,3 +199,10 @@ it("does not play music when just opened", async () => {
 
   expect(isPlaying).toBe(false)
 })
+
+it("is possible to seek to the end of the current track", async () => {
+  throw new Error("To fix, make the seekbar an input range")
+})
+it("is possible to seek to the beginning of the current track", async () => {
+  throw new Error("To fix, make the seekbar an input range")
+})

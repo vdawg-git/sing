@@ -4,7 +4,7 @@
 </script>
 
 <script lang="ts">
-  import { TEST_IDS as test } from "@/TestConsts"
+  import { testAttr, TEST_IDS as testID } from "@/TestConsts"
   import player, {
     playedTracks,
     nextTracks,
@@ -51,7 +51,7 @@
     easing: sineInOut,
     opacity: 100,
   }}
-  data-testid={test.queueBar}
+  data-testid={testID.queueBar}
 >
   <div
     class="flex h-full max-h-full flex-col overflow-hidden backdrop-blur-none"
@@ -83,17 +83,17 @@
       {#if $playedTracks.length > 0}
         <div
           class="mb-4 flex flex-col gap-4"
-          data-testid={test.queueBarPlayedTracks}
+          data-testid={testID.queueBarPlayedTracks}
         >
           {#each $playedTracks as queueItemData, index (queueItemData.queueID)}
             <QueueItem
               {queueItemData}
               state="HAS_PLAYED"
               testId={index === $playIndex - 1
-                ? test.queuePreviousTrack
+                ? testID.queuePreviousTrack
                 : undefined}
               testQueuePlayedIndex={index}
-              testgroup="queuePreviousTracks"
+              testattribute={testAttr.queuePreviousTracks}
               on:dblclick={() => player.playQueueIndex(queueItemData.index)}
               on:remove={() => handleRemove(queueItemData.index)}
             />
@@ -110,7 +110,7 @@
           <QueueItem
             queueItemData={$currentTrack}
             state="PLAYING"
-            testId="queueCurrentTrack"
+            testId={testID.queueCurrentTrack}
             on:dblclick={() => player.pause()}
             on:remove={() => handleRemove($currentTrack.index)}
           />
@@ -125,14 +125,14 @@
           </div>
           <div
             class="flex flex-col gap-4"
-            data-testid={test.queueBarNextTracks}
+            data-testid={testID.queueBarNextTracks}
           >
             {#each nextTracksDisplayed as queueItemData, index (queueItemData.queueID)}
               <QueueItem
                 {queueItemData}
                 testId={index === 0 ? "queueNextTrack" : undefined}
                 testQueueNextIndex={index}
-                testgroup="queueNextTracks"
+                testattribute={testAttr.queueNextTracks}
                 on:dblclick={() => player.playQueueIndex(queueItemData.index)}
                 on:remove={() => handleRemove(queueItemData.index)}
               />

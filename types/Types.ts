@@ -13,3 +13,21 @@ export interface IProccessedTrackFailed {
 }
 
 export type ITrack = NullValuesToOptional<Track>
+
+export type IElectronPaths =
+  | "home"
+  | "appData"
+  | "userData"
+  | "cache"
+  | "temp"
+  | "exe"
+  | "module"
+  | "desktop"
+  | "documents"
+  | "downloads"
+  | "music"
+  | "pictures"
+  | "videos"
+  | "recent"
+  | "logs"
+  | "crashDumps"

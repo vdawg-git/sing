@@ -42,13 +42,14 @@ const testIDNames = [
 ] as const
 
 const testGroupNames = [
+  "folderInput",
+  "folderInputDeleteIcon",
   "queueItemArtist",
   "queueItemCover",
   "queueItemDeleteIcon",
   "queueItemTitle",
   "queueNextTracks",
   "queuePreviousTracks",
-  "settingsFolder",
 ] as const
 ////////////////////////////////
 
@@ -64,13 +65,12 @@ type ITestGroups = {
   readonly [index in typeof testGroupNames[number]]: index
 } & {
   readonly asQuery: {
-    readonly [i in typeof testGroupNames[number]]: `[data-testgroup=${i}]`
+    readonly [i in typeof testGroupNames[number]]: `[data-testattribute=${i}]`
   }
 }
 
 export const TEST_IDS: ITestIDs = testIDNames.reduce((acc, name) => {
   if (!acc?.asQuery) acc["asQuery"] = {}
-  if (!acc.asQuery?.noBrackets) acc["asQuery"]["noBrackets"] = {}
 
   acc[name] = name
   acc.asQuery[name] = `[data-testid=${name}]`
@@ -80,10 +80,9 @@ export const TEST_IDS: ITestIDs = testIDNames.reduce((acc, name) => {
 
 export const testAttr: ITestGroups = testGroupNames.reduce((acc, name) => {
   if (!acc?.asQuery) acc["asQuery"] = {}
-  if (!acc.asQuery?.noBrackets) acc["asQuery"]["noBrackets"] = {}
 
   acc[name] = name
-  acc.asQuery[name] = `[data-testgroup=${name}]`
+  acc.asQuery[name] = `[data-testattribute=${name}]`
 
   return acc
 }, {} as any)

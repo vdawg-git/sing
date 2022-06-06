@@ -26,19 +26,19 @@
     "typecheck": "npm run typecheck:main && npm run typecheck:preload && npm run typecheck:renderer"
   },
   "devDependencies": {
-    "@iconify/json": "^2.1.56",
+    "@iconify/json": "^2.1.57",
     "@sveltejs/vite-plugin-svelte": "^1.0.0-next.47",
-    "@testing-library/svelte": "^3.1.2",
+    "@testing-library/svelte": "^3.1.3",
     "@tsconfig/svelte": "^3.0.0",
     "@types/jsdom": "^16.2.14",
-    "@typescript-eslint/eslint-plugin": "5.27.0",
-    "@vitest/ui": "^0.13.1",
+    "@typescript-eslint/eslint-plugin": "5.27.1",
+    "@vitest/ui": "^0.14.1",
     "autoprefixer": "^10.4.7",
     "cross-env": "7.0.3",
     "electron": "17.1.0",
     "electron-builder": "23.0.3",
     "electron-devtools-installer": "3.2.0",
-    "eslint": "^8.16.0",
+    "eslint": "^8.17.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-svelte3": "^4.0.0",
@@ -47,18 +47,18 @@
     "jsdom": "^19.0.0",
     "playwright": "^1.22.2",
     "postcss": "^8.4.14",
-    "postcss-load-config": "^4.0.1",
+    "postcss-load-config": "^3.1.4",
     "prettier": "^2.6.2",
     "prettier-plugin-tailwindcss": "^0.1.11",
     "simple-git-hooks": "2.8.0",
     "svelte": "^3.48.0",
     "svelte-check": "^2.7.2",
-    "svelte-preprocess": "^4.10.6",
+    "svelte-preprocess": "^4.10.7",
     "tailwindcss": "^3.0.24",
-    "typescript": "4.7.2",
+    "typescript": "4.7.3",
     "unplugin-icons": "^0.14.3",
-    "vite": "^2.9.9",
-    "vitest": "^0.13.1"
+    "vite": "^2.9.10",
+    "vitest": "^0.14.1"
   },
   "dependencies": {
     "@prisma/client": "^3.14.0",
@@ -66,10 +66,12 @@
     "d3-interpolate": "^3.0.1",
     "electron-store": "^8.0.1",
     "electron-updater": "5.0.1",
+    "history": "^5.3.0",
     "music-metadata": "^7.12.3",
     "prisma": "^3.14.0",
     "slash": "^3.0.0",
-    "svelte-devtools-standalone": "github:RedHatter/svelte-devtools-standalone"
+    "svelte-devtools-standalone": "github:RedHatter/svelte-devtools-standalone",
+    "svelte-navigator": "^3.1.6"
   },
   "prisma": {
     "schema": "prisma/schema.prisma"

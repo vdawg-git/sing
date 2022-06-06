@@ -1,5 +1,5 @@
 import type * as IipcRenderer from "@sing-preload/ipcRenderer"
-import type { ITrack } from "@sing-types/Track"
+import type { ITrack } from "@sing-types/Types"
 import type {
   IUserSettings,
   IUserSettingsKey,
@@ -9,7 +9,7 @@ import { vi } from "vitest"
 import trackFactory from "./factories/trackFactory"
 
 trackFactory.rewindSequence()
-const tracks = trackFactory.buildList(20)
+const tracks = trackFactory.buildList(30)
 
 export const mockedApiTracks: readonly ITrack[] = tracks
 
@@ -19,7 +19,9 @@ function createMockedElectronAPI(): typeof IipcRenderer {
     sync,
     setUserSettings,
     openDirectory,
-    openMusicFolder,
+    openMusicFolder: vi.fn(async () => {
+      return { filePaths: ["X:/TEST"], canceled: false }
+    }),
     getPath,
     getUserSetting,
     listen,
@@ -43,9 +45,6 @@ async function setUserSettings<Key extends IUserSettingsKey>(
 
 async function openDirectory(_options: Electron.OpenDialogOptions = {}) {
   return "F:/test/test"
-}
-async function openMusicFolder() {
-  return "F:/test/music"
 }
 
 async function getPath(_name: string) {

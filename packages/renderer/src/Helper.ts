@@ -1,3 +1,7 @@
+import { createHashHistory, type HashHistoryOptions } from "history"
+import type { HistorySource } from "svelte-navigator"
+import type AnyObject from "svelte-navigator/types/AnyObject"
+
 export function isClickOutsideNode(
   event: MouseEvent,
   node: HTMLElement
@@ -32,6 +36,7 @@ export function setAttributesOnElement(
   }
 }
 
+// To be used in the future again, for now lets keep it simple again
 export function truncatePath(path: string, length: number): string {
   const ellipse = "… "
   const isUnix = path.at(0) === "/"
@@ -69,4 +74,50 @@ export function secondsToDuration(seconds: number | undefined | null): string {
   const sec = String(Math.round(seconds % 60)).padStart(2, "0")
 
   return minutes + ":" + sec
+}
+
+export function createHashSource(): HistorySource {
+  const history = createHashHistory()
+  let listeners: Function[] = []
+
+  history.listen((location) => {
+    if (history.action === "POP") {
+      listeners.forEach((listener) => listener(location))
+    }
+  })
+
+  return {
+    //@ts-ignore
+    get location() {
+      return history.location
+    },
+    addEventListener(name: string, handler: Function) {
+      if (name !== "popstate") {
+        console.error("Added event which was not listening to popstate")
+        return
+      }
+      listeners.push(handler)
+    },
+    removeEventListener(name: string, handler: Function) {
+      if (name !== "popstate") {
+        console.error("Added event which was not listening to popstate")
+        return
+      }
+      listeners = listeners.filter((fn) => fn !== handler)
+    },
+    history: {
+      get state() {
+        return history.location.state
+      },
+      pushState(state: AnyObject, _title: string, uri: string) {
+        history.push(uri, state)
+      },
+      replaceState(state: AnyObject, _title: string, uri: string) {
+        history.replace(uri, state)
+      },
+      go(to: number) {
+        history.go(to)
+      },
+    },
+  }
 }

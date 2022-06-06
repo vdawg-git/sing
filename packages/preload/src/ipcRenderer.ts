@@ -5,7 +5,7 @@ import type {
   IUserSettingsKey,
 } from "@sing-main/lib/UserSettings"
 import * as consts from "./Channels"
-import { ITrack } from "@sing-types/Track"
+import type { ITrack, IElectronPaths } from "@sing-types/Types"
 
 export async function getTracks(): Promise<readonly ITrack[]> {
   return await ipcRenderer.invoke(consts.GET_TRACKS)
@@ -27,11 +27,11 @@ export async function setUserSettings<Key extends IUserSettingsKey>(
 export async function openDirectory(options: Electron.OpenDialogOptions = {}) {
   return await ipcRenderer.invoke(consts.OPEN_DIR, options)
 }
-export async function openMusicFolder() {
+export async function openMusicFolder(): Promise<Electron.OpenDialogReturnValue> {
   return await ipcRenderer.invoke(consts.OPEN_MUSIC_FOLDER)
 }
 
-export async function getPath(name: string) {
+export async function getPath(name: IElectronPaths) {
   return await ipcRenderer.invoke(consts.GET_PATH, name)
 }
 
