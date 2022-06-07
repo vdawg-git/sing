@@ -1,7 +1,13 @@
-import { fireEvent, render, type RenderResult } from "@testing-library/svelte"
+import {
+  fireEvent,
+  render,
+  screen,
+  type RenderResult,
+} from "@testing-library/svelte"
 import { describe, expect, it } from "vitest"
 import { TEST_IDS as id, testAttr } from "@/TestConsts"
 import MockedApi from "./MockElectronApi"
+import { tick } from "svelte"
 import type { SvelteComponentDev } from "svelte/internal"
 
 vi.stubGlobal("api", MockedApi)
@@ -23,16 +29,14 @@ it("display two folder buttons at the beginning", () => {
 
   const amount = getInputs(dom).length
 
-  expect(amount).toBe(1)
+  expect(amount).toBe(2)
 })
 
 it("displays no paths at the start", async () => {
   const dom = render(FoldersPicker)
   const folderPicker = dom.getByTestId(id.settingsFolders)
 
-  const slashesInTextAmount = folderPicker.textContent?.matchAll(/\//g)
-
-  expect(slashesInTextAmount).lengthOf(0)
+  expect(folderPicker.textContent).not.toContain("/")
 })
 
 it("can add a new folder", async () => {
@@ -40,13 +44,16 @@ it("can add a new folder", async () => {
   const emptyFolderButton = dom.getAllByText("Add folder", { exact: false })[0]
 
   await fireEvent.click(emptyFolderButton)
+  await tick()
+  await tick()
+  await tick()
 
-  const folderInputs = getInputs(dom)
+  const updatedFolder = getInputs(dom)[0]
 
-  expect(folderInputs).lengthOf(3)
+  expect(updatedFolder.textContent).toContain("/")
 })
 
-it("adds the folder with the provided path", async () => {
+it("adds one folder with the provided path", async () => {
   const providedPath = "C:/test/test"
   vi.mocked(window.api.openMusicFolder).mockImplementationOnce(async () => {
     return {
@@ -56,11 +63,14 @@ it("adds the folder with the provided path", async () => {
   })
 
   const dom = render(FoldersPicker)
-  const emptyInput = getInputs(dom)[1]
+  const emptyInput = getInputs(dom)[0]
 
   await fireEvent.click(emptyInput)
+  await tick()
+  await tick()
+  await tick()
 
-  const updatedButton = getInputs(dom)[1]
+  const updatedButton = getInputs(dom)[0]
 
   expect(updatedButton.textContent).contain(providedPath)
 })
@@ -70,16 +80,27 @@ it("can remove a folder", async () => {
   const emptyFolderButton = getInputs(dom)[1]
 
   await fireEvent.click(emptyFolderButton) //adds new folder by calling window.api.openMusicFolder
+  await tick()
+  await tick()
+  await tick()
 
-  const newButton = getInputs(dom)[2]
+  const newButton = getInputs(dom)[0]
+
+  screen.debug()
+
   const removeIcon = newButton.querySelector(
     testAttr.asQuery.folderInputDeleteIcon
   )
 
   if (!removeIcon)
-    throw new Error("removeIcon could not be found: " + removeIcon)
+    throw new Error(
+      "Cannot delete: remove icon could not be found: " + removeIcon
+    )
 
   await fireEvent.click(removeIcon)
+  await tick()
+  await tick()
+  await tick()
 
   const newFolders = getInputs(dom)
 
@@ -98,9 +119,11 @@ it("correctly adds multiple folders", async () => {
   const newInputs = getInputs(dom)
 
   for (const [index, input] of newInputs.entries()) {
-    if (index === newInputs.length - 1) return // dont check the last "Add folder" input
+    if (index === newInputs.length - 1) return // dont check the last input as it should always be an empty input
 
-    expect(input.textContent).toContain(foldersToAdd[index])
+    expect(input.textContent, "failed at index " + index).toContain(
+      foldersToAdd[index]
+    )
   }
 })
 
@@ -117,16 +140,25 @@ it("correctly removes a folder after multiple got added", async () => {
     await addFolder(dom, path)
   }
 
-  const inputToRemove = getInputs(dom)[indexToRemove]
+  const removeIcon = getInputs(dom)[indexToRemove].querySelector(
+    testAttr.asQuery.folderInputDeleteIcon
+  )
+  if (!removeIcon) throw new Error("Could not find remove icon: " + removeIcon)
 
-  await fireEvent.click(inputToRemove)
+  await fireEvent.click(removeIcon)
+  await tick()
+  await tick()
+  await tick()
+  await tick()
 
   const newInputs = getInputs(dom)
 
   for (const [index, input] of newInputs.entries()) {
     if (index === newInputs.length - 1) return // dont check the last "Add folder" input
 
-    expect(input.textContent).toContain(desiredFolders[index])
+    expect(input.textContent, "Failed at index " + index).toContain(
+      desiredFolders[index]
+    )
   }
 })
 
@@ -153,9 +185,12 @@ async function addFolder(dom: RenderResult, folderPath: string) {
     return { filePaths: [folderPath], canceled: false }
   })
 
-  const buttonToClick = dom.getAllByText("Add folder", { exact: false })[1]
+  const buttonToClick = dom.getAllByText("Add folder", { exact: false })[0]
 
   await fireEvent.click(buttonToClick)
+  await tick()
+  await tick()
+  await tick()
 }
 
 function getInputs(dom: RenderResult) {

@@ -20,7 +20,7 @@ function createMockedElectronAPI(): typeof IipcRenderer {
     setUserSettings,
     openDirectory,
     openMusicFolder: vi.fn(async () => {
-      return { filePaths: ["X:/TEST"], canceled: false }
+      return { filePaths: ["X:/MockElectronApi"], canceled: false }
     }),
     getPath,
     getUserSetting,

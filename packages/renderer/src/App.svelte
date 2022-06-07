@@ -15,18 +15,20 @@
 <main class="select-none bg-grey-900 text-white ">
   <div class="flex">
     <Sidebar />
-    <Router history={hashHistory}>
-      <Route path="settings">
-        <NoContent />
-      </Route>
+    <div class="h-screen w-full overflow-auto pb-24">
+      <Router history={hashHistory}>
+        <Route path="settings">
+          <NoContent />
+        </Route>
 
-      <Route path="tracks">
-        <MyTracks />
-      </Route>
-      <Route>
-        <MyTracks />
-      </Route>
-    </Router>
+        <Route path="tracks">
+          <MyTracks />
+        </Route>
+        <Route>
+          <MyTracks />
+        </Route>
+      </Router>
+    </div>
   </div>
   <Playbar />
 </main>

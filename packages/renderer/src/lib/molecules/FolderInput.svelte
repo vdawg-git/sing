@@ -10,25 +10,24 @@
   const dispatch = createEventDispatcher()
 
   async function pickFolder() {
-    const { filePaths: folderPaths, canceled } =
-      await window.api.openMusicFolder()
+    const { filePaths, canceled } = await window.api.openMusicFolder()
 
-    if (canceled || folderPaths.length === 0) return false
+    if (canceled || filePaths.length === 0) return null
 
-    return folderPaths
+    return filePaths
   }
 
   async function handleClick() {
     if (path === undefined) {
-      dispatchAdd()
+      addNewFolder()
     } else {
-      dispatchEdit()
+      editFolder()
     }
   }
 
-  async function dispatchAdd() {
+  async function addNewFolder() {
     const folderPaths = await pickFolder()
-    if (folderPaths === false) return
+    if (folderPaths === null) return
 
     dispatch("folderAdded", folderPaths)
   }
@@ -37,9 +36,9 @@
     dispatch("folderRemoved", path)
   }
 
-  async function dispatchEdit() {
+  async function editFolder() {
     const newPaths = await pickFolder()
-    if (newPaths === false) return
+    if (newPaths === null) return
 
     dispatch("folderEdited", { oldPath: path, newPaths })
   }
@@ -51,7 +50,7 @@
 			group  flex
 			h-12  w-full place-content-between  items-center
 			rounded-xl border
-			border-grey-300 px-3
+			border-grey-300 pl-3
 			text-left transition-colors
 			duration-100 ease-out hover:border-grey-200
       hover:text-white
@@ -63,12 +62,14 @@
   {#if path}
     <div
       data-testattribute={testAttr.folderInputDeleteIcon}
-      class="text-grey-200 hover:text-orange-500"
+      class="h-12 p-3 text-grey-200 hover:text-orange-500"
       on:click|stopPropagation={dispatchRemove}
     >
-      <IconFolderRemove class="h-6 w-6" />
+      <IconFolderRemove class="h-6 w-6 " />
     </div>
   {:else}
-    <IconFolderAdd class="h-6 w-6 " />
+    <div class="pr-3">
+      <IconFolderAdd class="h-6 w-6" />
+    </div>
   {/if}
 </button>

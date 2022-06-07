@@ -11,7 +11,7 @@
   )
 </script>
 
-<main class="h-full w-full p-6">
+<main class="h-max w-full p-6">
   <div
     class="mx-auto mt-20 flex h-full max-w-[640px] flex-col items-center justify-center"
     data-testid="noContentMessage"
@@ -22,18 +22,15 @@
         Choose which folders you want to sync with your library
       </p>
       <FoldersPicker bind:paths />
-      <div class="mt-8">
-        <Button
-          text="Save and sync"
-          minHeight={480}
-          class="w-full"
-          on:click={async () => {
-            if (paths === undefined || paths.length === 0) return
-            console.log(await window.api.setUserSettings("musicFolders", paths))
-            window.api.sync()
-          }}
-        />
-      </div>
+      <Button
+        text="Save and sync"
+        classes="w-full mt-8"
+        on:click={async () => {
+          if (paths === undefined || paths.length === 0) return
+          console.log(await window.api.setUserSettings("musicFolders", paths))
+          window.api.sync()
+        }}
+      />
     </div>
   </div>
 </main>
