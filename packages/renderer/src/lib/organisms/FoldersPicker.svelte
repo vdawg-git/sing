@@ -27,11 +27,8 @@
 
   //TODO fix if deleting last existing element
   function handleFolderRemoved(path: string) {
-    console.log("Function folder delete")
     const indexOfPath = paths.indexOf(path)
     paths = paths.filter((_, index) => index !== indexOfPath)
-
-    console.table(paths)
   }
 
   function handleFolderEdited({
@@ -41,7 +38,6 @@
     oldPath: string
     newPaths: string[]
   }) {
-    console.log("Edit path")
     if (newPaths.length <= 0) {
       console.error("No new paths provided")
       return

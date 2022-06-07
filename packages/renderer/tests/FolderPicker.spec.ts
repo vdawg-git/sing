@@ -164,7 +164,6 @@ it("correctly removes a folder after multiple got added", async () => {
 
 it("has a `Add folder...` input at the end after multiple got added", async () => {
   const foldersToAdd = ["A:/AAAA", "B:/BBBB", "C:/CCCCC", "D:DDDD"]
-
   const dom = render(FoldersPicker)
 
   for (const path of foldersToAdd) {
@@ -178,8 +177,55 @@ it("has a `Add folder...` input at the end after multiple got added", async () =
   expect(lastInput.textContent).toContain("Add folder")
 })
 
-//* Helper functions *//
+it("does not add an already added folder", async () => {
+  const foldersToAdd = ["A:/AAAA", "B:/BBBB", "C:/CCCCC", "D:DDDD"]
+  const dom = render(FoldersPicker)
 
+  for (const path of foldersToAdd) {
+    await addFolder(dom, path)
+  }
+
+  const oldInputsAmount = getInputs(dom).length
+
+  await addFolder(dom, foldersToAdd[0])
+
+  const newInputsAmount = getInputs(dom).length
+
+  expect(newInputsAmount).toBe(oldInputsAmount)
+})
+
+it("does not add a folder which is already contained in another already added folder", async () => {
+  const foldersToAdd = ["A:/AAAA", "B:/BBBB", "C:/CCCCC", "D:DDDD"]
+  const dom = render(FoldersPicker)
+
+  for (const path of foldersToAdd) {
+    await addFolder(dom, path)
+  }
+
+  const oldInputsAmount = getInputs(dom).length
+
+  await addFolder(dom, foldersToAdd[0] + "/aaaaaaa")
+
+  const newInputsAmount = getInputs(dom).length
+
+  expect(newInputsAmount).toBe(oldInputsAmount)
+})
+
+it("saves the folderpaths correctly in its prop", async () => {
+  const foldersToAdd = ["A:/AAAA", "B:/BBBB", "C:/CCCCC", "D:DDDD"]
+  const dom = render(FoldersPicker)
+
+  for (const path of foldersToAdd) {
+    await addFolder(dom, path)
+  }
+
+  const $$ = dom.component.$$
+  const paths = $$.ctx[$$.props["paths"]]
+
+  expect(paths).toEqual(foldersToAdd)
+})
+
+//* Helper functions *//
 async function addFolder(dom: RenderResult, folderPath: string) {
   vi.mocked(window.api.openMusicFolder).mockImplementationOnce(async () => {
     return { filePaths: [folderPath], canceled: false }
