@@ -5,16 +5,21 @@ import {
   testAttr,
 } from "../../packages/renderer/src/TestConsts"
 
-export default function createFolderSettingsPage(page: Page) {
+export default function createLibrarySettingsPage(page: Page) {
   const folders = page.locator(id.asQuery.settingsFolders)
 
   return {
     ...createSettingsPage(page),
     addFolder,
     editFolder,
+    getFoldersAmount,
+    isDisplayed,
     removeFolder,
-    getTotalFolders: getFoldersAmount,
     saveFolders,
+  }
+
+  async function isDisplayed(): Promise<boolean> {
+    return folders.isVisible()
   }
 
   async function addFolder(folderpath: string): Promise<void> {}

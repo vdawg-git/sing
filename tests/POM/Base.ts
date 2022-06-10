@@ -4,6 +4,9 @@ import {
   testAttr as testAttr,
 } from "../../packages/renderer/src/TestConsts"
 import { convertDisplayTimeToSeconds, isImageElement } from "../Helper"
+import type { IRoutes } from "../../packages/renderer/src/Consts"
+import createLibrarySettingsPage from "./LibrarySettingsPage"
+import createTracksPage from "./TracksPage"
 
 export default function createBasePage(page: Page) {
   const currentTime = page.locator(id.asQuery.seekbarCurrentTime)
@@ -27,6 +30,9 @@ export default function createBasePage(page: Page) {
   const volumeSlider = page.locator(id.asQuery.volumeSlider)
   const testAudioElement = page.locator(id.asQuery.testAudioELement)
   const volumeSliderInner = page.locator(id.asQuery.volumeSliderInner)
+  const sidebarMenuIcon = page.locator(id.asQuery.sidebarMenuIcon)
+  const sidebarMenu = page.locator(id.asQuery.sidebarMenu)
+  const sidebar = page.locator(id.asQuery.sidebar)
 
   return {
     clickPlay,
@@ -45,17 +51,70 @@ export default function createBasePage(page: Page) {
     getVolume,
     getVolumeState,
     goToNextTrack,
+    goToPreviousTrack,
     hoverSeekbar,
     hoverVolumeIcon,
-    isPlaying: isPlayingAudio,
+    isPlayingAudio,
     isRenderingPlaybarCover,
     openQueue,
     playNextTrackFromQueue,
-    goToPreviousTrack,
     reload,
+    resetTo,
     setVolume,
     waitForProgressBarToGrow,
     waitForTrackToChangeTo,
+    goTo: {
+      settings: gotoSettings,
+      tracks: gotoTracks,
+    },
+  }
+
+  async function gotoSettings() {
+    await openSidebarMenu()
+    await sidebarMenu.locator("Settings").click()
+
+    return createLibrarySettingsPage(page)
+  }
+
+  async function gotoTracks() {
+    await sidebar.locator("Tracks").click()
+
+    return createTracksPage(page)
+  }
+
+  async function openSidebarMenu() {
+    const isVisible = await sidebarMenu.isVisible()
+    if (!isVisible) return
+
+    await sidebarMenuIcon.click()
+    await sidebarMenu.waitFor({ state: "visible" })
+  }
+
+  async function resetTo(
+    location: "tracks",
+    id?: number
+  ): Promise<ReturnType<typeof createTracksPage>>
+  async function resetTo(
+    location: "settings/general" | "settings/library",
+    id?: number
+  ): Promise<ReturnType<typeof createLibrarySettingsPage>>
+  async function resetTo(location: IRoutes, id?: number) {
+    const baseUrl = "file://" + new URL(page.url()).pathname
+
+    // extract base url out of Url, maybe with Url Constructor or just splitting at the # sign
+
+    const path = baseUrl + "#" + location + (id || "")
+
+    await page.goto(path)
+
+    switch (location) {
+      case "settings/library":
+      case "settings/general":
+        return createLibrarySettingsPage(page)
+
+      case "tracks":
+        return createTracksPage(page)
+    }
   }
 
   async function reload() {

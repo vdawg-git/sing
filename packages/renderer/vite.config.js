@@ -55,9 +55,7 @@ const config = {
     emptyOutDir: true,
     brotliSize: false,
   },
-  define: {
-    "import.meta.vitest": undefined,
-  },
+  optimizeDeps: { exclude: ["svelte-navigator"] },
   test: {
     environment: "jsdom",
     globals: true,

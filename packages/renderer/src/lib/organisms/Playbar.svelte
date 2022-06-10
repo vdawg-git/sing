@@ -37,8 +37,6 @@
   function handleSeek({ detail: percentage }: CustomEvent) {
     player.seekTo(percentage)
   }
-
-  onDestroy(player.destroy)
 </script>
 
 <main
@@ -74,7 +72,7 @@
         data-testid={test.playbarCover}
       />
     {:else}
-      <div class="w-14 h-14 bg-grey-600" data-testid={test.playbarCover} />
+      <div class="h-14 w-14 bg-grey-600" data-testid={test.playbarCover} />
     {/if}
 
     <!---- Meta -->

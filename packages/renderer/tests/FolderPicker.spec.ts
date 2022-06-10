@@ -4,7 +4,7 @@ import {
   screen,
   type RenderResult,
 } from "@testing-library/svelte"
-import { describe, expect, it } from "vitest"
+import { expect, it } from "vitest"
 import { TEST_IDS as id, testAttr } from "@/TestConsts"
 import MockedApi from "./MockElectronApi"
 import { tick } from "svelte"

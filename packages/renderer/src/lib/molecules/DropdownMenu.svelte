@@ -5,6 +5,8 @@
 
   export let icon: "horizontal" | "vertical" = "vertical"
   export let open = false
+  export let menuTestID: string
+  export let iconTestID: string
 
   let iconButton: HTMLElement
 
@@ -35,20 +37,29 @@
 </script>
 
 <div class="z-50">
-  <div on:click={handleClick} bind:this={iconButton}>
+  <button
+    data-testID={iconTestID}
+    on:click={handleClick}
+    bind:this={iconButton}
+  >
     {#if icon == "horizontal"}
-      <IconDotsHr class={iconClasses} on:click={handleClick} />
+      <IconDotsHr class={iconClasses} />
     {:else}
-      <IconDotsVr class={iconClasses} on:click={handleClick} />
+      <IconDotsVr class={iconClasses} />
     {/if}
-  </div>
+  </button>
+
   {#if open}
     <div
-      class="bg-grey-600 absolute rounded-lg min-w-[15rem] overflow-hidden"
+      data-testID={menuTestID}
+      class="absolute min-w-[15rem] overflow-hidden rounded-lg bg-grey-600"
       use:handleOutClick
       on:click={(_e) => (open = false)}
     >
-      <slot>{console.error("Menu is empty x")}</slot>
+      <slot>
+        Menu is empty
+        {console.error("Menu is empty x")}
+      </slot>
     </div>
   {/if}
 </div>

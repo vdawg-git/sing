@@ -1,18 +1,17 @@
 <script lang="ts">
+  import { testAttr } from "@/TestConsts"
+
   let activeState = false
 </script>
 
-<div on:click>
+<div on:click data-testattribute={testAttr.menuItem}>
   <div
     class="
-    p-3 flex align-middle cursor-pointer active:bg-grey-500 
+    flex cursor-pointer p-3 align-middle active:bg-grey-500 
     {!activeState && 'hover:bg-grey-700 '} 
     {activeState && 'bg-grey-600'}"
   >
     <slot name="icon" />
-    <slot name="text">No Text provided</slot>
+    <slot name="label">No Text provided</slot>
   </div>
 </div>
-
-<style>
-</style>

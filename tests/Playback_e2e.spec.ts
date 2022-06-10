@@ -1,8 +1,6 @@
 import type { ElectronApplication } from "playwright"
-import { _electron as electron } from "playwright"
 import { afterAll, beforeAll, describe, expect, it, test } from "vitest"
 import createTracksPage from "./POM/TracksPage"
-import { join } from "path"
 import { launchElectron } from "./Helper"
 
 let electronApp: ElectronApplication
@@ -173,7 +171,7 @@ it("does not play music when paused and going to the previous track", async () =
   await tracksPage.goToNextTrack()
   await tracksPage.goToPreviousTrack()
 
-  const isPlaying = await tracksPage.isPlaying()
+  const isPlaying = await tracksPage.isPlayingAudio()
 
   expect(isPlaying).toBe(false)
 })
@@ -185,7 +183,7 @@ it("does not play music when paused and going to the next track", async () => {
 
   await tracksPage.goToNextTrack()
 
-  const isPlaying = await tracksPage.isPlaying()
+  const isPlaying = await tracksPage.isPlayingAudio()
 
   expect(isPlaying).toBe(false)
 })
@@ -195,7 +193,7 @@ it("does not play music when just opened", async () => {
   const tracksPage = createTracksPage(page)
   await tracksPage.reload()
 
-  const isPlaying = await tracksPage.isPlaying()
+  const isPlaying = await tracksPage.isPlayingAudio()
 
   expect(isPlaying).toBe(false)
 })

@@ -10,9 +10,9 @@
 
 <main
   class="
-		flex h-screen max-h-screen w-full 
+		flex h-full max-h-screen w-full 
 		 content-start items-start justify-start overflow-auto
-		overflow-x-clip sm:ml-2 md:ml-6 lg:ml-10"
+		overflow-x-clip"
 >
   <div class="mx-auto mt-32 w-full max-w-[1560px] p-6 ">
     <h1 class="mb-10 text-4xl  ">My Tracks</h1>

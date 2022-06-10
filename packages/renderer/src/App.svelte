@@ -15,7 +15,7 @@
 <main class="select-none bg-grey-900 text-white ">
   <div class="flex">
     <Sidebar />
-    <div class="h-screen w-full overflow-auto pb-24">
+    <div class="h-screen w-full overflow-auto   sm:ml-2 md:ml-6 lg:ml-10 ">
       <Router history={hashHistory}>
         <Route path="settings">
           <NoContent />

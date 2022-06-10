@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import mockElectronApi, { mockedApiTracks } from "./MockElectronApi"
 import mockedPlayer from "./mocks/AudioPlayer"
 import type { SvelteComponentDev } from "svelte/internal"
-import type { ITrack } from "@sing-types/Track"
+import type { ITrack } from "@sing-types/Types"
 
 vi.mock("@/lib/manager/AudioPlayer", () => {
   return { default: mockedPlayer }

@@ -11,14 +11,14 @@
   )
 </script>
 
-<main class="h-max w-full p-6">
+<main class="h-max w-full p-6 pb-24">
   <div
     class="mx-auto mt-20 flex h-full max-w-[640px] flex-col items-center justify-center"
     data-testid="noContentMessage"
   >
     <div class="min-h-[18rem] w-full max-w-xl">
-      <h1 class="mb-2 text-xl">Add folders</h1>
-      <p class="mb-6 text-grey-300">
+      <h1 class="mb-2 text-2xl">Add folders</h1>
+      <p class="mb-6 text-grey-100">
         Choose which folders you want to sync with your library
       </p>
       <FoldersPicker bind:paths />

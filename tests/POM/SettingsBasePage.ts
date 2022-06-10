@@ -3,7 +3,7 @@ import type { Page } from "playwright"
 
 type ISettingsTab = "folder"
 
-export default function createSettingsPage(page: Page) {
+export default function createBaseSettingsPage(page: Page) {
   return {
     ...createBasePage(page),
     switchSettingsTab,
