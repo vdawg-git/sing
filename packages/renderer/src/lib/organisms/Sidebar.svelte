@@ -6,21 +6,20 @@
   import IconRefresh from "virtual:icons/heroicons-outline/refresh"
   import Logo from "virtual:icons/custom/drool"
   import IconMusic from "virtual:icons/heroicons-outline/music-note"
-  import IconMicrophone from "virtual:icons/heroicons-outline/microphone"
-  import IconPlaylist from "virtual:icons/tabler/playlist"
-  import IconAlbum from "virtual:icons/ri/album-line"
-  import IconGenre from "virtual:icons/mdi/guitar-pick-outline"
+  import IconSettings from "virtual:icons/heroicons-outline/cog"
+  // import IconMicrophone from "virtual:icons/heroicons-outline/microphone"
+  // import IconPlaylist from "virtual:icons/tabler/playlist"
+  // import IconAlbum from "virtual:icons/ri/album-line"
+  // import IconGenre from "virtual:icons/mdi/guitar-pick-outline"
   import { TEST_IDS as id } from "@/TestConsts"
+  import type { SvelteComponentDev } from "svelte/internal"
+  import type { IRoutes } from "@/Consts"
 
-  const menuItems = [
-    { name: "Playlists", icon: IconPlaylist, onClick: tmp },
-    { name: "Albums", icon: IconAlbum, onClick: tmp },
-    { name: "Tracks", icon: IconMusic, onClick: tmp },
-    { name: "Artists", icon: IconMicrophone, onClick: tmp },
-    { name: "Genre", icon: IconGenre, onClick: tmp },
-  ]
-
-  function tmp() {} // Callback function for the sidebar items
+  const menuItems: {
+    name: String
+    icon: typeof SvelteComponentDev
+    to: IRoutes
+  }[] = [{ name: "Tracks", icon: IconMusic, to: "tracks" }]
 </script>
 
 <nav
@@ -30,21 +29,25 @@
   <div class="mb-10 flex justify-between">
     <Logo class="h-6 w-6  text-white/50" />
     <Menu menuTestID={id.sidebarMenu} iconTestID={id.sidebarMenuIcon}>
+      <MenuItem to="settings/general">
+        <IconSettings slot="icon" class="mr-3 h-6 w-6 text-grey-300" />
+        <div slot="label">Settings</div>
+      </MenuItem>
       <MenuItem on:click={() => window.api.sync()}>
         <IconRefresh slot="icon" class="mr-3 h-6 w-6 text-grey-300" />
-        <div slot="text">Refresh</div>
+        <div slot="label">Refresh</div>
       </MenuItem>
     </Menu>
   </div>
 
   {#each menuItems as item}
-    <SidebarItem on:click={item.onClick}>
+    <SidebarItem to={item.to}>
       <svelte:component
         this={item.icon}
         slot="icon"
         class="mr-3 h-6 w-6 text-grey-300"
       />
-      <div slot="text">{item.name}</div>
+      <div slot="label">{item.name}</div>
     </SidebarItem>
   {/each}
 </nav>

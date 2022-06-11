@@ -1,5 +1,5 @@
 import type { ElectronApplication } from "playwright"
-import { afterAll, beforeAll, describe, expect, it, test } from "vitest"
+import { afterAll, beforeAll, expect, it } from "vitest"
 import createTracksPage from "./POM/TracksPage"
 import { launchElectron } from "./Helper"
 
@@ -196,11 +196,4 @@ it("does not play music when just opened", async () => {
   const isPlaying = await tracksPage.isPlayingAudio()
 
   expect(isPlaying).toBe(false)
-})
-
-it("is possible to seek to the end of the current track", async () => {
-  throw new Error("To fix, make the seekbar an input range")
-})
-it("is possible to seek to the beginning of the current track", async () => {
-  throw new Error("To fix, make the seekbar an input range")
 })

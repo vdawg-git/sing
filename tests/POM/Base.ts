@@ -14,25 +14,27 @@ export default function createBasePage(page: Page) {
   const nextQueueTrack = page.locator(id.asQuery.queueNextTrack)
   const nextTrack = page.locator(id.asQuery.queueNextTrack)
   const nextTracks = page.locator(id.asQuery.queueBarNextTracks)
+  const playBarVolumeIcon = page.locator(id.asQuery.playbarVolumeIcon)
   const playbarBackButton = page.locator(id.asQuery.playbarBackButton)
   const playbarCover = page.locator(id.asQuery.playbarCover)
   const playbarNextButton = page.locator(id.asQuery.playbarNextButton)
   const playbarPlayButton = page.locator(id.asQuery.playbarPlayButton)
   const playbarQueueIcon = page.locator(id.asQuery.playbarQueueIcon)
-  const playBarVolumeIcon = page.locator(id.asQuery.playbarVolumeIcon)
   const previousTrack = page.locator(id.asQuery.queuePreviousTrack)
   const previousTracks = page.locator(id.asQuery.queuePlayedTracks)
-  const progressbar = page.locator(id.asQuery.seekbarProgressbar)
   const progressBarKnob = page.locator(id.asQuery.seekbarProgressbarKnob)
+  const progressbar = page.locator(id.asQuery.seekbarProgressbar)
   const queueBar = page.locator(id.asQuery.queueBar)
   const seekbar = page.locator(id.asQuery.seekbar)
+  const sidebar = page.locator(id.asQuery.sidebar)
+  const sidebarItemTracks = sidebar.locator("text=Tracks")
+  const sidebarMenu = page.locator(id.asQuery.sidebarMenu)
+  const sidebarMenuIcon = page.locator(id.asQuery.sidebarMenuIcon)
+  const sidebarMenuSettings = sidebarMenu.locator("text=Settings")
+  const testAudioElement = page.locator(id.asQuery.testAudioELement)
   const totalDuration = page.locator(id.asQuery.seekbarTotalDuration)
   const volumeSlider = page.locator(id.asQuery.volumeSlider)
-  const testAudioElement = page.locator(id.asQuery.testAudioELement)
   const volumeSliderInner = page.locator(id.asQuery.volumeSliderInner)
-  const sidebarMenuIcon = page.locator(id.asQuery.sidebarMenuIcon)
-  const sidebarMenu = page.locator(id.asQuery.sidebarMenu)
-  const sidebar = page.locator(id.asQuery.sidebar)
 
   return {
     clickPlay,
@@ -71,23 +73,23 @@ export default function createBasePage(page: Page) {
 
   async function gotoSettings() {
     await openSidebarMenu()
-    await sidebarMenu.locator("Settings").click()
+    await sidebarMenuSettings.click({ timeout: 3000 })
 
     return createLibrarySettingsPage(page)
   }
 
   async function gotoTracks() {
-    await sidebar.locator("Tracks").click()
+    await sidebarItemTracks.click({ timeout: 2000 })
 
     return createTracksPage(page)
   }
 
   async function openSidebarMenu() {
     const isVisible = await sidebarMenu.isVisible()
-    if (!isVisible) return
+    if (isVisible) return
 
-    await sidebarMenuIcon.click()
-    await sidebarMenu.waitFor({ state: "visible" })
+    await sidebarMenuIcon.click({ timeout: 2000 })
+    await sidebarMenu.waitFor({ state: "visible", timeout: 2000 })
   }
 
   async function resetTo(
@@ -99,13 +101,12 @@ export default function createBasePage(page: Page) {
     id?: number
   ): Promise<ReturnType<typeof createLibrarySettingsPage>>
   async function resetTo(location: IRoutes, id?: number) {
-    const baseUrl = "file://" + new URL(page.url()).pathname
+    const { pathname, protocol } = new URL(page.url())
 
-    // extract base url out of Url, maybe with Url Constructor or just splitting at the # sign
+    const path =
+      protocol + "//" + pathname + "#" + location + (id ? `/${id}` : "")
 
-    const path = baseUrl + "#" + location + (id || "")
-
-    await page.goto(path)
+    await page.goto(path, { timeout: 2000 })
 
     switch (location) {
       case "settings/library":
@@ -118,7 +119,7 @@ export default function createBasePage(page: Page) {
   }
 
   async function reload() {
-    page.evaluate(() => window.location.reload())
+    await page.reload()
   }
 
   async function isPlayingAudio(): Promise<boolean> {

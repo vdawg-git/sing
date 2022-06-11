@@ -40,6 +40,7 @@ const testIDNames = [
   "sidebarMenu",
   "sidebarMenuIcon",
   "slottedComponent",
+  "myTracksTitle",
   "test",
   "testAudioELement",
   "testIcon",

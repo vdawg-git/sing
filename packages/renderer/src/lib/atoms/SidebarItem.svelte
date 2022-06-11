@@ -1,16 +1,17 @@
 <script lang="ts">
-  let activeState = false
+  import { Link } from "svelte-navigator"
+  import type { IRoutes } from "@/Consts"
+
+  export let to: IRoutes
 </script>
 
-<div on:click>
+<Link {to}>
   <div
     class="
     -ml-2 flex cursor-pointer rounded-xl p-3 align-middle 
-		active:bg-grey-500
-    {!activeState && 'hover:bg-grey-700 '} 
-    {activeState && 'bg-grey-600'}"
+		active:bg-grey-500"
   >
     <slot name="icon" />
-    <slot name="text">No Text provided</slot>
+    <slot name="label">No Text provided</slot>
   </div>
-</div>
+</Link>

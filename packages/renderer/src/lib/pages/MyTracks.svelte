@@ -4,6 +4,7 @@
   import Tracks from "@/lib/stores/TracksStore"
   import player from "../manager/PlayerManager"
   import type { ISourceType } from "@/types/Types"
+  import { TEST_IDS as id } from "@/TestConsts"
 
   const sourceType: ISourceType = "ALL_TRACKS"
 </script>
@@ -15,7 +16,7 @@
 		overflow-x-clip"
 >
   <div class="mx-auto mt-32 w-full max-w-[1560px] p-6 ">
-    <h1 class="mb-10 text-4xl  ">My Tracks</h1>
+    <h1 data-testid={id.myTracksTitle} class="mb-10 text-4xl">My Tracks</h1>
     {#await $Tracks}
       <p>...loading</p>
     {:then tracks}

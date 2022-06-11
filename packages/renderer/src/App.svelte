@@ -6,6 +6,7 @@
   import tracksStore from "@/lib/stores/TracksStore"
   import NoContent from "@/lib/organisms/NoContent.svelte"
   import { createHashSource } from "./Helper"
+  import { routes } from "./Consts"
 
   tracksStore.subscribe((_) => {}) // Never undload tracks
 
@@ -13,22 +14,22 @@
 </script>
 
 <main class="select-none bg-grey-900 text-white ">
-  <div class="flex">
-    <Sidebar />
-    <div class="h-screen w-full overflow-auto   sm:ml-2 md:ml-6 lg:ml-10 ">
-      <Router history={hashHistory}>
-        <Route path="settings">
+  <Router history={hashHistory}>
+    <div class="flex">
+      <Sidebar />
+      <div class="h-screen w-full overflow-auto   sm:ml-2 md:ml-6 lg:ml-10 ">
+        <Route path={routes["settings/general"]}>
           <NoContent />
         </Route>
 
-        <Route path="tracks">
+        <Route path={routes.tracks}>
           <MyTracks />
         </Route>
         <Route>
           <MyTracks />
         </Route>
-      </Router>
+      </div>
     </div>
-  </div>
-  <Playbar />
+    <Playbar />
+  </Router>
 </main>
