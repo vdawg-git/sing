@@ -1,7 +1,8 @@
 <script lang="ts">
-  import FoldersPicker from "./FoldersPicker.svelte"
-  import Button from "../atoms/Button.svelte"
+  import FoldersPicker from "@/lib/organisms/FoldersPicker.svelte"
+  import Button from "@/lib/atoms/Button.svelte"
   import { onMount } from "svelte"
+  import { TEST_IDS as id } from "@/TestConsts"
 
   let paths: string[]
 
@@ -24,11 +25,17 @@
       <FoldersPicker bind:paths />
       <Button
         text="Save and sync"
+        testid={id.settingsFoldersSaveButton}
         classes="w-full mt-8"
         on:click={async () => {
-          if (paths === undefined || paths.length === 0) return
-          console.log(await window.api.setUserSettings("musicFolders", paths))
-          window.api.sync()
+          if (paths === undefined || paths.length === 0) {
+            console.error("No paths to sync specified, they are", paths)
+            return
+          }
+          console.log("Syncing paths: " + paths)
+          await window.api.setUserSettings("musicFolders", paths)
+
+          await window.api.sync()
         }}
       />
     </div>

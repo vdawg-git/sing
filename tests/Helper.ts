@@ -12,9 +12,15 @@ export async function launchElectron(): Promise<ElectronApplication> {
     "index.cjs"
   )
 
+  const executablePath = join(
+    __dirname,
+    "./../node_modules/electron/dist/electron.exe"
+  )
+
   return electron.launch({
     args: [mainPath],
     bypassCSP: true,
+    executablePath,
   })
 }
 

@@ -1,6 +1,6 @@
 import type { ElectronApplication } from "playwright"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
-import createBasePage from "./POM/Base"
+import createBasePage from "./POM/BasePage"
 import { launchElectron } from "./Helper"
 
 let electronApp: ElectronApplication
@@ -14,8 +14,7 @@ afterAll(async () => {
 })
 
 it("is possible to go to the settings page", async () => {
-  const page = await electronApp.firstWindow()
-  const basePage = createBasePage(page)
+  const basePage = await createBasePage(electronApp)
   const tracksPage = await basePage.resetTo("tracks")
 
   const settingsPage = await tracksPage.goTo.settings()
@@ -25,8 +24,7 @@ it("is possible to go to the settings page", async () => {
 
 describe("From Settings", async () => {
   it("is possible to go to the tracks page", async () => {
-    const page = await electronApp.firstWindow()
-    const basePage = createBasePage(page)
+    const basePage = await createBasePage(electronApp)
     const settingsPage = await basePage.resetTo("settings/general")
 
     const tracksPage = await settingsPage.goTo.tracks()

@@ -1,44 +1,13 @@
 <script lang="ts">
-  import type { ITrack } from "@sing-types/Track"
-  import { secondsToDuration } from "@/Helper"
+  import type { ITrack } from "@sing-types/Types"
+  import { displayMetadata, secondsToDuration, titleToDisplay } from "@/Helper"
   export let track!: ITrack
-
-  // Not implemented yet
-  function formatMeta(text: string): string {
-    // TODO: make this work
-
-    // 		const regexp = /\([^\)]*\)/g
-    // 		const result = text.replace(regexp, `<span class="text-grey-300">$&</span>`)
-
-    // 		function func(s) {
-    //   const regex = /\([^\(\}]+\)/
-
-    //   return s.match(regex)
-    // }
-
-    // const tests = [
-    //   ["Luv (sic) Part 1", null],
-    //   ["Luv (sic) Part 2 (Remix)", "(Remix)"],
-    //   ["(Experiment)", null],
-    //   ["(Experiment) (Remix)", "(Remix)"],
-    // ]
-
-    // tests.forEach(([string, wish]) => {
-    //   const test = func(string) === wish
-    //   console.assert(test, `\n "${string}" matched ${func(string)} \n Goal: ${wish}`)
-    // })
-
-    return text
-  }
 </script>
 
 <main
   class="
     group relative  z-10  flex w-full cursor-pointer auto-cols-[1fr] items-center
-    
   "
-  href="#?"
-  data-filepath={track.filepath}
   on:click
   on:dblclick
 >
@@ -48,19 +17,18 @@
       {#if track.coverPath}
         <img
           src="file://{track.coverPath}"
-          alt="Cover of {track.title}"
+          alt="Cover of {track?.title || track.filepath.split('/').at(-1)}"
           class="mr-4 h-12 w-12 shrink-0 grow-0 rounded"
         />
       {:else}
         <div
-          class="w-12 h-12 mr-4 bg-gradient-to-br from-grey-600 to-grey-700 rounded grow-0 shrink-0"
+          class="mr-4 h-12 w-12 shrink-0 grow-0 rounded bg-gradient-to-br from-grey-600 to-grey-700"
         />
       {/if}
       <div
         class=" min-w-0  flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
       >
-        {@html // @ts-expect-error
-        formatMeta(track.title || track.filepath.split("/").at(-1))}
+        {displayMetadata("title", track)}
       </div>
     </div>
   </div>
@@ -69,21 +37,21 @@
   <div
     class="mr-6 flex-1 basis-32  overflow-hidden text-ellipsis whitespace-nowrap align-middle"
   >
-    {track.artist}
+    {displayMetadata("artist", track)}
   </div>
 
   <!---- Album -->
   <div
     class="mr-6 flex-1 basis-32 overflow-hidden  text-ellipsis whitespace-nowrap align-middle"
   >
-    {track.album}
+    {displayMetadata("album", track)}
   </div>
 
   <!---- Duration -->
   <div
     class="flex-1  basis-12 overflow-hidden text-ellipsis whitespace-nowrap text-right align-middle"
   >
-    {track?.duration ? secondsToDuration(track.duration) : "ERROR"}
+    {displayMetadata("duration", track)}
   </div>
 
   <!---- Hover bg -->

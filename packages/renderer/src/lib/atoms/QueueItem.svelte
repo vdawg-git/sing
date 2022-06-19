@@ -5,6 +5,7 @@
   import { createEventDispatcher } from "svelte"
   import IconClose from "virtual:icons/heroicons-outline/x"
   import { TEST_IDS as testID, testAttr } from "@/TestConsts"
+  import { displayMetadata, titleToDisplay } from "@/Helper"
   type ITestIDs =
     | typeof testID.queueCurrentTrack
     | typeof testID.queuePreviousTrack
@@ -58,7 +59,7 @@
     {#if track?.coverPath}
       <img
         src={"file://" + track.coverPath}
-        alt={track?.title + "cover"}
+        alt={displayMetadata("title", track) + " cover"}
         class="h-12 w-12 rounded"
         class:opacity-70={state === "HAS_PLAYED"}
         data-testattribute={testAttr.queueItemCover}
@@ -73,14 +74,14 @@
         data-testid={testTitleID}
         data-testattribute={testAttr.queueItemTitle}
       >
-        {track?.title ? track.title : "Unknown"}
+        {displayMetadata("title", track)}
       </span>
       <span
         class="-mt-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm text-grey-300"
         data-testid={testArtistID}
         data-testattribute={testAttr.queueItemArtist}
       >
-        {track?.artist ? track.artist : "Unknown"}
+        {displayMetadata("artist", track)}
       </span>
     </div>
   </div>

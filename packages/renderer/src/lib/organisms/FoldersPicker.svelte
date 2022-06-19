@@ -66,5 +66,8 @@
   {:else}
     <FolderInput on:folderAdded={(e) => handleFolderAdded(e.detail)} />
   {/each}
-  <FolderInput on:folderAdded={(e) => handleFolderAdded(e.detail)} />
+  <FolderInput
+    testID={id.settingsFoldersEmptyInput}
+    on:folderAdded={(e) => handleFolderAdded(e.detail)}
+  />
 </div>

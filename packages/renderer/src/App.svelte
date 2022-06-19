@@ -4,7 +4,7 @@
   import MyTracks from "./lib/pages/MyTracks.svelte"
   import Playbar from "./lib/organisms/Playbar.svelte"
   import tracksStore from "@/lib/stores/TracksStore"
-  import NoContent from "@/lib/organisms/NoContent.svelte"
+  import Settings from "@/lib/pages/Settings.svelte"
   import { createHashSource } from "./Helper"
   import { routes } from "./Consts"
 
@@ -19,7 +19,10 @@
       <Sidebar />
       <div class="h-screen w-full overflow-auto   sm:ml-2 md:ml-6 lg:ml-10 ">
         <Route path={routes["settings/general"]}>
-          <NoContent />
+          <Settings />
+        </Route>
+        <Route path={routes["settings/library"]}>
+          <Settings />
         </Route>
 
         <Route path={routes.tracks}>

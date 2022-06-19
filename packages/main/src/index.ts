@@ -59,23 +59,6 @@ app
   .catch((e) => console.error("Failed create window:", e))
 
 /**
- * Install devtools
- */
-if (import.meta.env.DEV) {
-  app
-    .whenReady()
-    .then(() => import("electron-devtools-installer"))
-    .then(({ default: installExtension }) =>
-      installExtension("ckolcbmkjpjmangdbmnkpjigpkddpogn", {
-        loadExtensionOptions: {
-          allowFileAccess: true,
-        },
-      })
-    )
-    .catch((e) => console.error("Failed install extension:", e))
-}
-
-/**
  * Check new app version in production mode only
  */
 // if (import.meta.env.PROD) {

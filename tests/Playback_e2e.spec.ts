@@ -2,30 +2,33 @@ import type { ElectronApplication } from "playwright"
 import { afterAll, beforeAll, expect, it } from "vitest"
 import createTracksPage from "./POM/TracksPage"
 import { launchElectron } from "./Helper"
+import createBasePage from "./POM/BasePage"
 
-let electronApp: ElectronApplication
+let electron: ElectronApplication
 
 beforeAll(async () => {
-  electronApp = await launchElectron()
+  electron = await launchElectron()
+
+  const basePage = await createBasePage(electron)
+  const libraryPage = await basePage.resetTo("settings/library")
+  await libraryPage.resetToDefault()
+
+  await libraryPage.resetTo("tracks")
 })
 
 afterAll(async () => {
-  await electronApp.close()
+  await electron.close()
 })
 
 it("displays a cover", async () => {
-  const page = await electronApp.firstWindow()
-  const tracksPage = createTracksPage(page)
+  const tracksPage = await createTracksPage(electron)
   tracksPage.reload()
 
   await tracksPage.clickPlay()
 })
 
 it("does not throw an error when playing a queue item", async () => {
-  //todo setup
-
-  const page = await electronApp.firstWindow()
-  const tracksPage = createTracksPage(page)
+  const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
   await tracksPage.openQueue()
 
@@ -42,8 +45,7 @@ it("does not throw an error when playing a queue item", async () => {
 })
 
 it("progresses the seekbar when playing first song", async () => {
-  const page = await electronApp.firstWindow()
-  const tracksPage = createTracksPage(page)
+  const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
   const oldWidth = await tracksPage.getProgressBarWidth()
@@ -65,8 +67,7 @@ it("progresses the seekbar when playing first song", async () => {
 })
 
 it("progresses the seekbar when playing second song", async () => {
-  const page = await electronApp.firstWindow()
-  const tracksPage = createTracksPage(page)
+  const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
   const oldWidth = await tracksPage.getProgressBarWidth()
@@ -89,8 +90,7 @@ it("progresses the seekbar when playing second song", async () => {
 })
 
 it("changes the current time when when clicking on the seekbar", async () => {
-  const page = await electronApp.firstWindow()
-  const tracksPage = createTracksPage(page)
+  const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
   const oldTime = await tracksPage.getCurrentTime()
@@ -103,8 +103,7 @@ it("changes the current time when when clicking on the seekbar", async () => {
 })
 
 it("displays the current time when hovering the seekbar", async () => {
-  const page = await electronApp.firstWindow()
-  const tracksPage = createTracksPage(page)
+  const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
   await tracksPage.hoverSeekbar()
@@ -113,8 +112,7 @@ it("displays the current time when hovering the seekbar", async () => {
 })
 
 it("displays the total time when hovering the seekbar", async () => {
-  const page = await electronApp.firstWindow()
-  const tracksPage = createTracksPage(page)
+  const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
   await tracksPage.hoverSeekbar()
@@ -123,8 +121,7 @@ it("displays the total time when hovering the seekbar", async () => {
 })
 
 it("goes to the next track in queue after the current has finished", async () => {
-  const page = await electronApp.firstWindow()
-  const tracksPage = createTracksPage(page)
+  const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
   await tracksPage.openQueue()
 
@@ -140,8 +137,7 @@ it("goes to the next track in queue after the current has finished", async () =>
 })
 
 it("changes the volume when clicking the slider", async () => {
-  const page = await electronApp.firstWindow()
-  const tracksPage = createTracksPage(page)
+  const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
   const oldVolume = await tracksPage.getVolume()
@@ -154,8 +150,7 @@ it("changes the volume when clicking the slider", async () => {
 }, 50000)
 
 it("visualizes the volume correctly", async () => {
-  const page = await electronApp.firstWindow()
-  const tracksPage = createTracksPage(page)
+  const tracksPage = await createTracksPage(electron)
 
   const internalVolume = await tracksPage.getVolumeState()
   const sliderHeight = await tracksPage.getVolume()
@@ -164,8 +159,7 @@ it("visualizes the volume correctly", async () => {
 })
 
 it("does not play music when paused and going to the previous track", async () => {
-  const page = await electronApp.firstWindow()
-  const tracksPage = createTracksPage(page)
+  const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
   await tracksPage.goToNextTrack()
@@ -177,8 +171,7 @@ it("does not play music when paused and going to the previous track", async () =
 })
 
 it("does not play music when paused and going to the next track", async () => {
-  const page = await electronApp.firstWindow()
-  const tracksPage = createTracksPage(page)
+  const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
   await tracksPage.goToNextTrack()
@@ -189,8 +182,7 @@ it("does not play music when paused and going to the next track", async () => {
 })
 
 it("does not play music when just opened", async () => {
-  const page = await electronApp.firstWindow()
-  const tracksPage = createTracksPage(page)
+  const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
   const isPlaying = await tracksPage.isPlayingAudio()

@@ -1,14 +1,18 @@
-import type { Page } from "playwright"
+import type { ElectronApplication } from "playwright"
 import {
   TEST_IDS as id,
   testAttr as testAttr,
-} from "../../packages/renderer/src/TestConsts"
+} from "../../packages/renderer/src//TestConsts"
 import { convertDisplayTimeToSeconds, isImageElement } from "../Helper"
-import type { IRoutes } from "../../packages/renderer/src/Consts"
+import { type IRoutes } from "../../packages/renderer/src/Consts"
 import createLibrarySettingsPage from "./LibrarySettingsPage"
 import createTracksPage from "./TracksPage"
+import { reduceTitlesToFolders } from "./Helper"
+import slash from "slash"
 
-export default function createBasePage(page: Page) {
+export default async function createBasePage(electronApp: ElectronApplication) {
+  const page = await electronApp.firstWindow()
+
   const currentTime = page.locator(id.asQuery.seekbarCurrentTime)
   const currentTrack = page.locator(id.asQuery.playbarTitle)
   const nextQueueTrack = page.locator(id.asQuery.queueNextTrack)
@@ -39,6 +43,7 @@ export default function createBasePage(page: Page) {
   return {
     clickPlay,
     clickSeekbar,
+    closeQueue,
     createErrorListener,
     dragKnob,
     getCoverPath,
@@ -49,6 +54,8 @@ export default function createBasePage(page: Page) {
     getPreviousTrack,
     getPreviousTracks,
     getProgressBarWidth,
+    getQueueAddedFolders,
+    getQueueItems,
     getTotalDuration,
     getVolume,
     getVolumeState,
@@ -58,6 +65,7 @@ export default function createBasePage(page: Page) {
     hoverVolumeIcon,
     isPlayingAudio,
     isRenderingPlaybarCover,
+    mockDialog,
     openQueue,
     playNextTrackFromQueue,
     reload,
@@ -71,17 +79,24 @@ export default function createBasePage(page: Page) {
     },
   }
 
-  async function gotoSettings() {
+  async function gotoSettings(): Promise<
+    ReturnType<typeof createLibrarySettingsPage>
+  > {
     await openSidebarMenu()
     await sidebarMenuSettings.click({ timeout: 3000 })
 
-    return createLibrarySettingsPage(page)
+    return await createLibrarySettingsPage(electronApp)
   }
 
   async function gotoTracks() {
     await sidebarItemTracks.click({ timeout: 2000 })
 
-    return createTracksPage(page)
+    // Wait for content to be loaded
+    await page.waitForSelector(id.asQuery.pageTrackContent, {
+      state: "attached",
+    })
+
+    return createTracksPage(electronApp)
   }
 
   async function openSidebarMenu() {
@@ -93,14 +108,19 @@ export default function createBasePage(page: Page) {
   }
 
   async function resetTo(
+    location: "settings/general" | "settings/library",
+    id?: number
+  ): Promise<ReturnType<typeof createLibrarySettingsPage>>
+  async function resetTo(
     location: "tracks",
     id?: number
   ): Promise<ReturnType<typeof createTracksPage>>
   async function resetTo(
-    location: "settings/general" | "settings/library",
+    location: IRoutes,
     id?: number
-  ): Promise<ReturnType<typeof createLibrarySettingsPage>>
-  async function resetTo(location: IRoutes, id?: number) {
+  ): Promise<
+    ReturnType<typeof createTracksPage | typeof createLibrarySettingsPage>
+  > {
     const { pathname, protocol } = new URL(page.url())
 
     const path =
@@ -111,10 +131,13 @@ export default function createBasePage(page: Page) {
     switch (location) {
       case "settings/library":
       case "settings/general":
-        return createLibrarySettingsPage(page)
+        return await createLibrarySettingsPage(electronApp)
 
       case "tracks":
-        return createTracksPage(page)
+        return await createTracksPage(electronApp)
+
+      default:
+        throw new Error("Invalid location // Not implemented")
     }
   }
 
@@ -202,8 +225,17 @@ export default function createBasePage(page: Page) {
     await nextQueueTrack.dblclick({ timeout: 2000 })
   }
   async function openQueue() {
+    if (await queueBar.isVisible()) return
+
     await playbarQueueIcon.click({ timeout: 1500 })
-    await queueBar.isVisible()
+    await queueBar.waitFor({ state: "visible", timeout: 5000 })
+  }
+
+  async function closeQueue() {
+    if (!(await queueBar.isVisible())) return
+
+    await playbarQueueIcon.click({ timeout: 1500 })
+    await queueBar.waitFor({ state: "detached", timeout: 5000 })
   }
 
   async function getNextTracks() {
@@ -219,18 +251,19 @@ export default function createBasePage(page: Page) {
   }
 
   async function getNextTrack(): Promise<String | undefined> {
-    const element = await nextTrack.elementHandle()
+    const element = await nextTrack.elementHandle({ timeout: 2000 })
     const titleElement = await element?.$(testAttr.asQuery.queueItemTitle)
     return titleElement?.innerText()
   }
   async function getPreviousTrack(): Promise<String | undefined> {
-    const element = await previousTrack.elementHandle()
+    const element = await previousTrack.elementHandle({ timeout: 2000 })
     const titleElement = await element?.$(testAttr.asQuery.queueItemTitle)
     return titleElement?.innerText()
   }
   async function getCurrentTrack(): Promise<String | undefined> {
-    const element = await currentTrack.elementHandle()
-    return element?.innerText()
+    if ((await currentTrack.count()) === 0) return undefined
+
+    return currentTrack.innerText({ timeout: 2000 })
   }
 
   async function waitForTrackToChangeTo(
@@ -371,5 +404,48 @@ export default function createBasePage(page: Page) {
         return newElementHeight === heightToReach
       }
     }
+  }
+
+  async function mockDialog(paths: string[]): Promise<void> {
+    const returnValue = paths.map((path) => slash(path))
+
+    await electronApp.evaluate(async ({ dialog }, returnValue) => {
+      dialog.showOpenDialog = () =>
+        Promise.resolve({ canceled: false, filePaths: returnValue })
+    }, returnValue)
+  }
+
+  async function getQueueItems() {
+    await openQueue()
+
+    const items = await Promise.all(
+      (
+        await page.$$(testAttr.asQuery.queueItem)
+      ).map(async (item) => {
+        return {
+          title: await (
+            await item.$(testAttr.asQuery.queueItemTitle)
+          )?.innerText(),
+          cover: await (
+            await item.$(testAttr.asQuery.queueItemCover)
+          )?.innerText(),
+          artist: await (
+            await item.$(testAttr.asQuery.queueItemArtist)
+          )?.innerText(),
+        }
+      })
+    )
+
+    await closeQueue()
+
+    return items
+  }
+
+  async function getQueueAddedFolders() {
+    const items = await getQueueItems()
+
+    const folders = reduceTitlesToFolders(items.map((item) => item.title))
+
+    return folders
   }
 }

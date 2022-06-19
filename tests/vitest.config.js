@@ -1,8 +1,15 @@
-import { node } from "../../.electron-vendors.cache.json"
 import { join } from "path"
-import { builtinModules } from "module"
 
 const PACKAGE_ROOT = __dirname
+
+const x = [
+  join(PACKAGE_ROOT, "..", "packages", "renderer", "src") + "/",
+  join(PACKAGE_ROOT, "..", "packages", "main", "src") + "/",
+  join(PACKAGE_ROOT, "..", "packages", "preload", "src") + "/",
+  join(PACKAGE_ROOT, "..", "types") + "/",
+]
+
+console.log(x)
 
 /**
  * @type {import('vite').UserConfig}
@@ -19,33 +26,9 @@ const config = {
       "@sing-main/*": join(PACKAGE_ROOT, "..", "packages", "main", "src") + "/",
       "@sing-preload/*":
         join(PACKAGE_ROOT, "..", "packages", "preload", "src") + "/",
+      "@sing-types/*": join(PACKAGE_ROOT, "..", "types") + "/",
       "@": join(PACKAGE_ROOT) + "/",
     },
-  },
-  build: {
-    sourcemap: "inline",
-    target: `node${node}`,
-    outDir: "dist",
-    assetsDir: ".",
-    minify: process.env.MODE !== "development",
-    lib: {
-      entry: "src/index.ts",
-      formats: ["cjs"],
-    },
-    rollupOptions: {
-      external: [
-        "electron",
-        "electron-devtools-installer",
-        "@prisma/client",
-        "electron-store",
-        ...builtinModules.flatMap((p) => [p, `node:${p}`]),
-      ],
-      output: {
-        entryFileNames: "[name].cjs",
-      },
-    },
-    emptyOutDir: true,
-    brotliSize: false,
   },
 }
 

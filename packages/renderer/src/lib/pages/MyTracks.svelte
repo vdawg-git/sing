@@ -1,8 +1,8 @@
 <script lang="ts">
-  import TrackItem from "../molecules/TrackItem.svelte"
-  import NoContent from "../organisms/NoContent.svelte"
+  import TrackItem from "@/lib/molecules/TrackItem.svelte"
+  import Settings from "@/lib/pages/Settings.svelte"
   import Tracks from "@/lib/stores/TracksStore"
-  import player from "../manager/PlayerManager"
+  import player from "@/lib/manager/PlayerManager"
   import type { ISourceType } from "@/types/Types"
   import { TEST_IDS as id } from "@/TestConsts"
 
@@ -20,10 +20,10 @@
     {#await $Tracks}
       <p>...loading</p>
     {:then tracks}
-      {#if tracks.length === 0}
-        <NoContent />
-      {:else}
-        <div class="w-full flex flex-col">
+      <div data-testid={id.pageTrackContent} class="w-full flex flex-col">
+        {#if tracks.length === 0}
+          <Settings />
+        {:else}
           <div
             class="
               uppercase text-left text-xs text-grey-300 
@@ -49,8 +49,8 @@
           </div>
           <!---- Add empty element to make allow scrolling elements behind playbar -->
           <div class=" h-24 w-full" />
-        </div>
-      {/if}
+        {/if}
+      </div>
     {/await}
   </div>
 </main>

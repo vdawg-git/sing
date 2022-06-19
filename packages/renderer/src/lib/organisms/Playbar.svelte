@@ -4,7 +4,8 @@
   import IconNext from "virtual:icons/heroicons-outline/fast-forward"
   import IconQueue from "virtual:icons/heroicons-outline/view-list"
   import VolumeControl from "@/lib/molecules/VolumeControl.svelte"
-  import { onDestroy, onMount } from "svelte"
+  import { onMount } from "svelte"
+  import { displayMetadata, titleToDisplay } from "@/Helper"
 
   import QueueBar from "./QueueBar.svelte"
   import Seekbar from "../molecules/Seekbar.svelte"
@@ -66,13 +67,16 @@
     <!---- Cover -->
     {#if track?.coverPath}
       <img
-        class="h-14 w-14 bg-grey-600"
+        class="h-14 w-14 shrink-0 bg-grey-600"
         alt={track?.title || "Title" + " " + " cover"}
         src={"file://" + track?.coverPath}
         data-testid={test.playbarCover}
       />
     {:else}
-      <div class="h-14 w-14 bg-grey-600" data-testid={test.playbarCover} />
+      <div
+        class="h-14 w-14 shrink-0 bg-grey-600"
+        data-testid={test.playbarCover}
+      />
     {/if}
 
     <!---- Meta -->
@@ -82,20 +86,20 @@
           class="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-lg"
           data-testid={test.playbarTitle}
         >
-          {track?.title ?? track?.filepath.split("/").at(-1)}
+          {displayMetadata("title", track)}
         </div>
         <div class="flex max-w-full gap-3">
           <div
             class="shrink-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm text-grey-300"
             data-testid={test.playbarArtist}
           >
-            {track?.artist ?? "Unknown"}
+            {displayMetadata("artist", track)}
           </div>
           <div
             class="shrink-[10000] overflow-hidden text-ellipsis whitespace-nowrap text-sm text-grey-300"
             data-testid={test.playbarAlbum}
           >
-            {track?.album ?? ""}
+            {displayMetadata("album", track)}
           </div>
         </div>
       </div>
@@ -164,7 +168,6 @@
     <button
       class="button"
       data-testid={test.playbarQueueIcon}
-      disabled={!track}
       on:click|stopPropagation={handleClickQueueIcon}
     >
       <IconQueue class="h-6 w-6" />

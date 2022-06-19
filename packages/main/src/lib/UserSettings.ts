@@ -2,7 +2,6 @@ import ElectronStore from "electron-store"
 
 export interface IUserSettings {
   musicFolders?: string[]
-  lightTheme?: boolean
 }
 export type IUserSettingsKey = keyof IUserSettings
 
@@ -12,11 +11,7 @@ const schema = {
     type: "array",
     items: { type: "string" },
     uniqueItems: true,
-    minItems: 1,
-    nullable: true,
-  },
-  lightTheme: {
-    type: "boolean",
+    minItems: import.meta.env.DEV ? 0 : 1,
     nullable: true,
   },
 }

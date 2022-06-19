@@ -16,17 +16,18 @@ export const mockedApiTracks: readonly ITrack[] = tracks
 function createMockedElectronAPI(): typeof IipcRenderer {
   return {
     getTracks: vi.fn(() => Promise.resolve(mockedApiTracks)),
-    sync,
-    setUserSettings,
+    sync: vi.fn(() => Promise.resolve(sync())),
+    setUserSettings: vi.fn(setUserSettings),
     openDirectory,
     openMusicFolder: vi.fn(async () => {
       return { filePaths: ["X:/MockElectronApi"], canceled: false }
     }),
     getPath,
-    getUserSetting,
+    getUserSetting: vi.fn(getUserSetting),
     listen,
     removeListener,
     send,
+    resetSettings: vi.fn(),
   }
 }
 
@@ -54,7 +55,7 @@ async function getPath(_name: string) {
 async function getUserSetting(setting: IUserSettingsKey) {
   switch (setting) {
     case "musicFolders":
-      return ["F:/invoked/getUserSetting/with/musicFolders", "D:/test/Test"]
+      return ["C:/mockedElectronApi0/", "C:/mockedElectronApi1/"]
     case "lightTheme":
       return false
 

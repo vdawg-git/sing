@@ -1,6 +1,7 @@
 import { readable, type Subscriber } from "svelte/store"
-import type { ITrack } from "@sing-types/Track"
+import type { ITrack } from "@sing-types/Types"
 import picocolors from "picocolors"
+import { titleToDisplay } from "@/Helper"
 
 export default readable<Promise<ITrack[]> | ITrack[]>(initValue(), updateStore)
 
@@ -47,7 +48,8 @@ function updateStore(set: Subscriber<ITrack[] | Promise<ITrack[]>>) {
 }
 
 function sortAlphabetically(a: ITrack, b: ITrack) {
-  const titleA = a.title ? a.title.toLowerCase() : "!"
-  const titleB = b.title ? b.title.toLowerCase() : "!"
+  const titleA = titleToDisplay(a).toLowerCase()
+  const titleB = titleToDisplay(b).toLowerCase()
+
   return titleA.localeCompare(titleB, undefined, { numeric: true })
 }

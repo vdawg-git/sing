@@ -162,13 +162,6 @@ describe("behaves correctly with no tracks", () => {
         playbar.getByTestId(id.playbarNextButton).hasAttribute("disabled")
       ).toBeTruthy()
     })
-
-    it("Queue button is disabled when store is undefined", () => {
-      const playbar = render(Playbar)
-      expect(
-        playbar.getByTestId(id.playbarQueueIcon).hasAttribute("disabled")
-      ).toBeTruthy()
-    })
   })
 
   describe("displays current time and duration correctly", async () => {

@@ -5,7 +5,7 @@
   import { testAttr } from "@/TestConsts"
 
   export let path: string | undefined = undefined
-  export const symbol = Symbol(`folder-${path}`)
+  export let testID: string | undefined = undefined
 
   const dispatch = createEventDispatcher()
 
@@ -45,6 +45,7 @@
 </script>
 
 <button
+  data-testID={testID}
   data-testattribute={testAttr.folderInput}
   class="
 			group  flex

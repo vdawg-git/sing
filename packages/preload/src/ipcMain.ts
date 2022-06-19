@@ -9,11 +9,11 @@ import userSettingsStore, {
   IUserSettings,
   IUserSettingsKey,
 } from "../../main/src/lib/UserSettings"
-import * as consts from "./Channels"
+import channels from "./Channels"
 import { OpenDialogReturnValue } from "electron/main"
 
 export default function ipcInit(): void {
-  ipcMain.handle(consts.GET_TRACKS, async (_event): Promise<ITrack[]> => {
+  ipcMain.handle(channels.GET_TRACKS, async (_event): Promise<ITrack[]> => {
     return await Tracks.get({
       select: {
         id: true,
@@ -28,7 +28,7 @@ export default function ipcInit(): void {
   })
 
   ipcMain.handle(
-    consts.SET_USER_SETTINGS,
+    channels.SET_USER_SETTINGS,
     async <Key extends IUserSettingsKey>(
       _event: IpcMainInvokeEvent,
       setting: Key,
@@ -39,15 +39,15 @@ export default function ipcInit(): void {
     }
   )
 
-  ipcMain.handle(consts.SYNC, async (event) => {
+  ipcMain.handle(channels.SYNC, async (event) => {
     const { added, failed } = await syncDirectories()
 
     // Emit library track update for the frontend
-    event.sender.send(consts.ON_TRACKS_UPDATED, added)
+    event.sender.send(channels.ON_TRACKS_UPDATED, added)
   })
 
   ipcMain.handle(
-    consts.OPEN_DIR,
+    channels.OPEN_DIR,
     async (_, options: Electron.OpenDialogOptions = {}) => {
       let { filePaths, canceled } = await dialog.showOpenDialog(options)
 
@@ -57,12 +57,12 @@ export default function ipcInit(): void {
     }
   )
 
-  ipcMain.handle(consts.GET_PATH, async (_event, name) => {
+  ipcMain.handle(channels.GET_PATH, async (_event, name) => {
     return slash(app.getPath(name))
   })
 
   ipcMain.handle(
-    consts.OPEN_MUSIC_FOLDER,
+    channels.OPEN_MUSIC_FOLDER,
     async (_event): Promise<OpenDialogReturnValue> => {
       let { filePaths, canceled } = await dialog.showOpenDialog({
         title: "Pick folder",
@@ -77,8 +77,12 @@ export default function ipcInit(): void {
   )
 
   ipcMain.handle(
-    consts.GET_USER_SETTINGS,
+    channels.GET_USER_SETTINGS,
     async (_event: IpcMainInvokeEvent, setting: IUserSettingsKey) =>
       userSettingsStore.get(setting)
   )
+
+  ipcMain.handle(channels.RESET_SETTINGS, async (_event) => {
+    userSettingsStore.reset()
+  })
 }

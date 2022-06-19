@@ -1,4 +1,4 @@
-import type { ITrack } from "@sing-types/Track"
+import type { ITrack } from "@sing-types/Types"
 
 export type IPlayState = "PLAYING" | "PAUSED" | "STOPPED"
 export type ISourceType =

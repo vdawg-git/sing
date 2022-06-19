@@ -1,5 +1,5 @@
 {
-  "name": "gisang",
+  "name": "sing",
   "private": true,
   "engines": {
     "node": ">=v16.13",
@@ -37,7 +37,6 @@
     "cross-env": "7.0.3",
     "electron": "17.1.0",
     "electron-builder": "23.0.3",
-    "electron-devtools-installer": "3.2.0",
     "eslint": "^8.17.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^8.5.0",
@@ -57,23 +56,32 @@
     "tailwindcss": "^3.0.24",
     "typescript": "4.7.3",
     "unplugin-icons": "^0.14.3",
-    "vite": "^2.9.10",
-    "vitest": "^0.14.1"
+    "vite": "^2.9.12",
+    "vitest": "^0.15.1"
   },
   "dependencies": {
     "@prisma/client": "^3.14.0",
     "ansicolor": "^1.1.100",
-    "d3-interpolate": "^3.0.1",
     "electron-store": "^8.0.1",
     "electron-updater": "5.0.1",
     "history": "^5.3.0",
     "music-metadata": "^7.12.3",
     "prisma": "^3.14.0",
     "slash": "^3.0.0",
-    "svelte-devtools-standalone": "github:RedHatter/svelte-devtools-standalone",
     "svelte-navigator": "^3.1.6"
   },
   "prisma": {
     "schema": "prisma/schema.prisma"
+  },
+  "quokka": {
+    "ts": {
+      "compilerOptions": {
+        "target": "esnext",
+        "lib": [
+          "esnext",
+          "es2022"
+        ]
+      }
+    }
   }
 }

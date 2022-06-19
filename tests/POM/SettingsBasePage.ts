@@ -1,15 +1,10 @@
-import createBasePage from "./Base"
-import type { Page } from "playwright"
+import createBasePage from "./BasePage"
+import type { ElectronApplication } from "playwright"
 
-type ISettingsTab = "folder"
-
-export default function createBaseSettingsPage(page: Page) {
+export default async function createBaseSettingsPage(
+  electronApp: ElectronApplication
+) {
   return {
-    ...createBasePage(page),
-    switchSettingsTab,
-  }
-
-  async function switchSettingsTab(tab: ISettingsTab) {
-    throw new Error("Not implemented yet")
+    ...(await createBasePage(electronApp)),
   }
 }

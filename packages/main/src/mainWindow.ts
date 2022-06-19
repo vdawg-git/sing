@@ -6,9 +6,8 @@ async function createWindow() {
   const browserWindow = new BrowserWindow({
     width: 1280,
     height: 744,
-    show: import.meta.env.DEV, // Use 'ready-to-show' event to show window whenin production
+    show: import.meta.env.DEV, // Use 'ready-to-show' event to show window when in production
     webPreferences: {
-      nativeWindowOpen: true,
       webviewTag: false, // The webview tag is not recommended. Consider alternatives like iframe or Electron's BrowserView. https://www.electronjs.org/docs/latest/api/webview-tag#warning
       preload: join(__dirname, "../../preload/dist/index.cjs"),
       contextIsolation: true,
@@ -27,8 +26,9 @@ async function createWindow() {
   browserWindow.on("ready-to-show", () => {
     if (!import.meta.env.DEV) browserWindow?.show()
 
+    browserWindow?.webContents.openDevTools()
     if (import.meta.env.DEV) {
-      browserWindow?.webContents.openDevTools()
+      // Lets just always open devtools for now
     }
   })
 

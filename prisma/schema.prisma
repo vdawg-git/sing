@@ -67,7 +67,7 @@ model Track {
   bpm             Float?
   mood            String?
   media           String?
-  catalogNumber   String? /// Stringified JSON Array
+  catalognumber   String? /// Stringified JSON Array
   podcast         Boolean?
   podcasturl      String?
   releasestatus   String?

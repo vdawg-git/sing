@@ -1,0 +1,8 @@
+{
+  "search.exclude": {
+    "**/testdata/**/*": true,
+    "**/.vscode/*": true,
+    "./.vscode/*": true,
+    "**/package-lock.json": true
+  }
+}

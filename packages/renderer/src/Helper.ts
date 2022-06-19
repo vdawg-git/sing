@@ -1,6 +1,28 @@
-import { createHashHistory, type HashHistoryOptions } from "history"
+import type { ITrack } from "@sing-types/Types"
+import { createHashHistory } from "history"
 import type { HistorySource } from "svelte-navigator"
 import type AnyObject from "svelte-navigator/types/AnyObject"
+
+export function titleToDisplay(track: ITrack): string {
+  if (track?.title) return track.title
+
+  const filename = track.filepath.split("\\").at(-1) as string
+  const dotIndex = filename?.lastIndexOf(".")
+  const title = filename?.substring(0, dotIndex)
+
+  return title
+}
+
+export function displayMetadata(type: keyof ITrack, track: ITrack): string {
+  switch (type) {
+    case "title":
+      return titleToDisplay(track)
+    case "duration":
+      return secondsToDuration(track.duration)
+    default:
+      return track[type] ? String(track[type]) : "Unknown"
+  }
+}
 
 export function isClickOutsideNode(
   event: MouseEvent,
@@ -107,7 +129,7 @@ export function createHashSource(): HistorySource {
     },
     history: {
       get state() {
-        return history.location.state
+        return history.location.state as object
       },
       pushState(state: AnyObject, _title: string, uri: string) {
         history.push(uri, state)

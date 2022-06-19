@@ -1,8 +1,10 @@
 const testIDNames = [
   "modal",
   "modalContent",
+  "myTracksTitle",
   "noContentMessage",
   "noContentModalButton",
+  "pageTrackContent",
   "playbar",
   "playbarAlbum",
   "playbarArtist",
@@ -35,12 +37,12 @@ const testIDNames = [
   "seekbarProgressbarKnob",
   "seekbarTotalDuration",
   "settingsFolders",
+  "settingsFoldersEmptyInput",
   "settingsFoldersSaveButton",
   "sidebar",
   "sidebarMenu",
   "sidebarMenuIcon",
   "slottedComponent",
-  "myTracksTitle",
   "test",
   "testAudioELement",
   "testIcon",
@@ -48,16 +50,23 @@ const testIDNames = [
   "volumeSliderInner",
 ] as const
 
-const testGroupNames = [
+const testAttributeNames = [
   "folderInput",
   "folderInputDeleteIcon",
   "menuItem",
+  "queueItem",
   "queueItemArtist",
   "queueItemCover",
   "queueItemDeleteIcon",
   "queueItemTitle",
   "queueNextTracks",
   "queuePreviousTracks",
+  "trackItem",
+  "trackItemAlbum",
+  "trackItemArtist",
+  "trackItemCover",
+  "trackItemDuration",
+  "trackItemTitle",
 ] as const
 ////////////////////////////////
 
@@ -69,11 +78,11 @@ type ITestIDs = {
   }
 }
 
-type ITestGroups = {
-  readonly [index in typeof testGroupNames[number]]: index
+type ITestAttributes = {
+  readonly [index in typeof testAttributeNames[number]]: index
 } & {
   readonly asQuery: {
-    readonly [i in typeof testGroupNames[number]]: `[data-testattribute=${i}]`
+    readonly [i in typeof testAttributeNames[number]]: `[data-testattribute=${i}]`
   }
 }
 
@@ -86,11 +95,14 @@ export const TEST_IDS: ITestIDs = testIDNames.reduce((acc, name) => {
   return acc
 }, {} as any)
 
-export const testAttr: ITestGroups = testGroupNames.reduce((acc, name) => {
-  if (!acc?.asQuery) acc["asQuery"] = {}
+export const testAttr: ITestAttributes = testAttributeNames.reduce(
+  (acc, name) => {
+    if (!acc?.asQuery) acc["asQuery"] = {}
 
-  acc[name] = name
-  acc.asQuery[name] = `[data-testattribute=${name}]`
+    acc[name] = name
+    acc.asQuery[name] = `[data-testattribute=${name}]`
 
-  return acc
-}, {} as any)
+    return acc
+  },
+  {} as any
+)
