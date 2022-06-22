@@ -1,10 +1,12 @@
 <script lang="ts">
   import type { ITrack } from "@sing-types/Types"
   import { displayMetadata, secondsToDuration, titleToDisplay } from "@/Helper"
+  import { testAttr } from "@/TestConsts"
   export let track!: ITrack
 </script>
 
 <main
+  data-testattribute={testAttr.trackItem}
   class="
     group relative  z-10  flex w-full cursor-pointer auto-cols-[1fr] items-center
   "
@@ -16,16 +18,19 @@
     <div class="flex min-w-0 items-center">
       {#if track.coverPath}
         <img
+          data-testattribute={testAttr.trackItemCover}
           src="file://{track.coverPath}"
           alt="Cover of {track?.title || track.filepath.split('/').at(-1)}"
           class="mr-4 h-12 w-12 shrink-0 grow-0 rounded"
         />
       {:else}
         <div
+          data-testattribute={testAttr.trackItemCover}
           class="mr-4 h-12 w-12 shrink-0 grow-0 rounded bg-gradient-to-br from-grey-600 to-grey-700"
         />
       {/if}
       <div
+        data-testattribute={testAttr.trackItemTitle}
         class=" min-w-0  flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
       >
         {displayMetadata("title", track)}
@@ -35,6 +40,7 @@
 
   <!---- Artist -->
   <div
+    data-testattribute={testAttr.trackItemArtist}
     class="mr-6 flex-1 basis-32  overflow-hidden text-ellipsis whitespace-nowrap align-middle"
   >
     {displayMetadata("artist", track)}
@@ -42,6 +48,7 @@
 
   <!---- Album -->
   <div
+    data-testattribute={testAttr.trackItemAlbum}
     class="mr-6 flex-1 basis-32 overflow-hidden  text-ellipsis whitespace-nowrap align-middle"
   >
     {displayMetadata("album", track)}
@@ -49,6 +56,7 @@
 
   <!---- Duration -->
   <div
+    data-testattribute={testAttr.trackItemDuration}
     class="flex-1  basis-12 overflow-hidden text-ellipsis whitespace-nowrap text-right align-middle"
   >
     {displayMetadata("duration", track)}

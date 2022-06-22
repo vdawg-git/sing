@@ -12,7 +12,7 @@ const CHANNELS = {
   TEST: "test",
   ON_TRACKS_ADDED,
   ON_TRACKS_UPDATED,
-  RESET_SETTINGS: "reset-settings",
+  RESET_MUSIC: "reset-music",
   listener: [ON_TRACKS_ADDED],
 } as const
 

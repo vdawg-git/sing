@@ -11,6 +11,7 @@ import userSettingsStore, {
 } from "../../main/src/lib/UserSettings"
 import channels from "./Channels"
 import { OpenDialogReturnValue } from "electron/main"
+import c from "ansicolor"
 
 export default function ipcInit(): void {
   ipcMain.handle(channels.GET_TRACKS, async (_event): Promise<ITrack[]> => {
@@ -40,10 +41,7 @@ export default function ipcInit(): void {
   )
 
   ipcMain.handle(channels.SYNC, async (event) => {
-    const { added, failed } = await syncDirectories()
-
-    // Emit library track update for the frontend
-    event.sender.send(channels.ON_TRACKS_UPDATED, added)
+    await sync(event)
   })
 
   ipcMain.handle(
@@ -82,7 +80,19 @@ export default function ipcInit(): void {
       userSettingsStore.get(setting)
   )
 
-  ipcMain.handle(channels.RESET_SETTINGS, async (_event) => {
-    userSettingsStore.reset()
+  ipcMain.handle(channels.RESET_MUSIC, async (event) => {
+    userSettingsStore.reset("musicFolders")
+    await sync(event)
+
+    console.log(c.yellow("Music reset successfully"))
+
+    return true
   })
+}
+
+async function sync(event: IpcMainInvokeEvent) {
+  const { added, failed: _failed } = await syncDirectories()
+
+  // Emit library track update for the frontend
+  event.sender.send(channels.ON_TRACKS_UPDATED, added)
 }

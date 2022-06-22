@@ -4,7 +4,6 @@ const testIDNames = [
   "myTracksTitle",
   "noContentMessage",
   "noContentModalButton",
-  "pageTrackContent",
   "playbar",
   "playbarAlbum",
   "playbarArtist",
@@ -46,6 +45,7 @@ const testIDNames = [
   "test",
   "testAudioELement",
   "testIcon",
+  "trackItems",
   "volumeSlider",
   "volumeSliderInner",
 ] as const

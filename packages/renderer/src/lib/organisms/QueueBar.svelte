@@ -118,7 +118,7 @@
       {/if}
 
       <!---- Next Tracks --->
-      {#if $nextTracks}
+      {#if $nextTracks.length !== 0}
         <div class="mt-4">
           <div class="mb-3 text-xs font-semibold uppercase text-grey-300">
             Next up

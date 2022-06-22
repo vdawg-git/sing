@@ -11,8 +11,9 @@ const schema = {
     type: "array",
     items: { type: "string" },
     uniqueItems: true,
-    minItems: import.meta.env.DEV ? 0 : 1,
+    minItems: 0,
     nullable: true,
+    default: [],
   },
 }
 

@@ -20,10 +20,10 @@
     {#await $Tracks}
       <p>...loading</p>
     {:then tracks}
-      <div data-testid={id.pageTrackContent} class="w-full flex flex-col">
-        {#if tracks.length === 0}
-          <Settings />
-        {:else}
+      {#if tracks.length === 0}
+        <Settings />
+      {:else}
+        <div class="w-full flex flex-col">
           <div
             class="
               uppercase text-left text-xs text-grey-300 
@@ -38,7 +38,7 @@
             <div class="mr-6 flex-1 basis-32">Album</div>
             <div class="text-right flex-1 basis-12">Length</div>
           </div>
-          <div class="w-full">
+          <div data-testid={id.trackItems} class="w-full">
             {#each tracks as track, index}
               <TrackItem
                 {track}
@@ -49,8 +49,8 @@
           </div>
           <!---- Add empty element to make allow scrolling elements behind playbar -->
           <div class=" h-24 w-full" />
-        {/if}
-      </div>
+        </div>
+      {/if}
     {/await}
   </div>
 </main>

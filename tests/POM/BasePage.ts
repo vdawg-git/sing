@@ -69,6 +69,7 @@ export default async function createBasePage(electronApp: ElectronApplication) {
     openQueue,
     playNextTrackFromQueue,
     reload,
+    resetMusic,
     resetTo,
     setVolume,
     waitForProgressBarToGrow,
@@ -77,6 +78,11 @@ export default async function createBasePage(electronApp: ElectronApplication) {
       settings: gotoSettings,
       tracks: gotoTracks,
     },
+  }
+
+  async function resetMusic() {
+    await page.evaluate(() => window.api.resetMusic())
+    await page.reload()
   }
 
   async function gotoSettings(): Promise<
@@ -90,11 +96,6 @@ export default async function createBasePage(electronApp: ElectronApplication) {
 
   async function gotoTracks() {
     await sidebarItemTracks.click({ timeout: 2000 })
-
-    // Wait for content to be loaded
-    await page.waitForSelector(id.asQuery.pageTrackContent, {
-      state: "attached",
-    })
 
     return createTracksPage(electronApp)
   }

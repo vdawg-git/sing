@@ -70,7 +70,7 @@
 
     <div class="grid grow-0 grid-flow-row items-center">
       <span
-        class="overflow-hidden text-ellipsis whitespace-nowrap text-sm"
+        class="overflow-hidden text-ellipsis whitespace-nowrap text-base"
         data-testid={testTitleID}
         data-testattribute={testAttr.queueItemTitle}
       >

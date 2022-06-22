@@ -1,5 +1,5 @@
 import type { ElectronApplication } from "playwright"
-import { afterAll, beforeAll, expect, it } from "vitest"
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest"
 import createTracksPage from "./POM/TracksPage"
 import { launchElectron } from "./Helper"
 import createBasePage from "./POM/BasePage"
@@ -188,4 +188,27 @@ it("does not play music when just opened", async () => {
   const isPlaying = await tracksPage.isPlayingAudio()
 
   expect(isPlaying).toBe(false)
+})
+
+describe("when playing a track after adding folders from a blank state", async () => {
+  beforeEach(async () => {
+    const tracksPage = await createTracksPage(electron)
+    await tracksPage.resetMusic()
+  })
+
+  it("does play the track correctly", async () => {
+    const trackToPlay = "00_"
+
+    const tracksPage = await createTracksPage(electron)
+    const libraryPage = await tracksPage.goTo.settings()
+    await libraryPage.addFolder(0)
+    await libraryPage.saveAndSyncFolders()
+    await libraryPage.goTo.tracks()
+
+    await tracksPage.playTrack(trackToPlay)
+
+    const currentTrack = await tracksPage.getCurrentTrack()
+
+    expect(currentTrack).to.include(trackToPlay)
+  })
 })

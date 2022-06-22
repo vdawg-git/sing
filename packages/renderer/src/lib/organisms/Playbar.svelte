@@ -95,12 +95,6 @@
           >
             {displayMetadata("artist", track)}
           </div>
-          <div
-            class="shrink-[10000] overflow-hidden text-ellipsis whitespace-nowrap text-sm text-grey-300"
-            data-testid={test.playbarAlbum}
-          >
-            {displayMetadata("album", track)}
-          </div>
         </div>
       </div>
     {/if}

@@ -6,6 +6,7 @@ import type {
 } from "@sing-main/lib/UserSettings"
 import channels from "./Channels"
 import type { ITrack, IElectronPaths } from "@sing-types/Types"
+import userSettingsStore from "@sing-main/lib/UserSettings"
 
 export async function getTracks(): Promise<readonly ITrack[]> {
   return await ipcRenderer.invoke(channels.GET_TRACKS)
@@ -66,6 +67,6 @@ export function send(
   ipcRenderer.send(channel, message)
 }
 
-export function resetSettings(): void {
-  ipcRenderer.send(channels.RESET_SETTINGS)
+export function resetMusic(): void {
+  ipcRenderer.invoke(channels.RESET_MUSIC)
 }

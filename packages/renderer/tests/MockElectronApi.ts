@@ -4,7 +4,7 @@ import type {
   IUserSettings,
   IUserSettingsKey,
 } from "@sing-main/lib/UserSettings"
-import * as consts from "@sing-preload/Channels"
+import channels from "@sing-preload/Channels"
 import { vi } from "vitest"
 import trackFactory from "./factories/trackFactory"
 
@@ -56,8 +56,6 @@ async function getUserSetting(setting: IUserSettingsKey) {
   switch (setting) {
     case "musicFolders":
       return ["C:/mockedElectronApi0/", "C:/mockedElectronApi1/"]
-    case "lightTheme":
-      return false
 
     default:
       throw new Error(
@@ -67,25 +65,25 @@ async function getUserSetting(setting: IUserSettingsKey) {
 }
 
 function listen(
-  channel: typeof consts.listener[number],
+  channel: typeof channels.listener[number],
   _callback: (args: any) => any
 ) {
-  if (!consts.listener.includes(channel))
+  if (!channels.listener.includes(channel))
     throw new Error(`Invalid channel to listen to: ${channel}`)
 
   return
 }
 
 function removeListener(
-  channel: typeof consts.listener[number],
+  channel: typeof channels.listener[number],
   _callback: (args: any) => any
 ) {
-  if (!consts.listener.includes(channel))
+  if (!channels.listener.includes(channel))
     throw new Error(`Invalid channel to listen to: ${channel}`)
 
   return
 }
 
-function send(_channel: typeof consts.listener[number], _message: string) {
+function send(_channel: typeof channels.listener[number], _message: string) {
   return
 }

@@ -44,11 +44,14 @@ it("can add a folder", async () => {
   expect(folderName).toBe(nameToAdd)
 })
 
-describe("when removing all folders", async () => {
+describe("when removing all folders after having folders added", async () => {
   beforeEach(async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
-    await settingsPage.removeAllFolders()
+
+    await settingsPage.setDefaultFolders()
     await settingsPage.saveAndSyncFolders()
+
+    await settingsPage.resetMusic()
   })
 
   it("has no current track", async () => {
@@ -72,32 +75,31 @@ describe("when removing all folders", async () => {
 
     const tracksPage = await settingsPage.goTo.tracks()
 
-    const tracks = await tracksPage.getTracks()
+    const hasTracks = await tracksPage.hasTracks()
 
-    expect(tracks.length).toBe(0)
+    expect(hasTracks).toBe(false)
   })
 })
 
 describe("when removing all folders and instead adding new ones", async () => {
-  afterEach(async () => {
-    const basePage = await createBasePage(electron)
-    const settingsPage = await basePage.resetTo("settings/general")
-    await settingsPage.setDefaultFolders()
-    await settingsPage.saveAndSyncFolders()
-  })
-
-  it("has no current track", async () => {
+  beforeEach(async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
-    await settingsPage.removeAllFolders()
+    await settingsPage.resetMusic()
+
+    await settingsPage.addFolder(1)
+    await settingsPage.addFolder(2)
     await settingsPage.saveAndSyncFolders()
-
-    const currentTrack = await settingsPage.getCurrentTrack()
-
-    expect(currentTrack).toBe(undefined)
   })
 
   it("does not have a queue", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
+    const tracksPage = await settingsPage.goTo.tracks()
+    await tracksPage.playTrack("10_")
+    await tracksPage.goTo.settings()
+
+    await settingsPage.removeAllFolders()
+    await settingsPage.addFolder(0)
+    await settingsPage.saveAndSyncFolders()
 
     const queue = await settingsPage.getQueueItems()
 
@@ -114,6 +116,11 @@ describe("when removing one folder", async () => {
 
   it("does delete the tracks from the folder in the queue", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
+
+    const trackPage = await settingsPage.goTo.tracks()
+    await trackPage.playTrack("10_")
+
+    await trackPage.goTo.settings()
 
     await settingsPage.removeFolder(0)
     await settingsPage.saveAndSyncFolders()
@@ -142,7 +149,7 @@ describe("when removing one folder", async () => {
 
     const tracksPage = await settingsPage.goTo.tracks()
 
-    await tracksPage.playTrack("00")
+    await tracksPage.playTrack("00_")
 
     await tracksPage.goTo.settings()
 
@@ -157,31 +164,21 @@ describe("when removing one folder", async () => {
 describe("when adding one folder from a clear state", async () => {
   beforeEach(async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
-    await settingsPage.removeAllFolders()
-    await settingsPage.saveAndSyncFolders()
-  })
-
-  it("adds the newly added tracks to the track page", async () => {
-    const settingsPage = await createLibrarySettingsPage(electron)
-
-    await settingsPage.addFolder(0)
-
-    const tracksPage = await settingsPage.goTo.tracks()
-
-    const folders = await tracksPage.getAddedFolders()
-
-    expect(folders.indexOf(0)).not.toBe(-1)
+    await settingsPage.resetMusic()
   })
 
   it("only adds the newly added tracks to the track page", async () => {
+    const expectedTitles = Array.from({ length: 10 }, (_, index) => "0" + index)
+
     const settingsPage = await createLibrarySettingsPage(electron)
 
     await settingsPage.addFolder(0)
+    await settingsPage.saveAndSyncFolders()
 
     const tracksPage = await settingsPage.goTo.tracks()
 
-    const folders = await tracksPage.getAddedFolders()
+    const titles = await tracksPage.getTracksTitles()
 
-    expect(folders).toEqual([0])
+    expect(titles).toStrictEqual(expectedTitles)
   })
 })

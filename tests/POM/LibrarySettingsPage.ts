@@ -37,14 +37,11 @@ export default async function createLibrarySettingsPage(
     saveAndSyncFolders,
     setDefaultFolders,
     resetToDefault,
-    syncWithNoFolders,
-  }
-
-  async function syncWithNoFolders() {
-    await page.evaluate(() => window.api.setUserSettings("musicFolders", []))
   }
 
   async function resetToDefault() {
+    await settingsBase.resetMusic()
+
     await setDefaultFolders()
     await saveAndSyncFolders()
   }
@@ -120,7 +117,7 @@ export default async function createLibrarySettingsPage(
 
   async function saveAndSyncFolders() {
     await saveButton.click({ timeout: 2000 })
-    await page.waitForTimeout(1050)
+    await page.waitForTimeout(1050) //Todo Need to implement a "done syncing" notification which can then be awaited
   }
 
   async function setFolderPath(
