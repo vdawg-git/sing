@@ -1,11 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import { TEST_IDS as id, testAttr } from "@/TestConsts"
-import {
-  render,
-  fireEvent,
-  waitForElementToBeRemoved,
-} from "@testing-library/svelte"
-
 import mockElectronApi from "./MockElectronApi"
 import queueStore, {
   removeIndex,

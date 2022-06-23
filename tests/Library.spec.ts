@@ -26,7 +26,7 @@ afterAll(async () => {
   await electron.close()
 })
 
-afterEach(async () => {
+beforeEach(async () => {
   const basePage = await createBasePage(electron)
   await basePage.resetTo("settings/library")
 })
@@ -114,15 +114,15 @@ describe("when removing one folder", async () => {
     await settingsPage.saveAndSyncFolders()
   })
 
-  it("does delete the tracks from the folder in the queue", async () => {
+  it.only("does delete the tracks from the folder in the queue", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
     const trackPage = await settingsPage.goTo.tracks()
-    await trackPage.playTrack("10_")
+    await trackPage.playTrack("01_")
 
     await trackPage.goTo.settings()
 
-    await settingsPage.removeFolder(0)
+    // await settingsPage.removeFolder(0)
     await settingsPage.saveAndSyncFolders()
 
     const foldersAddedToQueue = await settingsPage.getQueueAddedFolders()

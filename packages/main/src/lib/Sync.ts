@@ -12,23 +12,22 @@ import { SUPPORTED_MUSIC_FORMATS } from "./FileFormats"
 
 const prisma = createPrismaClient()
 
-export default async function syncDirectories() {
-  const foldersToSync = userSettingsStore.get("musicFolders")
-  if (!foldersToSync) {
+export async function syncDirectories(directories: string[]) {
+  if (!directories) {
     console.error(
       "No folders to sync from are saved in the user settings store"
     )
 
-    deleteNonExistentTracks([]) // delete all tracks
+    deleteNonExistentTracks([]) // delete all tracks, basically just here to be able to reset the tracks for testing purposes
     return { added: [] }
   }
 
   const unresolvedDirs: Promise<IProccessedTrack[]>[] = []
 
-  for (const folder of foldersToSync) {
+  for (const folder of directories) {
     console.log(`Adding ${folder}`)
     if (!checkFileExists(folder)) {
-      console.error(`Failed to add ${folder}. Does it exist?`)
+      console.error(`Failed to add folder: ${folder}. Does it exist?`)
       continue
     }
     unresolvedDirs.push(addDirectory(folder))

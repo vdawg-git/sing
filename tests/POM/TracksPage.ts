@@ -128,10 +128,7 @@ export default async function createTracksPage(electron: ElectronApplication) {
       hasText: title,
     })
 
-    if ((await element.count()) === 0)
-      throw new Error(`Track element with title: ${title} not found`)
-
-    await element.click({ timeout: 2000 })
+    await element.dblclick({ timeout: 2000 })
 
     return element.innerText()
   }

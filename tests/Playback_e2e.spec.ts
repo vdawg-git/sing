@@ -196,12 +196,12 @@ describe("when playing a track after adding folders from a blank state", async (
     await tracksPage.resetMusic()
   })
 
-  it("does play the track correctly", async () => {
-    const trackToPlay = "00_"
+  it.only("does play the track correctly", async () => {
+    const trackToPlay = "10_"
 
     const tracksPage = await createTracksPage(electron)
     const libraryPage = await tracksPage.goTo.settings()
-    await libraryPage.addFolder(0)
+    await libraryPage.addFolder(1)
     await libraryPage.saveAndSyncFolders()
     await libraryPage.goTo.tracks()
 

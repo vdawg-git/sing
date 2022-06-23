@@ -19,7 +19,9 @@
     "src/**/*.ts",
     "../../types/**/*.d.ts",
     "../../types/Track.ts",
-    "../preload/src/Crud.ts"
+    "../preload/src/Crud.ts",
+    "**/*.spec.ts",
+    "**/*.test.ts"
   ],
-  "exclude": ["**/*.spec.ts", "**/*.test.ts"]
+  "exclude": []
 }
