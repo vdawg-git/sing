@@ -26,14 +26,3 @@ type TupleUnion<FieldKeys extends string, Result extends any[] = []> = {
     ? [...Result, Key]
     : TupleUnion<Exclude<FieldKeys, Key>, [...Result, Key]>
 }
-
-// from https://stackoverflow.com/questions/58409603/generate-a-type-where-each-nullable-value-becomes-optional
-type NonNull<T> = T extends null ? never : T
-type NullableKeys<T> = NonNullable<
-  {
-    [K in keyof T]: T[K] extends NonNull<T[K]> ? never : K
-  }[keyof T]
->
-
-type NullValuesToOptional<T> = Omit<T, NullableKeys<T>> &
-  Partial<Pick<T, NullableKeys<T>>>

@@ -12,7 +12,10 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@sing-main/*": ["../main/src/*"],
+      "@sing-preload/*": ["../preload/src/*"],
+      "@sing-types/*": ["../../types/*"]
     }
   },
   "include": [

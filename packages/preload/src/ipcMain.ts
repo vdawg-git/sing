@@ -4,7 +4,7 @@ import { app, dialog } from "electron"
 import slash from "slash"
 import type { ITrack } from "@sing-types/Types"
 import { Tracks } from "../../main/src/lib/Crud"
-import { syncDirectories } from "../../main/src/lib/Sync"
+import { syncDirectoriesOld } from "../../main/src/lib/Sync"
 import userSettingsStore, {
   IUserSettings,
   IUserSettingsKey,
@@ -92,7 +92,7 @@ export default function ipcInit(): void {
 
 async function sync(event: IpcMainInvokeEvent) {
   const directories = userSettingsStore.get("musicFolders")
-  const { added, failed: _failed } = await syncDirectories(directories ?? [])
+  const { added, failed: _failed } = await syncDirectoriesOld(directories ?? [])
 
   // Emit library track update for the frontend
   event.sender.send(channels.ON_TRACKS_UPDATED, added)

@@ -1,24 +1,130 @@
 import type { Track as ITrack } from "@prisma/client"
-import { checkFileExists, getFilesFromDir } from "../Helper"
+import { checkPathExists, getFilesFromDir } from "../Helper"
 import createPrismaClient from "./CustomPrismaClient"
 import { getMetaDataFromFilepath } from "./Metadata"
-import userSettingsStore from "./UserSettings"
-import {
+import type {
   IProccessedTrack,
   IProccessedTrackFailed,
   IProccessedTrackValid,
-} from "../../../../types/Types"
-import { SUPPORTED_MUSIC_FORMATS } from "./FileFormats"
+  IError,
+  EitherOrBoth,
+  IErrorable,
+} from "@sing-types/Types"
+import {
+  SUPPORTED_MUSIC_FORMATS,
+  UNSUPPORTED_MUSIC_FORMATS,
+} from "./FileFormats"
+import c from "ansicolor"
+import * as R from "ramda"
+import {
+  filterPathsByExtenstions,
+  getExtension,
+  includedInArray,
+  isFileSupported,
+} from "@/Pures"
 
 const prisma = createPrismaClient()
 
-export async function syncDirectories(directories: string[]) {
-  if (!directories) {
-    console.error(
-      "No folders to sync from are saved in the user settings store"
-    )
+interface IRetrievedTrackPathSuccess {
+  ok: true
+  path: string
+}
 
-    deleteNonExistentTracks([]) // delete all tracks, basically just here to be able to reset the tracks for testing purposes
+interface IRetrievedTrackPathError {
+  ok: false
+  path: string
+  error: Error
+}
+
+type IRetrievedTrackPath = IRetrievedTrackPathSuccess | IRetrievedTrackPathError
+
+export async function syncDirs(directories: string[]): Promise<void> {
+  if (directories.length === 0) {
+    console.error(c.red("No directories to sync provided"))
+    // TODO: remove all tracks
+  }
+
+  const folders = await Promise.all(
+    directories.map(async (dir) => await getFilesFromDir(dir))
+  )
+
+  const folderErrors = folders.filter((x) => !x.ok)
+  const foldersSuccess = folders.filter((x) => x.ok)
+
+  // const supported = foldersContent
+  //   .filter(isMusicFolder)
+  //   .map((folder) => folder.supported)
+  // const unsupported = foldersContent
+  //   .filter(isMusicFolder)
+  //   .map((folder) => folder.unsupported)
+  // const readErrors = foldersContent.filter(hasError)
+
+  // const rawMetaDataFolders = await Promise.all(supported.map(getMetaData))
+  // const metaDataFolders = rawMetaDataFolders.map(convertMetadata)
+
+  // for (const dir of directories) {
+  //   if (!checkPathExists(dir)) {
+  //     console.error(c.red("Cannot access directory. Does it exist?"))
+  //     continue
+  //   }
+
+  //   const { supported, unsupported } = await getMusicFilesFromDir(dir)
+
+  //   const { metaData, covers } = await processRawMetadata(supported)
+
+  //   const failedCovers = await processCovers(covers) // TODO
+
+  //   const { added, error } = await addToDB(metaData)
+}
+// await cleanUp()
+// }
+
+function isMusicFolder(obj: object): obj is IRetrievedTrackPath {
+  return obj.hasOwnProperty("supported") || obj.hasOwnProperty("unsupported")
+}
+
+export async function getMusicFilesFromDir(
+  supportedExtensions: readonly string[],
+  directory: string
+): Promise<IRetrievedTrackPath[] | IError> {
+  //Todo Move the side-effect to the top and process the data from there. This keeps all the small sub-functions pure and error handling is easier
+
+  const retrievedTrackPaths = files
+    .map((x) => x.path)
+    .map((x: string) => createRetrivedMusicPath(supportedExtensions, x))
+
+  return retrievedTrackPaths
+}
+
+function createRetrivedMusicPath(
+  supported: readonly string[],
+  path: string
+): IRetrievedTrackPath {
+  const isSupported = isFileSupported(supported, path)
+
+  if (isSupported) {
+    return {
+      ok: true,
+      path,
+    }
+  } else {
+    return {
+      ok: false,
+      path,
+      error: new Error(`Filetype ".${getExtension(path)}" is not supported`),
+    }
+  }
+}
+
+/* #################################################################################################
+################################################################ OLD CODE #################################
+#################################################################################################*/
+
+export async function syncDirectoriesOld(directories: string[]) {
+  if (!directories) {
+    console.error("No folders to sync from are passed")
+
+    deleteNonExistentTracksOld([]) // delete all tracks, basically just here to be able to reset the tracks for testing purposes
     return { added: [] }
   }
 
@@ -26,11 +132,11 @@ export async function syncDirectories(directories: string[]) {
 
   for (const folder of directories) {
     console.log(`Adding ${folder}`)
-    if (!checkFileExists(folder)) {
+    if (!checkPathExists(folder)) {
       console.error(`Failed to add folder: ${folder}. Does it exist?`)
       continue
     }
-    unresolvedDirs.push(addDirectory(folder))
+    unresolvedDirs.push(addDirectoryOld(folder))
   }
 
   const tracks = (await Promise.all(unresolvedDirs)).flat()
@@ -56,26 +162,26 @@ export async function syncDirectories(directories: string[]) {
     console.groupEnd()
   }
 
-  deleteNonExistentTracks(added)
+  deleteNonExistentTracksOld(added)
 
   return { added, failed }
 }
 
-async function addDirectory(dir: string): Promise<IProccessedTrack[]> {
+async function addDirectoryOld(dir: string): Promise<IProccessedTrack[]> {
   const filepaths = (await getFilesFromDir(dir)).filter((path) =>
     SUPPORTED_MUSIC_FORMATS.some((format) => path.endsWith(format))
   )
   const result: IProccessedTrack[] = []
 
   for (const filepath of filepaths) {
-    result.push(await addTrack(filepath))
+    result.push(await addTrackOld(filepath))
   }
   // const result = Promise.all(filepaths.map((filepath) => addTrack(filepath)))
 
   return result
 }
 
-async function addTrack(filepath: string): Promise<IProccessedTrack> {
+async function addTrackOld(filepath: string): Promise<IProccessedTrack> {
   const data = await getMetaDataFromFilepath(filepath)
 
   return prisma.track
@@ -98,7 +204,7 @@ async function addTrack(filepath: string): Promise<IProccessedTrack> {
     })
 }
 
-async function deleteNonExistentTracks(tracks: ITrack[]) {
+async function deleteNonExistentTracksOld(tracks: ITrack[]) {
   const paths = tracks.map((track) => track.filepath)
 
   prisma.track

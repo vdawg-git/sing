@@ -1,4 +1,4 @@
-import type { ITrack } from "@sing-types/Track"
+import type { ITrack } from "@sing-types/Types"
 import { Factory } from "fishery"
 
 const trackFactory = Factory.define<ITrack>(({ sequence }) => {

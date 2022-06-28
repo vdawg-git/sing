@@ -20,6 +20,7 @@
   },
   "include": [
     "src/**/*.ts",
+    "./test/**/*",
     "contracts.d.ts",
     "../../types/**/*.d.ts",
     "preload.ts",

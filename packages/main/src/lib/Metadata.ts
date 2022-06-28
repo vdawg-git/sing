@@ -3,7 +3,7 @@ import { createHash } from "crypto"
 import { app } from "electron"
 import * as mm from "music-metadata"
 import { join } from "path"
-import { checkFileExists, writeFileToDisc } from "../Helper"
+import { checkPathExists, writeFileToDisc } from "../Helper"
 import { IPicture } from "music-metadata"
 
 interface ICoverData {
@@ -129,7 +129,7 @@ function getCover(cover: mm.IPicture) {
 }
 
 function saveCover(coverData: ICoverData) {
-  if (checkFileExists(coverData.coverPath) || !coverData.coverPath) return
+  if (checkPathExists(coverData.coverPath) || !coverData.coverPath) return
 
   writeFileToDisc(coverData.coverPath, coverData.coverBuffer)
 }
