@@ -1,10 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import { TEST_IDS as id, testAttr } from "@/TestConsts"
-// import {
-//   render,
-//   fireEvent,
-//   waitForElementToBeRemoved,
-// } from "@testing-library/svelte"
 import mockElectronApi from "./MockElectronApi"
 vi.stubGlobal("api", mockElectronApi)
 vi.mock("@/lib/manager/AudioPlayer", () => {
@@ -15,13 +9,10 @@ import queueStore from "@/lib/stores/QueueStore"
 import { get } from "svelte/store"
 import mockedAudioPlayer from "./mocks/AudioPlayer"
 import player, {
-  playedTracks,
   currentTrack,
   playIndex,
-  nextTracks,
   playState,
 } from "@/lib/manager/PlayerManager"
-import type { ITrack } from "@sing-types/Track"
 import queueItemFactory from "./factories/queueItemFactory"
 
 afterEach(async () => {

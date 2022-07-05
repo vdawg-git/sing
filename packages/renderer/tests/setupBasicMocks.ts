@@ -1,5 +1,4 @@
-// @ts-expect-error
-
+// @ts-ignore
 Element.prototype.scroll = vi.fn()
 // @ts-expect-error
 HTMLMediaElement.setSinkId = vi.fn()

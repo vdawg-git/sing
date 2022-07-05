@@ -43,6 +43,12 @@ const config = {
     emptyOutDir: true,
     brotliSize: false,
   },
+  define: {
+    "import.meta.vitest": "undefined",
+  },
+  test: {
+    includeSource: ["src/**/*.ts"],
+  },
 }
 
 export default config

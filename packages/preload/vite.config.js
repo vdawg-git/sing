@@ -50,6 +50,9 @@ const config = {
     },
     emptyOutDir: true,
     brotliSize: false,
+    define: {
+      "import.meta.vitest": "undefined",
+    },
   },
 }
 

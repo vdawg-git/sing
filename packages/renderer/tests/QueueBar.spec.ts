@@ -1,11 +1,5 @@
 import { TEST_IDS as id, testAttr } from "../src/TestConsts"
-import {
-  render,
-  fireEvent,
-  waitForElementToBeRemoved,
-  act,
-  screen,
-} from "@testing-library/svelte"
+import { render, fireEvent } from "@testing-library/svelte"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import "./setupBasicMocks"
 import mockElectronApi from "./MockElectronApi"
@@ -21,11 +15,7 @@ vi.mock("@/lib/manager/AudioPlayer", () => {
 })
 vi.stubGlobal("api", mockElectronApi)
 
-import {
-  currentTrack,
-  nextTracks,
-  playState,
-} from "@/lib/manager/PlayerManager"
+import { currentTrack, nextTracks } from "@/lib/manager/PlayerManager"
 import { get } from "svelte/store"
 
 let QueueBarComponent: typeof SvelteComponentDev

@@ -1,11 +1,11 @@
 {
   "extends": "@tsconfig/svelte/tsconfig.json",
   "include": [
-    "./**/*",
+    "./**/*.ts",
     "types/**/*.d.ts",
     "../../types/**/*.d.ts",
     "../preload/contracts.d.ts",
-    "./tests/**/*"
+    "./tests/**/*.ts"
   ],
   "exclude": ["./assets/**/*", "./dist/**/*"],
 
@@ -18,7 +18,12 @@
     "strict": true,
     "isolatedModules": true,
 
-    "types": ["node", "svelte", "unplugin-icons/types/svelte"],
+    "types": [
+      "node",
+      "svelte",
+      "unplugin-icons/types/svelte",
+      "vitest/importMeta"
+    ],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],

@@ -1,37 +1,44 @@
 import { Prisma } from "@prisma/client"
 import { createHash } from "crypto"
-import { app } from "electron"
 import * as mm from "music-metadata"
-import { join } from "path"
-import { checkPathExists, writeFileToDisc } from "../Helper"
-import { IPicture } from "music-metadata"
+import { writeFileToDisc } from "../Helper"
+import { Either } from "fp-ts/lib/Either"
+import { IError, IRawAudioMetadata } from "@sing-types/Types"
+import { pipe } from "fp-ts/lib/function"
+import {
+  removeKeys,
+  flattenObject,
+  stringifyArraysInObject,
+  removeDuplicates,
+} from "@/Pures"
+import { left, right } from "fp-ts/lib/Either"
+import { curry2 } from "fp-ts-std/Function"
+import type { ICoverData } from "@/types/Types"
+import { isICoverData } from "@/types/TypeGuards"
+import { existsSync } from "fs"
 
-interface ICoverData {
-  coverMD5: string
-  coverPath: string
-  coverBuffer: Buffer
-}
-
-export async function getMetaDataFromFilepath(
+export async function getRawMetaDataFromFilepath(
   filepath: string
-): Promise<Prisma.TrackCreateInput> {
+): Promise<Either<IError, IRawAudioMetadata>> {
   return mm
     .parseFile(filepath)
-    .then((data) => convertMetadata(data, filepath))
-    .then(({ convertedMetaData, coverData }) => {
-      if (coverData) saveCover(coverData)
-      return convertedMetaData
-    })
+    .then((rawMetaData) => right({ ...rawMetaData, filepath }))
+    .catch((error) =>
+      left({
+        error,
+        message: `Error accessing file ${filepath}. Does it exist?`,
+      })
+    )
 }
 
-async function convertMetadata(
-  data: mm.IAudioMetadata,
-  filepath: string
-): Promise<{
-  convertedMetaData: Prisma.TrackCreateInput
-  coverData?: ICoverData
-}> {
-  const undesiredProperties = [
+function convertMetadataNotCurried(
+  coverFolderPath: string,
+  rawMetaData: IRawAudioMetadata
+): Prisma.TrackCreateInput {
+  const undesiredProperties: readonly (
+    | keyof IRawAudioMetadata["common"]
+    | keyof IRawAudioMetadata["format"]
+  )[] = [
     "rating",
     "replaygain_track_gain_ratio",
     "replaygain_track_gain",
@@ -41,118 +48,66 @@ async function convertMetadata(
     "replaygain_undo",
     "replaygain_track_minmax",
     "trackInfo",
+    "picture",
   ]
-  // const numberOfKey = ["disk", "track", "movementIndex"]
-  let coverData: ICoverData | undefined = undefined
-  let convertedMetaData = Object.entries({
-    filepath,
-    ...data.common,
-    ...data.format,
-  }).reduce((acc, [key, value]) => {
-    if (undesiredProperties.includes(key)) return acc
-    if (
-      key === "movementIndex" &&
-      typeof value === "object" &&
-      !("of" in value)
-    )
-      return acc
 
-    if (typeof value === "object" && "of" in value) {
-      if (key === "track") {
-        acc["trackNo"] = value.no
-        acc["trackNoOf"] = value.of
-        return acc
+  const convertedMetaData = pipe(
+    {
+      ...rawMetaData.common,
+      ...rawMetaData.format,
+      filepath: rawMetaData.filepath,
+    },
+    removeKeys(undesiredProperties),
+    flattenObject,
+    stringifyArraysInObject
+  ) as Prisma.TrackCreateInput
+
+  const coverData = getCover(coverFolderPath, rawMetaData)
+
+  return coverData !== null && coverData !== undefined
+    ? {
+        ...convertedMetaData,
+        coverMD5: coverData.coverMD5,
+        coverPath: coverData.coverPath,
       }
-      if (key === "disk") {
-        acc["diskNo"] = value.no
-        acc["diskNoOf"] = value.of
-        return acc
-      }
-      if (key === "movementIndex") {
-        acc["movementIndexNo"] = value.no
-        acc["movementIndexNoOf"] = value.of
-        return acc
-      }
-    }
-    if (key === "picture" && isIPictureArray(value)) {
-      const coverObject = mm.selectCover(value)
-      if (!coverObject) return acc
-
-      const { coverMD5, coverPath, coverBuffer } = getCover(coverObject)
-
-      coverData = { coverMD5, coverPath, coverBuffer }
-
-      acc["coverMD5"] = coverMD5
-      acc["coverPath"] = coverPath
-      return acc
-    }
-
-    if (Array.isArray(value)) {
-      // @ts-ignore
-      acc[key] = JSON.stringify(value)
-      return acc
-    }
-
-    // @ts-ignore
-    acc[key] = value
-    return acc
-  }, {} as Prisma.TrackCreateInput)
-
-  // delete joinedData.picture // TODO implement cover
-  // delete joinedData.rating // TODO implement rating?
-  // delete joinedData.replaygain_track_gain_ratio // TODO implement replay gain?
-  // delete joinedData.replaygain_track_gain
-  // delete joinedData.replaygain_track_peak
-  // delete joinedData.replaygain_album_gain
-  // delete joinedData.replaygain_album_peak
-  // delete joinedData.replaygain_undo
-  // delete joinedData.replaygain_track_minmax
-
-  const result =
-    coverData !== undefined
-      ? { convertedMetaData, coverData }
-      : { convertedMetaData }
-
-  return result
+    : convertedMetaData
 }
 
-function getCover(cover: mm.IPicture) {
-  const coverMD5 = createHash("md5").update(cover.data).digest("hex")
-  const extension = "." + cover.format.split("/").at(-1)
-  const coverPath = join(
-    app.getPath("userData"),
-    "/covers",
-    coverMD5 + extension
+export const convertMetadata = curry2(convertMetadataNotCurried)
+
+export function getCover(
+  coverFolderPath: string,
+  metaData: mm.IAudioMetadata
+): ICoverData | undefined {
+  const coverData = mm.selectCover(metaData.common.picture)
+  if (!coverData) return undefined
+
+  const coverMD5 = createHash("md5").update(coverData.data).digest("hex")
+  const extension = "." + coverData.format.split("/").at(-1)
+  const coverPath = coverFolderPath + coverMD5 + extension
+
+  return { coverMD5, coverPath, coverBuffer: coverData.data }
+}
+
+/**
+ *
+ * @param coverFolderPath The path to the cover folder within the user data directory. (Should be retrieved by `electron.getPath`)
+ * @param rawData The unconverted metadata
+ * @returns All the cover filepaths passed to it as `string[]`
+ */
+export async function saveCovers(
+  coverFolderPath: string,
+  rawData: IRawAudioMetadata[]
+): Promise<Either<IError, string>[]> {
+  return await Promise.all(
+    rawData
+      .map((data) => getCover(coverFolderPath, data))
+      .filter(isICoverData)
+      .filter(removeDuplicates)
+      .map((cover) => {
+        return existsSync(cover.coverPath)
+          ? right(cover.coverPath)
+          : writeFileToDisc(cover.coverBuffer, cover.coverPath)
+      })
   )
-
-  return { coverMD5, coverPath, coverBuffer: cover.data }
-}
-
-function saveCover(coverData: ICoverData) {
-  if (checkPathExists(coverData.coverPath) || !coverData.coverPath) return
-
-  writeFileToDisc(coverData.coverPath, coverData.coverBuffer)
-}
-
-export function isIPicture(e: any): e is IPicture {
-  if (!Buffer.isBuffer(e?.data)) return false
-  if (typeof e?.format !== "string") return false
-
-  return true
-}
-
-export function isIPictureArray(a: any): a is IPicture[] {
-  if (!Array.isArray(a)) return false
-  if (a.length === 0) return false
-  const elemtensAreIPicture = a.reduce((acc, e, i, arr) => {
-    if (!isIPicture(e)) {
-      console.warn(e + " from " + a + " is not an IPicture.")
-      arr.splice(1) //break reduce loop
-      return false // and return false
-    }
-    return true
-  })
-  if (!elemtensAreIPicture) return false
-
-  return true
 }

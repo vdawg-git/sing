@@ -1,15 +1,29 @@
-import type { IAudioMetadata } from "music-metadata"
+import { convertMetadata } from "@/lib/Metadata"
+import { IRawAudioMetadata } from "@sing-types/Types"
 import { Factory } from "fishery"
 
-const rawMetaDataFactory = Factory.define<IAudioMetadata>(({ sequence }) => {
-  sequence = sequence - 1
+const rawMetaDataFactory = Factory.define<
+  IRawAudioMetadata,
+  { hasCover?: boolean; hasUniqueCover?: boolean; overwriteSequence?: number }
+>(({ transientParams, sequence }) => {
+  const hasCover = transientParams.hasCover ?? true
+  const hasUniqueCover = transientParams.hasCover ?? false
+
+  sequence =
+    transientParams?.overwriteSequence !== undefined &&
+    transientParams?.overwriteSequence !== NaN &&
+    transientParams?.overwriteSequence !== null
+      ? transientParams.overwriteSequence
+      : sequence - 1
 
   return {
+    filepath: `C:/test/${sequence.toString()}.mp3`,
     format: {
       tagTypes: ["ID3v2.3", "ID3v1"],
       trackInfo: [],
       lossless: false,
       container: "MPEG",
+
       codec: "MPEG 1 Layer 3",
       sampleRate: 44100,
       numberOfChannels: 2,
@@ -17,9 +31,9 @@ const rawMetaDataFactory = Factory.define<IAudioMetadata>(({ sequence }) => {
       codecProfile: "CBR",
       tool: "tool",
       trackPeakLevel: undefined,
-      trackGain: 0.8,
-      numberOfSamples: 3625344,
-      duration: 82.201,
+      trackGain: sequence,
+      numberOfSamples: sequence,
+      duration: sequence,
     },
     native: {
       "ID3v2.3": [
@@ -52,8 +66,8 @@ const rawMetaDataFactory = Factory.define<IAudioMetadata>(({ sequence }) => {
         { id: "artist", value: sequence.toString() },
         { id: "album", value: sequence.toString() },
         { id: "comment", value: "comment" },
-        { id: "track", value: 1 },
-        { id: "year", value: "2002" },
+        { id: "track", value: sequence },
+        { id: "year", value: 2002 },
       ],
     },
     quality: {
@@ -83,14 +97,18 @@ const rawMetaDataFactory = Factory.define<IAudioMetadata>(({ sequence }) => {
       genre: [sequence.toString()],
       title: sequence.toString(),
       year: 2002,
-      picture: [
-        {
-          format: "image/png",
-          type: "Cover (front)",
-          description: "",
-          data: Buffer.from("test"),
-        },
-      ],
+      ...(hasCover && {
+        picture: [
+          {
+            format: "image/png",
+            type: "Cover (front)",
+            description: sequence.toString() + " cover",
+            data: hasUniqueCover
+              ? Buffer.from(sequence.toString())
+              : Buffer.from("1"),
+          },
+        ],
+      }),
     },
   }
 })

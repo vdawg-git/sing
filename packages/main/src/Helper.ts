@@ -1,56 +1,101 @@
-import { resolve, dirname } from "path"
-import { readdir } from "fs/promises"
+import { posix, dirname } from "path"
+import { promises } from "fs"
 import { dialog } from "electron"
 import * as fs from "fs"
 import c from "ansicolor"
-import { IErrorable } from "@sing-types/Types"
+import { Either, right, left, isLeft, flatten } from "fp-ts/lib/Either"
+import { IError } from "@sing-types/Types"
 
 export async function getFilesFromDir(
   dir: string
-): Promise<IErrorable<{ paths: string[] }>> {
-  try {
-    const dirents = await readdir(dir, { withFileTypes: true })
+): Promise<Either<IError, string[]>> {
+  async function recursion(dir: string): Promise<string[]> {
+    const dirents = await promises.readdir(dir, { withFileTypes: true })
     const files = await Promise.all(
       dirents.map((dirent) => {
-        const res = resolve(dir, dirent.name)
-        return dirent.isDirectory() ? getFilesFromDir(res) : res
+        const res = posix.resolve(dir, dirent.name)
+        return dirent.isDirectory() ? recursion(res) : res
       })
     )
-    return {
-      ok: true,
-      paths: files.flat() as string[],
-    }
+    return files.flat()
+  }
+  try {
+    return right(await recursion(dir))
   } catch (error) {
-    return {
-      ok: false,
+    return left({
       error,
-    }
+      message: `Error reading out path "${dir}" \n${error}`,
+    })
   }
 }
 
-export function checkPathExists(path: string) {
-  let flag = true
+export function checkPathAccessible<T extends string>(
+  path: T
+): Either<IError, T> {
   try {
     fs.accessSync(path, fs.constants.F_OK)
-  } catch (err) {
-    flag = false
-  }
+    return right(path)
+  } catch (error) {
+    console.error(`Error accessing "${path}"`)
 
-  return flag
+    return left({
+      message: `Error accessing path "${path}"`,
+      error,
+    })
+  }
 }
 
-export async function writeFileToDisc(
-  filepath: string,
-  content: string | Buffer
-) {
+export async function writeFileToDisc<T extends string>(
+  content: string | Buffer,
+  filepath: T
+): Promise<Either<IError, T>> {
   return fs.promises
     .mkdir(dirname(filepath), { recursive: true })
     .then(() => fs.promises.writeFile(filepath, content))
-    .then(() => ({ ok: true } as const))
+    .then(() => right(filepath))
     .catch((error) => {
       console.error(c.red(error))
-      return { ok: false, error } as const
+      return left({
+        message: `Error creating writing file:\t"${filepath}"`,
+        error,
+      } as const)
     })
+}
+
+export async function deleteFromDirInverted(
+  directory: string,
+  filesNotToDelete: string[]
+): Promise<
+  Either<IError, { deletedFiles: string[]; deletionErrors: unknown[] }>
+> {
+  const allFiles = await getFilesFromDir(directory)
+  if (isLeft(allFiles)) return allFiles
+
+  const pathsToDelete = allFiles.right.filter(
+    (file) => !filesNotToDelete.includes(file)
+  )
+
+  const { errors: deletionErrors, deletedFiles } = deleteFiles(pathsToDelete)
+
+  return right({ deletionErrors, deletedFiles })
+}
+
+export function deleteFiles(fileList: string[]): {
+  errors: IError[]
+  deletedFiles: string[]
+} {
+  const errors: IError[] = []
+  const deletedFiles: string[] = []
+
+  for (const path of fileList) {
+    try {
+      fs.rmSync(path)
+      deletedFiles.push(path)
+    } catch (error) {
+      errors.push({ error })
+    }
+  }
+  return { errors, deletedFiles }
 }
 
 export default function chooseFolders() {

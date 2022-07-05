@@ -1,4 +1,4 @@
-import type * as IipcRenderer from "@sing-preload/ipcRenderer"
+import type * as ipcRenderer from "@sing-preload/ipcRenderer"
 import type { ITrack } from "@sing-types/Types"
 import type {
   IUserSettings,
@@ -13,7 +13,7 @@ const tracks = trackFactory.buildList(30)
 
 export const mockedApiTracks: readonly ITrack[] = tracks
 
-function createMockedElectronAPI(): typeof IipcRenderer {
+function createMockedElectronAPI(): typeof ipcRenderer {
   return {
     getTracks: vi.fn(() => Promise.resolve(mockedApiTracks)),
     sync: vi.fn(() => Promise.resolve(sync())),
@@ -27,7 +27,7 @@ function createMockedElectronAPI(): typeof IipcRenderer {
     listen,
     removeListener,
     send,
-    resetSettings: vi.fn(),
+    resetMusic: vi.fn()
   }
 }
 

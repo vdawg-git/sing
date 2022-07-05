@@ -5,6 +5,7 @@ dist
 thumbs.db
 Scratch.ts
 **/_Scratch.ts
+**/testDB.db
 
 .eslintcache
 

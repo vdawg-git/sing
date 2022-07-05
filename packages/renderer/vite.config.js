@@ -60,6 +60,9 @@ const config = {
     environment: "jsdom",
     globals: true,
   },
+  define: {
+    "import.meta.vitest": "undefined",
+  },
 }
 
 export default config

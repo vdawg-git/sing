@@ -14,7 +14,7 @@
       "@sing-types/*": ["../../types/*"]
     },
 
-    "types": ["node"],
+    "types": ["node", "vitest/importMeta"],
 
     "baseUrl": "."
   },
