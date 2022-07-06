@@ -1,10 +1,16 @@
-import { createFsFromVolume, Volume, fs } from "memfs"
+import { fs } from "memfs"
+import { vi } from "vitest"
 
 export const readdirSync = fs.readdirSync
 export const existsSync = fs.existsSync
-export const promises = {
-  readdir: fs.promises.readdir,
-}
+export const rmSync = fs.rmSync
+export const accessSync = fs.accessSync
+export const copyFile = fs.copyFile
+export const copyFileSync = fs.copyFileSync
+export const writeFileSync = fs.writeFileSync
+export const writeFile = fs.writeFile
+export const stat = vi.fn()
+export const promises = fs.promises
 
 export const mockedBase = "memfs/" as const
 export const musicFolder = mockedBase + "music/"
@@ -24,18 +30,6 @@ export const filesDefault = {
     "./9.mp3": " 9",
     "./10.mp3": "10",
   },
+  "git.EXE": "1",
+  "git.COM": "1",
 }
-
-// const files = JSON.parse(JSON.stringify(filesDefault)) as typeof filesDefault
-
-// const volume = Volume.fromNestedJSON(files, mockedBase)
-
-// export const mockedMusicFiles = Object.keys(files).map((path) => path.slice(2))
-
-// export const fs = createFsFromVolume(volume)
-
-// export function resetMockFS() {
-//   fs.existsSync(musicFolder) // Test that
-
-//   fs.existsSync(musicFolder)
-// }

@@ -2,7 +2,7 @@ import { vi } from "vitest"
 import rawMetaDataFactory from "../tests/factories/RawMetaDataFactory"
 import * as mm from "music-metadata"
 
-export const parseFile = vi.fn((filepath: string) => {
+export const parseFile = vi.fn(async (filepath: string) => {
   const fileName = filepath.split("/").at(-1)?.at(0) // without extension
 
   const number = Number(fileName) // inputs should be like "./test/1.mp3"
