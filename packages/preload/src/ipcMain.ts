@@ -91,8 +91,8 @@ export default function ipcInit(): void {
 
 async function sync(event: IpcMainInvokeEvent) {
   const directories = userSettingsStore.get("musicFolders")
-  const { added, failed: _failed } = await syncDirs(directories ?? [])
+  const result = await syncDirs(directories ?? [])
 
   // Emit library track update for the frontend
-  event.sender.send(channels.ON_TRACKS_UPDATED, added)
+  event.sender.send(channels.ON_TRACKS_UPDATED, result)
 }

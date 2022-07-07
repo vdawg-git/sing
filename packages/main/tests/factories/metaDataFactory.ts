@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client"
 import { Factory } from "fishery"
-import { coverFolder, musicFolder } from "@tests/helper/Consts"
+import { coverFolder, musicFolder } from "../helper/Consts"
 
 class MetaDataFactory extends Factory<
   Prisma.TrackCreateInput,

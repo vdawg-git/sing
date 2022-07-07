@@ -1,6 +1,6 @@
 import { IRawAudioMetadata } from "@sing-types/Types"
 import { Factory } from "fishery"
-import { musicFolder } from "@tests/Helper/Consts"
+import { musicFolder } from "../Helper/Consts"
 
 const rawMetaDataFactory = Factory.define<
   IRawAudioMetadata,
