@@ -7,16 +7,17 @@ export const parseFile = vi.fn(async (filepath: string) => {
 
   const number = Number(fileName) // inputs should be like "./test/1.mp3"
 
-  if (number === NaN)
+  if (number === NaN || number === undefined || number === null) {
     throw new Error(
-      `Received filepath with invalid testing filename: "${filepath}"\n Filenames should only use numbers for testing purposes`
+      `Received filepath with invalid testing filename: "${filepath}"\nFilenames should only use numbers for testing purposes`
     )
+  }
 
   return rawMetaDataFactory.build(
     {},
     {
       transient: {
-        overwriteSequence: number,
+        forcedSequence: number,
       },
     }
   )

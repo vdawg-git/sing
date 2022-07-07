@@ -22,9 +22,9 @@ model Track {
   coverMD5  String?
 
   trackNo     Int?
-  trackNoOf   Int?
+  trackOf     Int?
   diskNo      Int?
-  diskNoOf    Int?
+  diskOf      Int?
   year        Int?
   artist      String?
   artists     String? /// Stringified JSON Array
@@ -123,16 +123,16 @@ model Track {
   replaygainUndoRightChannel  Int?
   replaygain_track_minmax     String? /// Stringified JSON Array
 
-  key               String?
-  category          String? /// Stringified JSON Array
-  hdVideo           Int?
-  keywords          String? /// Stringified JSON Array
-  movement          String?
-  movementIndexNo   Int?
-  movementIndexNoOf Int?
-  podcastId         String?
-  showMovement      Boolean?
-  stik              Int?
+  key             String?
+  category        String? /// Stringified JSON Array
+  hdVideo         Int?
+  keywords        String? /// Stringified JSON Array
+  movement        String?
+  movementIndexNo Int?
+  movementIndexOf Int?
+  podcastId       String?
+  showMovement    Boolean?
+  stik            Int?
 
   container        String?
   tagTypes         String? /// Stringified JSON Array

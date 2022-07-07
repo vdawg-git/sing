@@ -3,7 +3,7 @@ import { isICoverData } from "@/types/TypeGuards"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import rawMetaDataFactory from "./factories/RawMetaDataFactory"
 import { getExtension, getLeftValues, getRightValues } from "@/Pures"
-import metaDataFactory from "./factories/metaDataFactory"
+import base from "./factories/metaDataFactory"
 
 const userDataPath = "T:/test/"
 const coversPath = userDataPath + "covers/"
@@ -92,12 +92,12 @@ describe("saveCovers", async () => {
 describe("convertMetadata", async () => {
   beforeEach(async () => {
     rawMetaDataFactory.rewindSequence()
-    metaDataFactory.rewindSequence()
+    base.rewindSequence()
   })
 
   it("should give the correct metadata", async () => {
     const rawData = rawMetaDataFactory.build()
-    const expected = metaDataFactory.build()
+    const expected = base.build()
 
     const converted = convertMetadata(coversPath)(rawData)
 

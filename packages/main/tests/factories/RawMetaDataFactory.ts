@@ -1,23 +1,23 @@
-import { convertMetadata } from "@/lib/Metadata"
 import { IRawAudioMetadata } from "@sing-types/Types"
 import { Factory } from "fishery"
+import { musicFolder } from "@tests/Helper/Consts"
 
 const rawMetaDataFactory = Factory.define<
   IRawAudioMetadata,
-  { hasCover?: boolean; hasUniqueCover?: boolean; overwriteSequence?: number }
+  { hasCover?: boolean; hasUniqueCover?: boolean; forcedSequence?: number }
 >(({ transientParams, sequence }) => {
   const hasCover = transientParams.hasCover ?? true
   const hasUniqueCover = transientParams.hasCover ?? false
 
   sequence =
-    transientParams?.overwriteSequence !== undefined &&
-    transientParams?.overwriteSequence !== NaN &&
-    transientParams?.overwriteSequence !== null
-      ? transientParams.overwriteSequence
+    transientParams?.forcedSequence !== undefined &&
+    transientParams?.forcedSequence !== NaN &&
+    transientParams?.forcedSequence !== null
+      ? transientParams.forcedSequence
       : sequence - 1
 
   return {
-    filepath: `C:/test/${sequence.toString()}.mp3`,
+    filepath: `${musicFolder}${sequence.toString()}.mp3`,
     format: {
       tagTypes: ["ID3v2.3", "ID3v1"],
       trackInfo: [],

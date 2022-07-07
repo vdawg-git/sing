@@ -47,41 +47,48 @@ export async function syncDirs(directories: string[]) {
   const metaData = rawMetaData.map(convertMetadata(coverFolderPath))
 
   // Save the covers to the cover folder
-  const coverWriteErrors = getLeftValues(
-    await saveCovers(coverFolderPath, rawMetaData)
-  )
+  // const coverWriteErrors = getLeftValues(
+  //   await saveCovers(coverFolderPath, rawMetaData)
+  // )
 
   // Add tracks to the database
-  const { left: failedDBTracks, right: addedDBTracks } = getLeftRight(
-    await Promise.all(metaData.map(async (track) => await addTrackToDB(track))) // Prisma may err with multiple async operations, so await it.
-  )
+  // Use a loop as Prisma time outs randomly otherwise
+  const addedDBTracks = []
+  const failedDBTracks = []
+  for (const track of metaData) {
+    const result = await addTrackToDB(track)
+    if (isLeft(result)) failedDBTracks.push(result.left)
+    else {
+      addedDBTracks.push(result.right)
+    }
+  }
 
   const addedFilepaths = addedDBTracks.map((track) => track.filepath)
 
-  //* Clean up
-  //Remove unused tracks in the database
-  const deleteTracksResult = await deleteTracksInverted(addedFilepaths)
-  // Remove unused covers
-  const deleteCoversResult = await deleteFromDirInverted(
-    coverFolderPath,
-    addedFilepaths
-  )
-  const deleteCoverError = isLeft(deleteCoversResult)
-    ? [deleteCoversResult.left]
-    : deleteCoversResult.right.deletionErrors
+  // //* Clean up
+  // //Remove unused tracks in the database
+  // const deleteTracksResult = await deleteTracksInverted(addedFilepaths)
+  // // Remove unused covers
+  // const deleteCoversResult = await deleteFromDirInverted(
+  //   coverFolderPath,
+  //   addedFilepaths
+  // )
+  // const deleteCoverError = isLeft(deleteCoversResult)
+  //   ? [deleteCoversResult.left]
+  //   : deleteCoversResult.right.deletionErrors
 
   // Return added tracks and errors as right values
   return right({
     addedDBTracks,
-    failedDBTracks,
-    folderReadErrors,
-    unsupportedFiles,
-    fileReadErrors,
-    coverWriteErrors,
-    deleteCoverError,
-    deleteUnusedTrackError: isLeft(deleteTracksResult)
-      ? [deleteTracksResult.left]
-      : [],
+    // failedDBTracks,
+    // folderReadErrors,
+    // unsupportedFiles,
+    // fileReadErrors,
+    // coverWriteErrors,
+    // deleteCoverError,
+    // deleteUnusedTrackError: isLeft(deleteTracksResult)
+    //   ? [deleteTracksResult.left]
+    //   : [],
   })
 }
 
@@ -116,8 +123,4 @@ async function deleteTracksInverted(
       console.error(error)
       return left({ error })
     })
-}
-
-export function test() {
-  return app.getPath("appData")
 }

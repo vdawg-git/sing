@@ -7,7 +7,6 @@ import {
   SUPPORTED_MUSIC_FORMATS,
   UNSUPPORTED_MUSIC_FORMATS,
 } from "./lib/FileFormats"
-import { describe, expect, it, test } from "vitest"
 
 export function filterPathsByExtenstions(
   extensions: readonly string[],
@@ -15,8 +14,10 @@ export function filterPathsByExtenstions(
 ): readonly string[] {
   return pipe(
     paths,
-    Arr.map(getExtension),
-    Arr.filter(includedInArray(extensions))
+    Arr.filter((path: string) => {
+      const pathExtension = getExtension(path)
+      return includedInArray(extensions)(pathExtension)
+    })
   )
 }
 
@@ -191,11 +192,26 @@ export function removeNulledKeys<T extends {}>(
   return result
 }
 
+export function getRightOrThrow<A, E>(either: Either<E, A>): A {
+  if (isLeft(either)) throw new Error("" + either.left)
+
+  return either.right
+}
 //?########################################################################
 //?####################         TESTS            ##########################
 //?########################################################################
 
 if (import.meta.vitest) {
+  const { expect, test } = await import("vitest")
+
+  test("filterPathsByExtenstions happy", () => {
+    const given = ["a.mp3", "b.alac", "c.txt", "d.flac"]
+    const extensions = ["mp3", "flac"]
+    const expected = ["a.mp3", "d.flac"]
+
+    expect(filterPathsByExtenstions(extensions, given)).toEqual(expected)
+  })
+
   test("removeKeys happy", () => {
     const given = {
       a: 1,
@@ -366,5 +382,25 @@ if (import.meta.vitest) {
     }
 
     expect(removeNulledKeys(given)).not.toEqual(notExpected)
+  })
+
+  test("getRightOrThrow happy", () => {
+    const given: Either<unknown, string> = {
+      right: "foo",
+      _tag: "Right",
+    }
+
+    const expected = "foo"
+
+    expect(getRightOrThrow(given)).toBe(expected)
+  })
+
+  test("getRightOrThrow sad", () => {
+    const given: Either<unknown, string> = {
+      left: "foo",
+      _tag: "Left",
+    }
+
+    expect(() => getRightOrThrow(given)).toThrowError("foo")
   })
 }

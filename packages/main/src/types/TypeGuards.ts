@@ -1,4 +1,3 @@
-import { expect, test } from "vitest"
 import type { ICoverData } from "./Types"
 import type { IPicture } from "music-metadata"
 
@@ -29,6 +28,8 @@ export function isIPicture(e: unknown): e is IPicture {
 }
 
 if (import.meta.vitest) {
+  const { expect, test } = await import("vitest")
+
   test("isICoverData happy", () => {
     const given: ICoverData = {
       coverMD5: "coverMD5",
