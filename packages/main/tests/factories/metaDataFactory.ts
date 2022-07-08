@@ -1,20 +1,35 @@
 import type { Prisma } from "@prisma/client"
 import { Factory } from "fishery"
 import { coverFolder, musicFolder } from "../helper/Consts"
+import { createHash } from "crypto"
 
 class MetaDataFactory extends Factory<
   Prisma.TrackCreateInput,
-  { hasCover?: boolean; isDbItem: boolean; forcedSequence: number }
+  {
+    hasCover?: boolean
+    hasUniqueCover?: boolean
+    isDbItem?: boolean
+    forcedSequence?: number
+    hasID?: boolean
+  }
 > {
   dbItem() {
     return this.transient({ isDbItem: true })
   }
 
-  withCover() {
-    return this.transient({ hasCover: true })
+  uniqueCover() {
+    return this.transient({ hasUniqueCover: true })
   }
 
-  sequenceNumber(int: number) {
+  hasID(hasID: boolean) {
+    return this.transient({ hasID })
+  }
+
+  hasCover(hasCover: boolean) {
+    return this.transient({ hasCover })
+  }
+
+  forcedSequence(int: number) {
     return this.transient({ forcedSequence: int })
   }
 }
@@ -22,14 +37,21 @@ class MetaDataFactory extends Factory<
 const metaDataFactory = MetaDataFactory.define(
   ({ transientParams, sequence }) => {
     const hasCover = transientParams.hasCover ?? true
+    const hasUniqueCover = transientParams.hasUniqueCover ?? false
     const isDbItem = transientParams.isDbItem ?? false
+    const hasID = transientParams.hasID ?? false
 
     sequence =
-      transientParams?.forcedSequence !== undefined &&
       transientParams?.forcedSequence !== NaN &&
+      transientParams?.forcedSequence !== undefined &&
       transientParams?.forcedSequence !== null
         ? transientParams.forcedSequence
         : sequence - 1
+
+    const coverMD5 = hasUniqueCover
+      ? createHash("md5").update(Buffer.from(sequence.toString())).digest("hex")
+      : "f3cfe268a034c82c551b78a8cfd0534e"
+    const coverPath = coverFolder + coverMD5 + ".png"
 
     return {
       filepath: `${musicFolder}${sequence.toString()}.mp3`,
@@ -58,13 +80,13 @@ const metaDataFactory = MetaDataFactory.define(
       numberOfSamples: sequence,
       duration: sequence,
       ...(hasCover && {
-        coverMD5: "c4ca4238a0b923820dcc509a6f75849b",
-        coverPath: coverFolder + "c4ca4238a0b923820dcc509a6f75849b.png",
+        coverMD5,
+        coverPath,
       }),
       ...(isDbItem && {
-        id: sequence,
         playCount: 0,
         skipCount: 0,
+        ...(hasID && { id: sequence + 1 }),
       }),
     }
   }

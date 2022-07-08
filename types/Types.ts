@@ -14,7 +14,7 @@ export type NullValuesToOptional<T> = Omit<T, NullableKeys<T>> &
 
 export type ITrack = NullValuesToOptional<Track>
 
-export type electronPaths = Parameters<typeof app.getPath>[0]
+export type IElectronPaths = Parameters<typeof app.getPath>[0]
 
 // https://stackoverflow.com/a/72668664/9578667
 export type AllowedIndexes<

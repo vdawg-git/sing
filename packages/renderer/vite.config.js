@@ -1,5 +1,4 @@
 /* eslint-env node */
-
 import { chrome } from "../../.electron-vendors.cache.json"
 import { join } from "path"
 import { builtinModules } from "module"
@@ -19,6 +18,7 @@ const config = {
   resolve: {
     alias: {
       "@": join(PACKAGE_ROOT, "src") + "/",
+      "@tests": join(PACKAGE_ROOT, "tests") + "/",
       "@sing-types": join(PACKAGE_ROOT, "..", "..", "types") + "/",
       "@sing-main": join(PACKAGE_ROOT, "..", "main", "src") + "/",
       "@sing-preload": join(PACKAGE_ROOT, "..", "preload", "src") + "/",

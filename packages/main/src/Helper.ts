@@ -1,9 +1,8 @@
 import { posix, dirname } from "path"
-import { promises } from "fs"
 import { dialog } from "electron"
-import * as fs from "fs"
+import { rmSync, constants, accessSync, promises } from "fs"
 import c from "ansicolor"
-import { Either, right, left, isLeft, flatten } from "fp-ts/lib/Either"
+import { Either, right, left, isLeft } from "fp-ts/lib/Either"
 import { IError } from "@sing-types/Types"
 
 export async function getFilesFromDir(
@@ -33,7 +32,7 @@ export function checkPathAccessible<T extends string>(
   path: T
 ): Either<IError, T> {
   try {
-    fs.accessSync(path, fs.constants.F_OK)
+    accessSync(path, constants.F_OK)
     return right(path)
   } catch (error) {
     console.error(`Error accessing "${path}"`)
@@ -49,9 +48,9 @@ export async function writeFileToDisc<T extends string>(
   content: string | Buffer,
   filepath: T
 ): Promise<Either<IError, T>> {
-  return fs.promises
+  return promises
     .mkdir(dirname(filepath), { recursive: true })
-    .then(() => fs.promises.writeFile(filepath, content))
+    .then(() => promises.writeFile(filepath, content))
     .then(() => right(filepath))
     .catch((error) => {
       console.error(c.red(error))
@@ -75,21 +74,23 @@ export async function deleteFromDirInverted(
     (file) => !filesNotToDelete.includes(file)
   )
 
-  const { errors: deletionErrors, deletedFiles } = deleteFiles(pathsToDelete)
+  const { errors: deletionErrors, deletedFiles } = await deleteFiles(
+    pathsToDelete
+  )
 
   return right({ deletionErrors, deletedFiles })
 }
 
-export function deleteFiles(fileList: string[]): {
+export async function deleteFiles(fileList: string[]): Promise<{
   errors: IError[]
   deletedFiles: string[]
-} {
+}> {
   const errors: IError[] = []
   const deletedFiles: string[] = []
 
   for (const path of fileList) {
     try {
-      fs.rmSync(path)
+      await promises.unlink(path)
       deletedFiles.push(path)
     } catch (error) {
       errors.push({ error })

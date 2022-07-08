@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client"
 import { join } from "path"
 import { vi } from "vitest"
-const { copyFileSync, existsSync } = await vi.importActual("node:fs")
+const { promises } = await vi.importActual<typeof import("node:fs")>("node:fs")
 
 export const devDBPath = join(__dirname, "testDB.db")
 export const productionDBPath = join(__dirname, "testDB.db")
@@ -16,16 +16,8 @@ export default function createPrismaClient() {
   })
 }
 
-// Check if database exists. If not copy the empty master to make it available
-if (!existsSync(devDBPath)) {
-  copyFileSync(join(__dirname, "../../../public/masterDB.db"), devDBPath)
-}
+const prisma = createPrismaClient()
 
-// Reset database
-const client = createPrismaClient()
-
-resetMockedPrisma()
-
-export function resetMockedPrisma() {
-  client.track.deleteMany()
+export async function resetMockedPrisma() {
+  return await prisma.track.deleteMany()
 }

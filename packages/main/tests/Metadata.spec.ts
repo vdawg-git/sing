@@ -2,24 +2,27 @@ import { getCover, saveCovers, convertMetadata } from "@/lib/Metadata"
 import { isICoverData } from "@/types/TypeGuards"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import rawMetaDataFactory from "./factories/RawMetaDataFactory"
-import { getExtension, getLeftValues, getRightValues } from "@/Pures"
-import base from "./factories/metaDataFactory"
-
-const userDataPath = "T:/test/"
-const coversPath = userDataPath + "covers/"
+import {
+  getExtension,
+  getLeftValues,
+  getRightValues,
+  removeNulledKeys,
+} from "@/Pures"
+import { mockBasePath, coverFolder } from "./helper/Consts"
+import metaDataFactory from "./factories/MetaDataFactory"
 
 vi.mock("node:fs", async () => (await import("./helper/mockFsManual")).default)
 
 describe("getCover", async () => {
   it("should return cover metadata", async () => {
     const data = rawMetaDataFactory.build()
-    const coverData = getCover(userDataPath, data)
+    const coverData = getCover(mockBasePath, data)
 
     expect(coverData).toBeTruthy()
   })
 
   it("should return cover metadata with the correct type", async () => {
-    const coverData = getCover(userDataPath, rawMetaDataFactory.build())
+    const coverData = getCover(mockBasePath, rawMetaDataFactory.build())
 
     expect(isICoverData(coverData)).toBe(true)
   })
@@ -35,7 +38,7 @@ describe("saveCovers", async () => {
       ),
     ]
 
-    const results = getRightValues(await saveCovers(coversPath, data))
+    const results = getRightValues(await saveCovers(coverFolder, data))
 
     expect(results).lengthOf(1)
   })
@@ -50,7 +53,7 @@ describe("saveCovers", async () => {
       ),
     ]
 
-    const results = getRightValues(await saveCovers(coversPath, data))
+    const results = getRightValues(await saveCovers(coverFolder, data))
 
     // Should be one because all covers are using the same hash in the factory and thus only one should get created
     expect(results).lengthOf(1)
@@ -66,7 +69,7 @@ describe("saveCovers", async () => {
       ),
     ]
 
-    const errors = getLeftValues(await saveCovers(coversPath, data))
+    const errors = getLeftValues(await saveCovers(coverFolder, data))
 
     expect(errors).lengthOf(0)
   })
@@ -81,7 +84,7 @@ describe("saveCovers", async () => {
       ),
     ]
 
-    const result = getRightValues(await saveCovers(coversPath, data))
+    const result = getRightValues(await saveCovers(coverFolder, data))
       .map(getExtension)
       .every((x) => x === "png")
 
@@ -92,14 +95,14 @@ describe("saveCovers", async () => {
 describe("convertMetadata", async () => {
   beforeEach(async () => {
     rawMetaDataFactory.rewindSequence()
-    base.rewindSequence()
+    metaDataFactory.rewindSequence()
   })
 
   it("should give the correct metadata", async () => {
     const rawData = rawMetaDataFactory.build()
-    const expected = base.build()
+    const expected = removeNulledKeys(metaDataFactory.build())
 
-    const converted = convertMetadata(coversPath)(rawData)
+    const converted = removeNulledKeys(convertMetadata(coverFolder)(rawData))
 
     expect(converted).toStrictEqual(expected)
   })
