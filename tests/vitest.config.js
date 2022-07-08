@@ -2,15 +2,6 @@ import { join } from "path"
 
 const PACKAGE_ROOT = __dirname
 
-const x = [
-  join(PACKAGE_ROOT, "..", "packages", "renderer", "src") + "/",
-  join(PACKAGE_ROOT, "..", "packages", "main", "src") + "/",
-  join(PACKAGE_ROOT, "..", "packages", "preload", "src") + "/",
-  join(PACKAGE_ROOT, "..", "types") + "/",
-]
-
-console.log(x)
-
 /**
  * @type {import('vite').UserConfig}
  * @see https://vitejs.dev/config/

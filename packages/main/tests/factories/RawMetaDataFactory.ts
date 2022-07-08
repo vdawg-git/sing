@@ -1,13 +1,13 @@
 import { IRawAudioMetadata } from "@sing-types/Types"
 import { Factory } from "fishery"
-import { musicFolder } from "@tests/Helper/Consts"
+import { musicFolder } from "../Helper/Consts"
 
 const rawMetaDataFactory = Factory.define<
   IRawAudioMetadata,
   { hasCover?: boolean; hasUniqueCover?: boolean; forcedSequence?: number }
 >(({ transientParams, sequence }) => {
   const hasCover = transientParams.hasCover ?? true
-  const hasUniqueCover = transientParams.hasCover ?? false
+  const hasUniqueCover = transientParams.hasUniqueCover ?? false
 
   sequence =
     transientParams?.forcedSequence !== undefined &&
@@ -30,7 +30,6 @@ const rawMetaDataFactory = Factory.define<
       bitrate: 320000,
       codecProfile: "CBR",
       tool: "tool",
-      trackPeakLevel: undefined,
       trackGain: sequence,
       numberOfSamples: sequence,
       duration: sequence,
@@ -57,7 +56,9 @@ const rawMetaDataFactory = Factory.define<
             format: "image/png",
             type: "Cover (front)",
             description: "",
-            data: Buffer.from("test"),
+            data: hasUniqueCover
+              ? Buffer.from(sequence.toString())
+              : Buffer.from("non-unique-cover"),
           },
         },
       ],
@@ -105,7 +106,7 @@ const rawMetaDataFactory = Factory.define<
             description: sequence.toString() + " cover",
             data: hasUniqueCover
               ? Buffer.from(sequence.toString())
-              : Buffer.from("1"),
+              : Buffer.from("non-unique-cover"),
           },
         ],
       }),

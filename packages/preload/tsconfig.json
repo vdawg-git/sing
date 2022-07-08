@@ -19,15 +19,15 @@
     "baseUrl": "."
   },
   "include": [
-    "src/**/*.ts",
+    "./src/**/*.ts",
     "./test/**/*",
     "contracts.d.ts",
     "../../types/**/*.d.ts",
     "preload.ts",
-    "../../types/Track.ts",
-    "../main/src/lib/Metadata.ts",
-    "../main/src/lib/Crud.ts",
-    "../main/src/lib/Sync.ts"
+    "../../types/Track.ts"
+    // "../main/src/lib/Metadata.ts",
+    // "../main/src/lib/Crud.ts",
+    // "../main/src/lib/Sync.ts"
   ],
   "exclude": ["**/*.spec.ts", "**/*.test.ts"]
 }

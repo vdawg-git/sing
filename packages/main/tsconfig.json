@@ -13,6 +13,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
+      "@tests/*": ["./tests/*"],
       "@sing-main/*": ["../main/src/*"],
       "@sing-preload/*": ["../preload/src/*"],
       "@sing-types/*": ["../../types/*"]
