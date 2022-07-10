@@ -4,6 +4,7 @@ dist
 *.local
 thumbs.db
 Scratch.ts
+Scratch.js
 **/_Scratch.ts
 **/testDB.db
 

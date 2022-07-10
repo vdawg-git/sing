@@ -1,5 +1,5 @@
-const ON_TRACKS_ADDED = "on/tracks-added"
-const ON_TRACKS_UPDATED = "on/tracks-added"
+const ON_TRACKS_ADDED = "on/tracks-added" as const
+const ON_TRACKS_UPDATED = "on/tracks-added" as const
 
 const CHANNELS = {
   GET_PATH: "get/path",

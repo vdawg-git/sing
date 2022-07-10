@@ -1,22 +1,14 @@
 import { app } from "electron"
 import { restoreOrCreateWindow } from "@/mainWindow"
-import { copyFileSync } from "fs"
-import { checkPathAccessible } from "./Helper"
-import { devDBPath, productionDBPath } from "./lib/CustomPrismaClient"
-import { join } from "path"
+import { checkDatabase } from "./Helper"
 import ipc from "../../preload/src/ipcMain"
-import c from "ansicolor"
+import log from "ololog"
+import { dbPath } from "./Consts"
 
-console.log(c.bgDarkGray.black("  Main script started  "))
+log.noLocate.inverse("  Main script started  ")
+log.noLocate(import.meta.env.DEV ? "Dev mode" : "production mode")
 
-// Check if database exists. If not copy the empty master to make it available
-if (!checkPathAccessible(import.meta.env.DEV ? devDBPath : productionDBPath)) {
-  if (import.meta.env.DEV) {
-    copyFileSync(join(__dirname, "../public/masterDB.db"), devDBPath)
-  } else {
-    copyFileSync(join(__dirname, "masterDB.db"), productionDBPath)
-  }
-}
+checkDatabase(dbPath)
 
 // Load IPC handlers
 ipc()

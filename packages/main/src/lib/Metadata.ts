@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client"
 import { createHash } from "crypto"
 import * as mm from "music-metadata"
-import { writeFileToDisc } from "../Helper"
-import { Either } from "fp-ts/lib/Either"
+import { writeFileToDisc, checkPathAccessible } from "../Helper"
+import { Either, isRight } from "fp-ts/lib/Either"
 import { IError, IRawAudioMetadata } from "@sing-types/Types"
 import { pipe } from "fp-ts/lib/function"
 import {
@@ -15,7 +15,6 @@ import { left, right } from "fp-ts/lib/Either"
 import { curry2 } from "fp-ts-std/Function"
 import type { ICoverData } from "@/types/Types"
 import { isICoverData } from "@/types/TypeGuards"
-import { existsSync } from "fs"
 
 export async function getRawMetaDataFromFilepath(
   filepath: string
@@ -104,8 +103,10 @@ export async function saveCovers(
       .map((data) => getCover(coverFolderPath, data))
       .filter(isICoverData)
       .filter(removeDuplicates)
-      .map((cover) => {
-        return existsSync(cover.coverPath)
+      .map(async (cover) => {
+        const accessible = await checkPathAccessible(cover.coverPath) // If it's accessible it does already exist, so just return the path then
+
+        return isRight(accessible)
           ? right(cover.coverPath)
           : writeFileToDisc(cover.coverBuffer, cover.coverPath)
       })

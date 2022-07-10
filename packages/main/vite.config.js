@@ -35,6 +35,7 @@ const config = {
         "electron-devtools-installer",
         "@prisma/client",
         "electron-store",
+        "ololog",
         ...builtinModules.flatMap((p) => [p, `node:${p}`]),
       ],
       output: {

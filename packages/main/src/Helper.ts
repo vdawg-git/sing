@@ -1,9 +1,14 @@
-import { posix, dirname } from "path"
+import { dirname, join } from "path"
 import { dialog } from "electron"
-import { rmSync, constants, accessSync, promises } from "fs"
+import { promises } from "fs"
 import c from "ansicolor"
+import slash from "slash"
 import { Either, right, left, isLeft } from "fp-ts/lib/Either"
 import { IError } from "@sing-types/Types"
+import { isError } from "@sing-types/Typeguards"
+import log from "ololog"
+
+//TODO make this into its own process
 
 export async function getFilesFromDir(
   dir: string
@@ -12,12 +17,13 @@ export async function getFilesFromDir(
     const dirents = await promises.readdir(dir, { withFileTypes: true })
     const files = await Promise.all(
       dirents.map((dirent) => {
-        const res = posix.resolve(dir, dirent.name)
+        const res = join(dir, dirent.name)
         return dirent.isDirectory() ? recursion(res) : res
       })
     )
-    return files.flat()
+    return files.flat().map(slash)
   }
+
   try {
     return right(await recursion(dir))
   } catch (error) {
@@ -28,20 +34,13 @@ export async function getFilesFromDir(
   }
 }
 
-export function checkPathAccessible<T extends string>(
+export async function checkPathAccessible<T extends string>(
   path: T
-): Either<IError, T> {
-  try {
-    accessSync(path, constants.F_OK)
-    return right(path)
-  } catch (error) {
-    console.error(`Error accessing "${path}"`)
-
-    return left({
-      message: `Error accessing path "${path}"`,
-      error,
-    })
-  }
+): Promise<Either<IError, T>> {
+  return await promises
+    .stat(path)
+    .then((_) => right(path))
+    .catch((error) => left({ error }))
 }
 
 export async function writeFileToDisc<T extends string>(
@@ -99,10 +98,35 @@ export async function deleteFiles(fileList: string[]): Promise<{
   return { errors, deletedFiles }
 }
 
-export default function chooseFolders() {
+export function chooseFolders() {
   const paths = dialog.showOpenDialog({
     properties: ["openDirectory", "multiSelections"],
   })
 
   return paths
+}
+
+// Check if database exists. If not copy the empty master to make it available
+export async function checkDatabase(dbPath: string) {
+  const checkAccessible = await checkPathAccessible(dbPath)
+  if (isLeft(checkAccessible)) {
+    const possibleError = checkAccessible.left.error
+
+    if (
+      isError(possibleError) &&
+      !possibleError.message.includes("no such file or directory")
+    ) {
+      log.error.red(possibleError)
+    }
+
+    if (import.meta.env.DEV) {
+      promises
+        .copyFile(join(__dirname, "../public/masterDB.db"), dbPath)
+        .catch(log.error.red)
+    } else {
+      promises
+        .copyFile(join(__dirname, "masterDB.db"), dbPath)
+        .catch(log.error.red)
+    }
+  }
 }

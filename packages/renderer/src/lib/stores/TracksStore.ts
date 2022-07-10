@@ -1,14 +1,16 @@
 import { readable, type Subscriber } from "svelte/store"
 import type { ITrack } from "@sing-types/Types"
-import picocolors from "picocolors"
+import c from "ansicolor"
 import { titleToDisplay } from "@/Helper"
+import CHANNELS from "@sing-preload/Channels"
+import log from "ololog"
 
 export default readable<Promise<ITrack[]> | ITrack[]>(initValue(), updateStore)
 
 async function initValue() {
   return window.api.getTracks().then((tracks) => {
     if (!Array.isArray(tracks)) {
-      console.group(picocolors.red("Received tracks are not valid"))
+      console.group(c.red("Received tracks are not valid"))
       console.error(tracks)
       console.groupEnd()
 
@@ -20,30 +22,23 @@ async function initValue() {
 }
 
 function updateStore(set: Subscriber<ITrack[] | Promise<ITrack[]>>) {
-  window.api.listen("on/tracks-added", (tracks: ITrack[]) => {
-    updateStore(tracks)
-  })
+  window.api.listen(CHANNELS.ON_TRACKS_ADDED, update)
 
   // Return unsubscribe function
-  return () => window.api.removeListener("on/tracks-added", updateStore)
+  return () => window.api.removeListener(CHANNELS.ON_TRACKS_ADDED, update)
 
-  function updateStore(tracks: ITrack[]) {
-    if (!tracks) {
+  async function update(tracks: ITrack[]) {
+    if (!tracks || !tracks.length) {
       console.group(
-        picocolors.red("Received tracks at tracksStore -> update is not valid")
+        c.red("Received tracks at tracksStore -> update is not valid")
       )
       console.error(tracks)
       console.groupEnd()
 
       return []
     }
-    const newValue = [] as ITrack[]
 
-    for (const track of tracks) {
-      newValue.push(track)
-    }
-
-    set(newValue.sort(sortAlphabetically))
+    set(tracks.sort(sortAlphabetically))
   }
 }
 

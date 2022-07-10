@@ -18,20 +18,24 @@ import {
 } from "@/Pures"
 import { Either, isLeft, left, right } from "fp-ts/lib/Either"
 import { app } from "electron"
+import slash from "slash"
 
 const prisma = createPrismaClient()
 
 export async function syncDirs(directories: string[]) {
+  if (!Array.isArray(directories)) {
+    return left({ error: new Error("Directories must be of type array") })
+  }
   if (directories.length === 0) {
     console.error(c.red("No directories to sync provided"))
     return left({
       error: new Error("No directories to sync provided"),
     })
   }
-  const coverFolderPath = app.getPath("userData") + "covers/"
+  const coverFolderPath = slash(app.getPath("userData") + "covers/")
 
   const directoriesContents = await Promise.all(
-    directories.map((dir) => getFilesFromDir(dir))
+    directories.map(slash).map((dir) => getFilesFromDir(dir))
   )
 
   const folderReadErrors = getLeftValues(directoriesContents)

@@ -5,15 +5,14 @@ import type {
 } from "@sing-main/lib/UserSettings"
 import channels from "./Channels"
 import type { ITrack, IElectronPaths } from "@sing-types/Types"
+// import type { syncDirs } from "@sing-main/lib/Sync"
 
 export async function getTracks(): Promise<readonly ITrack[]> {
   return await ipcRenderer.invoke(channels.GET_TRACKS)
 }
 
-export async function sync(): Promise<void> {
-  return ipcRenderer.invoke(channels.SYNC).catch((err) => {
-    console.error(err)
-  })
+export async function sync() {
+  ipcRenderer.send(channels.SYNC)
 }
 
 export async function setUserSettings<Key extends IUserSettingsKey>(

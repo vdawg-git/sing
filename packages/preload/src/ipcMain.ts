@@ -12,6 +12,7 @@ import channels from "./Channels"
 import { OpenDialogReturnValue } from "electron/main"
 import c from "ansicolor"
 import { isLeft } from "fp-ts/lib/Either"
+import log from "ololog"
 
 export default function ipcInit(): void {
   ipcMain.handle(channels.GET_TRACKS, async (_event): Promise<ITrack[]> => {
@@ -40,8 +41,8 @@ export default function ipcInit(): void {
     }
   )
 
-  ipcMain.handle(channels.SYNC, async (event) => {
-    await sync(event)
+  ipcMain.on(channels.SYNC, async (event) => {
+    sync(event)
   })
 
   ipcMain.handle(
@@ -84,7 +85,7 @@ export default function ipcInit(): void {
     userSettingsStore.reset("musicFolders")
     await sync(event)
 
-    console.log(c.yellow("Music reset successfully"))
+    log.yellow("Music reset successfully")
 
     return true
   })
@@ -95,13 +96,15 @@ async function sync(event: IpcMainInvokeEvent) {
   const response = await syncDirs(directories ?? [])
 
   if (isLeft(response)) {
+    console.error(new Error("Arr"))
     console.error(response.left.error?.message ?? "")
     console.error(response.left.error)
     return
   }
+  log(response.right)
 
   const { addedDBTracks } = response.right
 
   // Emit library track update for the frontend
-  event.sender.send(channels.ON_TRACKS_UPDATED, addedDBTracks)
+  event.sender.send(channels.ON_TRACKS_ADDED, addedDBTracks)
 }
