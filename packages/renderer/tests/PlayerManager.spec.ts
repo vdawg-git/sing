@@ -1,19 +1,21 @@
-import { beforeEach, describe, expect, it, vi } from "vitest"
-import mockElectronApi from "./MockElectronApi"
-vi.stubGlobal("api", mockElectronApi)
-vi.mock("@/lib/manager/AudioPlayer", () => {
-  return { default: mockedAudioPlayer }
-})
 import indexStore from "@/lib/stores/PlayIndex"
 import queueStore from "@/lib/stores/QueueStore"
 import { get } from "svelte/store"
-import mockedAudioPlayer from "./mocks/AudioPlayer"
-import player, {
+import { beforeEach, describe, expect, it, vi } from "vitest"
+
+import queueItemFactory from "./factories/queueItemFactory"
+import mockElectronApi from "./MockElectronApi"
+
+vi.mock("@/lib/manager/AudioPlayer")
+
+vi.stubGlobal("api", mockElectronApi)
+
+const {
+  default: player,
   currentTrack,
   playIndex,
   playState,
-} from "@/lib/manager/PlayerManager"
-import queueItemFactory from "./factories/queueItemFactory"
+} = await import("@/lib/manager/PlayerManager")
 
 afterEach(async () => {
   vi.resetModules()
@@ -22,7 +24,7 @@ afterEach(async () => {
 it("load the source of the first track on load", async () => {
   const source = get(currentTrack).track.filepath
 
-  expect(source).toContain(".")
+  expect(source).toContain(".") // Check if it is a filepath
 })
 
 describe("fn: playQueueIndex", async () => {
@@ -68,4 +70,9 @@ describe("fn: removeIndexFromQueue", async () => {
   })
 })
 
-// describe("fn: deleteQueueItemAtIndex", async () => {})
+it("current track is not undefined after switching tracks", async () => {
+  player.next()
+  player.next()
+
+  expect(get(currentTrack)).not.toBeUndefined()
+})

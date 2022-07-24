@@ -1,16 +1,10 @@
-import type { ElectronApplication } from "playwright"
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-} from "vitest"
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest"
+
 import { launchElectron } from "./Helper"
 import createBasePage from "./POM/BasePage"
 import createLibrarySettingsPage from "./POM/LibrarySettingsPage"
+
+import type { ElectronApplication } from "playwright"
 
 let electron: ElectronApplication
 
@@ -39,7 +33,7 @@ it("can add a folder", async () => {
 
   await settingsPage.addFolder(nameToAdd)
 
-  const folderName = (await settingsPage.getFolderNames())[0]
+  const [folderName] = await settingsPage.getFolderNames()
 
   expect(folderName).toBe(nameToAdd)
 })
@@ -114,7 +108,7 @@ describe("when removing one folder", async () => {
     await settingsPage.saveAndSyncFolders()
   })
 
-  it.only("does delete the tracks from the folder in the queue", async () => {
+  it("does delete the tracks from the folder in the queue", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
     const trackPage = await settingsPage.goTo.tracks()
@@ -168,7 +162,7 @@ describe("when adding one folder from a clear state", async () => {
   })
 
   it("only adds the newly added tracks to the track page", async () => {
-    const expectedTitles = Array.from({ length: 10 }, (_, index) => "0" + index)
+    const expectedTitles = Array.from({ length: 10 }, (_, index) => `0${index}`)
 
     const settingsPage = await createLibrarySettingsPage(electron)
 

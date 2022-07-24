@@ -1,55 +1,42 @@
-import type * as ipcRenderer from "@sing-preload/ipcRenderer"
-import type { ITrack } from "@sing-types/Types"
-import type {
-  IUserSettings,
-  IUserSettingsKey,
-} from "@sing-main/lib/UserSettings"
-import channels from "@sing-preload/Channels"
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { right } from "fp-ts/Either"
 import { vi } from "vitest"
+
 import trackFactory from "./factories/trackFactory"
+
+import type { Either } from "fp-ts/Either"
+import type * as ipcRenderer from "@sing-preload/ipcRenderer"
+import type { IError, ITrack } from "@sing-types/Types"
+import type { IUserSettingsKey } from "@sing-main/lib/UserSettings"
 
 trackFactory.rewindSequence()
 const tracks = trackFactory.buildList(30)
 
 export const mockedApiTracks: readonly ITrack[] = tracks
+export const mockedApiTracksResponse: Either<IError, readonly ITrack[]> =
+  right(tracks)
 
 function createMockedElectronAPI(): typeof ipcRenderer {
   return {
-    getTracks: vi.fn(() => Promise.resolve(mockedApiTracks)),
-    sync: vi.fn(() => Promise.resolve(sync())),
-    setUserSettings: vi.fn(setUserSettings),
-    openDirectory,
-    openMusicFolder: vi.fn(async () => {
-      return { filePaths: ["X:/MockElectronApi"], canceled: false }
-    }),
-    getPath,
+    getTracks: vi.fn(() => Promise.resolve(mockedApiTracksResponse)),
+    sync: vi.fn(),
+    setUserSettings: vi.fn(),
+    openDirectory: vi.fn(openDirectory),
     getUserSetting: vi.fn(getUserSetting),
-    listen,
-    removeListener,
-    send,
-    resetMusic: vi.fn()
+    listen: vi.fn(),
+    removeListener: vi.fn(),
+    send: vi.fn(),
+    resetMusic: vi.fn(),
   }
 }
 
 export default createMockedElectronAPI()
 
-async function sync() {
-  return
-}
-
-async function setUserSettings<Key extends IUserSettingsKey>(
-  _setting: Key,
-  _value: IUserSettings[Key]
+async function openDirectory(
+  _options?: Electron.OpenDialogOptions,
+  defaultPath = "music"
 ) {
-  return
-}
-
-async function openDirectory(_options: Electron.OpenDialogOptions = {}) {
-  return "F:/test/test"
-}
-
-async function getPath(_name: string) {
-  throw new Error("not implemented")
+  return { filePaths: ["F:/test/test"], canceled: false }
 }
 
 async function getUserSetting(setting: IUserSettingsKey) {
@@ -62,28 +49,4 @@ async function getUserSetting(setting: IUserSettingsKey) {
         "could not find requested userSetting in mocked getUserSetting"
       )
   }
-}
-
-function listen(
-  channel: typeof channels.listener[number],
-  _callback: (args: any) => any
-) {
-  if (!channels.listener.includes(channel))
-    throw new Error(`Invalid channel to listen to: ${channel}`)
-
-  return
-}
-
-function removeListener(
-  channel: typeof channels.listener[number],
-  _callback: (args: any) => any
-) {
-  if (!channels.listener.includes(channel))
-    throw new Error(`Invalid channel to listen to: ${channel}`)
-
-  return
-}
-
-function send(_channel: typeof channels.listener[number], _message: string) {
-  return
 }

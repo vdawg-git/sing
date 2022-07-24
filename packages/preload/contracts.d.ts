@@ -1,4 +1,4 @@
-import * as ipc from "./src/ipcRenderer"
+import type * as ipc from "./src/ipcRenderer"
 
 declare global {
   interface Window {

@@ -1,69 +1,64 @@
-import { ipcRenderer } from "electron"
+import { ipcRenderer } from "./TypedIPC"
+
+import type { IMainEventHandlers, IMainQueryHandlers } from "./types/Types"
+
 import type {
   IUserSettings,
   IUserSettingsKey,
 } from "@sing-main/lib/UserSettings"
-import channels from "./Channels"
-import type { ITrack, IElectronPaths } from "@sing-types/Types"
-// import type { syncDirs } from "@sing-main/lib/Sync"
+import type {
+  FlattenedParameters,
+  IFrontendEventsBase,
+} from "@sing-types/Types"
 
-export async function getTracks(): Promise<readonly ITrack[]> {
-  return await ipcRenderer.invoke(channels.GET_TRACKS)
+export async function getTracks(
+  options?: FlattenedParameters<IMainQueryHandlers["getTracks"]>
+) {
+  return ipcRenderer.invoke("getTracks", options)
 }
 
 export async function sync() {
-  ipcRenderer.send(channels.SYNC)
+  ipcRenderer.send("syncFolders")
 }
 
 export async function setUserSettings<Key extends IUserSettingsKey>(
   setting: Key,
   value: IUserSettings[Key]
 ) {
-  return ipcRenderer.invoke(channels.SET_USER_SETTINGS, setting, value)
+  return ipcRenderer.send("setUserSettings", setting, value)
 }
 
-export async function openDirectory(options: Electron.OpenDialogOptions = {}) {
-  return await ipcRenderer.invoke(channels.OPEN_DIR, options)
-}
-export async function openMusicFolder(): Promise<Electron.OpenDialogReturnValue> {
-  return await ipcRenderer.invoke(channels.OPEN_MUSIC_FOLDER)
-}
-
-export async function getPath(name: IElectronPaths) {
-  return await ipcRenderer.invoke(channels.GET_PATH, name)
+export async function openDirectory(
+  ...arguments_: Parameters<IMainQueryHandlers["openDirectoryPicker"]>
+) {
+  return ipcRenderer.invoke("openDirectoryPicker", arguments_[0], arguments_[1])
 }
 
 export async function getUserSetting(setting: IUserSettingsKey) {
-  return await ipcRenderer.invoke(channels.GET_USER_SETTINGS, setting)
+  return ipcRenderer.invoke("getUserSettings", setting)
 }
 
-export function listen(
-  channel: typeof channels.listener[number],
-  callback: (args: any) => any
+export function listen<Key extends keyof IFrontendEventsBase>(
+  channel: Key,
+  callback: IFrontendEventsBase[Key]
 ) {
-  if (!channels.listener.includes(channel))
-    throw new Error(`Invalid channel to listen to: ${channel}`)
-
-  ipcRenderer.on(channel, (_event, args) => callback(args))
+  ipcRenderer.on(channel, callback)
 }
 
-export function removeListener(
-  channel: typeof channels.listener[number],
-  callback: (args: any) => any
+export function removeListener<Key extends keyof IFrontendEventsBase>(
+  channel: Key,
+  callback: IFrontendEventsBase[Key]
 ) {
-  if (!channels.listener.includes(channel))
-    throw new Error(`Invalid channel to listen to: ${channel}`)
-
   ipcRenderer.removeListener(channel, callback)
 }
 
-export function send(
-  channel: typeof channels.listener[number],
-  message: string
+export function send<Key extends keyof IMainEventHandlers>(
+  channel: Key,
+  ...message: Parameters<IMainEventHandlers[Key]>
 ) {
-  ipcRenderer.send(channel, message)
+  ipcRenderer.send(channel, ...message)
 }
 
 export function resetMusic(): void {
-  ipcRenderer.invoke(channels.RESET_MUSIC)
+  ipcRenderer.send("resetMusic")
 }

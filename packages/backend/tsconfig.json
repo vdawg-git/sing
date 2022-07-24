@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "esnext",
+    "sourceMap": false,
+    "moduleResolution": "Node",
+    "skipLibCheck": true,
+    "strict": true,
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "types": ["node", "vitest/importMeta"],
+
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@tests/*": ["./tests/*"],
+      "@sing-main/*": ["../main/src/*"],
+      "@sing-preload/*": ["../preload/src/*"],
+      "@sing-types/*": ["../../types/*"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "src/**/*.ts",
+    "../../types/**/*.d.ts",
+    "../../types/Track.ts",
+    "../preload/src/Crud.ts",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "tests/**/*.ts"
+  ],
+  "exclude": ["./dist/**/*"]
+}

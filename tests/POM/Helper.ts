@@ -1,18 +1,28 @@
 export function reduceTitlesToFolders(
   titles: (string | undefined)[]
 ): number[] {
-  const folders = titles.reduce((acc, title) => {
+  // eslint-disable-next-line unicorn/no-array-reduce
+  const folders = titles.reduce((accumulator, title) => {
     if (title === undefined) {
       console.error("title is undefined")
-      return acc
+      return accumulator
     }
 
     const folder = Number(title.at(0))
 
-    if (acc.indexOf(folder) === -1) acc.push(folder)
+    if (!accumulator.includes(folder)) accumulator.push(folder)
 
-    return acc
+    return accumulator
   }, [] as number[])
 
   return folders
+}
+
+export function isMediaElement(
+  element: HTMLElement | SVGElement
+): element is HTMLMediaElement {
+  if (element.nodeName === "AUDIO") return true
+  if (element.nodeName === "VIDEO") return true
+
+  return false
 }

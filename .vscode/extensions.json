@@ -4,6 +4,7 @@
     "bradlc.vscode-tailwindcss",
     "svelte.svelte-vscode",
     "dbaeumer.vscode-eslint",
-    "Prisma.prisma"
+    "Prisma.prisma",
+    "rbbit.typescript-hero"
   ]
 }

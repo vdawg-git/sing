@@ -1,17 +1,15 @@
-import { app } from "electron"
 import { restoreOrCreateWindow } from "@/mainWindow"
-import { checkDatabase } from "./Helper"
-import ipc from "../../preload/src/ipcMain"
+import { app } from "electron"
 import log from "ololog"
-import { dbPath } from "./Consts"
+
+import ipc from "../../preload/src/ipcMain"
+import { databasePath } from "./Consts"
+import { checkDatabase } from "./Helper"
 
 log.noLocate.inverse("  Main script started  ")
 log.noLocate(import.meta.env.DEV ? "Dev mode" : "production mode")
 
-checkDatabase(dbPath)
-
-// Load IPC handlers
-ipc()
+checkDatabase(databasePath)
 
 /**
  * Prevent multiple instances
@@ -49,6 +47,13 @@ app
   .whenReady()
   .then(restoreOrCreateWindow)
   .catch((e) => console.error("Failed create window:", e))
+
+// Load IPC handlers
+try {
+  ipc()
+} catch (e) {
+  log.red(e)
+}
 
 /**
  * Check new app version in production mode only

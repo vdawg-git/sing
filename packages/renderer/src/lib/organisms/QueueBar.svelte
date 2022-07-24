@@ -4,7 +4,7 @@
 </script>
 
 <script lang="ts">
-  import { testAttr, TEST_IDS as testID } from "@/TestConsts"
+  import { testAttributes, TEST_IDS as testID } from "@/TestConsts"
   import player, {
     playedTracks,
     nextTracks,
@@ -93,7 +93,7 @@
                 ? testID.queuePreviousTrack
                 : undefined}
               testQueuePlayedIndex={index}
-              testattribute={testAttr.queuePreviousTracks}
+              testattribute={testAttributes.queuePreviousTracks}
               on:dblclick={() => player.playQueueIndex(queueItemData.index)}
               on:remove={() => handleRemove(queueItemData.index)}
             />
@@ -132,7 +132,7 @@
                 {queueItemData}
                 testId={index === 0 ? "queueNextTrack" : undefined}
                 testQueueNextIndex={index}
-                testattribute={testAttr.queueNextTracks}
+                testattribute={testAttributes.queueNextTracks}
                 on:dblclick={() => player.playQueueIndex(queueItemData.index)}
                 on:remove={() => handleRemove(queueItemData.index)}
               />
@@ -146,7 +146,7 @@
   </div>
 </main>
 
-<style>
+<style lang="postcss">
   .scrollbar {
     scrollbar-gutter: stable;
   }

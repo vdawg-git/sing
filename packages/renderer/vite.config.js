@@ -1,10 +1,11 @@
 /* eslint-env node */
-import { chrome } from "../../.electron-vendors.cache.json"
-import { join } from "path"
-import { builtinModules } from "module"
 import { svelte } from "@sveltejs/vite-plugin-svelte"
-import Icons from "unplugin-icons/vite"
 import { promises as fs } from "fs"
+import { builtinModules } from "module"
+import { join } from "path"
+import Icons from "unplugin-icons/vite"
+
+import { chrome } from "../../.electron-vendors.cache.json"
 
 const PACKAGE_ROOT = __dirname
 

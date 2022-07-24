@@ -1,45 +1,60 @@
-import { readable, type Subscriber } from "svelte/store"
-import type { ITrack } from "@sing-types/Types"
-import c from "ansicolor"
 import { titleToDisplay } from "@/Helper"
-import CHANNELS from "@sing-preload/Channels"
-import log from "ololog"
+import c from "ansicolor"
+import { isLeft } from "fp-ts/lib/Either"
+import { readable } from "svelte/store"
+
+import type { Subscriber } from "svelte/store"
+
+import type { ISyncResult, ITrack } from "@sing-types/Types"
+import type { IpcRendererEvent } from "electron"
 
 export default readable<Promise<ITrack[]> | ITrack[]>(initValue(), updateStore)
 
 async function initValue() {
-  return window.api.getTracks().then((tracks) => {
-    if (!Array.isArray(tracks)) {
-      console.group(c.red("Received tracks are not valid"))
-      console.error(tracks)
-      console.groupEnd()
+  const response = await window.api.getTracks()
 
-      return []
-    }
-    const result = tracks.sort(sortAlphabetically)
-    return result
-  })
+  if (isLeft(response)) {
+    console.error(response.left.error)
+    return []
+  }
+
+  const tracks = response.right
+
+  if (!Array.isArray(tracks)) {
+    console.group(c.red("Received tracks are not valid. Tracks are:"))
+    console.log(response.right)
+    console.groupEnd()
+
+    return []
+  }
+  const result = tracks.sort(sortAlphabetically)
+  return result
 }
 
 function updateStore(set: Subscriber<ITrack[] | Promise<ITrack[]>>) {
-  window.api.listen(CHANNELS.ON_TRACKS_ADDED, update)
+  window.api.listen("setMusic", update)
 
-  // Return unsubscribe function
-  return () => window.api.removeListener(CHANNELS.ON_TRACKS_ADDED, update)
+  return () => window.api.removeListener("setMusic", update)
 
-  async function update(tracks: ITrack[]) {
-    if (!tracks || !tracks.length) {
-      console.group(
-        c.red("Received tracks at tracksStore -> update is not valid")
+  async function update(_event: IpcRendererEvent, response: ISyncResult) {
+    if (isLeft(response)) {
+      console.error(response.left.error)
+      return
+    }
+    const addedTracks = response.right.addedDBTracks
+
+    if (!addedTracks || addedTracks.length === 0) {
+      console.error(
+        "Received tracks at tracksStore -> update is not valid",
+        response
       )
-      console.error(tracks)
-      console.groupEnd()
-
-      return []
+      return
     }
 
-    set(tracks.sort(sortAlphabetically))
+    set(addedTracks.sort(sortAlphabetically))
   }
+
+  // Return unsubscribe function
 }
 
 function sortAlphabetically(a: ITrack, b: ITrack) {

@@ -2,7 +2,7 @@
   import IconFolderRemove from "virtual:icons/heroicons-outline/folder-remove"
   import IconFolderAdd from "virtual:icons/heroicons-outline/folder-add"
   import { createEventDispatcher } from "svelte"
-  import { testAttr } from "@/TestConsts"
+  import { testAttributes } from "@/TestConsts"
 
   export let path: string | undefined = undefined
   export let testID: string | undefined = undefined
@@ -10,7 +10,14 @@
   const dispatch = createEventDispatcher()
 
   async function pickFolder() {
-    const { filePaths, canceled } = await window.api.openMusicFolder()
+    const { filePaths, canceled } = await window.api.openDirectory({
+      defaultPath: "music",
+      buttonLabel: "Select music folder(s)",
+      title: "Sing music folder selection",
+      properties: ["openDirectory", "multiSelections", "dontAddToRecent"],
+      message: "Choose folders to sync",
+      securityScopedBookmarks: false,
+    })
 
     if (canceled || filePaths.length === 0) return null
 
@@ -46,7 +53,7 @@
 
 <button
   data-testID={testID}
-  data-testattribute={testAttr.folderInput}
+  data-testattribute={testAttributes.folderInput}
   class="
 			group  flex
 			h-12  w-full place-content-between  items-center
@@ -62,7 +69,7 @@
 
   {#if path}
     <div
-      data-testattribute={testAttr.folderInputDeleteIcon}
+      data-testattribute={testAttributes.folderInputDeleteIcon}
       class="h-12 p-3 text-grey-200 hover:text-orange-500"
       on:click|stopPropagation={dispatchRemove}
     >

@@ -1,10 +1,9 @@
-import {
-  testAttr,
-  TEST_IDS as id,
-} from "../../packages/renderer/src/TestConsts"
-
-import { ElectronApplication } from "playwright"
+/* eslint-disable unicorn/prefer-dom-node-text-content */
+/* eslint-disable no-shadow */
+import { TEST_IDS as id, testAttributes } from "../../packages/renderer/src/TestConsts"
 import createBasePage from "./BasePage"
+
+import type { ElectronApplication } from "playwright"
 
 export default async function createTracksPage(electron: ElectronApplication) {
   const basePage = await createBasePage(electron)
@@ -31,7 +30,8 @@ export default async function createTracksPage(electron: ElectronApplication) {
   async function hasTracks() {
     if ((await trackItems.count()) === 0) return false
 
-    const tracksAmount = (await getTracks()).length
+    const tracks = await getTracks()
+    const tracksAmount = tracks.length
 
     if (tracksAmount === 0) return false
 
@@ -40,16 +40,16 @@ export default async function createTracksPage(electron: ElectronApplication) {
 
   async function getTracks() {
     const selector = {
-      trackItem: testAttr.asQuery.trackItem,
-      trackItemTitle: testAttr.asQuery.trackItemTitle,
-      trackItemArtist: testAttr.asQuery.trackItemArtist,
-      trackItemAlbum: testAttr.asQuery.trackItemAlbum,
-      trackItemDuration: testAttr.asQuery.trackItemDuration,
+      trackItem: testAttributes.asQuery.trackItem,
+      trackItemTitle: testAttributes.asQuery.trackItemTitle,
+      trackItemArtist: testAttributes.asQuery.trackItemArtist,
+      trackItemAlbum: testAttributes.asQuery.trackItemAlbum,
+      trackItemDuration: testAttributes.asQuery.trackItemDuration,
     }
 
     const tracks = await trackItems.evaluate(
       (node, selector) => {
-        const trackItems = Array.from(node.querySelectorAll(selector.trackItem))
+        const trackItems = [...node.querySelectorAll(selector.trackItem)]
 
         const result = trackItems.map((track) => {
           const title = (
@@ -86,7 +86,8 @@ export default async function createTracksPage(electron: ElectronApplication) {
   }
 
   async function getTracksTitles(): Promise<string[]> {
-    const titles = (await getTracks()).map((track) => track.title || "")
+    const tracks = await getTracks()
+    const titles = tracks.map((track) => track.title || "")
     return titles
   }
 
@@ -97,21 +98,22 @@ export default async function createTracksPage(electron: ElectronApplication) {
 
     const folders = tracks
       .map((track) => track.title?.at(0))
-      .reduce((acc, track) => {
+      // eslint-disable-next-line unicorn/no-array-reduce
+      .reduce((accumulator, track) => {
         if (track === undefined) {
           console.error("Track title is undefined ")
-          return acc
+          return accumulator
         }
 
         const folder = Number(track)
 
-        if (acc.indexOf(folder) !== -1) {
-          return acc
+        if (accumulator.includes(folder)) {
+          return accumulator
         }
 
-        acc.push(folder)
+        accumulator.push(folder)
 
-        return acc
+        return accumulator
       }, [] as number[])
 
     return folders
@@ -120,11 +122,10 @@ export default async function createTracksPage(electron: ElectronApplication) {
   async function playTrack(title: string): Promise<string> {
     if (title.at(-1) !== "_")
       throw new Error(
-        "Invalid track title provided. It lacks the `_` at the end. \nProvided: " +
-          title
+        `Invalid track title provided. It lacks the \`_\` at the end. \nProvided: ${title}`
       )
 
-    const element = page.locator(testAttr.asQuery.trackItem, {
+    const element = page.locator(testAttributes.asQuery.trackItem, {
       hasText: title,
     })
 

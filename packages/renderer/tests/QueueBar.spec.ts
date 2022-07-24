@@ -1,22 +1,26 @@
-import { TEST_IDS as id, testAttr } from "../src/TestConsts"
-import { render, fireEvent } from "@testing-library/svelte"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+/* eslint-disable unicorn/prefer-dom-node-text-content */
+/* eslint-disable no-await-in-loop */
 import "./setupBasicMocks"
-import mockElectronApi from "./MockElectronApi"
-import mockedPlayer from "./mocks/AudioPlayer"
-import type { SvelteComponentDev } from "svelte/internal"
-import type { ITrack } from "@sing-types/Types"
+
+import { fireEvent, render } from "@testing-library/svelte"
+import { right } from "fp-ts/lib/Either"
+import { get } from "svelte/store"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+
+import { TEST_IDS as id, testAttributes } from "../src/TestConsts"
 import trackFactory from "./factories/trackFactory"
+import mockElectronApi from "./MockElectronApi"
+
+import type { SvelteComponentDev } from "svelte/internal"
+import type { IError, ITrack } from "@sing-types/Types"
+import type { Either } from "fp-ts/lib/Either"
 
 const mockedTracks = trackFactory.buildList(35)
 
-vi.mock("@/lib/manager/AudioPlayer", () => {
-  return { default: mockedPlayer }
-})
 vi.stubGlobal("api", mockElectronApi)
+vi.mock("@/lib/manager/AudioPlayer")
 
-import { currentTrack, nextTracks } from "@/lib/manager/PlayerManager"
-import { get } from "svelte/store"
+const { currentTrack, nextTracks } = await import("@/lib/manager/PlayerManager")
 
 let QueueBarComponent: typeof SvelteComponentDev
 
@@ -32,14 +36,14 @@ describe("with valid data", async () => {
   beforeEach(async () => {
     vitest
       .mocked(window.api.getTracks)
-      .mockImplementation(async (): Promise<ITrack[]> => mockedTracks)
+      .mockImplementation(async () => right(mockedTracks))
   })
 
   describe("displays", async () => {
     it("displays upcoming queue items", async () => {
       const { container } = render(QueueBarComponent)
       const elements = container.querySelectorAll(
-        testAttr.asQuery.queueNextTracks
+        testAttributes.asQuery.queueNextTracks
       )
 
       expect(elements.length).toBeGreaterThan(2)
@@ -47,7 +51,9 @@ describe("with valid data", async () => {
 
     it("displays no played queue items yet", async () => {
       const { container } = render(QueueBarComponent)
-      const elements = container.querySelectorAll(testAttr.queuePreviousTracks)
+      const elements = container.querySelectorAll(
+        testAttributes.queuePreviousTracks
+      )
 
       expect(elements.length === 0).toBeTruthy()
     })
@@ -67,9 +73,11 @@ describe("with valid data", async () => {
     it("displays a maximum of 20 upcoming tracks", async () => {
       vitest
         .mocked(window.api.getTracks)
-        .mockImplementationOnce(async (): Promise<ITrack[]> => {
-          const data = Array(21).fill(mockedTracks).flat()
-          return data
+        .mockImplementationOnce(async (): Promise<Either<IError, ITrack[]>> => {
+          const data: ITrack[] = Array.from({ length: 21 })
+            .fill(mockedTracks)
+            .flat() as ITrack[]
+          return right(data)
         })
 
       vitest.resetModules()
@@ -81,8 +89,8 @@ describe("with valid data", async () => {
       const queueBar = render(QueueBarComponent)
 
       expect(
-        queueBar.container.querySelectorAll(testAttr.queueNextTracks).length <=
-          20
+        queueBar.container.querySelectorAll(testAttributes.queueNextTracks)
+          .length <= 20
       ).toBeTruthy()
     })
 
@@ -123,7 +131,7 @@ describe("with valid data", async () => {
       const desiredAmount = Math.min(mockedTracks.length - 1, 20) // Current track takes one spot
 
       expect(
-        container.querySelectorAll(testAttr.asQuery.queueNextTracks)
+        container.querySelectorAll(testAttributes.asQuery.queueNextTracks)
       ).lengthOf(desiredAmount)
     })
 
@@ -153,21 +161,23 @@ describe("with valid data", async () => {
       it("switches to the track when it is double clicked", async () => {
         const component = render(QueueBarComponent)
 
-        const currentTrack = component.getByTestId(id.queueCurrentTrack)
+        const currentTrackElement = component.getByTestId(id.queueCurrentTrack)
         const nextTrack = component.getByTestId(id.queueNextTrack)
 
         await fireEvent.doubleClick(nextTrack)
 
         const newPreviousTrack = component.getByTestId(id.queuePreviousTrack)
-        const newCurrentTrack = component.getByTestId(id.queueCurrentTrack)
+        const newCurrentTrackElement = component.getByTestId(
+          id.queueCurrentTrack
+        )
         const newNextTrack = component.getByTestId(id.queueNextTrack)
 
         expect(
-          () => currentTrack.innerText === newPreviousTrack.innerText
+          () => currentTrackElement.innerText === newPreviousTrack.innerText
         ).toBeTruthy()
 
         expect(
-          () => nextTrack.innerText === newCurrentTrack.innerText
+          () => nextTrack.innerText === newCurrentTrackElement.innerText
         ).toBeTruthy()
 
         expect(
@@ -176,14 +186,14 @@ describe("with valid data", async () => {
       })
     })
 
-    //TODO implement remove queue item
+    // TODO implement remove queue item
     describe("click delete queue item", async () => {
       it("removes queue item", async () => {
         const component = render(QueueBarComponent)
 
         const nextTrack = component.getByTestId(id.queueNextTrack)
         const deleteIcon = nextTrack.querySelector(
-          testAttr.asQuery.queueItemDeleteIcon
+          testAttributes.asQuery.queueItemDeleteIcon
         )
 
         if (!deleteIcon) throw new Error("No delete icon found for queue item") // for typescript
@@ -203,7 +213,7 @@ describe("with valid data", async () => {
 
         const previousTrack = component.getByTestId(id.queuePreviousTrack)
         const deleteIcon = previousTrack.querySelector(
-          testAttr.asQuery.queueItemDeleteIcon
+          testAttributes.asQuery.queueItemDeleteIcon
         )
         const oldCurrentTrack = component.getByTestId(id.queueCurrentTrack)
 
@@ -221,7 +231,7 @@ describe("with valid data", async () => {
 
         const oldCurrentTrack = component.getByTestId(id.queueCurrentTrack)
         const deleteIcon = oldCurrentTrack.querySelector(
-          testAttr.asQuery.queueItemDeleteIcon
+          testAttributes.asQuery.queueItemDeleteIcon
         )
 
         if (!deleteIcon) throw new Error("No delete icon found for queue item")
@@ -231,8 +241,7 @@ describe("with valid data", async () => {
 
         if (!oldNextTrack.textContent)
           throw new Error(
-            "oldCurrentTrack.textContent should be text, but is" +
-              oldNextTrack.textContent
+            `oldCurrentTrack.textContent should be text, but is${oldNextTrack.textContent}`
           )
 
         expect(newCurrentTrack.textContent).toMatch(oldNextTrack.textContent)
@@ -243,12 +252,12 @@ describe("with valid data", async () => {
 
         const amountToRemove = 5
 
-        for (let i = 0; i < amountToRemove; i++) {
+        for (let index = 0; index < amountToRemove; index += 1) {
           const oldCurrentTrack = component.getByTestId(id.queueCurrentTrack)
           const oldNextTrack = component.getByTestId(id.queueNextTrack)
 
           const deleteIcon = oldCurrentTrack.querySelector(
-            testAttr.asQuery.queueItemDeleteIcon
+            testAttributes.asQuery.queueItemDeleteIcon
           )
           if (!deleteIcon)
             throw new Error("No delete icon found for queue item")
@@ -258,7 +267,7 @@ describe("with valid data", async () => {
 
           expect(
             newCurrentTrack.textContent,
-            `Failed at deletion: ${i + 1}`
+            `Failed at deletion: ${index + 1}`
           ).toBe(oldNextTrack.textContent)
         }
       })
@@ -283,7 +292,9 @@ describe("with valid data", async () => {
 describe("behaves correctly when queue is empty", async () => {
   beforeEach(async () => {
     // Mock response to be empty and regenerate the import || clear its cache
-    vitest.mocked(window.api.getTracks).mockImplementation(async () => [])
+    vitest
+      .mocked(window.api.getTracks)
+      .mockImplementation(async () => right([]))
     vitest.resetModules()
 
     QueueBarComponent = (await import(
@@ -294,7 +305,9 @@ describe("behaves correctly when queue is empty", async () => {
   it("does not display items as already played", () => {
     const { container } = render(QueueBarComponent)
 
-    const elements = container.querySelectorAll(testAttr.queuePreviousTracks)
+    const elements = container.querySelectorAll(
+      testAttributes.queuePreviousTracks
+    )
 
     expect(elements.length === 0).toBeTruthy()
   })
@@ -302,9 +315,9 @@ describe("behaves correctly when queue is empty", async () => {
   it("does not display items as upcoming", async () => {
     const component = render(QueueBarComponent)
 
-    const container = component.container
+    const { container } = component
 
-    const elements = container.querySelectorAll(testAttr.queueNextTracks)
+    const elements = container.querySelectorAll(testAttributes.queueNextTracks)
 
     expect(elements.length === 0).toBeTruthy()
   })

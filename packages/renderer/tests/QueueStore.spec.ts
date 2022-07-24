@@ -1,12 +1,9 @@
+import queueStore, { mapTracksToQueueItem, remapIndexes, removeIndex } from "@/lib/stores/QueueStore"
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import mockElectronApi from "./MockElectronApi"
-import queueStore, {
-  removeIndex,
-  mapTracksToQueueItem,
-  remapIndexes,
-} from "@/lib/stores/QueueStore"
-import trackFactory from "./factories/trackFactory"
+
 import queueItemFactory from "./factories/queueItemFactory"
+import trackFactory from "./factories/trackFactory"
+import mockElectronApi from "./MockElectronApi"
 
 vi.stubGlobal("api", mockElectronApi)
 
@@ -20,11 +17,11 @@ beforeEach(async () => {
   queueItemFactory.rewindSequence()
 })
 
-describe("fn: setUpcomingFromSource", async () => {
-  it.todo("keeps the old played songs", async () => {})
-  it.todo("adds the new items properly", async () => {})
-  it.todo("keeps the old played songs", async () => {})
-})
+// describe("fn: setUpcomingFromSource", async () => {
+//   it.todo("keeps the old played songs", async () => {})
+//   it.todo("adds the new items properly", async () => {})
+//   it.todo("keeps the old played songs", async () => {})
+// })
 
 describe("fn: mapTracks", async () => {
   const tracks = trackFactory.buildList(10)
@@ -49,21 +46,21 @@ describe("fn: remapIndexes", async () => {
 
     const newItems = remapIndexes(queueItems, continueFromIndex)
 
-    expect(() => {
-      return newItems.every(
-        (item, i) => item.index === continueFromIndex + 1 + i
+    expect(() =>
+      newItems.every(
+        (item, index) => item.index === continueFromIndex + 1 + index
       )
-    }).toBeTruthy()
+    ).toBeTruthy()
   })
 
-  it("creates a ´new symbol for the mapped items", async () => {
+  it("creates a new symbol for the mapped items", async () => {
     const queueItems = queueItemFactory.buildList(20)
     const continueFromIndex = 10
 
     const newItems = remapIndexes(queueItems, continueFromIndex)
 
-    for (let i = 10; i < 20; i++) {
-      expect(newItems[i].queueID).to.not.equal(queueItems[i].queueID)
+    for (let index = 10; index < 20; index += 1) {
+      expect(newItems[index].queueID).to.not.equal(queueItems[index].queueID)
     }
   })
 })
@@ -84,8 +81,8 @@ describe("fn: deleteIndex", async () => {
 
     const newItems = removeIndex(queueItems, indexes)
 
-    for (const [i, item] of newItems.entries()) {
-      expect(item.track.title).toBe(queueItems[4 + i].track.title)
+    for (const [index, item] of newItems.entries()) {
+      expect(item.track.title).toBe(queueItems[4 + index].track.title)
     }
   })
 

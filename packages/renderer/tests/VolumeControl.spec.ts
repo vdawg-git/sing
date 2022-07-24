@@ -1,8 +1,10 @@
-import { fireEvent, render, screen } from "@testing-library/svelte"
-import type { SvelteComponentDev } from "svelte/internal"
-import { beforeEach, expect, it, vi } from "vitest"
-import { TEST_IDS as id } from "@/TestConsts"
 import "./setupBasicMocks"
+
+import { TEST_IDS as id } from "@/TestConsts"
+import { fireEvent, render } from "@testing-library/svelte"
+import { beforeEach, expect, it, vi } from "vitest"
+
+import type { SvelteComponentDev } from "svelte/internal"
 
 let VolumeControl: typeof SvelteComponentDev
 
@@ -34,12 +36,12 @@ it("sets the internal volume value to zero on click", async () => {
     props: { value: 1 },
   })
 
-  const $$ = dom.component.$$
-  const oldVolume = $$.ctx[$$.props["value"]]
+  const { $$ } = dom.component
+  const oldVolume = $$.ctx[$$.props.value]
 
   await fireEvent.click(dom.getByTestId(id.playbarVolumeIcon))
 
-  const newVolume = $$.ctx[$$.props["value"]]
+  const newVolume = $$.ctx[$$.props.value]
 
   expect(oldVolume).toBe(1)
   expect(newVolume).toBe(0)
@@ -50,13 +52,13 @@ it("restores the previous volume when clickong on the muted icon", async () => {
     props: { value: 1 },
   })
 
-  const $$ = dom.component.$$
-  const oldVolume = $$.ctx[$$.props["value"]]
+  const { $$ } = dom.component
+  const oldVolume = $$.ctx[$$.props.value]
 
   await fireEvent.click(dom.getByTestId(id.playbarVolumeIcon))
   await fireEvent.click(dom.getByTestId(id.playbarVolumeIcon))
 
-  const newVolume = $$.ctx[$$.props["value"]]
+  const newVolume = $$.ctx[$$.props.value]
 
   expect(newVolume).toBe(oldVolume)
 })
@@ -64,8 +66,8 @@ it("restores the previous volume when clickong on the muted icon", async () => {
 it("sets the correct value for the volume on creation", async () => {
   const dom = render(VolumeControl, { value: 1 })
 
-  const $$ = dom.component.$$
-  const volume = $$.ctx[$$.props["value"]]
+  const { $$ } = dom.component
+  const volume = $$.ctx[$$.props.value]
 
   expect(volume).toBe(1)
 })

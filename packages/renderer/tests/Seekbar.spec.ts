@@ -1,15 +1,15 @@
+import "./setupBasicMocks"
+
 import { TEST_IDS as id } from "@/TestConsts"
 import { render } from "@testing-library/svelte"
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import mockElectronApi from "./MockElectronApi"
-import "./setupBasicMocks"
+
 import { convertDisplayTimeToSeconds } from "../../../tests/Helper"
-import mockedPlayer from "./mocks/AudioPlayer"
+import mockElectronApi from "./MockElectronApi"
+
 import type { SvelteComponentDev } from "svelte/internal"
 
-vi.mock("@/lib/manager/AudioPlayer", () => {
-  return { default: mockedPlayer }
-})
+vi.mock("@/lib/manager/AudioPlayer")
 vi.stubGlobal("api", mockElectronApi)
 
 let Seekbar: typeof SvelteComponentDev
@@ -51,25 +51,25 @@ describe("displays the progress", async () => {
   it("displays the correct width for the progressbar when track is at the end", async () => {
     const dom = render(Seekbar, { currentTime: 100, duration: 100 })
 
-    const width = dom.getByTestId(id.seekbarProgressbar).style.width
+    const { width } = dom.getByTestId(id.seekbarProgressbar).style
 
-    expect(width).toBe(100 + "%")
+    expect(width).toBe(`${100}%`)
   })
 
   it("displays the correct width for the progressbar when track is at the beginning", async () => {
     const dom = render(Seekbar, { currentTime: 0, duration: 100 })
 
-    const width = dom.getByTestId(id.seekbarProgressbar).style.width
+    const { width } = dom.getByTestId(id.seekbarProgressbar).style
 
-    expect(width).toBe(0 + "%")
+    expect(width).toBe(`${0}%`)
   })
 
   it("displays the correct width for the progressbar when track is at the middle", async () => {
     const dom = render(Seekbar, { currentTime: 50, duration: 100 })
 
-    const width = dom.getByTestId(id.seekbarProgressbar).style.width
+    const { width } = dom.getByTestId(id.seekbarProgressbar).style
 
-    expect(width).toBe(50 + "%")
+    expect(width).toBe(`${50}%`)
   })
 
   it("displays the correct currentTime", async () => {

@@ -1,15 +1,18 @@
-import { TEST_IDS as id } from "../src/TestConsts"
-import { fireEvent, render, waitFor, screen } from "@testing-library/svelte"
-import { beforeEach, describe, expect, it, vi } from "vitest"
-import mockElectronApi, { mockedApiTracks } from "./MockElectronApi"
+/* eslint-disable unicorn/prefer-dom-node-text-content */
 import "./setupBasicMocks"
-import mockedPlayer from "./mocks/AudioPlayer"
-import type { SvelteComponentDev } from "svelte/internal"
-import trackFactory from "./factories/trackFactory"
 
-vi.mock("@/lib/manager/AudioPlayer", () => {
-  return { default: mockedPlayer }
-})
+import { fireEvent, render, screen, waitFor } from "@testing-library/svelte"
+import { right } from "fp-ts/lib/Either"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+
+import mockedPlayer from "../src/lib/manager/__mocks__/AudioPlayer"
+import { TEST_IDS as id } from "../src/TestConsts"
+import trackFactory from "./factories/trackFactory"
+import mockElectronApi, { mockedApiTracks, mockedApiTracksResponse } from "./MockElectronApi"
+
+import type { SvelteComponentDev } from "svelte/internal"
+
+vi.mock("@/lib/manager/AudioPlayer", () => ({ default: mockedPlayer }))
 vi.stubGlobal("api", mockElectronApi)
 
 let Playbar: typeof SvelteComponentDev
@@ -21,7 +24,7 @@ afterEach(() => {
 describe("behaves correctly with valid queue", async () => {
   beforeEach(async () => {
     vi.mocked(window.api.getTracks).mockImplementation(
-      async () => mockedApiTracks
+      async () => mockedApiTracksResponse
     )
     Playbar = (await import(
       "@/lib/organisms/Playbar.svelte"
@@ -38,19 +41,22 @@ describe("behaves correctly with valid queue", async () => {
     const trackWithNoCover = trackFactory.build()
     delete trackWithNoCover.coverPath
 
-    const newMockedApiTracks = [trackWithNoCover, ...trackFactory.buildList(20)]
+    const newMockedApiTracks = right([
+      trackWithNoCover,
+      ...trackFactory.buildList(20),
+    ])
 
     vi.mocked(window.api.getTracks).mockImplementation(
       async () => newMockedApiTracks
     )
     vi.resetModules()
-    const Playbar = (await import(
+    Playbar = (await import(
       "@/lib/organisms/Playbar.svelte"
     )) as unknown as typeof SvelteComponentDev
     const playbar = render(Playbar)
 
     vi.mocked(window.api.getTracks).mockImplementation(
-      async () => mockedApiTracks
+      async () => mockedApiTracksResponse
     )
     expect(playbar.getByTestId(id.playbarCover).nodeName === "DIV").toBeTruthy()
   })
@@ -96,6 +102,7 @@ describe("behaves correctly with valid queue", async () => {
     await fireEvent.click(forwardButton)
     await fireEvent.click(previousButton)
     const artist = screen.getByTestId(id.playbarArtist).textContent
+
     expect(artist === (mockedApiTracks[0]?.artist || "Unknown")).toBeTruthy()
   })
 
@@ -106,13 +113,14 @@ describe("behaves correctly with valid queue", async () => {
     await fireEvent.click(forwardButton)
     await fireEvent.click(previousButton)
     const title = screen.getByTestId(id.playbarTitle).textContent
+
     expect(title === (mockedApiTracks[0]?.title || "Unknown")).toBeTruthy()
   })
 })
 
 describe("behaves correctly with no tracks", () => {
   beforeEach(async () => {
-    vi.mocked(window.api.getTracks).mockImplementation(async () => [])
+    vi.mocked(window.api.getTracks).mockImplementation(async () => right([]))
 
     Playbar = (await import(
       "@/lib/organisms/Playbar.svelte"
@@ -186,19 +194,19 @@ describe("behaves correctly with no tracks", () => {
   })
 })
 
-describe("changes the playback state", async () => {
-  beforeEach(async () => {
-    vi.mocked(window.api.getTracks).mockImplementation(
-      async () => mockedApiTracks
-    )
-    Playbar = (await import(
-      "@/lib/organisms/Playbar.svelte"
-    )) as unknown as typeof SvelteComponentDev
-  })
+// describe("changes the playback state", async () => {
+//   beforeEach(async () => {
+//     vi.mocked(window.api.getTracks).mockImplementation(
+//       async () => mockedApiTracksResponse
+//     )
+//     Playbar = (await import(
+//       "@/lib/organisms/Playbar.svelte"
+//     )) as unknown as typeof SvelteComponentDev
+//   })
 
-  it("mutes when clicking the volume icon", async () => {})
+// it("mutes when clicking the volume icon", async () => {})
 
-  it("unmutes when pressing the muted volume icon", async () => {})
+// it("unmutes when pressing the muted volume icon", async () => {})
 
-  it("changes the volume when settings the slider value", async () => {})
-})
+// it("changes the volume when settings the slider value", async () => {})
+// })

@@ -68,7 +68,6 @@ const testAttributeNames = [
   "trackItemDuration",
   "trackItemTitle",
 ] as const
-////////////////////////////////
 
 type ITestIDs = {
   readonly [index in typeof testIDNames[number]]: index
@@ -86,23 +85,23 @@ type ITestAttributes = {
   }
 }
 
-export const TEST_IDS: ITestIDs = testIDNames.reduce((acc, name) => {
-  if (!acc?.asQuery) acc["asQuery"] = {}
+export const TEST_IDS: ITestIDs = testIDNames.reduce((accumulator, name) => {
+  if (!accumulator?.asQuery) accumulator.asQuery = {}
 
-  acc[name] = name
-  acc.asQuery[name] = `[data-testid=${name}]`
+  accumulator[name] = name
+  accumulator.asQuery[name] = `[data-testid=${name}]`
 
-  return acc
+  return accumulator
 }, {} as any)
 
-export const testAttr: ITestAttributes = testAttributeNames.reduce(
-  (acc, name) => {
-    if (!acc?.asQuery) acc["asQuery"] = {}
+export const testAttributes: ITestAttributes = testAttributeNames.reduce(
+  (accumulator, name) => {
+    if (!accumulator?.asQuery) accumulator.asQuery = {}
 
-    acc[name] = name
-    acc.asQuery[name] = `[data-testattribute=${name}]`
+    accumulator[name] = name
+    accumulator.asQuery[name] = `[data-testattribute=${name}]`
 
-    return acc
+    return accumulator
   },
   {} as any
 )

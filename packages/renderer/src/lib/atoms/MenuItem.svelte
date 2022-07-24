@@ -1,13 +1,13 @@
 <script lang="ts">
   import type { IRoutes } from "@/Consts"
-  import { testAttr } from "@/TestConsts"
+  import { testAttributes } from "@/TestConsts"
   import { Link } from "svelte-navigator"
 
   export let to: IRoutes | undefined = undefined
 </script>
 
 {#if to}
-  <Link {to} data-testattribute={testAttr.menuItem}>
+  <Link {to} data-testattribute={testAttributes.menuItem}>
     <div
       class="
       flex cursor-pointer p-3 align-middle active:bg-grey-500
@@ -18,7 +18,7 @@
     </div>
   </Link>
 {:else}
-  <button on:click data-testattribute={testAttr.menuItem}>
+  <button on:click data-testattribute={testAttributes.menuItem}>
     <div
       class="
       flex cursor-pointer p-3 align-middle active:bg-grey-500

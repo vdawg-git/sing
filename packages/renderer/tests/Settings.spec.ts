@@ -1,14 +1,16 @@
-import { TEST_IDS as id } from "../src/TestConsts"
-import { fireEvent, render, waitFor, screen } from "@testing-library/svelte"
-import { beforeEach, describe, expect, it, vi } from "vitest"
-import mockElectronApi, { mockedApiTracks } from "./MockElectronApi"
 import "./setupBasicMocks"
-import mockedPlayer from "./mocks/AudioPlayer"
-import { tick, type SvelteComponentDev } from "svelte/internal"
 
-vi.mock("@/lib/manager/AudioPlayer", () => {
-  return { default: mockedPlayer }
-})
+import { fireEvent, render } from "@testing-library/svelte"
+import { tick } from "svelte/internal"
+import { beforeEach, expect, it, vi } from "vitest"
+
+import mockedPlayer from "../src/lib/manager/__mocks__/AudioPlayer"
+import { TEST_IDS as id } from "../src/TestConsts"
+import mockElectronApi from "./MockElectronApi"
+
+import type { SvelteComponentDev } from "svelte/internal"
+
+vi.mock("@/lib/manager/AudioPlayer", () => ({ default: mockedPlayer }))
 vi.stubGlobal("api", mockElectronApi)
 
 let Settings: typeof SvelteComponentDev

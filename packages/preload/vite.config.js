@@ -14,8 +14,9 @@ const config = {
   resolve: {
     alias: {
       "@": join(PACKAGE_ROOT, "src") + "/",
-      "@sing-types": join(PACKAGE_ROOT, "..", "..", "types") + "/",
+      "@sing-backend": join(PACKAGE_ROOT, "../backend/src") + "/",
       "@sing-main": join(PACKAGE_ROOT, "..", "main", "src") + "/",
+      "@sing-types": join(PACKAGE_ROOT, "..", "..", "types") + "/",
     },
   },
   build: {

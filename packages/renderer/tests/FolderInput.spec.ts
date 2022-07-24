@@ -1,15 +1,11 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  type RenderResult,
-} from "@testing-library/svelte"
-import { describe, expect, it } from "vitest"
-import { TEST_IDS as id, testAttr } from "@/TestConsts"
-import MockedApi from "./MockElectronApi"
-import type { SvelteComponentDev } from "svelte/internal"
+import { testAttributes } from "@/TestConsts"
+import { fireEvent, render } from "@testing-library/svelte"
 import { tick } from "svelte"
+import { expect, it } from "vitest"
+
+import MockedApi from "./MockElectronApi"
+
+import type { SvelteComponentDev } from "svelte/internal"
 
 vi.stubGlobal("api", MockedApi)
 
@@ -64,20 +60,18 @@ it("emits the edit event correctly", async () => {
   await tick() // seems to be nessecary when the logic awaits other things before dispatching
   await tick()
 
-  screen.debug()
-
   expect(mock).toHaveBeenCalled()
 })
 
 it("emits the removed event correctly", async () => {
   const dom = render(FolderInput, { path: "A:/AAA" })
-  const { component } = dom
+  const { component, container } = dom
 
   const mock = vi.fn()
   component.$on("folderRemoved", mock)
 
-  const deleteIcon = dom.container.querySelector(
-    testAttr.asQuery.folderInputDeleteIcon
+  const deleteIcon = container.querySelector(
+    testAttributes.asQuery.folderInputDeleteIcon
   )
   if (deleteIcon === null) throw new Error("No delete icon found")
 
@@ -92,8 +86,8 @@ it("sets the undefined prop correctly", async () => {
   const dom = render(FolderInput)
   const { component } = dom
 
-  const $$ = component.$$
-  const path = $$.ctx[$$.props["path"]]
+  const { $$ } = component
+  const path = $$.ctx[$$.props.path]
 
   expect(path).toBeUndefined()
 })
@@ -103,8 +97,8 @@ it("sets the defined prop correctly", async () => {
   const dom = render(FolderInput, { path })
   const { component } = dom
 
-  const $$ = component.$$
-  const prop = $$.ctx[$$.props["path"]]
+  const { $$ } = component
+  const property = $$.ctx[$$.props.path]
 
-  expect(prop).toBe(path)
+  expect(property).toBe(path)
 })

@@ -2,6 +2,8 @@ import audioPlayer from "@/lib/manager/AudioPlayer"
 import indexStore from "@/lib/stores/PlayIndex"
 import queueStore from "@/lib/stores/QueueStore"
 import tracksStore from "@/lib/stores/TracksStore"
+import { derived, get, writable } from "svelte/store"
+
 import type {
   IPlayLoop,
   IPlayMode,
@@ -9,15 +11,13 @@ import type {
   IQueueItem,
   ISourceType,
 } from "@/types/Types"
-import type { ITrack } from "@sing-types/Track"
+import type { ITrack } from "@sing-types/Types"
 import type { Unsubscriber } from "svelte/store"
-import { derived, get, writable } from "svelte/store"
-
 // Create stores / state
 const playLoopStore = writable<IPlayLoop>("NONE")
 const playModeStore = writable<IPlayMode>("DEFAULT")
 const sourceTypeStore = writable<ISourceType>("NONE")
-const sourceIDStore = writable<String>("")
+const sourceIDStore = writable<string>("")
 const playStateStore = writable<IPlayState>("STOPPED")
 const volumeStore = writable(1)
 const currentTimeStore = writable(0)
@@ -56,15 +56,16 @@ function createPlayerManager() {
   let $playLoop: IPlayLoop = "LOOP_QUEUE"
   let $playMode: IPlayMode = "DEFAULT"
   let $sourceType: ISourceType = "NONE"
-  let $sourceID: String = ""
+  let $sourceID = ""
   let $playState: IPlayState = "STOPPED"
   let $queue: IQueueItem[] = []
-  let $currentIndex: number = -1
+  let $currentIndex = -1
   let $currentTrack: IQueueItem
   let $currentTime: number
   let seekAnimationID: number
 
   // Subscribe to all stores and get the unsubscribers
+  // Some vars here just exists for future code
   const unsubscribers: Unsubscriber[] = [
     queueStore.subscribe(($newQueue) => {
       $queue = $newQueue
@@ -72,22 +73,35 @@ function createPlayerManager() {
     indexStore.subscribe(($newIndex) => {
       $currentIndex = $newIndex
     }),
-    playLoopStore.subscribe(($loop) => ($playLoop = $loop)),
-    playModeStore.subscribe(($mode) => ($playMode = $mode)),
-    sourceTypeStore.subscribe(($source) => ($sourceType = $source)),
-    sourceIDStore.subscribe(($id) => ($sourceID = $id)),
+    playLoopStore.subscribe(($loop) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      $playLoop = $loop
+    }),
+    playModeStore.subscribe(($mode) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      $playMode = $mode
+    }),
+    sourceTypeStore.subscribe(($source) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      $sourceType = $source
+    }),
+    sourceIDStore.subscribe(($id) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      $sourceID = $id
+    }),
     playStateStore.subscribe(handlePlayStateUpdate),
-    currentTrack.subscribe(
-      ($newCurrentTrack) => ($currentTrack = $newCurrentTrack)
-    ),
-    currentTimeStore.subscribe(
-      ($newCurrentTime) => ($currentTime = $newCurrentTime)
-    ),
+    currentTrack.subscribe(($newCurrentTrack) => {
+      $currentTrack = $newCurrentTrack
+    }),
+    currentTimeStore.subscribe(($newCurrentTime) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      $currentTime = $newCurrentTime
+    }),
   ]
 
   // Events
-  audioPlayer.audio.onended = handleTrackEnded
-  audioPlayer.audio.onvolumechange = onVolumeChange
+  audioPlayer.audio.addEventListener("ended", handleTrackEnded)
+  audioPlayer.audio.addEventListener("volumechange", onVolumeChange)
 
   return {
     destroy,
@@ -135,9 +149,9 @@ function createPlayerManager() {
   }
 
   function intervalUpdateTime() {
-    const currentTime = audioPlayer.getCurrentTime()
+    const newTime = audioPlayer.getCurrentTime()
 
-    currentTimeStore.set(currentTime)
+    currentTimeStore.set(newTime)
 
     seekAnimationID = requestAnimationFrame(intervalUpdateTime)
   }
@@ -192,7 +206,7 @@ function createPlayerManager() {
     })
     resetCurrentTime()
 
-    //Play next song
+    // Play next song
     if ($playState === "STOPPED" || $playState === "PAUSED")
       audioPlayer.setSource($currentTrack.track.filepath)
     else audioPlayer.play($currentTrack.track.filepath)
@@ -226,7 +240,10 @@ function createPlayerManager() {
   }
 
   function destroy() {
-    unsubscribers.forEach((unsubscribe) => unsubscribe())
+    for (const unsubscriber of unsubscribers) {
+      unsubscriber()
+    }
+
     audioPlayer.destroy()
   }
 

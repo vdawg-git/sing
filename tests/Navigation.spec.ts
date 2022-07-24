@@ -1,7 +1,9 @@
-import type { ElectronApplication } from "playwright"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
-import createBasePage from "./POM/BasePage"
+
 import { launchElectron } from "./Helper"
+import createBasePage from "./POM/BasePage"
+
+import type { ElectronApplication } from "playwright"
 
 let electronApp: ElectronApplication
 

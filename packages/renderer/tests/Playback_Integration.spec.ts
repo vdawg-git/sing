@@ -1,14 +1,15 @@
 import { TEST_IDS as id } from "@/TestConsts"
-import { render, fireEvent, screen, cleanup } from "@testing-library/svelte"
-import { beforeEach, describe, expect, it, vi } from "vitest"
-import mockElectronApi, { mockedApiTracks } from "./MockElectronApi"
-import mockedPlayer from "./mocks/AudioPlayer"
-import type { SvelteComponentDev } from "svelte/internal"
-import type { ITrack } from "@sing-types/Types"
+import { cleanup, fireEvent, render, screen } from "@testing-library/svelte"
+import { beforeEach, describe, expect, vi } from "vitest"
 
-vi.mock("@/lib/manager/AudioPlayer", () => {
-  return { default: mockedPlayer }
-})
+import mockedPlayer from "../src/lib/manager/__mocks__/AudioPlayer"
+import mockElectronApi, { mockedApiTracksResponse } from "./MockElectronApi"
+
+import type { SvelteComponentDev } from "svelte/internal"
+import type { IError, ITrack } from "@sing-types/Types"
+import type { Either } from "fp-ts/Either"
+
+vi.mock("@/lib/manager/AudioPlayer", () => ({ default: mockedPlayer }))
 vi.stubGlobal("api", mockElectronApi)
 
 let QueueBarComponent: typeof SvelteComponentDev
@@ -25,9 +26,11 @@ describe("playbar and queuebar", async () => {
     vitest
       .mocked(window.api.getTracks)
       .mockImplementation(
-        async (): Promise<readonly ITrack[]> => mockedApiTracks
+        async (): Promise<Either<IError, readonly ITrack[]>> =>
+          mockedApiTracksResponse
       )
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     QueueBarComponent = (await import(
       "@/lib/organisms/QueueBar.svelte"
     )) as unknown as typeof SvelteComponentDev

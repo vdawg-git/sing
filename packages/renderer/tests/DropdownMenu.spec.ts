@@ -1,15 +1,11 @@
-import {
-  fireEvent,
-  render,
-  screen,
-  type RenderResult,
-} from "@testing-library/svelte"
-import { expect, it } from "vitest"
-import { TEST_IDS as id, testAttr } from "@/TestConsts"
-import { tick } from "svelte"
-import type { SvelteComponentDev } from "svelte/internal"
-import MenuItems from "./helpers/MenuItemsTestComponent.svelte"
 import Menu from "@/lib/molecules/DropdownMenu.svelte"
+import { TEST_IDS as id, testAttributes } from "@/TestConsts"
+import { fireEvent, render } from "@testing-library/svelte"
+import { expect, it } from "vitest"
+
+import MenuItems from "./helpers/MenuItemsTestComponent.svelte"
+
+import type { SvelteComponentDev } from "svelte/internal"
 
 let SlotWrapper: typeof SvelteComponentDev
 
@@ -49,7 +45,7 @@ it("displays the menu items when clicking the icon", async () => {
   await fireEvent.click(icon)
 
   const menu = dom.getByTestId(id.test)
-  const elements = menu.querySelectorAll(testAttr.asQuery.menuItem)
+  const elements = menu.querySelectorAll(testAttributes.asQuery.menuItem)
 
   expect(elements.length).toBe(3)
 })

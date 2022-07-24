@@ -1,44 +1,45 @@
-import type { ElectronApplication } from "playwright"
-import {
-  TEST_IDS as id,
-  testAttr as testAttr,
-} from "../../packages/renderer/src//TestConsts"
+/* eslint-disable no-shadow */
+/* eslint-disable unicorn/prefer-dom-node-text-content */
+import slash from "slash"
+
+import { TEST_IDS, testAttributes } from "../../packages/renderer/src/TestConsts"
 import { convertDisplayTimeToSeconds, isImageElement } from "../Helper"
-import { type IRoutes } from "../../packages/renderer/src/Consts"
+import { reduceTitlesToFolders } from "./Helper"
 import createLibrarySettingsPage from "./LibrarySettingsPage"
 import createTracksPage from "./TracksPage"
-import { reduceTitlesToFolders } from "./Helper"
-import slash from "slash"
+
+import type { IRoutes } from "../../packages/renderer/src/Consts"
+import type { ElectronApplication } from "playwright"
 
 export default async function createBasePage(electronApp: ElectronApplication) {
   const page = await electronApp.firstWindow()
 
-  const currentTime = page.locator(id.asQuery.seekbarCurrentTime)
-  const currentTrack = page.locator(id.asQuery.playbarTitle)
-  const nextQueueTrack = page.locator(id.asQuery.queueNextTrack)
-  const nextTrack = page.locator(id.asQuery.queueNextTrack)
-  const nextTracks = page.locator(id.asQuery.queueBarNextTracks)
-  const playBarVolumeIcon = page.locator(id.asQuery.playbarVolumeIcon)
-  const playbarBackButton = page.locator(id.asQuery.playbarBackButton)
-  const playbarCover = page.locator(id.asQuery.playbarCover)
-  const playbarNextButton = page.locator(id.asQuery.playbarNextButton)
-  const playbarPlayButton = page.locator(id.asQuery.playbarPlayButton)
-  const playbarQueueIcon = page.locator(id.asQuery.playbarQueueIcon)
-  const previousTrack = page.locator(id.asQuery.queuePreviousTrack)
-  const previousTracks = page.locator(id.asQuery.queuePlayedTracks)
-  const progressBarKnob = page.locator(id.asQuery.seekbarProgressbarKnob)
-  const progressbar = page.locator(id.asQuery.seekbarProgressbar)
-  const queueBar = page.locator(id.asQuery.queueBar)
-  const seekbar = page.locator(id.asQuery.seekbar)
-  const sidebar = page.locator(id.asQuery.sidebar)
+  const currentTime = page.locator(TEST_IDS.asQuery.seekbarCurrentTime)
+  const currentTrack = page.locator(TEST_IDS.asQuery.playbarTitle)
+  const nextQueueTrack = page.locator(TEST_IDS.asQuery.queueNextTrack)
+  const nextTrack = page.locator(TEST_IDS.asQuery.queueNextTrack)
+  const nextTracks = page.locator(TEST_IDS.asQuery.queueBarNextTracks)
+  const playBarVolumeIcon = page.locator(TEST_IDS.asQuery.playbarVolumeIcon)
+  const playbarBackButton = page.locator(TEST_IDS.asQuery.playbarBackButton)
+  const playbarCover = page.locator(TEST_IDS.asQuery.playbarCover)
+  const playbarNextButton = page.locator(TEST_IDS.asQuery.playbarNextButton)
+  const playbarPlayButton = page.locator(TEST_IDS.asQuery.playbarPlayButton)
+  const playbarQueueIcon = page.locator(TEST_IDS.asQuery.playbarQueueIcon)
+  const previousTrack = page.locator(TEST_IDS.asQuery.queuePreviousTrack)
+  const previousTracks = page.locator(TEST_IDS.asQuery.queuePlayedTracks)
+  const progressBarKnob = page.locator(TEST_IDS.asQuery.seekbarProgressbarKnob)
+  const progressbar = page.locator(TEST_IDS.asQuery.seekbarProgressbar)
+  const queueBar = page.locator(TEST_IDS.asQuery.queueBar)
+  const seekbar = page.locator(TEST_IDS.asQuery.seekbar)
+  const sidebar = page.locator(TEST_IDS.asQuery.sidebar)
   const sidebarItemTracks = sidebar.locator("text=Tracks")
-  const sidebarMenu = page.locator(id.asQuery.sidebarMenu)
-  const sidebarMenuIcon = page.locator(id.asQuery.sidebarMenuIcon)
+  const sidebarMenu = page.locator(TEST_IDS.asQuery.sidebarMenu)
+  const sidebarMenuIcon = page.locator(TEST_IDS.asQuery.sidebarMenuIcon)
   const sidebarMenuSettings = sidebarMenu.locator("text=Settings")
-  const testAudioElement = page.locator(id.asQuery.testAudioELement)
-  const totalDuration = page.locator(id.asQuery.seekbarTotalDuration)
-  const volumeSlider = page.locator(id.asQuery.volumeSlider)
-  const volumeSliderInner = page.locator(id.asQuery.volumeSliderInner)
+  const testAudioElement = page.locator(TEST_IDS.asQuery.testAudioELement)
+  const totalDuration = page.locator(TEST_IDS.asQuery.seekbarTotalDuration)
+  const volumeSlider = page.locator(TEST_IDS.asQuery.volumeSlider)
+  const volumeSliderInner = page.locator(TEST_IDS.asQuery.volumeSliderInner)
 
   return {
     clickPlay,
@@ -91,7 +92,7 @@ export default async function createBasePage(electronApp: ElectronApplication) {
     await openSidebarMenu()
     await sidebarMenuSettings.click({ timeout: 3000 })
 
-    return await createLibrarySettingsPage(electronApp)
+    return createLibrarySettingsPage(electronApp)
   }
 
   async function gotoTracks() {
@@ -124,18 +125,17 @@ export default async function createBasePage(electronApp: ElectronApplication) {
   > {
     const { pathname, protocol } = new URL(page.url())
 
-    const path =
-      protocol + "//" + pathname + "#" + location + (id ? `/${id}` : "")
+    const path = `${protocol}//${pathname}#${location}${id ? `/${id}` : ""}`
 
     await page.goto(path, { timeout: 2000 })
 
     switch (location) {
       case "settings/library":
       case "settings/general":
-        return await createLibrarySettingsPage(electronApp)
+        return createLibrarySettingsPage(electronApp)
 
       case "tracks":
-        return await createTracksPage(electronApp)
+        return createTracksPage(electronApp)
 
       default:
         throw new Error("Invalid location // Not implemented")
@@ -147,27 +147,19 @@ export default async function createBasePage(electronApp: ElectronApplication) {
   }
 
   async function isPlayingAudio(): Promise<boolean> {
-    const isPlaying = await testAudioElement.evaluate((e) => {
-      if (!isMediaElement(e))
-        throw new Error("Element is not a media element, but " + e.nodeName)
-
-      return !(e.paused || e.ended)
-
-      function isMediaElement(
-        e: HTMLElement | SVGElement
-      ): e is HTMLMediaElement {
-        if (e.nodeName === "AUDIO") return true
-        if (e.nodeName === "VIDEO") return true
-
-        return false
-      }
-    })
+    const isPlaying = await testAudioElement.evaluate(
+      (element) =>
+        !(
+          (element as HTMLMediaElement).paused ||
+          (element as HTMLMediaElement).ended
+        )
+    )
 
     return isPlaying
   }
 
   async function waitForProgressBarToGrow(desiredWidth: number) {
-    const selector = id.asQuery.seekbarProgressbar
+    const selector = TEST_IDS.asQuery.seekbarProgressbar
 
     await page.waitForFunction(
       ({ selector, desiredWidth }) => {
@@ -225,15 +217,22 @@ export default async function createBasePage(electronApp: ElectronApplication) {
   async function playNextTrackFromQueue() {
     await nextQueueTrack.dblclick({ timeout: 2000 })
   }
+
+  async function isQueueOpen() {
+    if (await queueBar.isVisible()) return true
+
+    return false
+  }
+
   async function openQueue() {
-    if (await queueBar.isVisible()) return
+    if (await isQueueOpen()) return
 
     await playbarQueueIcon.click({ timeout: 1500 })
     await queueBar.waitFor({ state: "visible", timeout: 5000 })
   }
 
   async function closeQueue() {
-    if (!(await queueBar.isVisible())) return
+    if (!isQueueOpen()) return
 
     await playbarQueueIcon.click({ timeout: 1500 })
     await queueBar.waitFor({ state: "detached", timeout: 5000 })
@@ -248,20 +247,22 @@ export default async function createBasePage(electronApp: ElectronApplication) {
   }
 
   async function getProgressBarWidth() {
-    return (await progressbar.boundingBox({ timeout: 3000 }))?.width
+    const boundingBox = await progressbar.boundingBox({ timeout: 3000 })
+
+    return boundingBox?.width
   }
 
-  async function getNextTrack(): Promise<String | undefined> {
+  async function getNextTrack(): Promise<string | undefined> {
     const element = await nextTrack.elementHandle({ timeout: 2000 })
-    const titleElement = await element?.$(testAttr.asQuery.queueItemTitle)
+    const titleElement = await element?.$(testAttributes.asQuery.queueItemTitle)
     return titleElement?.innerText()
   }
-  async function getPreviousTrack(): Promise<String | undefined> {
+  async function getPreviousTrack(): Promise<string | undefined> {
     const element = await previousTrack.elementHandle({ timeout: 2000 })
-    const titleElement = await element?.$(testAttr.asQuery.queueItemTitle)
+    const titleElement = await element?.$(testAttributes.asQuery.queueItemTitle)
     return titleElement?.innerText()
   }
-  async function getCurrentTrack(): Promise<String | undefined> {
+  async function getCurrentTrack(): Promise<string | undefined> {
     if ((await currentTrack.count()) === 0) return undefined
 
     return currentTrack.innerText({ timeout: 2000 })
@@ -278,29 +279,28 @@ export default async function createBasePage(electronApp: ElectronApplication) {
           : await getPreviousTrack()
       if (!nextTitle) return undefined
 
-      return waitTitleToBecomeThat(nextTitle)
-    } else {
-      return waitTitleToBecomeThat(waitFor)
+      return waitPlaybarTitleToBecome(nextTitle)
     }
+    return waitPlaybarTitleToBecome(waitFor)
+  }
 
-    async function waitTitleToBecomeThat(that: String) {
-      const selector = id.asQuery.playbarTitle
+  async function waitPlaybarTitleToBecome(that: string) {
+    const selector = TEST_IDS.asQuery.playbarTitle
 
-      await page.waitForFunction(
-        ({ that, selector }) => {
-          const currentTitle = document.querySelector(selector)?.textContent
+    await page.waitForFunction(
+      ({ that, selector }) => {
+        const currentTitle = document.querySelector(selector)?.textContent
 
-          return currentTitle === that
-        },
-        { that, selector }
-      )
-    }
+        return currentTitle === that
+      },
+      { that, selector }
+    )
   }
 
   async function clickSeekbar(percentage: number) {
-    const x =
-      ((await seekbar.boundingBox({ timeout: 1000 }))?.width ?? 0) *
-      (percentage / 100)
+    const boundingBox = await seekbar.boundingBox({ timeout: 1000 })
+
+    const x = (boundingBox?.width ?? 0) * (percentage / 100)
 
     await seekbar.click({
       position: {
@@ -343,20 +343,19 @@ export default async function createBasePage(electronApp: ElectronApplication) {
   }
 
   async function getVolumeState(): Promise<number> {
-    const volume = await testAudioElement.evaluate((e) => {
-      const x = e as unknown as HTMLAudioElement
-
-      return x.volume
-    })
+    const volume = await testAudioElement.evaluate(
+      (element) => (element as HTMLMediaElement).volume
+    )
 
     return volume
   }
 
   async function getVolume(): Promise<number> {
     await hoverVolumeIcon()
+    const boundingBox = await volumeSlider.boundingBox()
 
-    const heightTotal = (await volumeSlider.boundingBox())?.height
-    const sliderHeight = (await volumeSliderInner.boundingBox())?.height
+    const heightTotal = boundingBox?.height
+    const sliderHeight = boundingBox?.height
 
     if (heightTotal === undefined || sliderHeight === undefined) return 0
 
@@ -391,26 +390,30 @@ export default async function createBasePage(electronApp: ElectronApplication) {
     await validateAndWaitForAnimation()
 
     async function validateAndWaitForAnimation(
-      height: number | undefined = undefined,
-      previousHeight: number | undefined = undefined
-    ) {
-      const newElementHeight = (await volumeSliderInner.boundingBox())?.height
+      height?: number | undefined,
+      previousHeight?: number | undefined
+    ): Promise<boolean> {
+      const boundingBox = await volumeSliderInner.boundingBox()
+
+      const newElementHeight = boundingBox?.height
+
       if (newElementHeight === undefined)
         throw new Error("height of volume gradient is undefined")
 
       if (newElementHeight !== previousHeight) {
         await page.waitForTimeout(10)
-        await validateAndWaitForAnimation(newElementHeight, height)
-      } else {
-        return newElementHeight === heightToReach
+        return validateAndWaitForAnimation(newElementHeight, height)
       }
+      return newElementHeight === heightToReach
     }
   }
 
   async function mockDialog(paths: string[]): Promise<void> {
     const returnValue = paths.map((path) => slash(path))
 
+    // eslint-disable-next-line no-shadow
     await electronApp.evaluate(async ({ dialog }, returnValue) => {
+      // eslint-disable-next-line no-param-reassign
       dialog.showOpenDialog = () =>
         Promise.resolve({ canceled: false, filePaths: returnValue })
     }, returnValue)
@@ -419,20 +422,23 @@ export default async function createBasePage(electronApp: ElectronApplication) {
   async function getQueueItems() {
     await openQueue()
 
+    const queueItems = await page.$$(testAttributes.asQuery.queueItem)
+
     const items = await Promise.all(
-      (
-        await page.$$(testAttr.asQuery.queueItem)
-      ).map(async (item) => {
+      queueItems.map(async (item) => {
+        const [titleElement, coverElement, artistElement] = [
+          await item.$(testAttributes.asQuery.queueItemTitle),
+          await item.$(testAttributes.asQuery.queueItemCover),
+          await item.$(testAttributes.asQuery.queueItemArtist),
+        ]
+        const title = await titleElement?.innerText()
+        const cover = await coverElement?.innerText()
+        const artist = await artistElement?.innerText()
+
         return {
-          title: await (
-            await item.$(testAttr.asQuery.queueItemTitle)
-          )?.innerText(),
-          cover: await (
-            await item.$(testAttr.asQuery.queueItemCover)
-          )?.innerText(),
-          artist: await (
-            await item.$(testAttr.asQuery.queueItemArtist)
-          )?.innerText(),
+          title,
+          cover,
+          artist,
         }
       })
     )

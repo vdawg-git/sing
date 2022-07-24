@@ -4,7 +4,7 @@
   import type { IQueueItem } from "@/types/Types"
   import { createEventDispatcher } from "svelte"
   import IconClose from "virtual:icons/heroicons-outline/x"
-  import { TEST_IDS as testID, testAttr } from "@/TestConsts"
+  import { TEST_IDS as testID, testAttributes } from "@/TestConsts"
   import { displayMetadata, titleToDisplay } from "@/Helper"
   type ITestIDs =
     | typeof testID.queueCurrentTrack
@@ -62,7 +62,7 @@
         alt={displayMetadata("title", track) + " cover"}
         class="h-12 w-12 rounded"
         class:opacity-70={state === "HAS_PLAYED"}
-        data-testattribute={testAttr.queueItemCover}
+        data-testattribute={testAttributes.queueItemCover}
       />
     {:else}
       <div class="h-12 w-12 bg-grey-700" />
@@ -72,14 +72,14 @@
       <span
         class="overflow-hidden text-ellipsis whitespace-nowrap text-base"
         data-testid={testTitleID}
-        data-testattribute={testAttr.queueItemTitle}
+        data-testattribute={testAttributes.queueItemTitle}
       >
         {displayMetadata("title", track)}
       </span>
       <span
         class="-mt-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm text-grey-300"
         data-testid={testArtistID}
-        data-testattribute={testAttr.queueItemArtist}
+        data-testattribute={testAttributes.queueItemArtist}
       >
         {displayMetadata("artist", track)}
       </span>
@@ -87,7 +87,7 @@
   </div>
   <button
     class="shrink-0 grow-0"
-    data-testattribute={testAttr.queueItemDeleteIcon}
+    data-testattribute={testAttributes.queueItemDeleteIcon}
     on:click|stopPropagation={handleRemoveClick}
   >
     <IconClose class="mr-2 h-6 w-6 text-grey-300 hover:text-white" />
