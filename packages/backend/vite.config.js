@@ -1,5 +1,5 @@
-import { builtinModules } from "module"
-import { join } from "path"
+import { builtinModules } from "node:module"
+import { join } from "node:path"
 
 import { node } from "../../.electron-vendors.cache.json"
 
@@ -15,11 +15,11 @@ const config = {
   envDir: process.cwd(),
   resolve: {
     alias: {
-      "@": join(PACKAGE_ROOT, "src") + "/",
-      "@tests": join(PACKAGE_ROOT, "tests") + "/",
-      "@sing-types": join(PACKAGE_ROOT, "..", "..", "types") + "/",
-      "@sing-main": join(PACKAGE_ROOT, "..", "main", "src") + "/",
-      "@sing-preload": join(PACKAGE_ROOT, "..", "preload", "src") + "/",
+      "@": `${join(PACKAGE_ROOT, "src")}/`,
+      "@tests": `${join(PACKAGE_ROOT, "tests")}/`,
+      "@sing-types": `${join(PACKAGE_ROOT, "..", "..", "types")}/`,
+      "@sing-main": `${join(PACKAGE_ROOT, "..", "main", "src")}/`,
+      "@sing-preload": `${join(PACKAGE_ROOT, "..", "preload", "src")}/`,
     },
   },
   build: {

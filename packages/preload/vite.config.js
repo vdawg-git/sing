@@ -1,6 +1,7 @@
+import { builtinModules } from "node:module"
+import path from "node:path"
+
 import { chrome } from "../../.electron-vendors.cache.json"
-import { builtinModules } from "module"
-import { join } from "path"
 
 const PACKAGE_ROOT = __dirname
 /**
@@ -13,10 +14,10 @@ const config = {
   envDir: process.cwd(),
   resolve: {
     alias: {
-      "@": join(PACKAGE_ROOT, "src") + "/",
-      "@sing-backend": join(PACKAGE_ROOT, "../backend/src") + "/",
-      "@sing-main": join(PACKAGE_ROOT, "..", "main", "src") + "/",
-      "@sing-types": join(PACKAGE_ROOT, "..", "..", "types") + "/",
+      "@": `${path.join(PACKAGE_ROOT, "src")}/`,
+      "@sing-backend": `${path.join(PACKAGE_ROOT, "../backend/src")}/`,
+      "@sing-main": `${path.join(PACKAGE_ROOT, "..", "main", "src")}/`,
+      "@sing-types": `${path.join(PACKAGE_ROOT, "..", "..", "types")}/`,
     },
   },
   build: {

@@ -1,8 +1,8 @@
 /* eslint-env node */
 import { svelte } from "@sveltejs/vite-plugin-svelte"
-import { promises as fs } from "fs"
-import { builtinModules } from "module"
-import { join } from "path"
+import { promises as fs } from "node:fs"
+import { builtinModules } from "node:module"
+import path from "node:path"
 import Icons from "unplugin-icons/vite"
 
 import { chrome } from "../../.electron-vendors.cache.json"
@@ -18,11 +18,11 @@ const config = {
   root: PACKAGE_ROOT,
   resolve: {
     alias: {
-      "@": join(PACKAGE_ROOT, "src") + "/",
-      "@tests": join(PACKAGE_ROOT, "tests") + "/",
-      "@sing-types": join(PACKAGE_ROOT, "..", "..", "types") + "/",
-      "@sing-main": join(PACKAGE_ROOT, "..", "main", "src") + "/",
-      "@sing-preload": join(PACKAGE_ROOT, "..", "preload", "src") + "/",
+      "@": `${path.join(PACKAGE_ROOT, "src")}/`,
+      "@tests": `${path.join(PACKAGE_ROOT, "tests")}/`,
+      "@sing-types": `${path.join(PACKAGE_ROOT, "..", "..", "types")}/`,
+      "@sing-main": `${path.join(PACKAGE_ROOT, "..", "main", "src")}/`,
+      "@sing-preload": `${path.join(PACKAGE_ROOT, "..", "preload", "src")}/`,
     },
   },
   plugins: [
@@ -31,7 +31,7 @@ const config = {
       customCollections: {
         custom: async (iconName) =>
           fs.readFile(
-            join(__dirname, "assets", "icons", `${iconName}.svg`),
+            path.join(__dirname, "assets", "icons", `${iconName}.svg`),
             "utf8"
           ),
       },
@@ -50,7 +50,7 @@ const config = {
     outDir: "dist",
     assetsDir: ".",
     rollupOptions: {
-      input: join(PACKAGE_ROOT, "index.html"),
+      input: path.join(PACKAGE_ROOT, "index.html"),
       external: [...builtinModules.flatMap((p) => [p, `node:${p}`])],
     },
     emptyOutDir: true,

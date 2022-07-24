@@ -1,6 +1,7 @@
+import { builtinModules } from "node:module"
+import { join } from "node:path"
+
 import { node } from "../../.electron-vendors.cache.json"
-import { join } from "path"
-import { builtinModules } from "module"
 
 const PACKAGE_ROOT = __dirname
 
@@ -14,10 +15,10 @@ const config = {
   envDir: process.cwd(),
   resolve: {
     alias: {
-      "@": join(PACKAGE_ROOT, "src") + "/",
-      "@sing-backend": join(PACKAGE_ROOT, "../backend/src") + "/",
-      "@tests": join(PACKAGE_ROOT, "tests") + "/",
-      "@sing-types": join(PACKAGE_ROOT, "..", "..", "types") + "/",
+      "@": `${join(PACKAGE_ROOT, "src")}/`,
+      "@sing-backend": `${join(PACKAGE_ROOT, "../backend/src")}/`,
+      "@tests": `${join(PACKAGE_ROOT, "tests")}/`,
+      "@sing-types": `${join(PACKAGE_ROOT, "..", "..", "types")}/`,
     },
   },
   build: {
