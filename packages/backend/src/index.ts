@@ -11,7 +11,6 @@ log("Database path provided to backend:", process.argv[2])
 // Handle incoming requests
 process.on("message", handleTwoWayEvent)
 process.on("message", handleOneWayEvent)
-
 process.on("error", log)
 
 async function handleTwoWayEvent(request: unknown) {

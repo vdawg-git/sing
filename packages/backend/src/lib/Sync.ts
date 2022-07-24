@@ -9,6 +9,7 @@ import { addTrackToDB, deleteTracksInverted } from "./Crud"
 import { convertMetadata, getRawMetaDataFromFilepath, saveCovers } from "./Metadata"
 
 import type { IError } from "@sing-types/Types"
+
 export async function syncDirectories(
   coversDirectory: string,
   directories: string[]
