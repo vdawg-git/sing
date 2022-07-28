@@ -1,9 +1,5 @@
 const testIDNames = [
-  "modal",
-  "modalContent",
   "myTracksTitle",
-  "noContentMessage",
-  "noContentModalButton",
   "playbar",
   "playbarAlbum",
   "playbarArtist",
@@ -54,6 +50,9 @@ const testAttributeNames = [
   "folderInput",
   "folderInputDeleteIcon",
   "menuItem",
+  "modalCloseButton",
+  "modalContent",
+  "modalWrapper",
   "queueItem",
   "queueItemArtist",
   "queueItemCover",
@@ -81,7 +80,7 @@ type ITestAttributes = {
   readonly [index in typeof testAttributeNames[number]]: index
 } & {
   readonly asQuery: {
-    readonly [i in typeof testAttributeNames[number]]: `[data-testattribute=${i}]`
+    readonly [index in typeof testAttributeNames[number]]: `[data-testattribute=${index}]`
   }
 }
 

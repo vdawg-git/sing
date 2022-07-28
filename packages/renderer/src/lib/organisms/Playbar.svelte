@@ -45,7 +45,7 @@
     custom_shadow absolute inset-x-0
     bottom-0 z-20 grid h-[72px]
     w-full grid-cols-3 items-center  justify-between  
-    rounded-3xl border border-grey-500 bg-grey-700/80
+    rounded-3xl bg-grey-700/80
     px-6 backdrop-blur-xl
   "
   data-testid={test.playbar}
@@ -110,30 +110,26 @@
         on:click={() => player.previous()}
         data-testid={test.playbarBackButton}
         disabled={!$currentTrack}
-        class="button rotate-180"
+        class="button "
       >
-        <IconNext class="h-8 w-8" />
+        <div class="rotate-180">
+          <IconNext class="h-8 w-8" />
+        </div>
       </button>
       <!---- Play button-->
-      {#if $playState === "PLAYING"}
-        <button
-          on:click={() => player.pause()}
-          data-testid={test.playbarPauseButton}
-          disabled={!$currentTrack}
-          class="button"
-        >
+      <button
+        on:click={() =>
+          $playState === "PLAYING" ? player.pause() : player.resume()}
+        data-testid={test.playbarPauseButton}
+        disabled={!$currentTrack}
+        class="button"
+      >
+        {#if $playState === "PLAYING"}
           <IconPause class="h-12 w-12" />
-        </button>
-      {:else}
-        <button
-          on:click={() => player.resume()}
-          data-testid={test.playbarPlayButton}
-          disabled={!$currentTrack}
-          class="button"
-        >
+        {:else}
           <IconPlay class="h-12 w-12" />
-        </button>
-      {/if}
+        {/if}
+      </button>
       <!---- Forward button-->
       <button
         on:click={() => player.next()}
@@ -185,7 +181,13 @@
   .button {
     color: theme(colors.white);
     cursor: pointer;
-    @apply transition-transform active:scale-95;
+    transition: color 120ms cubic-bezier(0.4, 0, 0.2, 1),
+      transform 120ms cubic-bezier(0.4, 0, 0.2, 1);
+    /* @apply transition-transform active:scale-95; */
+
+    &:active {
+      transform: scale(0.96, 0.89);
+    }
 
     &:hover {
       color: theme(colors.grey.300);

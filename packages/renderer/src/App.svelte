@@ -7,6 +7,7 @@
   import Settings from "@/lib/pages/Settings.svelte"
   import { createHashSource } from "./Helper"
   import { routes } from "./Consts"
+  import NotificationsRenderer from "./lib/organisms/NotificationsRenderer.svelte"
 
   tracksStore.subscribe((_) => {}) // Never undload tracks
 
@@ -14,6 +15,7 @@
 </script>
 
 <main class="select-none bg-grey-900 text-white ">
+  <NotificationsRenderer />
   <Router history={hashHistory}>
     <div class="flex">
       <Sidebar />

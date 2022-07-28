@@ -10,6 +10,10 @@ import { convertMetadata, getRawMetaDataFromFilepath, saveCovers } from "./Metad
 
 import type { IError } from "@sing-types/Types"
 
+// TODO Optimize sync speed
+// Get all track filepaths with the file MD5 checksum and filter the new ones to add out if they have the same MD5 checksum
+// Then upsert only the ones which already exist, for the rest use one big `createMany` statement
+
 export async function syncDirectories(
   coversDirectory: string,
   directories: string[]
