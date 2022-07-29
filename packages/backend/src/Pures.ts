@@ -8,7 +8,11 @@ import { SUPPORTED_MUSIC_FORMATS, UNSUPPORTED_MUSIC_FORMATS } from "./lib/FileFo
 
 import type { Either } from "fp-ts/lib/Either"
 
-import type { NullValuesToOptional } from "@sing-types/Types"
+import type {
+  IRawAudioMetadata,
+  IRawAudioMetadataWithPicture,
+  NullValuesToOptional,
+} from "@sing-types/Types"
 
 export function filterPathsByExtenstions(
   extensions: readonly string[],
@@ -200,10 +204,18 @@ export function removeNulledKeys<T extends Record<string, unknown>>(
   return result
 }
 
-export function getRightOrThrow<A, E>(either: Either<E, A>): A {
+export function getRightOrThrow<A>(either: Either<unknown, A>): A {
   if (isLeft(either)) throw new Error(`${either.left}`)
 
   return either.right
+}
+
+export function hasCover(
+  object: IRawAudioMetadata
+): object is IRawAudioMetadataWithPicture {
+  if (!Array.isArray(object.common?.picture)) return false
+
+  return true
 }
 
 // ?########################################################################

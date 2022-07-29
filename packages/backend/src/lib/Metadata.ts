@@ -1,5 +1,4 @@
-import { flattenObject, removeDuplicates, removeKeys, stringifyArraysInObject } from "@/Pures"
-import { isICoverData } from "@/types/TypeGuards"
+import { flattenObject, removeKeys, stringifyArraysInObject } from "@/Pures"
 import { curry2 } from "fp-ts-std/Function"
 import { isRight, left, right } from "fp-ts/lib/Either"
 import { pipe } from "fp-ts/lib/function"
@@ -8,24 +7,31 @@ import { createHash } from "node:crypto"
 
 import { checkPathAccessible, writeFileToDisc } from "../Helper"
 
-import type { IAudioMetadata } from "music-metadata"
+import type { IPicture } from "music-metadata"
 
 import type { Prisma } from "@prisma/client"
-import type { IError, IRawAudioMetadata } from "@sing-types/Types"
+import type {
+  IError,
+  IErrorMMDParsingError,
+  IRawAudioMetadata,
+  IRawAudioMetadataWithPicture,
+} from "@sing-types/Types"
 import type { Either } from "fp-ts/lib/Either"
 import type { ICoverData } from "@/types/Types"
 
 export async function getRawMetaDataFromFilepath(
   filepath: string
-): Promise<Either<IError, IRawAudioMetadata>> {
+): Promise<Either<IErrorMMDParsingError, IRawAudioMetadata>> {
   return parseFile(filepath)
     .then((rawMetaData) => right({ ...rawMetaData, filepath }))
-    .catch((error) =>
-      left({
+    .catch((error) => {
+      const catchedError: IErrorMMDParsingError = {
+        type: "File metadata parsing failed",
         error,
-        message: `Error accessing file ${filepath}. Does it exist?`,
-      })
-    )
+        message: `${filepath} could not be parsed`,
+      }
+      return left(catchedError)
+    })
 }
 
 function convertMetadataNotCurried(
@@ -59,9 +65,15 @@ function convertMetadataNotCurried(
     stringifyArraysInObject
   ) as Prisma.TrackCreateInput
 
-  const coverData = getCover(coverFolderPath, rawMetaData)
+  const coverData =
+    rawMetaData.common.picture !== undefined
+      ? getCoverNotCurried(
+          coverFolderPath,
+          rawMetaData as IRawAudioMetadataWithPicture
+        )
+      : undefined
 
-  return coverData !== null && coverData !== undefined
+  return coverData !== undefined
     ? {
         ...convertedMetaData,
         coverMD5: coverData.coverMD5,
@@ -72,12 +84,11 @@ function convertMetadataNotCurried(
 
 export const convertMetadata = curry2(convertMetadataNotCurried)
 
-export function getCover(
+export function getCoverNotCurried(
   coverFolderPath: string,
-  metaData: IAudioMetadata
-): ICoverData | undefined {
-  const coverData = selectCover(metaData.common.picture)
-  if (!coverData) return undefined
+  coversData: IRawAudioMetadataWithPicture
+): ICoverData {
+  const coverData = selectCover(coversData.common.picture) as IPicture // cast it since the type ensures that a cover exists
 
   const coverMD5 = createHash("md5").update(coverData.data).digest("hex")
   const extension = `.${coverData.format.split("/").at(-1)}`
@@ -86,27 +97,15 @@ export function getCover(
   return { coverMD5, coverPath, coverBuffer: coverData.data }
 }
 
-/**
- *
- * @param coverFolderPath The path to the cover folder within the user data directory. (Should be retrieved by `electron.getPath`)
- * @param rawData The unconverted metadata
- * @returns All the cover filepaths passed to it as `string[]`
- */
-export async function saveCovers(
-  coverFolderPath: string,
-  rawData: IRawAudioMetadata[]
-): Promise<Either<IError, string>[]> {
-  return Promise.all(
-    rawData
-      .map((data) => getCover(coverFolderPath, data))
-      .filter(isICoverData)
-      .filter(removeDuplicates)
-      .map(async (cover) => {
-        const accessible = await checkPathAccessible(cover.coverPath) // If it's accessible it does already exist, so just return the path then
+export const getCover = curry2(getCoverNotCurried)
 
-        return isRight(accessible)
-          ? right(cover.coverPath)
-          : writeFileToDisc(cover.coverBuffer, cover.coverPath)
-      })
-  )
+export async function saveCover({
+  coverPath,
+  coverBuffer,
+}: ICoverData): Promise<Either<IError, string>> {
+  const accessible = await checkPathAccessible(coverPath) // If it's accessible it does already exist, so just return the path then
+
+  return isRight(accessible)
+    ? right(coverPath)
+    : writeFileToDisc(coverBuffer, coverPath)
 }

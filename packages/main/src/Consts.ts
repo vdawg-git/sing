@@ -13,4 +13,4 @@ export const databasePath = import.meta.env.DEV
   : productionDBPath
 export const databaseURL = `file:${databasePath}`
 
-export const coverFolderPath = `${slash(app.getPath("userData"))}/covers`
+export const coverFolderPath = `${slash(app.getPath("userData"))}/covers/`

@@ -4,26 +4,20 @@ import {
   getRightValues,
   getSupportedMusicFiles,
   getUnsupportedMusicFiles,
+  hasCover,
+  removeDuplicates,
 } from "@/Pures"
 import c from "ansicolor"
 import { isLeft, left, right } from "fp-ts/lib/Either"
-import log from "ololog"
 import slash from "slash"
 
 import { deleteFromDirectoryInverted, getFilesFromDirectory } from "../Helper"
 import { addTrackToDB, deleteTracksInverted } from "./Crud"
-import {
-  convertMetadata,
-  getRawMetaDataFromFilepath,
-  saveCovers,
-} from "./Metadata"
+import { convertMetadata, getCover, getRawMetaDataFromFilepath, saveCover } from "./Metadata"
 
-import type {
-  IErrorArrayIsEmpty,
-  IErrorInvalidArguments,
-} from "@sing-types/Types"
+import type { IError } from "@sing-types/Types"
 
-// TODO Optimize sync speed
+// TODO Optimize sync speed - Low priority, now its fast enough
 // Get all track filepaths with the file MD5 checksum and filter the new ones to add out if they have the same MD5 checksum
 // Then upsert only the ones which already exist, for the rest use one big `createMany` statement
 
@@ -32,7 +26,7 @@ export async function syncDirectories(
   directories: string[]
 ) {
   if (!Array.isArray(directories)) {
-    const error: IErrorInvalidArguments = {
+    const error: IError = {
       type: "Invalid arguments",
       message: `Directories to sync must be of type array. Received ${directories}`,
       error: new Error(
@@ -43,7 +37,7 @@ export async function syncDirectories(
   }
   if (directories.length === 0) {
     console.error(c.red("No directories to sync provided"))
-    const error: IErrorArrayIsEmpty = {
+    const error: IError = {
       type: "Array is empty",
       error: new Error("No directories to sync provided"),
       message: "No directories to sync provided.",
@@ -68,22 +62,25 @@ export async function syncDirectories(
   const metaData = rawMetaData.map(convertMetadata(coversDirectory))
 
   // Save the covers to the cover folder
+  // const { left: coverWriteErrors, right: savedCoverPaths } =
   const { left: coverWriteErrors, right: savedCoverPaths } = getLeftsRights(
-    await saveCovers(coversDirectory, rawMetaData)
+    await Promise.all(
+      rawMetaData.filter(hasCover).map(getCover(coversDirectory)).map(saveCover)
+    )
   )
 
   // Add tracks to the database
-  // Use a loop as Prisma time outs randomly otherwise
+  // Use a sync loop for Prisma as it might otherwise throw a timeOutException if it is done in async
+  // https://github.com/prisma/prisma/issues/10306
   const addedDBTracks = []
   const failedDBTracks = []
   for (const track of metaData) {
-    // It hsould await each operation, as Prisma might otherwise throw an
+    // It should await each operation to make it non-async
     // eslint-disable-next-line no-await-in-loop
     const result = await addTrackToDB(track)
     if (isLeft(result)) failedDBTracks.push(result.left)
     else {
       addedDBTracks.push(result.right)
-      log("Added track: ", result.right.title || result.right.filepath)
     }
   }
 
@@ -95,7 +92,7 @@ export async function syncDirectories(
   // Remove unused covers
   const deleteCoversResult = await deleteFromDirectoryInverted(
     coversDirectory,
-    savedCoverPaths
+    savedCoverPaths.filter(removeDuplicates)
   )
   const deleteCoverError = isLeft(deleteCoversResult)
     ? [deleteCoversResult.left]

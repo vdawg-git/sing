@@ -53,6 +53,10 @@ export interface IRawAudioMetadata extends mm.IAudioMetadata {
   readonly filepath: string
 }
 
+export interface IRawAudioMetadataWithPicture extends IRawAudioMetadata {
+  common: IRawAudioMetadata["common"] & { picture: mm.IPicture[] }
+}
+
 export interface IidBackendAnswer {
   readonly id: string
   readonly data: Either<IError, unknown>
@@ -104,6 +108,7 @@ export type IErrorTypes =
   | "Path not accessible"
   | "File write failed"
   | "File deletion failed"
+  | "File metadata parsing failed"
 
 export interface IError {
   readonly type: IErrorTypes
@@ -128,4 +133,7 @@ export interface IErrorFSDeletionFailed extends IError {
 }
 export interface IErrorFSWriteFailed extends IError {
   readonly type: "File write failed"
+}
+export interface IErrorMMDParsingError extends IError {
+  readonly type: "File metadata parsing failed"
 }
