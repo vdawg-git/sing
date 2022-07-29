@@ -6,10 +6,7 @@ import type {
   IUserSettings,
   IUserSettingsKey,
 } from "@sing-main/lib/UserSettings"
-import type {
-  FlattenedParameters,
-  IFrontendEventsBase,
-} from "@sing-types/Types"
+import type { FlattenedParameters } from "@sing-types/Types"
 
 export async function getTracks(
   options?: FlattenedParameters<IMainQueryHandlers["getTracks"]>
@@ -38,16 +35,14 @@ export async function getUserSetting(setting: IUserSettingsKey) {
   return ipcRenderer.invoke("getUserSettings", setting)
 }
 
-export function listen<Key extends keyof IFrontendEventsBase>(
-  channel: Key,
-  callback: IFrontendEventsBase[Key]
+export function listen(
+  ...[channel, callback]: Parameters<typeof ipcRenderer["on"]>
 ) {
   ipcRenderer.on(channel, callback)
 }
 
-export function removeListener<Key extends keyof IFrontendEventsBase>(
-  channel: Key,
-  callback: IFrontendEventsBase[Key]
+export function removeListener(
+  ...[channel, callback]: Parameters<typeof ipcRenderer["removeListener"]>
 ) {
   ipcRenderer.removeListener(channel, callback)
 }

@@ -7,12 +7,12 @@
   import { createEventDispatcher, onMount } from "svelte"
   import { fly } from "svelte/transition"
 
-  import type { INotificationTypes } from "@/types/Types"
+  import type { INotificationTypes } from "@sing-types/Types"
 
   export let id: symbol
   export let label: string
   export let type: INotificationTypes = "default"
-  export let timeout: number = 3 // Timeout in seconds. Set to -1 to disable
+  export let duration: number = 3 // Timeout in seconds. Set to -1 to disable
 
   const usedIcon = {
     loading: IconLoading,
@@ -31,14 +31,14 @@
   }[type]
 
   const animationDuration = 280
-  const timeoutInMS = timeout * 1000
+  const durationInMS = duration * 1000
   let timeoutBar: HTMLDivElement
-  let timeLeft = timeout * 1000 + animationDuration * 0.5
+  let timeLeft = duration * 1000 + animationDuration * 0.5
   let previousTime: number | undefined
   let timeoutAnimationID: number
 
   onMount(() => {
-    if (timeout === -1) return
+    if (duration === -1) return
 
     timeoutAnimationID = requestAnimationFrame(decreaseTimer)
 
@@ -62,7 +62,7 @@
 
     timeLeft = Math.max(0, timeLeft - elapsed)
 
-    timeoutBar.style.width = `${(timeLeft / timeoutInMS) * 100}%`
+    timeoutBar.style.width = `${(timeLeft / durationInMS) * 100}%`
 
     timeoutAnimationID = requestAnimationFrame(decreaseTimer)
   }
@@ -77,7 +77,7 @@
     previousTime = undefined
   }
   function resumeTimeout() {
-    if (timeout === -1) return
+    if (duration === -1) return
 
     timeoutAnimationID = requestAnimationFrame(decreaseTimer)
   }
@@ -96,7 +96,7 @@
     {label}
   </div>
 
-  {#if timeout !== -1}
+  {#if duration !== -1}
     <div
       class="absolute inset-x-0 bottom-0 h-1 overflow-hidden rounded"
       bind:this={timeoutBar}

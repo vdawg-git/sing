@@ -9,9 +9,9 @@
 </script>
 
 <div class="absolute bottom-32 right-16 z-50 flex flex-col gap-4">
-  {#each $notificationStore as { label, type, timeout, id } (id)}
+  {#each $notificationStore as { label, type, duration, id } (id)}
     <div animate:flip={{ duration: 150 }}>
-      <Notification {label} {type} {timeout} {id} on:close={handleRemove} />
+      <Notification {label} {type} {duration} {id} on:close={handleRemove} />
     </div>
   {/each}
 </div>

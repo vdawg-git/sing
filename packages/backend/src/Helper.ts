@@ -8,12 +8,26 @@ import slash from "slash"
 
 import { getLeftsRights } from "./Pures"
 
-import type { IError } from "@sing-types/Types"
+import type {
+  IErrorFSDeletionFailed,
+  IErrorFSDirectoryReadFailed,
+  IErrorFSPathUnaccessible,
+  IErrorFSWriteFailed,
+} from "@sing-types/Types"
 import type { Either } from "fp-ts/lib/Either"
 
 export async function getFilesFromDirectory(
   directory: string
-): Promise<Either<IError, string[]>> {
+): Promise<Either<IErrorFSDirectoryReadFailed, string[]>> {
+  try {
+    return right(await recursion(directory))
+  } catch (error) {
+    return left({
+      type: "Directory read failed",
+      error,
+      message: `Error reading out path "${directory}" \n${error}`,
+    })
+  }
   async function recursion(directoryRecursive: string): Promise<string[]> {
     const dirents = await readdir(directoryRecursive, {
       withFileTypes: true,
@@ -26,38 +40,32 @@ export async function getFilesFromDirectory(
     )
     return files.flat().map(slash)
   }
-
-  try {
-    return right(await recursion(directory))
-  } catch (error) {
-    return left({
-      error,
-      message: `Error reading out path "${directory}" \n${error}`,
-    })
-  }
 }
 
 export async function checkPathAccessible<T extends string>(
   pathToCheck: T
-): Promise<Either<IError, T>> {
+): Promise<Either<IErrorFSPathUnaccessible, T>> {
   return stat(pathToCheck)
     .then(() => right(pathToCheck))
-    .catch((error) => left({ error }))
+    .catch((error) => left({ type: "Path not accessible", error }))
 }
 
 export async function writeFileToDisc<T extends string>(
   content: string | Buffer,
   filepath: T
-): Promise<Either<IError, T>> {
+): Promise<Either<IErrorFSWriteFailed, T>> {
   return mkdir(path.dirname(filepath), { recursive: true })
     .then(() => writeFile(filepath, content))
     .then(() => right(filepath))
     .catch((error) => {
       console.error(c.red(error))
-      return left({
+      const catchedError: IErrorFSWriteFailed = {
+        type: "File write failed",
         message: `Error creating writing file:\t"${filepath}"`,
         error,
-      } as const)
+      }
+
+      return left(catchedError)
     })
 }
 
@@ -65,7 +73,10 @@ export async function deleteFromDirectoryInverted(
   directory: string,
   filesNotToDelete: string[]
 ): Promise<
-  Either<IError, { deletedFiles: string[]; deletionErrors: unknown[] }>
+  Either<
+    IErrorFSDirectoryReadFailed,
+    { deletedFiles: string[]; deletionErrors: unknown[] }
+  >
 > {
   const allFiles = await getFilesFromDirectory(directory)
 
@@ -84,11 +95,17 @@ export async function deleteFromDirectoryInverted(
 
 export async function deleteFiles(
   fileList: string[]
-): Promise<Either<IError, string>[]> {
+): Promise<Either<IErrorFSDeletionFailed, string>[]> {
   const result = fileList.map((file) =>
     unlink(file)
       .then(() => right(file))
-      .catch((error) => left({ error }))
+      .catch((error) => {
+        const catchedError: IErrorFSDeletionFailed = {
+          error,
+          type: "File deletion failed" as const,
+        }
+        return left(catchedError)
+      })
   )
 
   return Promise.all(result)

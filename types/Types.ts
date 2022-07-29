@@ -29,6 +29,7 @@ export type IElectronPaths = Parameters<typeof app.getPath>[0]
  */
 export interface IFrontendEventsBase {
   setMusic: (event: IpcRendererEvent, response: ISyncResult) => void
+  createNotification: (event: IpcRendererEvent, response: INotification) => void
 }
 export type IFrontendEvents = {
   [Key in keyof IFrontendEventsBase]: (
@@ -45,12 +46,6 @@ export type AllowedIndexes<
 > = T extends readonly [infer _, ...infer Rest]
   ? AllowedIndexes<Rest, [...Result, Result["length"]]>
   : Result[number]
-
-// eslint-disable-next-line @typescript-eslint/ban-types
-export type IError<T = {}> = {
-  readonly error: Error | unknown
-  readonly message?: string
-} & T
 
 export type Writeable<T> = { -readonly [P in keyof T]: T[P] }
 
@@ -87,7 +82,50 @@ export type ParametersWithoutFirst<T extends (...arguments_: any[]) => any> =
 
 export type OptionalPromise<T> = T | Promise<T>
 
-// type x = (options:  Prisma.TrackFindManyArgs | undefined) => void
-// type y = Parameters<x>
+export interface INotification {
+  id: symbol
+  label: string
+  type?: INotificationTypes
+  duration?: number
+}
+export type INotificationFromBackend = Omit<INotification, "id">
 
-// type b = InnerArray<Parameters< y>>
+export type INotificationTypes =
+  | "loading"
+  | "check"
+  | "warning"
+  | "danger"
+  | "default"
+
+export type IErrorTypes =
+  | "Invalid arguments"
+  | "Array is empty"
+  | "Directory read failed"
+  | "Path not accessible"
+  | "File write failed"
+  | "File deletion failed"
+
+export interface IError {
+  readonly type: IErrorTypes
+  readonly error: Error | unknown
+  readonly message?: string
+}
+
+export interface IErrorInvalidArguments extends IError {
+  readonly type: "Invalid arguments"
+}
+export interface IErrorArrayIsEmpty extends IError {
+  readonly type: "Array is empty"
+}
+export interface IErrorFSDirectoryReadFailed extends IError {
+  readonly type: "Directory read failed"
+}
+export interface IErrorFSPathUnaccessible extends IError {
+  readonly type: "Path not accessible"
+}
+export interface IErrorFSDeletionFailed extends IError {
+  readonly type: "File deletion failed"
+}
+export interface IErrorFSWriteFailed extends IError {
+  readonly type: "File write failed"
+}

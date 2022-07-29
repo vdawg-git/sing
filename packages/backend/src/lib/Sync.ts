@@ -1,4 +1,10 @@
-import { getLeftsRights, getLeftValues, getRightValues, getSupportedMusicFiles, getUnsupportedMusicFiles } from "@/Pures"
+import {
+  getLeftsRights,
+  getLeftValues,
+  getRightValues,
+  getSupportedMusicFiles,
+  getUnsupportedMusicFiles,
+} from "@/Pures"
 import c from "ansicolor"
 import { isLeft, left, right } from "fp-ts/lib/Either"
 import log from "ololog"
@@ -6,9 +12,16 @@ import slash from "slash"
 
 import { deleteFromDirectoryInverted, getFilesFromDirectory } from "../Helper"
 import { addTrackToDB, deleteTracksInverted } from "./Crud"
-import { convertMetadata, getRawMetaDataFromFilepath, saveCovers } from "./Metadata"
+import {
+  convertMetadata,
+  getRawMetaDataFromFilepath,
+  saveCovers,
+} from "./Metadata"
 
-import type { IError } from "@sing-types/Types"
+import type {
+  IErrorArrayIsEmpty,
+  IErrorInvalidArguments,
+} from "@sing-types/Types"
 
 // TODO Optimize sync speed
 // Get all track filepaths with the file MD5 checksum and filter the new ones to add out if they have the same MD5 checksum
@@ -19,7 +32,8 @@ export async function syncDirectories(
   directories: string[]
 ) {
   if (!Array.isArray(directories)) {
-    const error: IError = {
+    const error: IErrorInvalidArguments = {
+      type: "Invalid arguments",
       message: `Directories to sync must be of type array. Received ${directories}`,
       error: new Error(
         `Directories to sync must be of type array. Received ${directories}`
@@ -29,7 +43,8 @@ export async function syncDirectories(
   }
   if (directories.length === 0) {
     console.error(c.red("No directories to sync provided"))
-    const error: IError = {
+    const error: IErrorArrayIsEmpty = {
+      type: "Array is empty",
       error: new Error("No directories to sync provided"),
       message: "No directories to sync provided.",
     }

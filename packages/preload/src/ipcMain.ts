@@ -15,6 +15,7 @@ export default function ipcInit(): void {
     ipcMain.handle(event, callback)
   }
 
+  // Forwards to the renderer if the message is meant to be forwarded
   backendProcess.on("message", (message) => {
     if (!isBackendMessageToForward(message)) return
 

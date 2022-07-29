@@ -1,6 +1,6 @@
 import { writable } from "svelte/store"
 
-import type { INotification } from "@/types/Types"
+import type { INotification } from "@sing-types/Types"
 
 const { subscribe, update } = writable<INotification[]>([])
 
