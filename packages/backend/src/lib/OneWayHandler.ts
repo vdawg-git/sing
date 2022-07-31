@@ -1,22 +1,7 @@
-import log from "ololog"
+import { syncMusic } from "./Sync"
 
-import { syncDirectories } from "./Sync"
+import type { IOneWayHandlersConsume } from "@sing-types/Types"
 
-import type { IFrontendEvents, InnerArray } from "@sing-types/Types"
-
-export const oneWayHandler = {
-  syncMusic: async ([coversDirectory, directories]: InnerArray<
-    Parameters<typeof syncDirectories>
-  >) => {
-    log("Started to sync")
-    const data = await syncDirectories(coversDirectory, directories)
-
-    const event: keyof IFrontendEvents = "setMusic"
-
-    return {
-      forwardToRenderer: true,
-      event,
-      data,
-    } as const
-  },
+export const oneWayHandler: IOneWayHandlersConsume = {
+  syncMusic,
 }

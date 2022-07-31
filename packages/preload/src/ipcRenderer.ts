@@ -1,15 +1,18 @@
 import { ipcRenderer } from "./TypedIPC"
 
-import type { IMainEventHandlers, IMainQueryHandlers } from "./types/Types"
+import type { IMainQueryHandlers } from "./types/Types"
 
 import type {
   IUserSettings,
   IUserSettingsKey,
 } from "@sing-main/lib/UserSettings"
-import type { FlattenedParameters } from "@sing-types/Types"
+
+import type { IFrontendEventsConsume } from "@sing-types/Types"
+
+import type { ParametersFlattened } from "@sing-types/Utilities"
 
 export async function getTracks(
-  options?: FlattenedParameters<IMainQueryHandlers["getTracks"]>
+  options?: ParametersFlattened<IMainQueryHandlers["getTracks"]>
 ) {
   return ipcRenderer.invoke("getTracks", options)
 }
@@ -35,24 +38,22 @@ export async function getUserSetting(setting: IUserSettingsKey) {
   return ipcRenderer.invoke("getUserSettings", setting)
 }
 
-export function listen(
-  ...[channel, callback]: Parameters<typeof ipcRenderer["on"]>
-) {
-  ipcRenderer.on(channel, callback)
-}
-
-export function removeListener(
-  ...[channel, callback]: Parameters<typeof ipcRenderer["removeListener"]>
-) {
-  ipcRenderer.removeListener(channel, callback)
-}
-
-export function send<Key extends keyof IMainEventHandlers>(
+export function listen<Key extends keyof IFrontendEventsConsume>(
   channel: Key,
-  ...message: Parameters<IMainEventHandlers[Key]>
+  listener: IFrontendEventsConsume[Key]
 ) {
-  ipcRenderer.send(channel, ...message)
+  ipcRenderer.on(channel, listener)
 }
+
+export function removeListener<Key extends keyof IFrontendEventsConsume>(
+  channel: Key,
+  listener: IFrontendEventsConsume[Key]
+) {
+  ipcRenderer.removeListener(channel, listener)
+}
+
+// Should only be used for manual testing purposes
+export const { send } = ipcRenderer
 
 export function resetMusic(): void {
   ipcRenderer.send("resetMusic")

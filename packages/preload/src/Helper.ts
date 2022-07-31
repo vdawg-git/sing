@@ -2,14 +2,19 @@ import { isIDBackendAnswer } from "@sing-types/TypeGuards"
 import c from "ansicolor"
 import log from "ololog"
 
+import { webContents } from "./TypedIPC"
+
+import type { ParametersWithoutFirst } from "@sing-types/Utilities"
+import type { TypedWebContents } from "./types/Types"
+
 import type { ChildProcess } from "node:child_process"
 
 import type {
   ITwoWayEvents,
   ITwoWayHandlers,
-  IBackendEmitHandlers,
   IBackendEmitChannels,
-} from "../../backend/src/types/Types"
+  IOneWayHandlersConsume,
+} from "@sing-types/Types"
 /**
  *
  * @param {ChildProcess}  childProcess - The child_process instance to listen and send events to
@@ -65,14 +70,14 @@ export function createPromisifiedForkEmitter(childProcess: ChildProcess) {
 export function createBackendSender(childProcess: ChildProcess) {
   return emitToBackend
 
-  async function emitToBackend<T extends IBackendEmitChannels>({
+  async function emitToBackend<Event extends IBackendEmitChannels>({
     event,
-    args,
+    arguments_,
   }: {
-    readonly event: T
-    readonly args: IBackendEmitHandlers[T]["args"]
+    readonly event: Event
+    readonly arguments_: ParametersWithoutFirst<IOneWayHandlersConsume[Event]>
   }) {
-    childProcess.send({ event, args })
+    childProcess.send({ event, arguments_ })
   }
 }
 
@@ -81,9 +86,17 @@ export function logProcessOutput(
   processName: string
 ) {
   childProcess.stderr?.on("data", (data) =>
-    log.red.noLocate(c.bgBlack(`Error from ${processName}-process:`), data)
+    log.red.noLocate(c.bgBlack.red(`Error from ${processName}-process:`), data)
   )
   childProcess.stdout?.on("data", (data) =>
     log.noLocate(c.blue(`stdout from ${processName}-process:`), data)
   )
+}
+
+export async function sendToRenderer(
+  ...[channel, ...arguments_]: Parameters<TypedWebContents["send"]>
+) {
+  for (const webContent of webContents.getAllWebContents()) {
+    webContent.send(channel, ...arguments_)
+  }
 }

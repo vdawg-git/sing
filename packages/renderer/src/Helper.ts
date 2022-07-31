@@ -1,14 +1,15 @@
-import type { ITrack } from "@sing-types/Types"
 import { createHashHistory } from "history"
+
+import type { ITrack } from "@sing-types/Types"
 import type { HistorySource } from "svelte-navigator"
 import type AnyObject from "svelte-navigator/types/AnyObject"
 
 export function titleToDisplay(track: ITrack): string {
   if (track?.title) return track.title
 
-  const filename = track.filepath.split("\\").at(-1) as string
+  const filename = track.filepath.split("/").at(-1) as string
   const dotIndex = filename?.lastIndexOf(".")
-  const title = filename?.substring(0, dotIndex)
+  const title = filename?.slice(0, Math.max(0, dotIndex))
 
   return title
 }
@@ -37,57 +38,48 @@ export function isClickOutsideNode(
 }
 
 export function isSubdirectory(ancestor: string, child: string): boolean {
-  const papaDirs = ancestor.split("/").filter((dir) => dir !== "")
-  const childDirs = child.split("/").filter((dir) => dir !== "")
+  const papaDDirectories = ancestor
+    .split("/")
+    .filter((directory) => directory !== "")
+  const childDDirectories = child
+    .split("/")
+    .filter((directory) => directory !== "")
 
-  return papaDirs.every((dir, i) => childDirs[i] === dir)
+  return papaDDirectories.every(
+    (directory, index) => childDDirectories[index] === directory
+  )
 }
 
-export function setAttributesOnElement(
-  node: HTMLElement,
-  attributes: { name: string; value: string }[]
-) {
-  update(attributes)
+// // To be used in the future again, for now lets keep it simple again
+// export function truncatePath(path: string, length: number): string {
+//   const ellipse = "… "
+//   const isUnix = path.at(0) === "/"
 
-  return { update }
+//   let parts: string[]
+//   if (isUnix) parts = path.split("/").slice(1)
+//   else parts = path.split("/")
 
-  function update(attributes: { name: string; value: string }[]) {
-    for (const { name, value } of attributes) {
-      node.setAttribute(name, value)
-    }
-  }
-}
+//   if (parts.length < 1) throw new Error("Invalid path provided")
+//   if (parts.length === 1) return path // for paths like /media
 
-// To be used in the future again, for now lets keep it simple again
-export function truncatePath(path: string, length: number): string {
-  const ellipse = "… "
-  const isUnix = path.at(0) === "/"
+//   const toProcess = parts.slice(0, -1)
+//   const toProcessLength = toProcess.join("/").length
 
-  let parts: string[]
-  if (isUnix) parts = path.split("/").slice(1)
-  else parts = path.split("/")
+//   const r = recursive(toProcess, toProcessLength, ellipse)
 
-  if (parts.length < 1) throw new Error("Invalid path provided")
-  if (parts.length === 1) return path // for paths like /media
+//   return (isUnix ? "/" : "") + [r, parts.at(-1)].join("/")
 
-  const toProcess = parts.slice(0, -1)
-  const toProcessLength = toProcess.join("/").length
+//   function recursive(array: string[], length: number, ellipse: string): string {
+//     if (array.join("/").length <= length) return array.join("/")
 
-  const r = recursive(toProcess, toProcessLength, ellipse)
+//     const index = array.findIndex((e) => e !== ellipse)
 
-  return (isUnix ? "/" : "") + [r, parts.at(-1)].join("/")
+//     if (index !== -1) array[index] = ellipse
+//     else return array.join("/")
 
-  function recursive(array: string[], length: number, ellipse: string): string {
-    if (array.join("/").length <= length) return array.join("/")
-
-    const index = array.findIndex((e) => e !== ellipse)
-
-    if (index !== -1) array[index] = ellipse
-    else return array.join("/")
-
-    return recursive(array, length, ellipse)
-  }
-}
+//     return recursive(array, length, ellipse)
+//   }
+// }
 
 export function secondsToDuration(seconds: number | undefined | null): string {
   if (seconds === undefined || seconds === null) return ""
@@ -95,37 +87,40 @@ export function secondsToDuration(seconds: number | undefined | null): string {
   const minutes = Math.floor(seconds / 60)
   const sec = String(Math.round(seconds % 60)).padStart(2, "0")
 
-  return minutes + ":" + sec
+  return `${minutes}:${sec}`
 }
 
 export function createHashSource(): HistorySource {
   const history = createHashHistory()
-  let listeners: Function[] = []
+  let listeners: ((...arguments_: any[]) => unknown)[] = []
 
   history.listen((location) => {
     if (history.action === "POP") {
-      listeners.forEach((listener) => listener(location))
+      for (const listener of listeners) listener(location)
     }
   })
 
   return {
-    //@ts-ignore
+    // @ts-ignore
     get location() {
       return history.location
     },
-    addEventListener(name: string, handler: Function) {
+    addEventListener(name: string, handler: (...arguments_: any[]) => unknown) {
       if (name !== "popstate") {
         console.error("Added event which was not listening to popstate")
         return
       }
       listeners.push(handler)
     },
-    removeEventListener(name: string, handler: Function) {
+    removeEventListener(
+      name: string,
+      handler: (...arguments_: any[]) => unknown
+    ) {
       if (name !== "popstate") {
         console.error("Added event which was not listening to popstate")
         return
       }
-      listeners = listeners.filter((fn) => fn !== handler)
+      listeners = listeners.filter((function_) => function_ !== handler)
     },
     history: {
       get state() {

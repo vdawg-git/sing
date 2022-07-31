@@ -1,7 +1,7 @@
 import { getFilesFromDirectory } from "@/Helper"
 import { resetMockedPrisma } from "@/lib/__mocks__/CustomPrismaClient"
 import createPrismaClient from "@/lib/CustomPrismaClient"
-import { syncDirectories } from "@/lib/Sync"
+import { syncMusic } from "@/lib/Sync"
 import { getRightOrThrow, removeKeys, removeNulledKeys } from "@/Pures"
 import { isLeft } from "fp-ts/lib/Either"
 import { vol, Volume } from "memfs"
@@ -52,7 +52,7 @@ describe("syncDirectories", async () => {
 
     vol.fromNestedJSON(filesDefault)
 
-    await syncDirectories(coverFolder, [musicFolder])
+    await syncMusic(coverFolder, [musicFolder])
 
     const queryResult = await prisma.track.findMany()
     const cleanedResult = queryResult.map(removeNulledKeys)
@@ -65,7 +65,7 @@ describe("syncDirectories", async () => {
 
     vol.fromNestedJSON(filesDefaultFlat)
 
-    await syncDirectories(coverFolder, [musicFolder])
+    await syncMusic(coverFolder, [musicFolder])
 
     const queryResult = await prisma.track.findMany()
     const cleanedResult = queryResult
@@ -80,7 +80,7 @@ describe("syncDirectories", async () => {
     vol.fromNestedJSON(filesDefaultFlat)
 
     const addedDBTracks = getRightOrThrow(
-      await syncDirectories(coverFolder, [musicFolder])
+      await syncMusic(coverFolder, [musicFolder])
     )
       .addedDBTracks.map(removeNulledKeys)
       .map(removeKeys(["id"]))
@@ -101,7 +101,7 @@ describe("syncDirectories", async () => {
     const expected = metaDataFactory.dbItem().buildList(4)
     vol.fromNestedJSON(filesDefaultFlat)
 
-    await syncDirectories(coverFolder, [musicFolder])
+    await syncMusic(coverFolder, [musicFolder])
 
     const queryResult = await prisma.track.findMany()
     const cleanedResult = queryResult
@@ -114,7 +114,7 @@ describe("syncDirectories", async () => {
   it("should remove unused covers from the filesystem", async () => {
     vol.fromNestedJSON({ ...filesDefaultFlat, ...unusedCoversJSON })
 
-    await syncDirectories(coverFolder, [musicFolder])
+    await syncMusic(coverFolder, [musicFolder])
 
     const worked = Object.keys(vol.toJSON()).every(
       (path) => !unusedCoverFilepaths.includes(path)
@@ -133,7 +133,7 @@ describe("syncDirectories", async () => {
   it("should save the new covers", async () => {
     vol.fromNestedJSON({ ...filesUniqueCoversFlat, ...unusedCoversJSON })
 
-    await syncDirectories(coverFolder, [musicFolder])
+    await syncMusic(coverFolder, [musicFolder])
 
     const coverPaths = Object.keys(vol.toJSON()).filter((path) =>
       path.includes(coverFolder)
@@ -152,7 +152,7 @@ describe("syncDirectories", async () => {
   it("should not just return an error with valid data", async () => {
     vol.fromNestedJSON({ ...filesUniqueCoversFlat, ...unusedCoversJSON })
 
-    const result = await syncDirectories(coverFolder, [musicFolder])
+    const result = await syncMusic(coverFolder, [musicFolder])
 
     expect(isLeft(result)).toBe(false)
   })
@@ -160,7 +160,7 @@ describe("syncDirectories", async () => {
   it("should not return processing errors with valid data", async () => {
     vol.fromNestedJSON({ ...filesUniqueCoversFlat, ...unusedCoversJSON })
 
-    const result = await syncDirectories(coverFolder, [musicFolder])
+    const result = await syncMusic(coverFolder, [musicFolder])
 
     if (isLeft(result)) throw result.left.error
 
@@ -178,7 +178,7 @@ describe("syncDirectories", async () => {
   it("does not give prisma erros", async () => {
     vol.fromNestedJSON({ ...filesUniqueCoversFlat, ...unusedCoversJSON })
 
-    const result = await syncDirectories(coverFolder, [musicFolder])
+    const result = await syncMusic(coverFolder, [musicFolder])
 
     if (isLeft(result)) throw result.left.error
 

@@ -1,12 +1,14 @@
 import type {
-  IFrontendEvents,
-  ParametersWithoutFirst,
-} from "../../../../types/Types"
+  IFrontendEventsConsume,
+  IFrontendEventsSend,
+} from "@sing-types/Types"
+
+import type { ParametersWithoutFirst } from "@sing-types/Utilities"
+
 import type {
   IpcMain,
   IpcMainEvent,
   IpcMainInvokeEvent,
-  IpcRendererEvent,
   IpcRenderer,
   WebContents,
 } from "electron"
@@ -69,28 +71,19 @@ export interface TypedIpcMain extends IpcMain {
 }
 
 export interface TypedIpcRenderer extends IpcRenderer {
-  on<Key extends keyof IFrontendEvents>(
+  on<Key extends keyof IFrontendEventsConsume>(
     channel: Key,
-    listener: (
-      event: IpcRendererEvent,
-      ...arguments_: Parameters<IFrontendEvents[Key]>
-    ) => void
+    listener: IFrontendEventsConsume[Key]
   ): this
-  once<Key extends keyof IFrontendEvents>(
+  once<Key extends keyof IFrontendEventsConsume>(
     channel: Key,
-    listener: (
-      event: IpcRendererEvent,
-      ...arguments_: Parameters<IFrontendEvents[Key]>
-    ) => void
+    listener: IFrontendEventsConsume[Key]
   ): this
-  removeListener<Key extends keyof IFrontendEvents>(
+  removeListener<Key extends keyof IFrontendEventsConsume>(
     channel: Key,
-    listener: (
-      event: IpcRendererEvent,
-      ...arguments_: Parameters<IFrontendEvents[Key]>
-    ) => void
+    listener: IFrontendEventsConsume[Key]
   ): this
-  removeAllListeners<K extends keyof IFrontendEvents>(channel: K): this
+  removeAllListeners<K extends keyof IFrontendEventsConsume>(channel: K): this
   send<Key extends keyof IMainEventHandlers>(
     channel: Key,
     ...arguments_: Parameters<IMainEventHandlers[Key]>
@@ -99,10 +92,10 @@ export interface TypedIpcRenderer extends IpcRenderer {
     channel: Key,
     ...arguments_: Parameters<IMainEventHandlers[Key]>
   ): Parameters<IMainEventHandlers[Key]>
-  sendTo<Key extends keyof IFrontendEvents>(
+  sendTo<Key extends keyof IFrontendEventsSend>(
     webContentsId: number,
     channel: Key,
-    ...arguments_: Parameters<IFrontendEvents[Key]>
+    ...arguments_: Parameters<IFrontendEventsSend[Key]>
   ): void
   sendToHost<Key extends keyof IMainEventHandlers>(
     channel: Key,
@@ -115,10 +108,10 @@ export interface TypedIpcRenderer extends IpcRenderer {
 }
 
 export interface TypedWebContents extends WebContents {
-  send<Key extends keyof IFrontendEvents>(
+  send<Key extends keyof IFrontendEventsSend>(
     channel: Key,
-    ...arguments_: ParametersWithoutFirst<IFrontendEvents[Key]>
+    ...arguments_: Parameters<IFrontendEventsSend[Key]>
   ): void
 
-  getAllWebContents(): WebContents[]
+  getAllWebContents(): TypedWebContents[]
 }

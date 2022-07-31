@@ -1,10 +1,12 @@
 import type {
-  ICoverData,
-  IBackendMessageToForward,
-  IEmittedDataToBackend as ISendDataToBackend,
+  IBackendEmitToFrontend,
+  IDataSendToBackend,
   ITwoWayRequest,
   ITwoWayResponse,
-} from "./Types"
+} from "@sing-types/Types"
+
+import type { ICoverData } from "./Types"
+
 import type { IPicture } from "music-metadata"
 
 export function isICoverData(toTest: unknown): toTest is ICoverData {
@@ -41,34 +43,32 @@ export function isTwoWayEvent(toTest: unknown): toTest is ITwoWayRequest {
   return true
 }
 
-export function isOneWayEvent(toTest: unknown): toTest is ISendDataToBackend {
+export function isOneWayEvent(toTest: unknown): toTest is IDataSendToBackend {
   if (typeof toTest !== "object" || toTest === null) return false
   if ((toTest as ITwoWayResponse)?.id !== undefined) return false
-  if (typeof (toTest as ISendDataToBackend)?.event !== "string") return false
+  if (typeof (toTest as IDataSendToBackend)?.event !== "string") return false
 
   return true
 }
 
 export function isBackendMessageToForward(
   data: unknown
-): data is IBackendMessageToForward {
+): data is IBackendEmitToFrontend {
   if (typeof data !== "object" || data === null) return false
-  if ((data as ITwoWayResponse)?.id !== undefined) return false
-  if ((data as IBackendMessageToForward)?.event === undefined) return false
-  if (!(("data" as keyof IBackendMessageToForward) in data)) return false
+  if ((data as IBackendEmitToFrontend)?.emitToRenderer !== true) return false
+  if ((data as IBackendEmitToFrontend)?.event === undefined) return false
+  if (!(("data" as keyof IBackendEmitToFrontend) in data)) return false
 
   return true
 }
 
 export function isEventToForwardToRenderer(
   data: unknown
-): data is IBackendMessageToForward {
+): data is IBackendEmitToFrontend {
   if (typeof data !== "object" || data === null) return false
-  if ((data as IBackendMessageToForward)?.forwardToRenderer !== true)
-    return false
   if ((data as ITwoWayResponse)?.id !== undefined) return false
-  if ((data as IBackendMessageToForward)?.event === undefined) return false
-  if (!(("data" as keyof IBackendMessageToForward) in data)) return false
+  if ((data as IBackendEmitToFrontend)?.event === undefined) return false
+  if (!(("data" as keyof IBackendEmitToFrontend) in data)) return false
 
   return true
 }

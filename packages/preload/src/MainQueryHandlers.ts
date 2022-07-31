@@ -6,7 +6,8 @@ import userSettingsStore from "../../main/src/lib/UserSettings"
 import { queryBackend } from "./BackendProcess"
 
 import type { IpcMainInvokeEvent } from "electron"
-import type { FlattenedParameters, IElectronPaths } from "@sing-types/Types"
+import type { IElectronPaths } from "@sing-types/Types"
+import type { ParametersFlattened } from "@sing-types/Utilities"
 import type {
   IUserSettings,
   IUserSettingsKey,
@@ -17,7 +18,7 @@ const createUID = hexoid()
 const mainQueryHandlers = {
   getTracks: async (
     _: IpcMainInvokeEvent,
-    options: FlattenedParameters<typeof queryBackend<"getTracks">>[0]["args"]
+    options: ParametersFlattened<typeof queryBackend<"getTracks">>[0]["args"]
   ) =>
     queryBackend({
       event: "getTracks",

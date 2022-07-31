@@ -1,8 +1,9 @@
-import { Either } from "fp-ts/lib/Either"
-
 import { getTracks } from "./Crud"
 
-import type { IError, InnerArray, ITrack } from "@sing-types/Types"
+import type { Either } from "fp-ts/lib/Either"
+
+import type { IError, ITrack } from "@sing-types/Types"
+import type { InnerArray } from "@sing-types/Utilities"
 
 export const twoWayHandler = {
   getTracks: async (

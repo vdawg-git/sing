@@ -1,6 +1,6 @@
 import log from "ololog"
 
-import { coverFolderPath } from "../../main/src/Consts"
+import { coversDirectory } from "../../main/src/Consts"
 import userSettingsStore from "../../main/src/lib/UserSettings"
 import { emitToBackend } from "./BackendProcess"
 
@@ -19,22 +19,23 @@ const mainEventHandlers = {
     userSettingsStore.set(setting, value)
   },
   syncFolders: async () => {
-    const musicDirectories = userSettingsStore.get("musicFolders")
+    const musicDirectories = userSettingsStore.get("musicFolders") ?? []
     if (!musicDirectories?.length) {
       log.red("No music folders to add")
     }
 
     emitToBackend({
       event: "syncMusic",
-      args: [coverFolderPath, musicDirectories as string[]], // Todo figure music reset for e2e out
+      arguments_: [{ coversDirectory, directories: musicDirectories }],
     })
   },
+
   resetMusic: async () => {
     userSettingsStore.reset("musicFolders")
 
     emitToBackend({
       event: "syncMusic",
-      args: [coverFolderPath, [""]],
+      arguments_: [{ coversDirectory, directories: [""] }],
     })
   },
 } as const

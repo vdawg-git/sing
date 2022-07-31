@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   getLeftsRights,
   getLeftValues,
@@ -9,41 +10,75 @@ import {
 } from "@/Pures"
 import c from "ansicolor"
 import { isLeft, left, right } from "fp-ts/lib/Either"
+import log from "ololog"
 import slash from "slash"
 
 import { deleteFromDirectoryInverted, getFilesFromDirectory } from "../Helper"
 import { addTrackToDB, deleteTracksInverted } from "./Crud"
 import { convertMetadata, getCover, getRawMetaDataFromFilepath, saveCover } from "./Metadata"
 
-import type { IError } from "@sing-types/Types"
+import type {
+  IErrorArrayIsEmpty,
+  IErrorInvalidArguments,
+} from "@sing-types/Types"
+
+import type { IHandlerEmitter } from "@/types/Types"
+
+//? The error rendering functionality is not implemented yet, so there is no need to return the errors (and make the typing more complicated)
 
 // TODO Optimize sync speed - Low priority, now its fast enough
 // Get all track filepaths with the file MD5 checksum and filter the new ones to add out if they have the same MD5 checksum
 // Then upsert only the ones which already exist, for the rest use one big `createMany` statement
+export async function syncMusic(
+  handlerEmitter: IHandlerEmitter,
+  {
+    coversDirectory,
+    directories,
+  }: {
+    coversDirectory: string
+    directories: string[]
+  }
+): Promise<void> {
+  log(handlerEmitter.emit)
 
-export async function syncDirectories(
-  coversDirectory: string,
-  directories: string[]
-) {
   if (!Array.isArray(directories)) {
-    const error: IError = {
+    const error: IErrorInvalidArguments = {
       type: "Invalid arguments",
       message: `Directories to sync must be of type array. Received ${directories}`,
       error: new Error(
         `Directories to sync must be of type array. Received ${directories}`
       ),
     }
-    return left(error)
+    log.red(error)
+    handlerEmitter.emit("sendToMain", {
+      event: "setMusic",
+      data: left(error),
+      emitToRenderer: true,
+    })
   }
   if (directories.length === 0) {
-    console.error(c.red("No directories to sync provided"))
-    const error: IError = {
+    const error: IErrorArrayIsEmpty = {
       type: "Array is empty",
       error: new Error("No directories to sync provided"),
       message: "No directories to sync provided.",
     }
-    return left(error)
+    log.red("No directories to sync provided", error)
+    handlerEmitter.emit("sendToMain", {
+      event: "setMusic",
+      data: left(error),
+      emitToRenderer: true,
+    })
   }
+  log("Before first emit")
+
+  handlerEmitter.emit("sendToMain", {
+    event: "createNotification",
+    data: {
+      label: "Started syncing music",
+    },
+    emitToRenderer: true,
+  })
+  log("After first emit")
 
   const directoriesContents = await Promise.all(
     directories.map(slash).map((directory) => getFilesFromDirectory(directory))
@@ -98,17 +133,10 @@ export async function syncDirectories(
     ? [deleteCoversResult.left]
     : deleteCoversResult.right.deletionErrors
 
-  // Return added tracks and errors as right values
-  return right({
-    addedDBTracks,
-    failedDBTracks,
-    folderReadErrors,
-    unsupportedFiles,
-    fileReadErrors,
-    coverWriteErrors,
-    deleteCoverError,
-    deleteUnusedTrackError: isLeft(deleteTracksResult)
-      ? [deleteTracksResult.left]
-      : [],
+  // Emit added tracks and errors as right values
+  handlerEmitter.emit("sendToMain", {
+    emitToRenderer: true,
+    event: "setMusic",
+    data: right(addedDBTracks),
   })
 }

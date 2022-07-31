@@ -14,6 +14,15 @@ export function isIDBackendAnswer(
   return true
 }
 
+// export function isIFrontendEventsConsumeData(data: unknown): data is IFrontendEventsConsume[keyof IFrontendEventsConsume] {
+//   if (typeof data !== "object" || data === null) return false
+//   if ((data as IFrontendEventsConsume)? !== true) return false
+//   if ((data as IFrontendEventsConsume)?.data === undefined) return false
+//   if (typeof (data as IFrontendEventsConsume)?.event !== "string") return false
+
+//   return true
+// }
+
 // const x = {
 //   event: "getTracks",
 //   id: "jonoin",
@@ -22,9 +31,9 @@ export function isIDBackendAnswer(
 
 // isIDEvent(x) //?
 
-//?##############################################################
-//?#######################   TESTS   ############################
-//?##############################################################
+//? ##############################################################
+//? #######################   TESTS   ############################
+//? ##############################################################
 
 // if (import.meta.vitest) {
 //   const { expect, test } = await import("vitest")

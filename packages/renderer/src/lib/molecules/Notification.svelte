@@ -12,7 +12,7 @@
   export let id: symbol
   export let label: string
   export let type: INotificationTypes = "default"
-  export let duration: number = 3 // Timeout in seconds. Set to -1 to disable
+  export let duration: number = 7 // Timeout in seconds. Set to -1 to disable
 
   const usedIcon = {
     loading: IconLoading,
@@ -30,7 +30,7 @@
     danger: "text-red-500",
   }[type]
 
-  const animationDuration = 280
+  const animationDuration = 290
   const durationInMS = duration * 1000
   let timeoutBar: HTMLDivElement
   let timeLeft = duration * 1000 + animationDuration * 0.5
@@ -97,8 +97,9 @@
   </div>
 
   {#if duration !== -1}
+    <!-- Timeout bar -->
     <div
-      class="absolute inset-x-0 bottom-0 h-1 overflow-hidden rounded"
+      class="absolute inset-x-0 bottom-0 h-1 rotate-180 overflow-hidden rounded"
       bind:this={timeoutBar}
     >
       <div

@@ -2,6 +2,7 @@
   import { TEST_IDS as id } from "@/TestConsts"
 
   import type { SvelteComponentDev } from "svelte/internal"
+
   export let componentToTest: SvelteComponentDev
   export let slottedComponent: SvelteComponentDev | undefined = undefined
 </script>

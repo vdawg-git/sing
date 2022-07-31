@@ -1,9 +1,10 @@
-import type { ElectronApplication } from "playwright"
+import path from "node:path"
 import { _electron as electron } from "playwright"
-import { join } from "path"
+
+import type { ElectronApplication } from "playwright"
 
 export async function launchElectron(): Promise<ElectronApplication> {
-  const mainPath = join(
+  const mainPath = path.join(
     __dirname,
     "..",
     "packages",
@@ -12,7 +13,7 @@ export async function launchElectron(): Promise<ElectronApplication> {
     "index.cjs"
   )
 
-  const executablePath = join(
+  const executablePath = path.join(
     __dirname,
     "./../node_modules/electron/dist/electron.exe"
   )

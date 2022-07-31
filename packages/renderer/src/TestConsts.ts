@@ -1,3 +1,5 @@
+/* eslint-disable unicorn/no-array-reduce */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const testIDNames = [
   "myTracksTitle",
   "playbar",
@@ -72,7 +74,7 @@ type ITestIDs = {
   readonly [index in typeof testIDNames[number]]: index
 } & {
   readonly asQuery: {
-    readonly [i in typeof testIDNames[number]]: `[data-testid=${i}]`
+    readonly [index in typeof testIDNames[number]]: `[data-testid=${index}]`
   }
 }
 

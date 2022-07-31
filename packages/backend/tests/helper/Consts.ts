@@ -44,9 +44,9 @@ export const unusedCoverFilepaths = [
 ].map((fileName) => coverFolder + fileName)
 
 export const unusedCoversJSON = unusedCoverFilepaths.reduce(
-  (acc, path, index) => {
-    acc[path] = index.toString()
-    return acc
+  (accumulator, path, index) => {
+    accumulator[path] = index.toString()
+    return accumulator
   },
   {} as DirectoryJSON
 )

@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-process-exit */
 import { restoreOrCreateWindow } from "@/mainWindow"
 import { app } from "electron"
 import log from "ololog"
@@ -46,13 +47,13 @@ app.on("activate", restoreOrCreateWindow)
 app
   .whenReady()
   .then(restoreOrCreateWindow)
-  .catch((e) => console.error("Failed create window:", e))
+  .catch((error) => log.red("Failed create window:", error))
 
 // Load IPC handlers
 try {
   ipc()
-} catch (e) {
-  log.red(e)
+} catch (error) {
+  log.red(error)
 }
 
 /**

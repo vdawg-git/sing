@@ -31,6 +31,9 @@ const defaultRules = {
       destructuredArrayIgnorePattern: "^_",
     },
   ],
+  "spaced-comment": ["error", "always", { markers: ["/", "?", "!"] }],
+  "no-underscore-dangle": "off",
+  "@typescript-eslint/no-explicit-any": ["error", { ignoreRestArgs: true }],
 }
 
 module.exports = {

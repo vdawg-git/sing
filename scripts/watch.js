@@ -1,8 +1,10 @@
 #!/usr/bin/env node
+/* eslint-disable no-multi-assign */
+/* eslint-disable unicorn/prefer-top-level-await */
 
 const { createServer, build, createLogger } = require("vite")
 const electronPath = require("electron")
-const { spawn } = require("child_process")
+const { spawn } = require("node:child_process")
 
 /** @type 'production' | 'development'' */
 const mode = (process.env.MODE = process.env.MODE || "development")
@@ -30,10 +32,11 @@ let isFirstInit = true
  * Needs to set up `VITE_DEV_SERVER_URL` environment variable from {@link import('vite').ViteDevServer.resolvedUrls}
  */
 const setupMainPackageWatcher = ({ resolvedUrls }) => {
+  // eslint-disable-next-line prefer-destructuring
   process.env.VITE_DEV_SERVER_URL = resolvedUrls.local[0]
 
   const logger = createLogger(logLevel, {
-    prefix: "[main]",
+    prefix: "[main and backend]\n",
   })
 
   return build({
@@ -93,10 +96,11 @@ const setupMainPackageWatcher = ({ resolvedUrls }) => {
  * Needs to set up `VITE_DEV_SERVER_URL` environment variable from {@link import('vite').ViteDevServer.resolvedUrls}
  */
 const setupBackendPackageWatcher = ({ resolvedUrls }) => {
+  // eslint-disable-next-line prefer-destructuring
   process.env.VITE_DEV_SERVER_URL = resolvedUrls.local[0]
 
   const logger = createLogger(logLevel, {
-    prefix: "[main]",
+    prefix: "[main and backend]\n",
   })
 
   return build({

@@ -1,8 +1,8 @@
 import { PrismaClient } from "@prisma/client"
-import { join } from "path"
+import path from "node:path"
 
-export const dbPath = join(__dirname, "testDB.db")
-export const url = "file:" + dbPath
+export const databasePath = path.join(__dirname, "testDB.db")
+export const url = `file:${databasePath}`
 
 export default function createPrismaClient() {
   return new PrismaClient({
@@ -15,5 +15,5 @@ export default function createPrismaClient() {
 const prisma = createPrismaClient()
 
 export async function resetMockedPrisma() {
-  return await prisma.track.deleteMany()
+  return prisma.track.deleteMany()
 }

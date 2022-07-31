@@ -3,12 +3,13 @@ import c from "ansicolor"
 import { isLeft } from "fp-ts/lib/Either"
 import { readable } from "svelte/store"
 
+import type { Either } from "fp-ts/lib/Either"
 import type { Subscriber } from "svelte/store"
 
-import type { ISyncResult, ITrack } from "@sing-types/Types"
+import type { IError, ITrack } from "@sing-types/Types"
 import type { IpcRendererEvent } from "electron"
 
-export default readable<Promise<ITrack[]> | ITrack[]>(initValue(), updateStore)
+export default readable<readonly ITrack[]>(await initValue(), updateStore)
 
 async function initValue() {
   const response = await window.api.getTracks()
@@ -31,17 +32,22 @@ async function initValue() {
   return result
 }
 
-function updateStore(set: Subscriber<ITrack[] | Promise<ITrack[]>>) {
+function updateStore(set: Subscriber<readonly ITrack[]>) {
   window.api.listen("setMusic", update)
 
   return () => window.api.removeListener("setMusic", update)
 
-  async function update(_event: IpcRendererEvent, response: ISyncResult) {
+  async function update(
+    _event: IpcRendererEvent,
+    response: Either<IError, readonly ITrack[]>
+  ) {
+    console.log(response)
+
     if (isLeft(response)) {
       console.error(response.left.error)
       return
     }
-    const addedTracks = response.right.addedDBTracks
+    const addedTracks = response.right
 
     if (!addedTracks || addedTracks.length === 0) {
       console.error(
@@ -51,7 +57,7 @@ function updateStore(set: Subscriber<ITrack[] | Promise<ITrack[]>>) {
       return
     }
 
-    set(addedTracks.sort(sortAlphabetically))
+    set([...addedTracks].sort(sortAlphabetically))
   }
 
   // Return unsubscribe function

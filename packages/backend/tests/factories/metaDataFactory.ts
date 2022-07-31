@@ -1,7 +1,9 @@
-import type { Prisma } from "@prisma/client"
 import { Factory } from "fishery"
+import { createHash } from "node:crypto"
+
 import { coverFolder, musicFolder } from "../helper/Consts"
-import { createHash } from "crypto"
+
+import type { Prisma } from "@prisma/client"
 
 class MetaDataFactory extends Factory<
   Prisma.TrackCreateInput,
@@ -38,12 +40,13 @@ const metaDataFactory = MetaDataFactory.define(
   ({ transientParams, sequence }) => {
     const hasCover = transientParams.hasCover ?? true
     const hasUniqueCover = transientParams.hasUniqueCover ?? false
-    const isDbItem = transientParams.isDbItem ?? false
+    const isDatabaseItem = transientParams.isDbItem ?? false
     const hasID = transientParams.hasID ?? false
 
+    // eslint-disable-next-line no-param-reassign
     sequence =
-      transientParams?.forcedSequence !== NaN &&
       transientParams?.forcedSequence !== undefined &&
+      !Number.isNaN(transientParams?.forcedSequence) &&
       transientParams?.forcedSequence !== null
         ? transientParams.forcedSequence
         : sequence - 1
@@ -51,7 +54,7 @@ const metaDataFactory = MetaDataFactory.define(
     const coverMD5 = hasUniqueCover
       ? createHash("md5").update(Buffer.from(sequence.toString())).digest("hex")
       : "f3cfe268a034c82c551b78a8cfd0534e"
-    const coverPath = coverFolder + coverMD5 + ".png"
+    const coverPath = `${coverFolder + coverMD5}.png`
 
     return {
       filepath: `${musicFolder}${sequence.toString()}.mp3`,
@@ -71,9 +74,9 @@ const metaDataFactory = MetaDataFactory.define(
       lossless: false,
       container: "MPEG",
       codec: "MPEG 1 Layer 3",
-      sampleRate: 44100,
+      sampleRate: 44_100,
       numberOfChannels: 2,
-      bitrate: 320000,
+      bitrate: 320_000,
       codecProfile: "CBR",
       tool: "tool",
       trackGain: sequence,
@@ -83,7 +86,7 @@ const metaDataFactory = MetaDataFactory.define(
         coverMD5,
         coverPath,
       }),
-      ...(isDbItem && {
+      ...(isDatabaseItem && {
         playCount: 0,
         skipCount: 0,
         ...(hasID && { id: sequence + 1 }),

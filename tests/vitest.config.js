@@ -1,4 +1,4 @@
-import { join } from "path"
+import { join } from "node:path"
 
 const PACKAGE_ROOT = __dirname
 
@@ -12,13 +12,23 @@ const config = {
   envDir: process.cwd(),
   resolve: {
     alias: {
-      "@sing-renderer/*":
-        join(PACKAGE_ROOT, "..", "packages", "renderer", "src") + "/",
-      "@sing-main/*": join(PACKAGE_ROOT, "..", "packages", "main", "src") + "/",
-      "@sing-preload/*":
-        join(PACKAGE_ROOT, "..", "packages", "preload", "src") + "/",
-      "@sing-types/*": join(PACKAGE_ROOT, "..", "types") + "/",
-      "@": join(PACKAGE_ROOT) + "/",
+      "@sing-renderer/*": `${join(
+        PACKAGE_ROOT,
+        "..",
+        "packages",
+        "renderer",
+        "src"
+      )}/`,
+      "@sing-main/*": `${join(PACKAGE_ROOT, "..", "packages", "main", "src")}/`,
+      "@sing-preload/*": `${join(
+        PACKAGE_ROOT,
+        "..",
+        "packages",
+        "preload",
+        "src"
+      )}/`,
+      "@sing-types/*": `${join(PACKAGE_ROOT, "..", "types")}/`,
+      "@": `${join(PACKAGE_ROOT)}/`,
     },
   },
 }

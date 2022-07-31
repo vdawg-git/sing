@@ -13,6 +13,7 @@ import type {
 } from "@/types/Types"
 import type { ITrack } from "@sing-types/Types"
 import type { Unsubscriber } from "svelte/store"
+
 // Create stores / state
 const playLoopStore = writable<IPlayLoop>("NONE")
 const playModeStore = writable<IPlayMode>("DEFAULT")
@@ -24,7 +25,7 @@ const currentTimeStore = writable(0)
 const durationStore = writable(0)
 
 // Init stores with all tracks
-initStores()
+await initStores()
 
 export const currentTrack = derived(
   [queueStore, indexStore],

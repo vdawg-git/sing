@@ -1,8 +1,11 @@
+import log from "ololog"
+
 import { isBackendMessageToForward } from "../../backend/src/types/TypeGuards"
 import { backendProcess } from "./BackendProcess"
+import { sendToRenderer } from "./Helper"
 import mainEventHandlers from "./MainEventHandlers"
 import mainQueryHandlers from "./MainQueryHandlers"
-import { ipcMain, webContents } from "./TypedIPC"
+import { ipcMain } from "./TypedIPC"
 
 export default function ipcInit(): void {
   for (const [event, callback] of Object.entries(mainEventHandlers)) {
@@ -15,12 +18,13 @@ export default function ipcInit(): void {
     ipcMain.handle(event, callback)
   }
 
-  // Forwards to the renderer if the message is meant to be forwarded
+  // If the message is meant to be forwarded to the renderer, forward it
   backendProcess.on("message", (message) => {
+    log("Main - Backend Message received", message)
+
     if (!isBackendMessageToForward(message)) return
 
-    for (const webContent of webContents.getAllWebContents()) {
-      webContent.send(message.event, message.data)
-    }
+    // @ts-ignore IPC got typed, even if Typescript does not like it
+    sendToRenderer(message.event, message.data)
   })
 }

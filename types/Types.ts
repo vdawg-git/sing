@@ -1,24 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 import type { Track } from "@prisma/client"
 
 import type { Either } from "fp-ts/lib/Either"
 import type * as mm from "music-metadata"
 import type { app, IpcRendererEvent } from "electron"
 
-import type { syncDirectories } from "../packages/backend/src/lib/Sync"
+import type { DropFirst, NullValuesToOptional } from "./Utilities"
 
-type NonNull<T> = T extends null ? never : T
+import type {
+  ParametersFlattened,
+  ParametersWithoutFirst,
+  InnerArray,
+} from "@sing-types/Utilities"
 
-export type ISyncResult = Awaited<ReturnType<typeof syncDirectories>>
+import type { twoWayHandler } from "../packages/backend/src/lib/TwoWayHandler"
 
-export type NullableKeys<T> = NonNullable<
-  {
-    [K in keyof T]: T[K] extends NonNull<T[K]> ? never : K
-  }[keyof T]
->
-
-export type NullValuesToOptional<T> = Omit<T, NullableKeys<T>> &
-  Partial<Pick<T, NullableKeys<T>>>
+import type { syncMusic } from "../packages/backend/src/lib/Sync"
 
 export type ITrack = NullValuesToOptional<Track>
 
@@ -27,27 +25,21 @@ export type IElectronPaths = Parameters<typeof app.getPath>[0]
 /**
  * Also has the renderer event as its argument
  */
-export interface IFrontendEventsBase {
-  setMusic: (event: IpcRendererEvent, response: ISyncResult) => void
-  createNotification: (event: IpcRendererEvent, response: INotification) => void
-}
-export type IFrontendEvents = {
-  [Key in keyof IFrontendEventsBase]: (
-    ...arguments_: ParametersWithoutFirst<IFrontendEventsBase[Key]>
+export interface IFrontendEventsConsume {
+  readonly setMusic: (
+    event: IpcRendererEvent,
+    newMusic: Either<IError, readonly ITrack[]>
+  ) => void
+  readonly createNotification: (
+    event: IpcRendererEvent,
+    notification: INotificationFromBackend
   ) => void
 }
-
-export type AllowedIndexes<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  T extends readonly any[],
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Result extends any[] = []
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-> = T extends readonly [infer _, ...infer Rest]
-  ? AllowedIndexes<Rest, [...Result, Result["length"]]>
-  : Result[number]
-
-export type Writeable<T> = { -readonly [P in keyof T]: T[P] }
+export type IFrontendEventsSend = {
+  [Key in keyof IFrontendEventsConsume]: (
+    ...arguments_: DropFirst<Parameters<IFrontendEventsConsume[Key]>>
+  ) => void
+}
 
 export interface IRawAudioMetadata extends mm.IAudioMetadata {
   readonly filepath: string
@@ -62,35 +54,11 @@ export interface IidBackendAnswer {
   readonly data: Either<IError, unknown>
 }
 
-/**
- * Transfrom `[[[nestedType]]]` to `nestedType`
- * @example type x = [[[[string]]]]
- *     type unnestedX = innerArray<x> //=> `string`
- *
- */
-export type InnerArray<T extends unknown[]> = T["length"] extends 1
-  ? T[0] extends unknown[]
-    ? T[0]["length"] extends 1
-      ? InnerArray<T[0]>
-      : T[0]
-    : T[0]
-  : T
-
-export type FlattenedParameters<T extends (...arguments_: any[]) => any> =
-  InnerArray<Parameters<T>>
-
-export type DropFirst<T extends any[]> = T extends [any, ...infer U] ? U : never
-
-export type ParametersWithoutFirst<T extends (...arguments_: any[]) => any> =
-  DropFirst<Parameters<T>>
-
-export type OptionalPromise<T> = T | Promise<T>
-
 export interface INotification {
-  id: symbol
-  label: string
-  type?: INotificationTypes
-  duration?: number
+  readonly id: symbol
+  readonly label: string
+  readonly type?: INotificationTypes
+  readonly duration?: number
 }
 export type INotificationFromBackend = Omit<INotification, "id">
 
@@ -137,3 +105,71 @@ export interface IErrorFSWriteFailed extends IError {
 export interface IErrorMMDParsingError extends IError {
   readonly type: "File metadata parsing failed"
 }
+
+export interface IOneWayHandlersConsume {
+  readonly syncMusic: typeof syncMusic
+}
+
+// type IMakeOneWayHandlerSendFromRenderer<
+//   Event extends keyof IFrontendEventsSend,
+//   T extends (...arguments_: never[]) => unknown
+// > = (...arguments_: Parameters<T>) => Promise<{
+//   readonly event: Event
+//   readonly emitToRenderer: true
+//   readonly arguments_: Parameters<T>
+//   readonly response: Awaited<ReturnType<T>>
+// }>
+
+export type ITwoWayHandlers = {
+  readonly [key in ITwoWayEvents]: {
+    readonly response: Awaited<ReturnType<typeof twoWayHandler[key]>>
+    readonly args: InnerArray<Awaited<Parameters<typeof twoWayHandler[key]>>>
+  }
+}
+
+export type ITwoWayResponse = {
+  readonly id: string
+  readonly data: ITwoWayHandlers[ITwoWayEvents]["response"]
+}
+
+export type ITwoWayEvents = keyof typeof twoWayHandler
+
+export type ITwoWayRequest = {
+  readonly id: string
+  readonly event: ITwoWayEvents
+  readonly arguments_: ITwoWayHandlers[ITwoWayEvents]["args"]
+}
+
+export type IBackendEmitChannels = keyof IOneWayHandlersConsume
+
+export type IBackendEmitHandlers = {
+  readonly [key in IBackendEmitChannels]: {
+    readonly emitTo: IBackToFrontChannels[key]
+    readonly arguments_: ParametersWithoutFirst<IOneWayHandlersConsume[key]>
+  }
+}
+
+export type IBackToFrontChannels = ValidateBackToFrontEvents<{
+  readonly syncMusic: "setMusic"
+}>
+
+export interface IBackendEmitToFrontend {
+  readonly event: keyof IFrontendEventsSend
+  readonly data: ParametersFlattened<
+    IFrontendEventsSend[keyof IFrontendEventsSend]
+  >
+  readonly emitToRenderer: true
+}
+
+export type IDataSendToBackend = {
+  readonly event: IBackendEmitChannels
+  readonly arguments_: IBackendEmitHandlers[IBackendEmitChannels]["arguments_"]
+}
+
+export type IBackendRequest = ITwoWayRequest | IDataSendToBackend
+
+type ValidateBackToFrontEvents<
+  T extends Readonly<
+    Record<IBackendEmitChannels, keyof IFrontendEventsSend | undefined>
+  >
+> = T

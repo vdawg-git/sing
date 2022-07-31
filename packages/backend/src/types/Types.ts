@@ -1,69 +1,20 @@
-import type {
-  InnerArray,
-  IFrontendEvents,
-  FlattenedParameters,
-} from "@sing-types/Types"
+import type { ITwoWayResponse, IBackendEmitToFrontend } from "@sing-types/Types"
 
-import type { oneWayHandler } from "../lib/OneWayHandler"
-import type { twoWayHandler } from "../lib/TwoWayHandler"
+import type { EventEmitter } from "node:events"
 
 export interface ICoverData {
-  coverMD5: string
-  coverPath: string
-  coverBuffer: Buffer
+  readonly coverMD5: string
+  readonly coverPath: string
+  readonly coverBuffer: Buffer
 }
 
-export type ITwoWayHandlers = {
-  readonly [key in ITwoWayEvents]: {
-    readonly response: Awaited<ReturnType<typeof twoWayHandler[key]>>
-    readonly args: InnerArray<Awaited<Parameters<typeof twoWayHandler[key]>>>
-  }
+export interface IHandlerEmitter extends EventEmitter {
+  on: (
+    eventName: "sendToMain",
+    listener: (data: ITwoWayResponse | IBackendEmitToFrontend) => void
+  ) => this
+  emit: (
+    eventName: "sendToMain",
+    data: ITwoWayResponse | IBackendEmitToFrontend
+  ) => boolean
 }
-
-export type ITwoWayResponse = {
-  id: string
-  data: ITwoWayHandlers[ITwoWayEvents]["response"]
-}
-
-export type ITwoWayEvents = keyof typeof twoWayHandler
-
-export type ITwoWayRequest = {
-  readonly id: string
-  readonly event: ITwoWayEvents
-  readonly args: ITwoWayHandlers[ITwoWayEvents]["args"]
-}
-
-export type IBackendEmitChannels = keyof typeof oneWayHandler
-
-export type IBackendEmitHandlers = {
-  readonly [key in IBackendEmitChannels]: {
-    readonly emitTo: IBackToFrontChannels[key]
-    readonly args: IBackEventParamters<key>
-  }
-}
-
-export type IBackEventParamters<Event extends IBackendEmitChannels> =
-  InnerArray<Awaited<Parameters<typeof oneWayHandler[Event]>>>
-
-export type IBackToFrontChannels = ValidateBackToFrontEvents<{
-  readonly syncMusic: "setMusic"
-}>
-
-export interface IBackendMessageToForward {
-  readonly forwardToRenderer: true
-  readonly event: keyof IFrontendEvents
-  readonly data: FlattenedParameters<IFrontendEvents[keyof IFrontendEvents]>
-}
-
-export type IEmittedDataToBackend = {
-  readonly event: IBackendEmitChannels
-  readonly args: IBackendEmitHandlers[IBackendEmitChannels]["args"]
-}
-
-export type IBackendRequest = ITwoWayRequest | IEmittedDataToBackend
-
-type ValidateBackToFrontEvents<
-  T extends Readonly<
-    Record<IBackendEmitChannels, keyof IFrontendEvents | undefined>
-  >
-> = T
