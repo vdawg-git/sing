@@ -8,6 +8,7 @@
   import { fly } from "svelte/transition"
 
   import type { INotificationTypes } from "@sing-types/Types"
+  import { TEST_ATTRIBUTES } from "@/TestConsts"
 
   export let id: symbol
   export let label: string
@@ -84,10 +85,16 @@
 </script>
 
 <div
+  data-testattribute={TEST_ATTRIBUTES.notification}
   class="z-50 flex min-w-[224px] overflow-hidden rounded bg-grey-600/60 shadow-xl shadow-grey-900 backdrop-blur-2xl"
   on:mouseenter={pauseTimout}
   on:mouseleave={resumeTimeout}
-  transition:fly={{ duration: animationDuration, opacity: 0, x: 100 }}
+  in:fly={{ duration: animationDuration, opacity: 0, x: 100 }}
+  out:fly={{
+    duration: animationDuration / 2,
+    opacity: 0,
+    x: 100,
+  }}
 >
   <div class="flex gap-3 px-6 py-4">
     {#if type != undefined}
@@ -109,6 +116,7 @@
   {/if}
 
   <button
+    data-testattribute={TEST_ATTRIBUTES.notificationCloseButton}
     class="absolute top-0 right-0 p-2 opacity-70 hover:opacity-100"
     on:click={handleClose}
   >

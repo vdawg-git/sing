@@ -7,7 +7,7 @@ import { right } from "fp-ts/lib/Either"
 import { get } from "svelte/store"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { TEST_IDS as id, testAttributes } from "../src/TestConsts"
+import { TEST_ATTRIBUTES, TEST_IDS as id } from "../src/TestConsts"
 import trackFactory from "./factories/trackFactory"
 import mockElectronApi from "./MockElectronApi"
 
@@ -43,7 +43,7 @@ describe("with valid data", async () => {
     it("displays upcoming queue items", async () => {
       const { container } = render(QueueBarComponent)
       const elements = container.querySelectorAll(
-        testAttributes.asQuery.queueNextTracks
+        TEST_ATTRIBUTES.asQuery.queueNextTracks
       )
 
       expect(elements.length).toBeGreaterThan(2)
@@ -52,7 +52,7 @@ describe("with valid data", async () => {
     it("displays no played queue items yet", async () => {
       const { container } = render(QueueBarComponent)
       const elements = container.querySelectorAll(
-        testAttributes.queuePreviousTracks
+        TEST_ATTRIBUTES.queuePreviousTracks
       )
 
       expect(elements.length === 0).toBeTruthy()
@@ -89,7 +89,7 @@ describe("with valid data", async () => {
       const queueBar = render(QueueBarComponent)
 
       expect(
-        queueBar.container.querySelectorAll(testAttributes.queueNextTracks)
+        queueBar.container.querySelectorAll(TEST_ATTRIBUTES.queueNextTracks)
           .length <= 20
       ).toBeTruthy()
     })
@@ -131,7 +131,7 @@ describe("with valid data", async () => {
       const desiredAmount = Math.min(mockedTracks.length - 1, 20) // Current track takes one spot
 
       expect(
-        container.querySelectorAll(testAttributes.asQuery.queueNextTracks)
+        container.querySelectorAll(TEST_ATTRIBUTES.asQuery.queueNextTracks)
       ).lengthOf(desiredAmount)
     })
 
@@ -193,7 +193,7 @@ describe("with valid data", async () => {
 
         const nextTrack = component.getByTestId(id.queueNextTrack)
         const deleteIcon = nextTrack.querySelector(
-          testAttributes.asQuery.queueItemDeleteIcon
+          TEST_ATTRIBUTES.asQuery.queueItemDeleteIcon
         )
 
         if (!deleteIcon) throw new Error("No delete icon found for queue item") // for typescript
@@ -213,7 +213,7 @@ describe("with valid data", async () => {
 
         const previousTrack = component.getByTestId(id.queuePreviousTrack)
         const deleteIcon = previousTrack.querySelector(
-          testAttributes.asQuery.queueItemDeleteIcon
+          TEST_ATTRIBUTES.asQuery.queueItemDeleteIcon
         )
         const oldCurrentTrack = component.getByTestId(id.queueCurrentTrack)
 
@@ -231,7 +231,7 @@ describe("with valid data", async () => {
 
         const oldCurrentTrack = component.getByTestId(id.queueCurrentTrack)
         const deleteIcon = oldCurrentTrack.querySelector(
-          testAttributes.asQuery.queueItemDeleteIcon
+          TEST_ATTRIBUTES.asQuery.queueItemDeleteIcon
         )
 
         if (!deleteIcon) throw new Error("No delete icon found for queue item")
@@ -257,7 +257,7 @@ describe("with valid data", async () => {
           const oldNextTrack = component.getByTestId(id.queueNextTrack)
 
           const deleteIcon = oldCurrentTrack.querySelector(
-            testAttributes.asQuery.queueItemDeleteIcon
+            TEST_ATTRIBUTES.asQuery.queueItemDeleteIcon
           )
           if (!deleteIcon)
             throw new Error("No delete icon found for queue item")
@@ -306,7 +306,7 @@ describe("behaves correctly when queue is empty", async () => {
     const { container } = render(QueueBarComponent)
 
     const elements = container.querySelectorAll(
-      testAttributes.queuePreviousTracks
+      TEST_ATTRIBUTES.queuePreviousTracks
     )
 
     expect(elements.length === 0).toBeTruthy()
@@ -317,7 +317,7 @@ describe("behaves correctly when queue is empty", async () => {
 
     const { container } = component
 
-    const elements = container.querySelectorAll(testAttributes.queueNextTracks)
+    const elements = container.querySelectorAll(TEST_ATTRIBUTES.queueNextTracks)
 
     expect(elements.length === 0).toBeTruthy()
   })

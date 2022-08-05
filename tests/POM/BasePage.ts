@@ -1,13 +1,12 @@
-/* eslint-disable no-shadow */
-/* eslint-disable unicorn/prefer-dom-node-text-content */
 import slash from "slash"
 
-import { TEST_IDS, testAttributes } from "../../packages/renderer/src/TestConsts"
-import { convertDisplayTimeToSeconds, isImageElement } from "../Helper"
+import { TEST_ATTRIBUTES, TEST_IDS } from "../../packages/renderer/src/TestConsts"
+import { convertDisplayTimeToSeconds } from "../Helper"
 import { reduceTitlesToFolders } from "./Helper"
 import createLibrarySettingsPage from "./LibrarySettingsPage"
 import createTracksPage from "./TracksPage"
 
+/* eslint-disable unicorn/prefer-dom-node-text-content */
 import type { IRoutes } from "../../packages/renderer/src/Consts"
 import type { ElectronApplication } from "playwright"
 
@@ -46,7 +45,7 @@ export default async function createBasePage(electronApp: ElectronApplication) {
     clickSeekbar,
     closeQueue,
     createErrorListener,
-    dragKnob,
+    dragKnob: dragSeekbarKnob,
     getCoverPath,
     getCurrentTime,
     getCurrentTrack,
@@ -73,6 +72,7 @@ export default async function createBasePage(electronApp: ElectronApplication) {
     resetMusic,
     resetTo,
     setVolume,
+    waitForNotification,
     waitForProgressBarToGrow,
     waitForTrackToChangeTo,
     goTo: {
@@ -82,21 +82,23 @@ export default async function createBasePage(electronApp: ElectronApplication) {
   }
 
   async function resetMusic() {
-    await page.evaluate(() => window.api.resetMusic())
-    await page.reload()
+    await page.evaluate(async () => window.api.resetMusic())
+    await reload()
   }
 
   async function gotoSettings(): Promise<
     ReturnType<typeof createLibrarySettingsPage>
   > {
     await openSidebarMenu()
-    await sidebarMenuSettings.click({ timeout: 3000 })
+    await sidebarMenuSettings.click({ timeout: 3000, force: true })
 
     return createLibrarySettingsPage(electronApp)
   }
 
   async function gotoTracks() {
-    await sidebarItemTracks.click({ timeout: 2000 })
+    await sidebarItemTracks.click({ timeout: 2000, force: true })
+
+    // await page.waitForTimeout(520) // Rendering of the store does not seem to be instant
 
     return createTracksPage(electronApp)
   }
@@ -146,6 +148,13 @@ export default async function createBasePage(electronApp: ElectronApplication) {
     await page.reload()
   }
 
+  async function waitForNotification(label: string, timeout = 4000) {
+    return page.waitForSelector(
+      `${TEST_ATTRIBUTES.asQuery.notification}:has-text('${label}')`,
+      { timeout }
+    )
+  }
+
   async function isPlayingAudio(): Promise<boolean> {
     const isPlaying = await testAudioElement.evaluate(
       (element) =>
@@ -162,6 +171,7 @@ export default async function createBasePage(electronApp: ElectronApplication) {
     const selector = TEST_IDS.asQuery.seekbarProgressbar
 
     await page.waitForFunction(
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       ({ selector, desiredWidth }) => {
         const progressBar = document.querySelector(selector)
         const width = progressBar?.getBoundingClientRect().width || 0
@@ -181,9 +191,9 @@ export default async function createBasePage(electronApp: ElectronApplication) {
 
   async function isRenderingPlaybarCover() {
     return playbarCover.evaluate((element: HTMLElement) => {
-      if (!isImageElement(element)) return false
+      if (element?.tagName !== "IMG") return false
 
-      return !!element.naturalWidth
+      return !!(element as HTMLImageElement)?.naturalWidth
     })
   }
 
@@ -254,12 +264,16 @@ export default async function createBasePage(electronApp: ElectronApplication) {
 
   async function getNextTrack(): Promise<string | undefined> {
     const element = await nextTrack.elementHandle({ timeout: 2000 })
-    const titleElement = await element?.$(testAttributes.asQuery.queueItemTitle)
+    const titleElement = await element?.$(
+      TEST_ATTRIBUTES.asQuery.queueItemTitle
+    )
     return titleElement?.innerText()
   }
   async function getPreviousTrack(): Promise<string | undefined> {
     const element = await previousTrack.elementHandle({ timeout: 2000 })
-    const titleElement = await element?.$(testAttributes.asQuery.queueItemTitle)
+    const titleElement = await element?.$(
+      TEST_ATTRIBUTES.asQuery.queueItemTitle
+    )
     return titleElement?.innerText()
   }
   async function getCurrentTrack(): Promise<string | undefined> {
@@ -288,6 +302,7 @@ export default async function createBasePage(electronApp: ElectronApplication) {
     const selector = TEST_IDS.asQuery.playbarTitle
 
     await page.waitForFunction(
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       ({ that, selector }) => {
         const currentTitle = document.querySelector(selector)?.textContent
 
@@ -312,7 +327,7 @@ export default async function createBasePage(electronApp: ElectronApplication) {
     })
   }
 
-  async function dragKnob(amount: number) {
+  async function dragSeekbarKnob(amount: number) {
     await progressBarKnob.dragTo(seekbar, {
       targetPosition: { x: amount, y: 0 },
     })
@@ -352,10 +367,11 @@ export default async function createBasePage(electronApp: ElectronApplication) {
 
   async function getVolume(): Promise<number> {
     await hoverVolumeIcon()
-    const boundingBox = await volumeSlider.boundingBox()
+    const container = await volumeSlider.boundingBox()
+    const slider = await volumeSliderInner.boundingBox()
 
-    const heightTotal = boundingBox?.height
-    const sliderHeight = boundingBox?.height
+    const heightTotal = container?.height
+    const sliderHeight = slider?.height
 
     if (heightTotal === undefined || sliderHeight === undefined) return 0
 
@@ -377,12 +393,12 @@ export default async function createBasePage(electronApp: ElectronApplication) {
     }
 
     const heightToReach = height * volume
-    const x = width || 12 * 0.5
+    const x = width || 12 * 0.5 // Do not click on the border
 
     await volumeSlider.click({
       position: {
         y: heightToReach,
-        x, // Do not click on the border
+        x,
       },
       timeout: 2000,
     })
@@ -390,7 +406,7 @@ export default async function createBasePage(electronApp: ElectronApplication) {
     await validateAndWaitForAnimation()
 
     async function validateAndWaitForAnimation(
-      height?: number | undefined,
+      newHeight?: number | undefined,
       previousHeight?: number | undefined
     ): Promise<boolean> {
       const boundingBox = await volumeSliderInner.boundingBox()
@@ -402,7 +418,7 @@ export default async function createBasePage(electronApp: ElectronApplication) {
 
       if (newElementHeight !== previousHeight) {
         await page.waitForTimeout(10)
-        return validateAndWaitForAnimation(newElementHeight, height)
+        return validateAndWaitForAnimation(newElementHeight, newHeight)
       }
       return newElementHeight === heightToReach
     }
@@ -411,7 +427,7 @@ export default async function createBasePage(electronApp: ElectronApplication) {
   async function mockDialog(paths: string[]): Promise<void> {
     const returnValue = paths.map((path) => slash(path))
 
-    // eslint-disable-next-line no-shadow
+    // eslint-disable-next-line no-shadow, @typescript-eslint/no-shadow
     await electronApp.evaluate(async ({ dialog }, returnValue) => {
       // eslint-disable-next-line no-param-reassign
       dialog.showOpenDialog = () =>
@@ -422,14 +438,14 @@ export default async function createBasePage(electronApp: ElectronApplication) {
   async function getQueueItems() {
     await openQueue()
 
-    const queueItems = await page.$$(testAttributes.asQuery.queueItem)
+    const queueItems = await page.$$(TEST_ATTRIBUTES.asQuery.queueItem)
 
     const items = await Promise.all(
       queueItems.map(async (item) => {
         const [titleElement, coverElement, artistElement] = [
-          await item.$(testAttributes.asQuery.queueItemTitle),
-          await item.$(testAttributes.asQuery.queueItemCover),
-          await item.$(testAttributes.asQuery.queueItemArtist),
+          await item.$(TEST_ATTRIBUTES.asQuery.queueItemTitle),
+          await item.$(TEST_ATTRIBUTES.asQuery.queueItemCover),
+          await item.$(TEST_ATTRIBUTES.asQuery.queueItemArtist),
         ]
         const title = await titleElement?.innerText()
         const cover = await coverElement?.innerText()

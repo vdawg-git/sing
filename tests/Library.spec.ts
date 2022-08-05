@@ -132,9 +132,9 @@ describe("when removing one folder", async () => {
 
     const tracksPage = await settingsPage.goTo.tracks()
 
-    const foldersAddedTotracks = await tracksPage.getAddedFolders()
+    const addedFolders = await tracksPage.getAddedFolders()
 
-    expect(foldersAddedTotracks.indexOf(0)).toBe(-1)
+    expect(addedFolders).toEqual([1, 2])
   })
 
   it("changes the current track if it came from the removed folder", async () => {
@@ -147,7 +147,7 @@ describe("when removing one folder", async () => {
 
     await tracksPage.goTo.settings()
 
-    await settingsPage.removeFolder(0)
+    await settingsPage.removeFolder("folder0")
     await settingsPage.saveAndSyncFolders()
 
     const newCurrentTrack = await settingsPage.getCurrentTrack()
@@ -159,6 +159,7 @@ describe("when adding one folder from a clear state", async () => {
   beforeEach(async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     await settingsPage.resetMusic()
+    await settingsPage.reload()
   })
 
   it("only adds the newly added tracks to the track page", async () => {

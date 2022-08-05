@@ -1,4 +1,4 @@
-import { writable } from "svelte/store"
+import { get, writable } from "svelte/store"
 
 import type { IQueueItem } from "@/types/Types"
 import type { ITrack } from "@sing-types/Types"
@@ -7,28 +7,50 @@ function createQueueStore() {
   const { subscribe, set, update } = writable<IQueueItem[]>([])
 
   return {
-    subscribe,
+    removeIndex,
+    removeItemsFromNewTracks,
     reset,
     set,
-    update,
-    setUpcomingFromSource,
     setCurrent,
-    removeIndex: (index: number | number[]) =>
-      update(($queue) => removeIndex($queue, index)),
+    setUpcomingFromSource,
+    subscribe,
+    update,
+  }
+
+  function removeItemsFromNewTracks(
+    newTrackItems: readonly ITrack[],
+    currentIndex: number
+  ): number {
+    const { newQueue, newIndex } = _removeItemsFromNewTracks(
+      get({ subscribe }),
+      newTrackItems,
+      currentIndex
+    )
+
+    set(newQueue)
+
+    return newIndex
+  }
+
+  function removeIndex(index: number | readonly number[]) {
+    update(($queue) => _removeIndex($queue, index))
   }
 
   function reset(index: number): void {
     update(($queue) => $queue.slice(0, index + 1))
   }
 
-  function setUpcomingFromSource(tracks: ITrack[], queueIndex: number): void {
+  function setUpcomingFromSource(
+    tracks: readonly ITrack[],
+    queueIndex: number
+  ): void {
     update(($queue) => {
       const played = $queue.slice(0, queueIndex)
       const manuallyAdded = $queue
         .slice(queueIndex)
         .filter((item) => item.isManuallyAdded)
 
-      const newQueueItems: IQueueItem[] = mapTracksToQueueItem(
+      const newQueueItems: readonly IQueueItem[] = _convertTracksToQueueItem(
         tracks,
         queueIndex
       )
@@ -51,8 +73,8 @@ function createQueueStore() {
   }
 }
 
-export function mapTracksToQueueItem(
-  tracks: ITrack[],
+export function _convertTracksToQueueItem(
+  tracks: readonly ITrack[],
   continueFromIndex: number
 ): IQueueItem[] {
   return tracks.map((track, index) => ({
@@ -63,32 +85,34 @@ export function mapTracksToQueueItem(
   }))
 }
 
-export function remapIndexes(
-  queueItems: IQueueItem[],
+export function _remapIndexes(
+  queueItems: readonly IQueueItem[],
   indexToStart = 0
 ): IQueueItem[] {
   return [...queueItems].map((item, index) => {
     const newIndex = indexToStart + index
 
-    const clonedItem = {
+    return {
       ...item,
       index: newIndex,
       queueID: Symbol(`${newIndex} ${item.track?.title || "Unknown"}`),
     }
-    return clonedItem
   })
 }
 
-export function removeIndex(
-  queueItems: IQueueItem[],
-  indexes: number[] | number
+export function _removeIndex(
+  queueItems: readonly IQueueItem[],
+  indexes: readonly number[] | number
 ): IQueueItem[] {
   const cleaned = remove(queueItems, indexes)
 
-  return remapIndexes(cleaned)
+  return _remapIndexes(cleaned)
 }
 
-function remove(queueItems: IQueueItem[], indexes: number | number[]) {
+function remove(
+  queueItems: readonly IQueueItem[],
+  indexes: number | readonly number[]
+) {
   if (typeof indexes === "number") {
     const result = [...queueItems]
     result.splice(indexes, 1)
@@ -96,6 +120,35 @@ function remove(queueItems: IQueueItem[], indexes: number | number[]) {
   }
 
   return queueItems.filter((_, index) => !indexes.includes(index))
+}
+
+export function _removeItemsFromNewTracks(
+  queueItems: readonly IQueueItem[],
+  newTrackItems: readonly ITrack[],
+  currentIndex: number
+) {
+  const trackIDs = new Set(newTrackItems.map((track) => track.id))
+
+  const deletedIndexes: number[] = []
+  const newQueue = _remapIndexes(
+    queueItems.filter((item, index) => {
+      if (trackIDs.has(item.track.id)) return true
+
+      deletedIndexes.push(index)
+      return false
+    })
+  )
+
+  const toReduceCurrentIndex =
+    deletedIndexes.filter((index) => index <= currentIndex).length +
+    (deletedIndexes.includes(currentIndex) ? 1 : 0)
+
+  const newIndex =
+    currentIndex - toReduceCurrentIndex < -1
+      ? -1
+      : currentIndex - toReduceCurrentIndex
+
+  return { newIndex, newQueue }
 }
 
 const queue = createQueueStore()

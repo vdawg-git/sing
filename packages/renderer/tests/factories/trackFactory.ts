@@ -1,6 +1,7 @@
 import { Factory } from "fishery"
 
 import type { ITrack } from "@sing-types/Types"
+
 const trackFactory = Factory.define<ITrack>(({ sequence }) => {
   // eslint-disable-next-line no-param-reassign
   sequence -= 1

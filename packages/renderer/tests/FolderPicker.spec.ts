@@ -1,5 +1,5 @@
 /* eslint-disable no-await-in-loop */
-import { TEST_IDS as id, testAttributes } from "@/TestConsts"
+import { TEST_ATTRIBUTES, TEST_IDS as id } from "@/TestConsts"
 import { fireEvent, render } from "@testing-library/svelte"
 import { tick } from "svelte"
 import { expect, it } from "vitest"
@@ -84,7 +84,7 @@ it("can remove a folder", async () => {
   const newButton = getInputs(dom)[0]
 
   const removeIcon = newButton.querySelector(
-    testAttributes.asQuery.folderInputDeleteIcon
+    TEST_ATTRIBUTES.asQuery.folderInputDeleteIcon
   )
 
   if (!removeIcon)
@@ -136,7 +136,7 @@ it("correctly removes a folder after multiple got added", async () => {
   }
 
   const removeIcon = getInputs(dom)[indexToRemove].querySelector(
-    testAttributes.asQuery.folderInputDeleteIcon
+    TEST_ATTRIBUTES.asQuery.folderInputDeleteIcon
   )
   if (!removeIcon) throw new Error(`Could not find remove icon: ${removeIcon}`)
 
@@ -237,7 +237,7 @@ async function addFolder(dom: RenderResult, folderPath: string) {
 
 function getInputs(dom: RenderResult) {
   const folders = dom.container.querySelectorAll(
-    testAttributes.asQuery.folderInput
+    TEST_ATTRIBUTES.asQuery.folderInput
   )
 
   return folders

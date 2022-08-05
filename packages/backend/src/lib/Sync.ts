@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { NOTIFICATION_LABEL } from "@sing-renderer/Consts"
 import {
   getLeftsRights,
   getLeftValues,
@@ -7,8 +8,7 @@ import {
   getUnsupportedMusicFiles,
   hasCover,
   removeDuplicates,
-} from "@/Pures"
-import c from "ansicolor"
+} from "@sing-shared/Pures"
 import { isLeft, left, right } from "fp-ts/lib/Either"
 import log from "ololog"
 import slash from "slash"
@@ -39,8 +39,6 @@ export async function syncMusic(
     directories: string[]
   }
 ): Promise<void> {
-  log(handlerEmitter.emit)
-
   if (!Array.isArray(directories)) {
     const error: IErrorInvalidArguments = {
       type: "Invalid arguments",
@@ -69,16 +67,14 @@ export async function syncMusic(
       emitToRenderer: true,
     })
   }
-  log("Before first emit")
 
   handlerEmitter.emit("sendToMain", {
     event: "createNotification",
     data: {
-      label: "Started syncing music",
+      label: NOTIFICATION_LABEL.syncStarted,
     },
     emitToRenderer: true,
   })
-  log("After first emit")
 
   const directoriesContents = await Promise.all(
     directories.map(slash).map((directory) => getFilesFromDirectory(directory))

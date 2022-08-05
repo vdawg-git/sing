@@ -14,26 +14,23 @@ window.api.listen("createNotification", (_event, notification) => {
   ])
 })
 
-function addNotification(
+export function addNotification(
   notification: INotification,
-  position: "top" | "bottom" = "bottom"
+  position: "top" | "bottom" = "top"
 ): void {
   update(($store) =>
     position === "top" ? [notification, ...$store] : [...$store, notification]
   )
 }
 
-function removeNotificationByID(notificationID: symbol): void {
+export function removeNotificationByID(notificationID: symbol): void {
   update(($store) => $store.filter(({ id }) => id !== notificationID))
 }
 
-function removeNotificationsByLabel(labelToDelete: string): void {
+export function removeNotificationsByLabel(labelToDelete: string): void {
   update(($store) => $store.filter(({ label }) => label !== labelToDelete))
 }
 
 export default {
   subscribe,
-  addNotification,
-  removeNotificationByID,
-  removeNotificationsByLabel,
 }

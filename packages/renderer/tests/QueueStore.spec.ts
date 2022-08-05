@@ -1,4 +1,9 @@
-import queueStore, { mapTracksToQueueItem, remapIndexes, removeIndex } from "@/lib/stores/QueueStore"
+import queueStore, {
+  _convertTracksToQueueItem,
+  _remapIndexes,
+  _removeIndex,
+  _removeItemsFromNewTracks,
+} from "@/lib/stores/QueueStore"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import queueItemFactory from "./factories/queueItemFactory"
@@ -15,6 +20,7 @@ beforeEach(async () => {
   // Set up mock data
   queueStore.set(queueItemFactory.buildList(25))
   queueItemFactory.rewindSequence()
+  trackFactory.rewindSequence()
 })
 
 // describe("fn: setUpcomingFromSource", async () => {
@@ -27,7 +33,7 @@ describe("fn: mapTracks", async () => {
   const tracks = trackFactory.buildList(10)
 
   it("maps the indexes of the new tracks correctly", async () => {
-    const queueItems = mapTracksToQueueItem(tracks, 5)
+    const queueItems = _convertTracksToQueueItem(tracks, 5)
 
     for (const [index, item] of queueItems.entries()) {
       expect(item.index).to.equal(index + 5)
@@ -37,14 +43,14 @@ describe("fn: mapTracks", async () => {
 
 describe("fn: remapIndexes", async () => {
   it("returns an array with the correct length", async () => {
-    expect(remapIndexes(queueItemFactory.buildList(20), 10)).to.be.lengthOf(20)
+    expect(_remapIndexes(queueItemFactory.buildList(20), 10)).to.be.lengthOf(20)
   })
 
   it("maps the indexes of the new tracks correctly", async () => {
     const queueItems = queueItemFactory.buildList(20)
     const continueFromIndex = 10
 
-    const newItems = remapIndexes(queueItems, continueFromIndex)
+    const newItems = _remapIndexes(queueItems, continueFromIndex)
 
     expect(() =>
       newItems.every(
@@ -57,7 +63,7 @@ describe("fn: remapIndexes", async () => {
     const queueItems = queueItemFactory.buildList(20)
     const continueFromIndex = 10
 
-    const newItems = remapIndexes(queueItems, continueFromIndex)
+    const newItems = _remapIndexes(queueItems, continueFromIndex)
 
     for (let index = 10; index < 20; index += 1) {
       expect(newItems[index].queueID).to.not.equal(queueItems[index].queueID)
@@ -70,7 +76,7 @@ describe("fn: deleteIndex", async () => {
     const queueItems = queueItemFactory.buildList(20)
     const indexes = [0, 1, 2, 3]
 
-    const newItems = removeIndex(queueItems, indexes)
+    const newItems = _removeIndex(queueItems, indexes)
 
     expect(newItems).toHaveLength(16)
   })
@@ -79,7 +85,7 @@ describe("fn: deleteIndex", async () => {
     const queueItems = queueItemFactory.buildList(20)
     const indexes = [0, 1, 2, 3]
 
-    const newItems = removeIndex(queueItems, indexes)
+    const newItems = _removeIndex(queueItems, indexes)
 
     for (const [index, item] of newItems.entries()) {
       expect(item.track.title).toBe(queueItems[4 + index].track.title)
@@ -87,24 +93,108 @@ describe("fn: deleteIndex", async () => {
   })
 
   it("deletes a single item correctly", async () => {
-    queueItemFactory.rewindSequence()
     const queueItems = queueItemFactory.buildList(20)
     const index = 2
 
-    const newItems = removeIndex(queueItems, index)
+    const newItems = _removeIndex(queueItems, index)
 
     expect(newItems[index].track.title).toBe(queueItems[index + 1].track.title)
   })
 
   it("remaps the indexes correctly", async () => {
-    queueItemFactory.rewindSequence()
     const queueItems = queueItemFactory.buildList(20)
     const indexes = [2, 3, 8]
 
-    const newItems = removeIndex(queueItems, indexes)
+    const newItems = _removeIndex(queueItems, indexes)
 
     for (const [index, item] of newItems.entries()) {
       expect(item.index).toBe(index)
     }
+  })
+})
+
+describe("fn: deleteObseleteItemsFromNewTracks", async () => {
+  it("deletes the correct items - happy", async () => {
+    const indexesToDelete = [4, 8, 9, 15]
+
+    const oldQueueItems = queueItemFactory.buildList(20)
+    trackFactory.rewindSequence() // Nessecary as the queueFactory uses the trackFactory
+
+    const trackItems = trackFactory
+      .buildList(20)
+      .filter((_, index) => !indexesToDelete.includes(index))
+
+    const currentIndex = 2
+
+    const { newQueue } = _removeItemsFromNewTracks(
+      oldQueueItems,
+      trackItems,
+      currentIndex
+    )
+
+    for (const index of indexesToDelete) {
+      expect(newQueue[index]?.track.id).not.toEqual(
+        oldQueueItems[index]?.track.id
+      )
+    }
+  })
+
+  it("returns the correct index if the current track did not get removed - happy", async () => {
+    const indexesToDelete = new Set([4, 8, 9, 15, 18])
+
+    const oldQueueItems = queueItemFactory.buildList(20)
+    trackFactory.rewindSequence() // Nessecary as the queueFactory uses the trackFactory
+
+    const trackItems = trackFactory
+      .buildList(20)
+      .filter((_, index) => !indexesToDelete.has(index))
+
+    const currentIndex = 10
+
+    const { newIndex } = _removeItemsFromNewTracks(
+      oldQueueItems,
+      trackItems,
+      currentIndex
+    )
+
+    expect(newIndex).toEqual(7)
+  })
+
+  it("returns the correct index if the current track did get removed - happy", async () => {
+    const indexesToDelete = new Set([0, 2, 4, 10, 15])
+
+    const oldQueueItems = queueItemFactory.buildList(20)
+    trackFactory.rewindSequence() // Nessecary as the queueFactory uses the trackFactory
+
+    const trackItems = trackFactory
+      .buildList(20)
+      .filter((_, index) => !indexesToDelete.has(index))
+
+    const currentIndex = 10
+
+    const { newIndex } = _removeItemsFromNewTracks(
+      oldQueueItems,
+      trackItems,
+      currentIndex
+    )
+
+    expect(newIndex).toEqual(5)
+  })
+
+  it("returns the index -1 if all new track items are different from the old queue items", async () => {
+    const oldQueueItems = queueItemFactory.buildList(20)
+
+    // The queueItemFactory increases the sequence of the trackFacttory, so all IDs are different now
+    const trackItems = trackFactory.buildList(20)
+
+    const currentIndex = 10
+
+    const { newIndex } = _removeItemsFromNewTracks(
+      oldQueueItems,
+      trackItems,
+      currentIndex
+    )
+
+    expect(newIndex).toEqual(-1)
   })
 })

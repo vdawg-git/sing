@@ -12,6 +12,7 @@ import type { Either } from "fp-ts/Either"
 vi.mock("@/lib/manager/AudioPlayer", () => ({ default: mockedPlayer }))
 vi.stubGlobal("api", mockElectronApi)
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let QueueBarComponent: typeof SvelteComponentDev
 let PlayBarComponent: typeof SvelteComponentDev
 

@@ -12,6 +12,7 @@ beforeAll(async () => {
   electron = await launchElectron()
 
   const basePage = await createBasePage(electron)
+
   const libraryPage = await basePage.resetTo("settings/library")
   await libraryPage.resetToDefault()
 
@@ -24,9 +25,10 @@ afterAll(async () => {
 
 it("displays a cover", async () => {
   const tracksPage = await createTracksPage(electron)
-  tracksPage.reload()
+  await tracksPage.reload() // Nessecary as the music got reset and the playbar has not current track
+  // TODO implement saving queue and play state and restoring it when reopening the app
 
-  await tracksPage.clickPlay()
+  expect(await tracksPage.isRenderingPlaybarCover()).toBe(true)
 })
 
 it("does not throw an error when playing a queue item", async () => {
@@ -123,12 +125,11 @@ it("displays the total time when hovering the seekbar", async () => {
 
 it("goes to the next track in queue after the current has finished", async () => {
   const tracksPage = await createTracksPage(electron)
-  await tracksPage.reload()
   await tracksPage.openQueue()
 
   const oldNextTrack = await tracksPage.getNextTrack()
 
-  await tracksPage.clickSeekbar(97)
+  await tracksPage.clickSeekbar(98)
   await tracksPage.clickPlay()
   await tracksPage.waitForTrackToChangeTo("Next track")
 
@@ -139,7 +140,6 @@ it("goes to the next track in queue after the current has finished", async () =>
 
 it("changes the volume when clicking the slider", async () => {
   const tracksPage = await createTracksPage(electron)
-  await tracksPage.reload()
 
   const oldVolume = await tracksPage.getVolume()
 

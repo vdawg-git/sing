@@ -43,6 +43,7 @@ export const unusedCoverFilepaths = [
   "coverTest3.png",
 ].map((fileName) => coverFolder + fileName)
 
+// eslint-disable-next-line unicorn/no-array-reduce
 export const unusedCoversJSON = unusedCoverFilepaths.reduce(
   (accumulator, path, index) => {
     accumulator[path] = index.toString()

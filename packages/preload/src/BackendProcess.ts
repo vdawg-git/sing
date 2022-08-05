@@ -8,6 +8,7 @@ export const backendProcess = fork(
   path.join(__dirname, "../../backend/dist/index.cjs"),
   [databaseURL]
 )
+
 logProcessOutput(backendProcess, "backend")
 
 export const queryBackend = createPromisifiedForkEmitter(backendProcess)

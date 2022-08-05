@@ -4,7 +4,14 @@ import trackFactory from "./trackFactory"
 
 import type { IQueueItem } from "@/types/Types"
 
-const queueItemFactory = Factory.define<IQueueItem>(({ sequence }) => {
+class QeueItemFactory extends Factory<IQueueItem> {
+  resetTracksSequence() {
+    trackFactory.rewindSequence()
+    return this
+  }
+}
+
+const queueItemFactory = QeueItemFactory.define(({ sequence }) => {
   // eslint-disable-next-line no-param-reassign
   sequence -= 1
   const index = sequence

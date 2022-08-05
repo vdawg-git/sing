@@ -1,7 +1,7 @@
 import { writable } from "svelte/store"
 
 function createIndexStore() {
-  const { set, update, subscribe } = writable(0)
+  const { set, update, subscribe } = writable(-1)
 
   return { set, update, subscribe, increment, decrement }
 

@@ -29,8 +29,8 @@
     "typecheck:preload": "tsc --noEmit -p packages/preload/tsconfig.json",
     "typecheck:renderer": "svelte-check --tsconfig packages/renderer/tsconfig.json",
     "typecheck": "npm run typecheck:main && npm run typecheck:preload && npm run typecheck:renderer",
-    "deps-check": "ncu -x slash",
-    "deps-update": "ncu -x slash -u"
+    "deps-check": "ncu -x slash music-metadata",
+    "deps-update": "ncu -x slash music-metadata -u"
   },
   "devDependencies": {
     "@iconify/json": "^2.1.81",
@@ -41,9 +41,8 @@
     "@types/node": "^18.6.3",
     "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "^5.30.7",
-    "autoprefixer": "^10.4.7",
     "cross-env": "7.0.3",
-    "electron": "^19.0.9",
+    "electron": "^20.0.1",
     "electron-builder": "23.1.0",
     "eslint": "^8.20.0",
     "eslint-config-airbnb": "^19.0.4",
@@ -81,7 +80,7 @@
     "music-metadata": "^7.12.5",
     "ololog": "^1.1.175",
     "prisma": "^4.1.0",
-    "slash": "^3.0.0",
+    "slash": "3.0.0",
     "svelte-navigator": "^3.1.6"
   },
   "prisma": {

@@ -34,6 +34,8 @@ const defaultRules = {
   "spaced-comment": ["error", "always", { markers: ["/", "?", "!"] }],
   "no-underscore-dangle": "off",
   "@typescript-eslint/no-explicit-any": ["error", { ignoreRestArgs: true }],
+  "no-shadow": "off",
+  "@typescript-eslint/no-shadow": ["error", { ignoreTypeValueShadow: true }],
 }
 
 module.exports = {

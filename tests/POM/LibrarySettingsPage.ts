@@ -1,12 +1,13 @@
 import path from "node:path"
 
-import { TEST_IDS as id, testAttributes } from "../../packages/renderer/src/TestConsts"
+import { NOTIFICATION_LABEL } from "../../packages/renderer/src/Consts"
+import { TEST_ATTRIBUTES, TEST_IDS as id } from "../../packages/renderer/src/TestConsts"
 import createSettingsBasePage from "./SettingsBasePage"
 
 /* eslint-disable unicorn/prefer-dom-node-text-content */
 /* eslint-disable no-await-in-loop */
 import type { ElectronApplication, Locator } from "playwright"
-import type { AllowedIndexes } from "@sing-types/Types"
+import type { AllowedIndexes } from "@sing-types/Utilities"
 
 export default async function createLibrarySettingsPage(
   electron: ElectronApplication
@@ -45,6 +46,7 @@ export default async function createLibrarySettingsPage(
 
     await setDefaultFolders()
     await saveAndSyncFolders()
+    await settingsBase.reload()
   }
 
   async function setDefaultFolders() {
@@ -57,16 +59,16 @@ export default async function createLibrarySettingsPage(
 
   async function removeAllFolders() {
     const deleteIcons = await page.$$(
-      testAttributes.asQuery.folderInputDeleteIcon
+      TEST_ATTRIBUTES.asQuery.folderInputDeleteIcon
     )
 
-    for (const folder of deleteIcons) {
-      await folder.click({ timeout: 2000 })
+    for (const deleteIcon of deleteIcons) {
+      await deleteIcon.click({ timeout: 2000, force: true })
     }
   }
 
   async function getFolderElements() {
-    const folderElements = await page.$$(testAttributes.asQuery.folderInput)
+    const folderElements = await page.$$(TEST_ATTRIBUTES.asQuery.folderInput)
 
     return folderElements
   }
@@ -98,24 +100,42 @@ export default async function createLibrarySettingsPage(
     await folder.click({ timeout: 2000 })
   }
 
-  async function removeFolder(folderIndex: number): Promise<void> {
-    const folderElements = await getFolderElements()
+  async function removeFolder(
+    folderToRemove: number | "folder0" | "folder1" | "folder2"
+  ): Promise<void> {
+    if (typeof folderToRemove === "number") {
+      const folderElements = await getFolderElements()
 
-    const folder = folderElements[folderIndex]
+      const folder = folderElements[folderToRemove]
 
-    const deleteIcon = await folder.$(
-      testAttributes.asQuery.folderInputDeleteIcon
-    )
+      const deleteIcon = await folder.$(
+        TEST_ATTRIBUTES.asQuery.folderInputDeleteIcon
+      )
 
-    if (!deleteIcon)
-      throw new Error(`could not find deleteIcon, it is: ${deleteIcon}`)
+      if (!deleteIcon) {
+        throw new Error(`could not find deleteIcon, it is: ${deleteIcon}`)
+      }
 
-    await deleteIcon.click({ timeout: 2000 })
+      await deleteIcon.click({ timeout: 2000, force: true })
+    } else {
+      const folder = await page.$(
+        `${TEST_ATTRIBUTES.asQuery.folderInput}:has-text("${folderToRemove}")`
+      )
+      const deleteIcon = await folder?.$(
+        TEST_ATTRIBUTES.asQuery.folderInputDeleteIcon
+      )
+
+      if (!deleteIcon) {
+        throw new Error(`could not find deleteIcon, it is: ${deleteIcon}`)
+      }
+
+      await deleteIcon.click({ timeout: 2000, force: true })
+    }
   }
 
   async function getFolderNames(): Promise<string[]> {
     const folderInputElements = await page.$$(
-      testAttributes.asQuery.folderInput
+      TEST_ATTRIBUTES.asQuery.folderInput
     )
 
     const folderNames = Promise.all(
@@ -127,7 +147,8 @@ export default async function createLibrarySettingsPage(
 
   async function saveAndSyncFolders() {
     await saveButton.click({ timeout: 2000 })
-    await page.waitForTimeout(1050) // Todo Need to implement a "done syncing" notification which can then be awaited
+    await settingsBase.waitForNotification(NOTIFICATION_LABEL.syncSuccess)
+    await page.waitForTimeout(1850) // Hack - Give the store time to complete to update. Need to think of a better way to do this
   }
 
   async function setFolderPath(

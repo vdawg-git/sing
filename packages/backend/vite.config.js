@@ -20,6 +20,8 @@ const config = {
       "@sing-types": `${join(PACKAGE_ROOT, "..", "..", "types")}/`,
       "@sing-main": `${join(PACKAGE_ROOT, "..", "main", "src")}/`,
       "@sing-preload": `${join(PACKAGE_ROOT, "..", "preload", "src")}/`,
+      "@sing-renderer": `${join(PACKAGE_ROOT, "..", "renderer", "src")}/`,
+      "@sing-shared": `${join(PACKAGE_ROOT, "..", "shared")}/`,
     },
   },
   build: {

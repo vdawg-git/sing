@@ -20,10 +20,3 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
-
-// from https://stackoverflow.com/questions/69676439/create-constant-array-type-from-an-object-type
-type TupleUnion<FieldKeys extends string, Result extends any[] = []> = {
-  [Key in FieldKeys]: Exclude<FieldKeys, Key> extends never
-    ? [...Result, Key]
-    : TupleUnion<Exclude<FieldKeys, Key>, [...Result, Key]>
-}

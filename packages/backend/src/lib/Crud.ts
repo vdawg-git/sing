@@ -1,4 +1,4 @@
-import { removeNulledKeys } from "@/Pures"
+import { removeNulledKeys } from "@sing-shared/Pures"
 import { left, right } from "fp-ts/Either"
 
 import createPrismaClient from "./CustomPrismaClient"
@@ -18,7 +18,7 @@ export async function getTracks(
 
     return right(result)
   } catch (error) {
-    return left({ error })
+    return left({ type: "Failed to get from database", error })
   }
 }
 
@@ -35,7 +35,11 @@ export async function addTrackToDB(
     })
     .then((addedTrack) => right(removeNulledKeys(addedTrack)))
     .catch((error) =>
-      left({ error, message: `Failed to add track: ${error.message}` })
+      left({
+        type: "Failed to add track to database",
+        error,
+        message: `Failed to add track: ${error.message}`,
+      })
     )
 }
 
@@ -51,6 +55,6 @@ export async function deleteTracksInverted(
     .then((deleteAmount) => right(deleteAmount.count))
     .catch((error) => {
       console.error(error)
-      return left({ error })
+      return left({ error, type: "Failed to remove from database" })
     })
 }

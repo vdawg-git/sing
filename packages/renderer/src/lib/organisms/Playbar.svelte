@@ -5,11 +5,11 @@
   import IconQueue from "virtual:icons/heroicons-outline/view-list"
   import VolumeControl from "@/lib/molecules/VolumeControl.svelte"
   import { onMount } from "svelte"
-  import { displayMetadata, titleToDisplay } from "@/Helper"
+  import { displayMetadata } from "@/Helper"
 
   import QueueBar from "./QueueBar.svelte"
   import Seekbar from "../molecules/Seekbar.svelte"
-  import { TEST_IDS as test } from "@/TestConsts"
+  import { TEST_IDS } from "@/TestConsts"
 
   import player, {
     currentTrack,
@@ -48,9 +48,10 @@
     rounded-3xl bg-grey-700/80
     px-6 backdrop-blur-xl
   "
-  data-testid={test.playbar}
+  data-testid={TEST_IDS.playbar}
 >
-  <div class="absolute top-0 flex w-screen justify-center">
+  <!--- Seekbar -->
+  <div class="absolute top-[2px] flex w-screen justify-center">
     <div class="w-[40%]">
       <Seekbar
         currentTime={$currentTime}
@@ -70,12 +71,12 @@
         class="h-14 w-14 shrink-0 bg-grey-600"
         alt={track?.title || "Title" + " " + " cover"}
         src={"file://" + track?.coverPath}
-        data-testid={test.playbarCover}
+        data-testid={TEST_IDS.playbarCover}
       />
     {:else}
       <div
         class="h-14 w-14 shrink-0 bg-grey-600"
-        data-testid={test.playbarCover}
+        data-testid={TEST_IDS.playbarCover}
       />
     {/if}
 
@@ -84,14 +85,14 @@
       <div class="mt-1 max-w-full overflow-hidden">
         <div
           class="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-lg"
-          data-testid={test.playbarTitle}
+          data-testid={TEST_IDS.playbarTitle}
         >
           {displayMetadata("title", track)}
         </div>
         <div class="flex max-w-full gap-3">
           <div
             class="shrink-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm text-grey-300"
-            data-testid={test.playbarArtist}
+            data-testid={TEST_IDS.playbarArtist}
           >
             {displayMetadata("artist", track)}
           </div>
@@ -108,7 +109,7 @@
       <!---- Backwards button-->
       <button
         on:click={() => player.previous()}
-        data-testid={test.playbarBackButton}
+        data-testid={TEST_IDS.playbarBackButton}
         disabled={!$currentTrack}
         class="button "
       >
@@ -120,20 +121,25 @@
       <button
         on:click={() =>
           $playState === "PLAYING" ? player.pause() : player.resume()}
-        data-testid={test.playbarPauseButton}
         disabled={!$currentTrack}
         class="button"
       >
         {#if $playState === "PLAYING"}
-          <IconPause class="h-12 w-12" />
+          <IconPause
+            data-testid={TEST_IDS.playbarPauseButton}
+            class="h-12 w-12"
+          />
         {:else}
-          <IconPlay class="h-12 w-12" />
+          <IconPlay
+            data-testid={TEST_IDS.playbarPlayButton}
+            class="h-12 w-12"
+          />
         {/if}
       </button>
       <!---- Forward button-->
       <button
         on:click={() => player.next()}
-        data-testid={test.playbarNextButton}
+        data-testid={TEST_IDS.playbarNextButton}
         disabled={!track}
         class="button"
       >
@@ -143,7 +149,7 @@
   </div>
   <!------///----->
 
-  <!---- Other controls-->
+  <!---- Right icons-->
   <div class="flex items-center gap-6 justify-self-end">
     <VolumeControl bind:value={volume} />
 
@@ -157,7 +163,7 @@
     -->
     <button
       class="button"
-      data-testid={test.playbarQueueIcon}
+      data-testid={TEST_IDS.playbarQueueIcon}
       on:click|stopPropagation={handleClickQueueIcon}
     >
       <IconQueue class="h-6 w-6" />

@@ -1,9 +1,13 @@
+import { sortAlphabetically } from "@/Helper"
 import audioPlayer from "@/lib/manager/AudioPlayer"
 import indexStore from "@/lib/stores/PlayIndex"
 import queueStore from "@/lib/stores/QueueStore"
 import tracksStore from "@/lib/stores/TracksStore"
+import { isLeft } from "fp-ts/lib/Either"
 import { derived, get, writable } from "svelte/store"
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import type { Either } from "fp-ts/lib/Either"
 import type {
   IPlayLoop,
   IPlayMode,
@@ -11,8 +15,9 @@ import type {
   IQueueItem,
   ISourceType,
 } from "@/types/Types"
-import type { ITrack } from "@sing-types/Types"
+import type { IError, ITrack } from "@sing-types/Types"
 import type { Unsubscriber } from "svelte/store"
+import type { IpcRendererEvent } from "electron"
 
 // Create stores / state
 const playLoopStore = writable<IPlayLoop>("NONE")
@@ -25,7 +30,7 @@ const currentTimeStore = writable(0)
 const durationStore = writable(0)
 
 // Init stores with all tracks
-await initStores()
+await initialiseStores()
 
 export const currentTrack = derived(
   [queueStore, indexStore],
@@ -48,6 +53,7 @@ export const sourceID = { subscribe: sourceIDStore.subscribe }
 export const playState = { subscribe: playStateStore.subscribe }
 export const volume = { subscribe: volumeStore.subscribe }
 export const currentTime = { subscribe: currentTimeStore.subscribe }
+export const trackStore = { subscribe: tracksStore.subscribe }
 
 // Export default
 const manager = createPlayerManager()
@@ -98,6 +104,7 @@ function createPlayerManager() {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       $currentTime = $newCurrentTime
     }),
+    window.api.listen("setMusic", handleSyncUpdate),
   ]
 
   // Events
@@ -171,7 +178,7 @@ function createPlayerManager() {
   function playSource(
     track: ITrack,
     fromSource: ISourceType,
-    sourceTracks: ITrack[],
+    sourceTracks: readonly ITrack[],
     fromIndex: number
   ) {
     indexStore.increment()
@@ -267,12 +274,47 @@ function createPlayerManager() {
   }
 }
 
-async function initStores() {
-  const tracks = await get(tracksStore)
+async function initialiseStores() {
+  const response = await window.api.getTracks()
 
-  if (!tracks?.length) return
+  if (isLeft(response)) {
+    console.error(response.left.error)
+    return
+  }
+  if (!response.right?.length) {
+    console.warn("Received tracks response array is empty")
+    return
+  }
 
+  const tracks = [...response.right].sort(sortAlphabetically)
+
+  tracksStore.set(tracks)
   queueStore.setUpcomingFromSource(tracks, 0)
   indexStore.set(0)
   audioPlayer.setSource(tracks[0].filepath)
+}
+
+function handleSyncUpdate(
+  _event: IpcRendererEvent,
+  data: Either<IError, readonly ITrack[]>
+) {
+  if (isLeft(data)) return
+
+  if (!data.right || data.right.length === 0) {
+    console.warn("Received tracks at tracksStore -> data is not valid:", data)
+  }
+
+  const newTracks = [...data.right].sort(sortAlphabetically)
+
+  // Update the stores
+  tracksStore.set(newTracks)
+
+  const newIndex = queueStore.removeItemsFromNewTracks(
+    newTracks,
+    get(indexStore)
+  )
+
+  indexStore.set(newIndex)
+
+  console.log(get(currentTrack))
 }

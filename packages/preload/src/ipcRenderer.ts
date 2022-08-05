@@ -7,7 +7,10 @@ import type {
   IUserSettingsKey,
 } from "@sing-main/lib/UserSettings"
 
-import type { IFrontendEventsConsume } from "@sing-types/Types"
+import type {
+  IFrontendEventsConsume,
+  IFrontendEventsSend,
+} from "@sing-types/Types"
 
 import type { ParametersFlattened } from "@sing-types/Utilities"
 
@@ -38,23 +41,25 @@ export async function getUserSetting(setting: IUserSettingsKey) {
   return ipcRenderer.invoke("getUserSettings", setting)
 }
 
+/**
+ *
+ * @param channel - channel to listen to
+ * @param listener - the listener to call when the event is emitted
+ * @returns The unsubscribe function
+ */
 export function listen<Key extends keyof IFrontendEventsConsume>(
   channel: Key,
   listener: IFrontendEventsConsume[Key]
 ) {
   ipcRenderer.on(channel, listener)
-}
 
-export function removeListener<Key extends keyof IFrontendEventsConsume>(
-  channel: Key,
-  listener: IFrontendEventsConsume[Key]
-) {
-  ipcRenderer.removeListener(channel, listener)
+  return () => ipcRenderer.removeListener(channel, listener)
 }
-
-// Should only be used for manual testing purposes
-export const { send } = ipcRenderer
 
 export function resetMusic(): void {
   ipcRenderer.send("resetMusic")
+}
+
+export function getListeners(event: keyof IFrontendEventsSend) {
+  ipcRenderer.listeners(event)
 }

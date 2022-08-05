@@ -47,6 +47,7 @@ app.on("activate", restoreOrCreateWindow)
 app
   .whenReady()
   .then(restoreOrCreateWindow)
+  // eslint-disable-next-line unicorn/prefer-top-level-await
   .catch((error) => log.red("Failed create window:", error))
 
 // Load IPC handlers

@@ -1,5 +1,5 @@
 import Menu from "@/lib/molecules/DropdownMenu.svelte"
-import { TEST_IDS as id, testAttributes } from "@/TestConsts"
+import { TEST_ATTRIBUTES, TEST_IDS as id } from "@/TestConsts"
 import { fireEvent, render } from "@testing-library/svelte"
 import { expect, it } from "vitest"
 
@@ -45,7 +45,7 @@ it("displays the menu items when clicking the icon", async () => {
   await fireEvent.click(icon)
 
   const menu = dom.getByTestId(id.test)
-  const elements = menu.querySelectorAll(testAttributes.asQuery.menuItem)
+  const elements = menu.querySelectorAll(TEST_ATTRIBUTES.asQuery.menuItem)
 
   expect(elements.length).toBe(3)
 })

@@ -1,4 +1,4 @@
-import { flattenObject, removeKeys, stringifyArraysInObject } from "@/Pures"
+import { flattenObject, removeKeys, stringifyArraysInObject } from "@sing-shared/Pures"
 import { curry2 } from "fp-ts-std/Function"
 import { isRight, left, right } from "fp-ts/lib/Either"
 import { pipe } from "fp-ts/lib/function"

@@ -1,6 +1,6 @@
 import { BrowserWindow } from "electron"
-import { join } from "path"
-import { URL } from "url"
+import { join } from "node:path"
+import { URL } from "node:url"
 
 async function createWindow() {
   const browserWindow = new BrowserWindow({
@@ -24,9 +24,10 @@ async function createWindow() {
    * @see https://github.com/electron/electron/issues/25012
    */
   browserWindow.on("ready-to-show", () => {
-    if (!import.meta.env.DEV) browserWindow?.show()
+    if (!import.meta.env.DEV) browserWindow?.show() // this repositions it and is annoying when in development
 
-    browserWindow?.webContents.openDevTools()
+    browserWindow.webContents.openDevTools()
+
     if (import.meta.env.DEV) {
       // Lets just always open devtools for now
     }
@@ -40,7 +41,7 @@ async function createWindow() {
   const pageUrl =
     import.meta.env.DEV && import.meta.env.VITE_DEV_SERVER_URL !== undefined
       ? import.meta.env.VITE_DEV_SERVER_URL
-      : new URL("../renderer/dist/index.html", "file://" + __dirname).toString()
+      : new URL("../renderer/dist/index.html", `file://${__dirname}`).toString()
 
   await browserWindow.loadURL(pageUrl)
 
@@ -51,7 +52,9 @@ async function createWindow() {
  * Restore existing BrowserWindow or Create new BrowserWindow
  */
 export async function restoreOrCreateWindow() {
-  let window = BrowserWindow.getAllWindows().find((w) => !w.isDestroyed())
+  let window = BrowserWindow.getAllWindows().find(
+    (rendererWindow) => !rendererWindow.isDestroyed()
+  )
   if (window === undefined) {
     window = await createWindow()
   }

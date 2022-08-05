@@ -1,5 +1,3 @@
-import log from "ololog"
-
 import { isBackendMessageToForward } from "../../backend/src/types/TypeGuards"
 import { backendProcess } from "./BackendProcess"
 import { sendToRenderer } from "./Helper"
@@ -20,8 +18,6 @@ export default function ipcInit(): void {
 
   // If the message is meant to be forwarded to the renderer, forward it
   backendProcess.on("message", (message) => {
-    log("Main - Backend Message received", message)
-
     if (!isBackendMessageToForward(message)) return
 
     // @ts-ignore IPC got typed, even if Typescript does not like it

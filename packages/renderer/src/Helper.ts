@@ -138,3 +138,18 @@ export function createHashSource(): HistorySource {
     },
   }
 }
+
+export function sortAlphabetically(a: ITrack, b: ITrack) {
+  const titleA = titleToDisplay(a).toLowerCase()
+  const titleB = titleToDisplay(b).toLowerCase()
+
+  return titleA.localeCompare(titleB, undefined, { numeric: true })
+}
+
+export function insertIntoArray<T extends never[]>(
+  array: T,
+  index: number,
+  ...newItems: T
+) {
+  return [...array.slice(0, index), ...newItems, ...array.slice(index)]
+}

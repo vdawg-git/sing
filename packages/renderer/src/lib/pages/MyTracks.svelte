@@ -1,7 +1,7 @@
 <script lang="ts">
   import TrackItem from "@/lib/molecules/TrackItem.svelte"
   import Settings from "@/lib/pages/Settings.svelte"
-  import Tracks from "@/lib/stores/TracksStore"
+  import tracks from "@/lib/stores/TracksStore"
   import player from "@/lib/manager/PlayerManager"
   import type { ISourceType } from "@/types/Types"
   import { TEST_IDS as id } from "@/TestConsts"
@@ -17,18 +17,16 @@
 >
   <div class="mx-auto mt-32 w-full max-w-[1560px] p-6 ">
     <h1 data-testid={id.myTracksTitle} class="mb-10 text-4xl">My Tracks</h1>
-    {#await $Tracks}
-      <p>...loading</p>
-    {:then tracks}
-      {#if tracks.length === 0}
+    {#await $tracks then allTracks}
+      {#if allTracks.length === 0}
         <Settings />
       {:else}
-        <div class="w-full flex flex-col">
+        <div class="flex w-full flex-col">
           <div
             class="
-              uppercase text-left text-xs text-grey-300 
-              w-full flex py-4
-            "
+        flex w-full py-4 text-left 
+        text-xs uppercase text-grey-300
+        "
           >
             <div class="mr-6 flex flex-1 basis-44">
               <div class="w-16" />
@@ -36,14 +34,14 @@
             </div>
             <div class="mr-6 flex-1 basis-32">Artist</div>
             <div class="mr-6 flex-1 basis-32">Album</div>
-            <div class="text-right flex-1 basis-12">Length</div>
+            <div class="flex-1 basis-12 text-right">Length</div>
           </div>
           <div data-testid={id.trackItems} class="w-full">
-            {#each tracks as track, index}
+            {#each allTracks as track, index}
               <TrackItem
                 {track}
                 on:dblclick={() =>
-                  player.playSource(track, sourceType, tracks, index)}
+                  player.playSource(track, sourceType, allTracks, index)}
               />
             {/each}
           </div>

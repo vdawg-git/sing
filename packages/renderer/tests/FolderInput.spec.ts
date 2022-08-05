@@ -1,4 +1,4 @@
-import { testAttributes } from "@/TestConsts"
+import { TEST_ATTRIBUTES } from "@/TestConsts"
 import { fireEvent, render } from "@testing-library/svelte"
 import { tick } from "svelte"
 import { expect, it } from "vitest"
@@ -71,7 +71,7 @@ it("emits the removed event correctly", async () => {
   component.$on("folderRemoved", mock)
 
   const deleteIcon = container.querySelector(
-    testAttributes.asQuery.folderInputDeleteIcon
+    TEST_ATTRIBUTES.asQuery.folderInputDeleteIcon
   )
   if (deleteIcon === null) throw new Error("No delete icon found")
 

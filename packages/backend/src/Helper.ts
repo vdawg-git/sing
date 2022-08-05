@@ -6,7 +6,7 @@ import path from "node:path"
 import log from "ololog"
 import slash from "slash"
 
-import { getLeftsRights } from "./Pures"
+import { getLeftsRights } from "../../shared/Pures"
 
 import type {
   IErrorFSDeletionFailed,

@@ -55,6 +55,8 @@ const testAttributeNames = [
   "modalCloseButton",
   "modalContent",
   "modalWrapper",
+  "notification",
+  "notificationCloseButton",
   "queueItem",
   "queueItemArtist",
   "queueItemCover",
@@ -95,7 +97,7 @@ export const TEST_IDS: ITestIDs = testIDNames.reduce((accumulator, name) => {
   return accumulator
 }, {} as any)
 
-export const testAttributes: ITestAttributes = testAttributeNames.reduce(
+export const TEST_ATTRIBUTES: ITestAttributes = testAttributeNames.reduce(
   (accumulator, name) => {
     if (!accumulator?.asQuery) accumulator.asQuery = {}
 

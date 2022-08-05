@@ -1,18 +1,20 @@
-/* eslint-disable unicorn/no-null */
+/// <reference types="vitest/importMeta" />
 import { readonlyArray as FPArray } from "fp-ts"
 import { curry2 } from "fp-ts-std/Function"
 import { pipe } from "fp-ts/Function"
 import { isLeft, isRight, left, right } from "fp-ts/lib/Either"
 
-import { SUPPORTED_MUSIC_FORMATS, UNSUPPORTED_MUSIC_FORMATS } from "./lib/FileFormats"
+import { SUPPORTED_MUSIC_FORMATS, UNSUPPORTED_MUSIC_FORMATS } from "../backend/src/lib/FileFormats"
+
 
 import type { Either } from "fp-ts/lib/Either"
 
 import type {
   IRawAudioMetadata,
   IRawAudioMetadataWithPicture,
-  NullValuesToOptional,
 } from "@sing-types/Types"
+
+import type { NullValuesToOptional } from "@sing-types/Utilities"
 
 export function filterPathsByExtenstions(
   extensions: readonly string[],
@@ -348,7 +350,9 @@ if (import.meta.vitest) {
   })
 
   test("removeDuplicates happy 2", () => {
+    // eslint-disable-next-line unicorn/no-null
     const given = [{ a: 1 }, { a: 1 }, { a: 1 }, ["b"], ["b"], 3, 3, null, null]
+    // eslint-disable-next-line unicorn/no-null
     const expected = [{ a: 1 }, ["b"], 3, null]
 
     expect(given.filter(removeDuplicates)).toEqual(expected)
@@ -374,7 +378,9 @@ if (import.meta.vitest) {
 
   test("removeNulledKeys happy", () => {
     const given = {
+      // eslint-disable-next-line unicorn/no-null
       a: null,
+      // eslint-disable-next-line unicorn/no-null
       b: null,
       c: "hi",
       d: {},
@@ -390,7 +396,9 @@ if (import.meta.vitest) {
 
   test("removeNulledKeys sad", () => {
     const given = {
+      // eslint-disable-next-line unicorn/no-null
       a: null,
+      // eslint-disable-next-line unicorn/no-null
       b: null,
       c: "hi",
       d: undefined,
@@ -399,6 +407,7 @@ if (import.meta.vitest) {
 
     const notExpected = {
       c: "hi", // misses d key
+      // eslint-disable-next-line unicorn/no-null
       a: null,
     }
 

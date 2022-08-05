@@ -2,7 +2,7 @@
   import IconFolderRemove from "virtual:icons/heroicons-outline/folder-remove"
   import IconFolderAdd from "virtual:icons/heroicons-outline/folder-add"
   import { createEventDispatcher } from "svelte"
-  import { testAttributes } from "@/TestConsts"
+  import { TEST_ATTRIBUTES } from "@/TestConsts"
 
   export let path: string | undefined = undefined
   export let testID: string | undefined = undefined
@@ -53,7 +53,7 @@
 
 <button
   data-testID={testID}
-  data-testattribute={testAttributes.folderInput}
+  data-testattribute={TEST_ATTRIBUTES.folderInput}
   class="
 			group  flex
 			h-12  w-full place-content-between  items-center
@@ -69,7 +69,7 @@
 
   {#if path}
     <div
-      data-testattribute={testAttributes.folderInputDeleteIcon}
+      data-testattribute={TEST_ATTRIBUTES.folderInputDeleteIcon}
       class="h-12 p-3 text-grey-200 hover:text-orange-500"
       on:click|stopPropagation={dispatchRemove}
     >

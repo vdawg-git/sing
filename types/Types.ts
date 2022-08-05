@@ -77,6 +77,9 @@ export type IErrorTypes =
   | "File write failed"
   | "File deletion failed"
   | "File metadata parsing failed"
+  | "Failed to add track to database"
+  | "Failed to get from database"
+  | "Failed to remove from database"
 
 export interface IError {
   readonly type: IErrorTypes

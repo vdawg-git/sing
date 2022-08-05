@@ -10,8 +10,8 @@ export function isICoverData(toTest: unknown): toTest is ICoverData {
     coverBuffer: (x: unknown) => Buffer.isBuffer(x),
   }
 
-  return Object.entries(keysToCheck).every((i) => {
-    const key = i[0] as keyof ICoverData
+  return Object.entries(keysToCheck).every((entry) => {
+    const key = entry[0] as keyof ICoverData
 
     if ((toTest as ICoverData)[key] === undefined) return false
 
@@ -19,10 +19,10 @@ export function isICoverData(toTest: unknown): toTest is ICoverData {
   })
 }
 
-export function isIPicture(e: unknown): e is IPicture {
-  if (typeof e !== "object" || e === null) return false
-  if (!Buffer.isBuffer((e as IPicture)?.data)) return false
-  if (typeof (e as IPicture)?.format !== "string") return false
+export function isIPicture(element: unknown): element is IPicture {
+  if (typeof element !== "object" || element === null) return false
+  if (!Buffer.isBuffer((element as IPicture)?.data)) return false
+  if (typeof (element as IPicture)?.format !== "string") return false
 
   return true
 }

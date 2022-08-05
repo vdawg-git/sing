@@ -1,9 +1,10 @@
 const colors = require("tailwindcss/colors")
-const { join } = require("path")
+// eslint-disable-next-line unicorn/prefer-node-protocol
+const path = require("path")
 
 module.exports = {
   content: [
-    join(__dirname, "./packages/renderer/src/**/*.{html,js,svelte,ts}"),
+    path.join(__dirname, "./packages/renderer/src/**/*.{html,js,svelte,ts}"),
   ],
   theme: {
     fontFamily: {
@@ -47,13 +48,13 @@ module.exports = {
         700: "#AD7B19",
       },
       white: "#F3F2EA",
-      black: colors.black,
       green: colors.green,
       red: colors.red,
     },
     extend: {
-      boxShadow: {
-        inset_light_xl: "inset 8px 8px 12px 0px rgba(255,255,255, 0.04)",
+      boxShadow: {},
+      transitionTimingFunction: {
+        bounce: "cubic-bezier(0.375, 0.055, 0.195, 1.535)",
       },
     },
   },
