@@ -1,6 +1,6 @@
 import { convertMetadata, getCover, getCoverNotCurried, saveCover } from "@/lib/Metadata"
-import { getExtension, getLeftValues, getRightValues, hasCover, removeNulledKeys } from "@/Pures"
 import { isICoverData } from "@/types/TypeGuards"
+import { getExtension, getLeftValues, getRightValues, hasCover, removeNulledKeys } from "@sing-shared/Pures"
 import { flow, pipe } from "fp-ts/lib/function"
 import * as A from "fp-ts/lib/ReadonlyArray"
 import { vol } from "memfs"
@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import metaDataFactory from "./factories/MetaDataFactory"
 import rawMetaDataFactory from "./factories/RawMetaDataFactory"
-import { coverFolder, mockBasePath } from "./helper/Consts"
+import { coversDirectory, mockBasePath } from "./helper/Consts"
 
 import type { IRawAudioMetadataWithPicture } from "@sing-types/Types"
 
@@ -53,7 +53,7 @@ describe("saveCovers", async () => {
     ] as IRawAudioMetadataWithPicture[]
 
     const results = getRightValues(
-      await Promise.all(data.map(getCover(coverFolder)).map(saveCover))
+      await Promise.all(data.map(getCover(coversDirectory)).map(saveCover))
     )
 
     expect(results).lengthOf(uniqueCoversAmounts)
@@ -70,7 +70,7 @@ describe("saveCovers", async () => {
     ] as IRawAudioMetadataWithPicture[]
 
     await Promise.all(
-      data.filter(hasCover).map(getCover(coverFolder)).map(saveCover)
+      data.filter(hasCover).map(getCover(coversDirectory)).map(saveCover)
     )
 
     const result = Object.keys(vol.toJSON())
@@ -94,7 +94,7 @@ describe("saveCovers", async () => {
 
     const errors = getLeftValues(
       await Promise.all(
-        data.filter(hasCover).map(getCover(coverFolder)).map(saveCover)
+        data.filter(hasCover).map(getCover(coversDirectory)).map(saveCover)
       )
     )
 
@@ -109,13 +109,13 @@ describe("saveCovers", async () => {
         {},
         { transient: { hasCover: false } }
       ),
-    ]
+    ] as IRawAudioMetadataWithPicture[]
     const result = getRightValues(
       await Promise.all(
         pipe(
           data,
           A.filter(hasCover),
-          A.map(flow(getCover(coverFolder), saveCover))
+          A.map(flow(getCover(coversDirectory), saveCover))
         )
       )
     )
@@ -136,7 +136,9 @@ describe("convertMetadata", async () => {
     const rawData = rawMetaDataFactory.build()
     const expected = removeNulledKeys(metaDataFactory.build())
 
-    const converted = removeNulledKeys(convertMetadata(coverFolder)(rawData))
+    const converted = removeNulledKeys(
+      convertMetadata(coversDirectory)(rawData)
+    )
 
     expect(converted).toStrictEqual(expected)
   })

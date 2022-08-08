@@ -1,4 +1,4 @@
-import type { IidBackendAnswer } from "./Types"
+import type { IIDBackendAnswer } from "./Types"
 
 export function isError(error: unknown): error is Error {
   return error instanceof Error
@@ -6,10 +6,10 @@ export function isError(error: unknown): error is Error {
 
 export function isIDBackendAnswer(
   response: unknown
-): response is IidBackendAnswer {
+): response is IIDBackendAnswer {
   if (typeof response !== "object" || response === null) return false
-  if (typeof (response as IidBackendAnswer)?.id !== "string") return false
-  if ((response as IidBackendAnswer)?.data === undefined) return false
+  if (typeof (response as IIDBackendAnswer)?.id !== "string") return false
+  if ((response as IIDBackendAnswer)?.data === undefined) return false
 
   return true
 }

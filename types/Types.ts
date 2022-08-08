@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { ISyncResult } from "@/types/Types"
+
+import type { FilePath } from "./Filesystem"
 
 import type { Track } from "@prisma/client"
 
 import type { Either } from "fp-ts/lib/Either"
 import type * as mm from "music-metadata"
 import type { app, IpcRendererEvent } from "electron"
+import type { DeepReadonly } from "ts-essentials"
 
 import type { DropFirst, NullValuesToOptional } from "./Utilities"
 
@@ -18,7 +22,23 @@ import type { twoWayHandler } from "../packages/backend/src/lib/TwoWayHandler"
 
 import type { syncMusic } from "../packages/backend/src/lib/Sync"
 
-export type ITrack = NullValuesToOptional<Track>
+export type ITrack = DeepReadonly<
+  NullValuesToOptional<Track> & { filepath: FilePath }
+>
+
+export interface IAlbum {
+  readonly id: number
+  readonly artist: IArtist
+  readonly tracks: ITrack[]
+  readonly cover: FilePath
+}
+
+export interface IArtist {
+  readonly id: number
+  readonly name: string
+  readonly albums: IAlbum[]
+  readonly picture: FilePath
+}
 
 export type IElectronPaths = Parameters<typeof app.getPath>[0]
 
@@ -26,10 +46,11 @@ export type IElectronPaths = Parameters<typeof app.getPath>[0]
  * Also has the renderer event as its argument
  */
 export interface IFrontendEventsConsume {
-  readonly setMusic: (
+  readonly syncedMusic: (
     event: IpcRendererEvent,
-    newMusic: Either<IError, readonly ITrack[]>
+    newMusic: Either<IError, ISyncResult>
   ) => void
+
   readonly createNotification: (
     event: IpcRendererEvent,
     notification: INotificationFromBackend
@@ -41,15 +62,17 @@ export type IFrontendEventsSend = {
   ) => void
 }
 
-export interface IRawAudioMetadata extends mm.IAudioMetadata {
-  readonly filepath: string
+interface PreIRawAudioMetadata extends mm.IAudioMetadata {
+  readonly filepath: FilePath
 }
+
+export type IRawAudioMetadata = DeepReadonly<PreIRawAudioMetadata>
 
 export interface IRawAudioMetadataWithPicture extends IRawAudioMetadata {
   common: IRawAudioMetadata["common"] & { picture: mm.IPicture[] }
 }
 
-export interface IidBackendAnswer {
+export interface IIDBackendAnswer {
   readonly id: string
   readonly data: Either<IError, unknown>
 }
@@ -133,6 +156,7 @@ export type ITwoWayHandlers = {
 export type ITwoWayResponse = {
   readonly id: string
   readonly data: ITwoWayHandlers[ITwoWayEvents]["response"]
+  readonly emitToRenderer: false
 }
 
 export type ITwoWayEvents = keyof typeof twoWayHandler
@@ -153,7 +177,7 @@ export type IBackendEmitHandlers = {
 }
 
 export type IBackToFrontChannels = ValidateBackToFrontEvents<{
-  readonly syncMusic: "setMusic"
+  readonly syncMusic: "syncedMusic"
 }>
 
 export interface IBackendEmitToFrontend {

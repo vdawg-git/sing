@@ -15,10 +15,11 @@ import type {
   IErrorFSWriteFailed,
 } from "@sing-types/Types"
 import type { Either } from "fp-ts/lib/Either"
+import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"
 
 export async function getFilesFromDirectory(
-  directory: string
-): Promise<Either<IErrorFSDirectoryReadFailed, string[]>> {
+  directory: DirectoryPath
+): Promise<Either<IErrorFSDirectoryReadFailed,readonly FilePath[]>> {
   try {
     return right(await recursion(directory))
   } catch (error) {
@@ -28,7 +29,8 @@ export async function getFilesFromDirectory(
       message: `Error reading out path "${directory}" \n${error}`,
     })
   }
-  async function recursion(directoryRecursive: string): Promise<string[]> {
+
+  async function recursion(directoryRecursive: string): Promise<readonly FilePath[]> {
     const dirents = await readdir(directoryRecursive, {
       withFileTypes: true,
     })
@@ -38,11 +40,11 @@ export async function getFilesFromDirectory(
         return dirent.isDirectory() ? recursion(result) : result
       })
     )
-    return files.flat().map(slash)
+    return files.flat().map(slash) as FilePath[]
   }
 }
 
-export async function checkPathAccessible<T extends string>(
+export async function checkPathAccessible<T extends FilePath>(
   pathToCheck: T
 ): Promise<Either<IErrorFSPathUnaccessible, T>> {
   return stat(pathToCheck)
@@ -50,7 +52,7 @@ export async function checkPathAccessible<T extends string>(
     .catch((error) => left({ type: "Path not accessible", error }))
 }
 
-export async function writeFileToDisc<T extends string>(
+export async function writeFileToDisc<T extends FilePath>(
   content: string | Buffer,
   filepath: T
 ): Promise<Either<IErrorFSWriteFailed, T>> {
@@ -70,12 +72,12 @@ export async function writeFileToDisc<T extends string>(
 }
 
 export async function deleteFromDirectoryInverted(
-  directory: string,
-  filesNotToDelete: string[]
+  directory: DirectoryPath,
+  filesNotToDelete:readonly FilePath[]
 ): Promise<
   Either<
     IErrorFSDirectoryReadFailed,
-    { deletedFiles: string[]; deletionErrors: unknown[] }
+    { deletedFiles:readonly FilePath[]; deletionErrors: readonly unknown[] }
   >
 > {
   const allFiles = await getFilesFromDirectory(directory)
@@ -94,8 +96,8 @@ export async function deleteFromDirectoryInverted(
 }
 
 export async function deleteFiles(
-  fileList: string[]
-): Promise<Either<IErrorFSDeletionFailed, string>[]> {
+  fileList: readonly FilePath[]
+): Promise<Either<IErrorFSDeletionFailed, FilePath>[]> {
   const result = fileList.map((file) =>
     unlink(file)
       .then(() => right(file))
@@ -112,7 +114,7 @@ export async function deleteFiles(
 }
 
 // Check if database exists. If not copy the empty master to make it available
-export async function checkDatabase(databasePath: string) {
+export async function checkDatabase(databasePath: FilePath) {
   const checkAccessible = await checkPathAccessible(databasePath)
   if (isLeft(checkAccessible)) {
     const possibleError = checkAccessible.left.error

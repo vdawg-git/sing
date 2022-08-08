@@ -2,7 +2,7 @@ import type { DirectoryJSON } from "memfs"
 
 export const mockBasePath = "/memfs/" as const
 export const musicFolder = "/memfs/music/" as const
-export const coverFolder = "/memfs/userData/covers/" as const
+export const coversDirectory = "/memfs/userData/covers/" as const
 export const filesDefault = {
   [musicFolder]: {
     "./dir1/": {
@@ -41,7 +41,7 @@ export const unusedCoverFilepaths = [
   "coverTest1.png",
   "coverTest2.png",
   "coverTest3.png",
-].map((fileName) => coverFolder + fileName)
+].map((fileName) => coversDirectory + fileName)
 
 // eslint-disable-next-line unicorn/no-array-reduce
 export const unusedCoversJSON = unusedCoverFilepaths.reduce(

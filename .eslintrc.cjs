@@ -24,11 +24,13 @@ const defaultRules = {
       ignore: ["\\.e2e$"],
     },
   ],
+  "no-unused-vars": "off",
   "@typescript-eslint/no-unused-vars": [
     "error",
     {
       argsIgnorePattern: "^_",
       destructuredArrayIgnorePattern: "^_",
+      varsIgnorePattern: "^_$",
     },
   ],
   "spaced-comment": ["error", "always", { markers: ["/", "?", "!"] }],

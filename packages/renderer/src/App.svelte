@@ -1,4 +1,6 @@
 <script lang="ts">
+  debugger
+
   import { Router, Route, createHistory } from "svelte-navigator"
   import Sidebar from "./lib/organisms/Sidebar.svelte"
   import MyTracks from "./lib/pages/MyTracks.svelte"

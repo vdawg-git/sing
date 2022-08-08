@@ -4,6 +4,7 @@ import { coversDirectory } from "../../main/src/Consts"
 import userSettingsStore from "../../main/src/lib/UserSettings"
 import { emitToBackend } from "./BackendProcess"
 
+import type { DirectoryPath } from "@sing-types/Filesystem"
 import type { IpcMainInvokeEvent } from "electron"
 import type {
   IUserSettings,
@@ -35,7 +36,7 @@ const mainEventHandlers = {
 
     emitToBackend({
       event: "syncMusic",
-      arguments_: [{ coversDirectory, directories: [""] }],
+      arguments_: [{ coversDirectory, directories: [""] as DirectoryPath[] }],
     })
   },
 } as const

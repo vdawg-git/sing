@@ -1,5 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -15,22 +14,25 @@ model Track {
   title    String?
   filepath String  @unique
 
+  artist        Artist? @relation(name: "artist", fields: [artistID], references: [name])
+  artistID      String?
+  albumartist   Artist? @relation(name: "albumartist", fields: [albumartistID], references: [name])
+  albumartistID String?
+
+  album   Album?  @relation(name: "album", fields: [albumID], references: [name])
+  albumID String
+  cover   Cover?  @relation(fields: [coverId], references: [md5])
+  coverId String?
+
   playCount Int? @default(0) // Todo implement play stats
   skipCount Int? @default(0)
 
-  coverPath String?
-  coverMD5  String?
-
-  trackNo     Int?
-  trackOf     Int?
-  diskNo      Int?
-  diskOf      Int?
-  year        Int?
-  artist      String?
-  artists     String? /// Stringified JSON Array
-  albumartist String?
-  album       String?
-  date        String?
+  trackNo Int?
+  trackOf Int?
+  diskNo  Int?
+  diskOf  Int?
+  year    Int?
+  date    String?
 
   originaldate    String?
   originalyear    Int?
@@ -145,6 +147,7 @@ model Track {
   codecProfile     String?
   lossless         Boolean?
   numberOfChannels Int?
+
   numberOfSamples  Int?
   audioMD5         String?
   chapters         String? /// Stringified JSON Array
@@ -153,4 +156,33 @@ model Track {
   trackGain        Float?
   trackPeakLevel   Float?
   albumGain        Float?
+}
+
+model Album {
+  name     String  @id
+  artist   Artist? @relation(fields: [artistID], references: [name])
+  artistID String?
+
+  tracks Track[] @relation(name: "album")
+
+  cover     Cover?  @relation(fields: [coverPath], references: [filepath])
+  coverPath String? @unique
+}
+
+model Artist {
+  name              String  @id
+  tracks            Track[] @relation(name: "artist")
+  albumartistTracks Track[] @relation(name: "albumartist")
+
+  albums Album[]
+}
+
+model Cover {
+  md5             String @id
+  filepath        String @unique
+  domintantColors String /// Stringified JSON object => {vibrant: [number, number, number], ...}
+
+  album Album?
+
+  tracks Track[]
 }

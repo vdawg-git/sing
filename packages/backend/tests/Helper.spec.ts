@@ -1,5 +1,5 @@
 import { deleteFiles, deleteFromDirectoryInverted } from "@/Helper"
-import { getLeftsRights } from "@/Pures"
+import { getLeftsRights } from "@sing-shared/Pures"
 import { vol } from "memfs"
 import { beforeEach, expect, test, vi } from "vitest"
 

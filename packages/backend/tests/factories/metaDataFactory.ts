@@ -1,7 +1,7 @@
 import { Factory } from "fishery"
 import { createHash } from "node:crypto"
 
-import { coverFolder, musicFolder } from "../helper/Consts"
+import { coversDirectory, musicFolder } from "../helper/Consts"
 
 import type { Prisma } from "@prisma/client"
 
@@ -54,7 +54,7 @@ const metaDataFactory = MetaDataFactory.define(
     const coverMD5 = hasUniqueCover
       ? createHash("md5").update(Buffer.from(sequence.toString())).digest("hex")
       : "f3cfe268a034c82c551b78a8cfd0534e"
-    const coverPath = `${coverFolder + coverMD5}.png`
+    const coverPath = `${coversDirectory + coverMD5}.png`
 
     return {
       filepath: `${musicFolder}${sequence.toString()}.mp3`,

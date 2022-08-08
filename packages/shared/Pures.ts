@@ -6,7 +6,6 @@ import { isLeft, isRight, left, right } from "fp-ts/lib/Either"
 
 import { SUPPORTED_MUSIC_FORMATS, UNSUPPORTED_MUSIC_FORMATS } from "../backend/src/lib/FileFormats"
 
-
 import type { Either } from "fp-ts/lib/Either"
 
 import type {
@@ -14,12 +13,17 @@ import type {
   IRawAudioMetadataWithPicture,
 } from "@sing-types/Types"
 
-import type { NullValuesToOptional } from "@sing-types/Utilities"
+import type {
+  ArraysToString,
+  FlattenObject,
+  NullValuesToOptional,
+} from "@sing-types/Utilities"
+import type { FilePath } from "@sing-types/Filesystem"
 
 export function filterPathsByExtenstions(
   extensions: readonly string[],
-  paths: readonly string[]
-): readonly string[] {
+  paths: readonly FilePath[]
+): readonly FilePath[] {
   return pipe(
     paths,
     FPArray.filter((path: string) => {
@@ -30,13 +34,13 @@ export function filterPathsByExtenstions(
 }
 
 export function getSupportedMusicFiles(
-  filePaths: readonly string[]
-): readonly string[] {
+  filePaths: readonly FilePath[]
+): readonly FilePath[] {
   return filterPathsByExtenstions(SUPPORTED_MUSIC_FORMATS, filePaths)
 }
 
 export function getUnsupportedMusicFiles(
-  filePaths: readonly string[]
+  filePaths: readonly FilePath[]
 ): readonly string[] {
   return filterPathsByExtenstions(UNSUPPORTED_MUSIC_FORMATS, filePaths)
 }
@@ -101,10 +105,10 @@ function removeKeysNotCurried<T extends object, keys extends readonly string[]>(
 export const removeKeys = curry2(removeKeysNotCurried)
 
 // https://stackoverflow.com/a/69614645/9578667
-export function flattenObject(
-  object: Record<string, unknown>,
+export function flattenObject<Object_ extends Record<string, unknown>>(
+  object: Object_,
   parent?: string
-): Record<string, unknown> {
+): FlattenObject<Object_> {
   let result: Record<string, unknown> = {}
 
   for (const [key, value] of Object.entries(object)) {
@@ -127,16 +131,16 @@ export function flattenObject(
     }
   }
 
-  return result
+  return result as FlattenObject<Object_>
 }
 
 export function capitalizeFirstLetter(string: string): string {
   return string[0].toUpperCase() + string.slice(1)
 }
 
-export function stringifyArraysInObject(
-  object: Record<string, unknown>
-): Record<string, unknown> {
+export function stringifyArraysInObject<T extends Record<string, unknown>>(
+  object: T
+): ArraysToString<T> {
   // eslint-disable-next-line unicorn/no-array-reduce
   return Object.entries(object).reduce((accumulator, [key, value]) => {
     if (Array.isArray(value)) {
@@ -150,7 +154,7 @@ export function stringifyArraysInObject(
     }
 
     return accumulator
-  }, {} as Record<string, unknown>)
+  }, {} as Record<string, unknown>) as ArraysToString<T>
 }
 
 export function objectsKeysInArrayToObject<
@@ -228,7 +232,7 @@ if (import.meta.vitest) {
   const { expect, test } = await import("vitest")
 
   test("filterPathsByExtenstions happy", () => {
-    const given = ["a.mp3", "b.alac", "c.txt", "d.flac"]
+    const given = ["a.mp3", "b.alac", "c.txt", "d.flac"] as FilePath[]
     const extensions = ["mp3", "flac"]
     const expected = ["a.mp3", "d.flac"]
 

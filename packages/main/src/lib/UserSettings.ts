@@ -1,7 +1,9 @@
 import ElectronStore from "electron-store"
 
+import type { DirectoryPath } from "@sing-types/Filesystem"
+
 export interface IUserSettings {
-  musicFolders?: string[]
+  musicFolders?: DirectoryPath[]
 }
 export type IUserSettingsKey = keyof IUserSettings
 

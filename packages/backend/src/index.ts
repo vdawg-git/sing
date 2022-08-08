@@ -16,35 +16,35 @@ process.on("message", handleTwoWayEvent)
 process.on("message", handleOneWayEvent)
 process.on("error", log.red)
 
-// Receives return data and notifications, and then sends them to the main process
-
+// Receives data and notifications from the tasks, and then sends them to the main process
 const handleReturnEmitter = new EventEmitter() as IHandlerEmitter
 handleReturnEmitter.on("sendToMain", sendToMain)
 
-// Handle incoming requests
+// Handle incoming queries and responses
 async function handleTwoWayEvent(request: unknown) {
   if (!isTwoWayEvent(request)) return
 
-  log.blue("twoWayEvent request:", request)
-
-  // Typescript cant know that this code works, but it does work
   const data = await twoWayHandler[request.event](request.arguments_)
 
-  sendToMain({ id: request.id, data })
+  // Send back to the main process, which awaits the response with this `id`
+  // Thus the response should not be forwarded / emited directly to the renderer process
+  sendToMain({ id: request.id, data, emitToRenderer: false })
 }
 
+// Handle incoming request which do not need a synchronous two-way response
 async function handleOneWayEvent(request: unknown) {
   if (!isOneWayEvent(request)) return
 
-  log.cyan("oneWayEvent request:", request)
-
-  // Response gets send over the `handleReturnEmitter`
+  // Responses get send over via `handleReturnEmitter`
   oneWayHandler[request.event](handleReturnEmitter, ...request.arguments_)
 }
 
 function sendToMain(response: ITwoWayResponse | IBackendEmitToFrontend) {
   if (!process.send) {
-    log.red(`process.send does not seem to be available. It is:`, process.send)
+    log.red(
+      `process.send does not seem to be available. It is:\n`,
+      process.send
+    )
     return
   }
 
