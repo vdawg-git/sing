@@ -10,7 +10,7 @@ import type { TypedWebContents } from "./types/Types"
 import type { ChildProcess } from "node:child_process"
 
 import type {
-  ITwoWayEvents,
+  ITwoWayChannel,
   ITwoWayHandlers,
   IBackendEmitChannels,
   IOneWayHandlersConsume,
@@ -29,14 +29,14 @@ export function createPromisifiedForkEmitter(childProcess: ChildProcess) {
    * @param timeout How many `ms` to wait for the event. If `-1` wait forever. Default is `10_000`.
    * @returns A promise resolving with the data of the awaited event.
    */
-  function queryBackend<T extends ITwoWayEvents>(
+  function queryBackend<T extends ITwoWayChannel>(
     {
       event,
       args,
       id,
-    }: { event: T; args: ITwoWayHandlers[T]["args"]; id: string },
+    }: { event: T; args: Parameters<ITwoWayHandlers[T]>; id: string },
     timeout = 10_000
-  ): Promise<ITwoWayHandlers[T]["response"]> {
+  ): Promise<ReturnType<ITwoWayHandlers[T]>> {
     const promise = new Promise((resolve, reject) => {
       childProcess.on("message", listenerResolve)
 
@@ -63,7 +63,7 @@ export function createPromisifiedForkEmitter(childProcess: ChildProcess) {
       }
     })
 
-    return promise as Promise<ITwoWayHandlers[T]["response"]>
+    return promise as Promise<ReturnType<ITwoWayHandlers[T]>>
   }
 }
 

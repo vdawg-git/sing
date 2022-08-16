@@ -12,12 +12,27 @@ import type {
   IFrontendEventsSend,
 } from "@sing-types/Types"
 
-import type { ParametersFlattened } from "@sing-types/Utilities"
+import type { Prisma } from "@prisma/client"
 
 export async function getTracks(
-  options?: ParametersFlattened<IMainQueryHandlers["getTracks"]>
+  options: Prisma.TrackFindManyArgs | undefined = undefined
 ) {
   return ipcRenderer.invoke("getTracks", options)
+}
+export async function getAlbums(
+  options: Prisma.AlbumFindManyArgs | undefined = undefined
+) {
+  return ipcRenderer.invoke("getAlbums", options)
+}
+export async function getArtists(
+  options: Prisma.ArtistFindManyArgs | undefined = undefined
+) {
+  return ipcRenderer.invoke("getArtists", options)
+}
+export async function getCovers(
+  options: Prisma.CoverFindManyArgs | undefined = undefined
+) {
+  return ipcRenderer.invoke("getCovers", options)
 }
 
 export async function sync() {

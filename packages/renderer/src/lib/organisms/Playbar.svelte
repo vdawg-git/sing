@@ -94,7 +94,7 @@
             class="shrink-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm text-grey-300"
             data-testid={TEST_IDS.playbarArtist}
           >
-            {displayMetadata("artist", track)}
+            {displayMetadata("artistName", track)}
           </div>
         </div>
       </div>

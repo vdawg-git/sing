@@ -2,7 +2,7 @@ import { EventEmitter } from "node:events"
 import log from "ololog"
 
 import { oneWayHandler } from "./lib/OneWayHandler"
-import { twoWayHandler } from "./lib/TwoWayHandler"
+import { twoWayHandlers } from "./lib/TwoWayHandler"
 import { isOneWayEvent, isTwoWayEvent } from "./types/TypeGuards"
 
 import type { ITwoWayResponse, IBackendEmitToFrontend } from "@sing-types/Types"
@@ -24,7 +24,7 @@ handleReturnEmitter.on("sendToMain", sendToMain)
 async function handleTwoWayEvent(request: unknown) {
   if (!isTwoWayEvent(request)) return
 
-  const data = await twoWayHandler[request.event](request.arguments_)
+  const data = await twoWayHandlers[request.event](request.arguments_)
 
   // Send back to the main process, which awaits the response with this `id`
   // Thus the response should not be forwarded / emited directly to the renderer process

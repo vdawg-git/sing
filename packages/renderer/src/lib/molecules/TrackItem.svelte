@@ -16,7 +16,7 @@
   <!---- Cover and Title -->
   <div class="mr-6 min-w-0 flex-1 basis-44 py-2">
     <div class="flex min-w-0 items-center">
-      {#if track.coverPath}
+      {#if track?.coverPath}
         <img
           data-testattribute={TEST_ATTRIBUTES.trackItemCover}
           src="file://{track.coverPath}"
@@ -43,7 +43,7 @@
     data-testattribute={TEST_ATTRIBUTES.trackItemArtist}
     class="mr-6 flex-1 basis-32  overflow-hidden text-ellipsis whitespace-nowrap align-middle"
   >
-    {displayMetadata("artist", track)}
+    {displayMetadata("artistName", track)}
   </div>
 
   <!---- Album -->
@@ -51,7 +51,7 @@
     data-testattribute={TEST_ATTRIBUTES.trackItemAlbum}
     class="mr-6 flex-1 basis-32 overflow-hidden  text-ellipsis whitespace-nowrap align-middle"
   >
-    {displayMetadata("album", track)}
+    {displayMetadata("albumName", track)}
   </div>
 
   <!---- Duration -->

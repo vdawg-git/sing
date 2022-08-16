@@ -9,7 +9,7 @@
   import IconSettings from "virtual:icons/heroicons-outline/cog"
   // import IconMicrophone from "virtual:icons/heroicons-outline/microphone"
   // import IconPlaylist from "virtual:icons/tabler/playlist"
-  // import IconAlbum from "virtual:icons/ri/album-line"
+  import IconAlbum from "virtual:icons/ri/album-line"
   // import IconGenre from "virtual:icons/mdi/guitar-pick-outline"
   import { TEST_IDS as id } from "@/TestConsts"
   import type { SvelteComponentDev } from "svelte/internal"
@@ -19,7 +19,10 @@
     name: String
     icon: typeof SvelteComponentDev
     to: IRoutes
-  }[] = [{ name: "Tracks", icon: IconMusic, to: "tracks" }]
+  }[] = [
+    { name: "Tracks", icon: IconMusic, to: "tracks" },
+    { name: "Albums", icon: IconAlbum, to: "albums" },
+  ]
 </script>
 
 <nav
@@ -29,7 +32,7 @@
   <div class="mb-10 flex justify-between">
     <Logo class="h-6 w-6  text-white/50" />
     <Menu menuTestID={id.sidebarMenu} iconTestID={id.sidebarMenuIcon}>
-      <MenuItem to="settings/general">
+      <MenuItem to="settingsGeneral">
         <IconSettings slot="icon" class="mr-3 h-6 w-6 text-grey-300" />
         <div slot="label">Settings</div>
       </MenuItem>

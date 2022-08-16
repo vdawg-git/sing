@@ -44,7 +44,9 @@ body {
 
 ::-webkit-scrollbar {
 	position: absolute;
-	width: 12px;
+	width: 8px;
+	z-index: 99999;
+
 }
 
 ::-webkit-scrollbar-track {
@@ -52,7 +54,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-	background-color: theme(colors.grey.600);
+	background-color: theme(colors.grey.500);
 	border-radius: 9999px;
 }
 

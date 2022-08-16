@@ -1,7 +1,9 @@
 export enum ROUTES {
   tracks = "tracks",
-  "settings/general" = "settings/general",
-  "settings/library" = "settings/library",
+  artists = "artists",
+  albums = "albums",
+  settingsGeneral = "settingsGeneral",
+  settingsLibrary = "settingsLibrary",
 }
 
 export enum NOTIFICATION_LABEL {

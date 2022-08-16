@@ -3,8 +3,9 @@
   import Button from "@/lib/atoms/Button.svelte"
   import { onMount } from "svelte"
   import { TEST_IDS as id } from "@/TestConsts"
+  import type { DirectoryPath } from "@sing-types/Filesystem"
 
-  let paths: string[]
+  let paths: DirectoryPath[]
 
   onMount(
     async () =>

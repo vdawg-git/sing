@@ -14,15 +14,14 @@ model Track {
   title    String?
   filepath String  @unique
 
-  artist        Artist? @relation(name: "artist", fields: [artistID], references: [name])
-  artistID      String?
-  albumartist   Artist? @relation(name: "albumartist", fields: [albumartistID], references: [name])
-  albumartistID String?
-
-  album   Album?  @relation(name: "album", fields: [albumID], references: [name])
-  albumID String
-  cover   Cover?  @relation(fields: [coverId], references: [md5])
-  coverId String?
+  artist          Artist? @relation(name: "artist", fields: [artistName], references: [name])
+  artistName      String?
+  albumartist     Artist? @relation(name: "albumartist", fields: [albumartistName], references: [name])
+  albumartistName String?
+  album           Album?  @relation(name: "album", fields: [albumName], references: [name])
+  albumName       String?
+  cover           Cover?  @relation(fields: [coverPath], references: [filepath])
+  coverPath       String?
 
   playCount Int? @default(0) // Todo implement play stats
   skipCount Int? @default(0)
@@ -159,30 +158,24 @@ model Track {
 }
 
 model Album {
-  name     String  @id
-  artist   Artist? @relation(fields: [artistID], references: [name])
-  artistID String?
-
-  tracks Track[] @relation(name: "album")
-
-  cover     Cover?  @relation(fields: [coverPath], references: [filepath])
-  coverPath String? @unique
+  name        String  @id
+  artistEntry Artist? @relation(fields: [artist], references: [name])
+  artist      String?
+  tracks      Track[] @relation(name: "album")
+  cover       Cover?  @relation(fields: [coverPath], references: [filepath])
+  coverPath   String? @unique
 }
 
 model Artist {
   name              String  @id
   tracks            Track[] @relation(name: "artist")
   albumartistTracks Track[] @relation(name: "albumartist")
-
-  albums Album[]
+  albums            Album[]
 }
 
 model Cover {
-  md5             String @id
-  filepath        String @unique
-  domintantColors String /// Stringified JSON object => {vibrant: [number, number, number], ...}
-
-  album Album?
-
-  tracks Track[]
+  md5      String  @id
+  filepath String  @unique
+  album    Album?
+  tracks   Track[]
 }

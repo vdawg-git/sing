@@ -1,13 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { sortAlphabetically } from "@/Helper"
 import audioPlayer from "@/lib/manager/AudioPlayer"
 import indexStore from "@/lib/stores/PlayIndex"
 import queueStore from "@/lib/stores/QueueStore"
-import tracksStore from "@/lib/stores/TracksStore"
 import { isLeft } from "fp-ts/lib/Either"
 import { derived, get, writable } from "svelte/store"
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import type { Either } from "fp-ts/lib/Either"
 import type {
   IPlayLoop,
   IPlayMode,
@@ -15,7 +13,7 @@ import type {
   IQueueItem,
   ISourceType,
 } from "@/types/Types"
-import type { IError, ITrack } from "@sing-types/Types"
+import type { ITrack, ISyncResult, IAlbum, IArtist } from "@sing-types/Types"
 import type { Unsubscriber } from "svelte/store"
 import type { IpcRendererEvent } from "electron"
 
@@ -28,10 +26,18 @@ const playStateStore = writable<IPlayState>("STOPPED")
 const volumeStore = writable(1)
 const currentTimeStore = writable(0)
 const durationStore = writable(0)
+const tracksStore = writable<readonly ITrack[] | Promise<readonly ITrack[]>>([])
+const albumsStore = writable<readonly IAlbum[] | Promise<readonly IAlbum[]>>([])
+const artistsStore = writable<readonly IArtist[] | Promise<readonly IArtist[]>>(
+  []
+)
 
-// Init stores with all tracks
+// TODO add genre to the db, too
+
+// Init stores with the music
 await initialiseStores()
 
+// Now it makes sense to create and use the derived stores
 export const currentTrack = derived(
   [queueStore, indexStore],
   ([$queue, $index]) => $queue[$index]
@@ -44,20 +50,6 @@ export const nextTracks = derived(
   [queueStore, indexStore],
   ([$queue, $index]) => $queue.slice($index + 1)
 )
-// Export stores as read-only to prevent bugs
-export const playIndex = { subscribe: indexStore.subscribe }
-export const playLoop = { subscribe: playLoopStore.subscribe }
-export const playMode = { subscribe: playModeStore.subscribe }
-export const sourceType = { subscribe: sourceTypeStore.subscribe }
-export const sourceID = { subscribe: sourceIDStore.subscribe }
-export const playState = { subscribe: playStateStore.subscribe }
-export const volume = { subscribe: volumeStore.subscribe }
-export const currentTime = { subscribe: currentTimeStore.subscribe }
-export const trackStore = { subscribe: tracksStore.subscribe }
-
-// Export default
-const manager = createPlayerManager()
-export default manager
 
 function createPlayerManager() {
   let $playLoop: IPlayLoop = "LOOP_QUEUE"
@@ -104,7 +96,7 @@ function createPlayerManager() {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       $currentTime = $newCurrentTime
     }),
-    window.api.listen("setMusic", handleSyncUpdate),
+    window.api.listen("syncedMusic", handleSyncUpdate),
   ]
 
   // Events
@@ -275,39 +267,48 @@ function createPlayerManager() {
 }
 
 async function initialiseStores() {
-  const response = await window.api.getTracks()
+  const tracksResponse = await window.api.getTracks()
+  const albumsResponse = await window.api.getAlbums()
 
-  if (isLeft(response)) {
-    console.error(response.left.error)
+  if (isLeft(tracksResponse)) {
+    console.error(tracksResponse.left.error)
     return
   }
-  if (!response.right?.length) {
+
+  if (isLeft(albumsResponse)) {
+    console.error(albumsResponse.left.error)
+    return
+  }
+  if (!tracksResponse.right?.length) {
     console.warn("Received tracks response array is empty")
     return
   }
 
-  const tracks = [...response.right].sort(sortAlphabetically)
+  const tracks = [...tracksResponse.right].sort(sortAlphabetically)
+  const albums = albumsResponse.right
 
   tracksStore.set(tracks)
+  albumsStore.set(albums)
   queueStore.setUpcomingFromSource(tracks, 0)
   indexStore.set(0)
   audioPlayer.setSource(tracks[0].filepath)
 }
 
-function handleSyncUpdate(
-  _event: IpcRendererEvent,
-  data: Either<IError, readonly ITrack[]>
-) {
+function handleSyncUpdate(_event: IpcRendererEvent, data: ISyncResult) {
   if (isLeft(data)) return
 
-  if (!data.right || data.right.length === 0) {
+  if (!data.right || data.right.tracks.length === 0) {
     console.warn("Received tracks at tracksStore -> data is not valid:", data)
   }
 
-  const newTracks = [...data.right].sort(sortAlphabetically)
+  const newTracks = [...data.right.tracks].sort(sortAlphabetically)
+  const newAlbums = [...data.right.albums]
+  const newArtists = [...data.right.artists]
 
   // Update the stores
   tracksStore.set(newTracks)
+  albumsStore.set(newAlbums)
+  artistsStore.set(newArtists)
 
   const newIndex = queueStore.removeItemsFromNewTracks(
     newTracks,
@@ -318,3 +319,20 @@ function handleSyncUpdate(
 
   console.log(get(currentTrack))
 }
+
+// Export default
+const manager = createPlayerManager()
+export default manager
+
+// Export stores as read-only to prevent bugs
+export const playIndex = { subscribe: indexStore.subscribe }
+export const playLoop = { subscribe: playLoopStore.subscribe }
+export const playMode = { subscribe: playModeStore.subscribe }
+export const sourceType = { subscribe: sourceTypeStore.subscribe }
+export const sourceID = { subscribe: sourceIDStore.subscribe }
+export const playState = { subscribe: playStateStore.subscribe }
+export const volume = { subscribe: volumeStore.subscribe }
+export const currentTime = { subscribe: currentTimeStore.subscribe }
+export const tracks = { subscribe: tracksStore.subscribe }
+export const albums = { subscribe: albumsStore.subscribe }
+export const artists = { subscribe: artistsStore.subscribe }

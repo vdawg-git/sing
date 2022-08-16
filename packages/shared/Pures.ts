@@ -4,7 +4,10 @@ import { curry2 } from "fp-ts-std/Function"
 import { pipe } from "fp-ts/Function"
 import { isLeft, isRight, left, right } from "fp-ts/lib/Either"
 
-import { SUPPORTED_MUSIC_FORMATS, UNSUPPORTED_MUSIC_FORMATS } from "../backend/src/lib/FileFormats"
+import {
+  SUPPORTED_MUSIC_FORMATS,
+  UNSUPPORTED_MUSIC_FORMATS,
+} from "../backend/src/lib/FileFormats"
 
 import type { Either } from "fp-ts/lib/Either"
 
@@ -222,6 +225,13 @@ export function hasCover(
   if (!Array.isArray(object.common?.picture)) return false
 
   return true
+}
+
+/**
+ * To be used with Array.filter
+ */
+export function isDefined<T>(input: T | undefined | null): input is T {
+  return input !== undefined && input !== null
 }
 
 // ?########################################################################

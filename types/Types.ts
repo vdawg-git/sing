@@ -1,44 +1,34 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { ISyncResult } from "@/types/Types"
-
 import type { FilePath } from "./Filesystem"
-
-import type { Track } from "@prisma/client"
-
+import type { Track, Album, Artist, Cover } from "@prisma/client"
 import type { Either } from "fp-ts/lib/Either"
 import type * as mm from "music-metadata"
 import type { app, IpcRendererEvent } from "electron"
 import type { DeepReadonly } from "ts-essentials"
-
-import type { DropFirst, NullValuesToOptional } from "./Utilities"
-
 import type {
+  DropFirst,
+  NullValuesToOptional,
   ParametersFlattened,
   ParametersWithoutFirst,
-  InnerArray,
-} from "@sing-types/Utilities"
-
-import type { twoWayHandler } from "../packages/backend/src/lib/TwoWayHandler"
-
+} from "./Utilities"
 import type { syncMusic } from "../packages/backend/src/lib/Sync"
+import type { twoWayHandlers } from "../packages/backend/src/lib/TwoWayHandler"
 
-export type ITrack = DeepReadonly<
-  NullValuesToOptional<Track> & { filepath: FilePath }
+export type ITrack = DeepReadonly<NullValuesToOptional<Track>> & {
+  filepath: FilePath
+}
+export type IAlbum = DeepReadonly<NullValuesToOptional<Album>>
+export type IArtist = DeepReadonly<NullValuesToOptional<Artist>>
+export type ICover = DeepReadonly<NullValuesToOptional<Cover>>
+
+export type ISyncResult = Either<
+  IError,
+  {
+    readonly tracks: ITrack[]
+    readonly artists: IArtist[]
+    readonly albums: IAlbum[]
+  }
 >
-
-export interface IAlbum {
-  readonly id: number
-  readonly artist: IArtist
-  readonly tracks: ITrack[]
-  readonly cover: FilePath
-}
-
-export interface IArtist {
-  readonly id: number
-  readonly name: string
-  readonly albums: IAlbum[]
-  readonly picture: FilePath
-}
 
 export type IElectronPaths = Parameters<typeof app.getPath>[0]
 
@@ -46,10 +36,7 @@ export type IElectronPaths = Parameters<typeof app.getPath>[0]
  * Also has the renderer event as its argument
  */
 export interface IFrontendEventsConsume {
-  readonly syncedMusic: (
-    event: IpcRendererEvent,
-    newMusic: Either<IError, ISyncResult>
-  ) => void
+  readonly syncedMusic: (event: IpcRendererEvent, newMusic: ISyncResult) => void
 
   readonly createNotification: (
     event: IpcRendererEvent,
@@ -136,35 +123,19 @@ export interface IOneWayHandlersConsume {
   readonly syncMusic: typeof syncMusic
 }
 
-// type IMakeOneWayHandlerSendFromRenderer<
-//   Event extends keyof IFrontendEventsSend,
-//   T extends (...arguments_: never[]) => unknown
-// > = (...arguments_: Parameters<T>) => Promise<{
-//   readonly event: Event
-//   readonly emitToRenderer: true
-//   readonly arguments_: Parameters<T>
-//   readonly response: Awaited<ReturnType<T>>
-// }>
-
-export type ITwoWayHandlers = {
-  readonly [key in ITwoWayEvents]: {
-    readonly response: Awaited<ReturnType<typeof twoWayHandler[key]>>
-    readonly args: InnerArray<Awaited<Parameters<typeof twoWayHandler[key]>>>
-  }
-}
+export type ITwoWayHandlers = typeof twoWayHandlers
+export type ITwoWayChannel = keyof ITwoWayHandlers
 
 export type ITwoWayResponse = {
   readonly id: string
-  readonly data: ITwoWayHandlers[ITwoWayEvents]["response"]
+  readonly data: ReturnType<ITwoWayHandlers[ITwoWayChannel]>
   readonly emitToRenderer: false
 }
 
-export type ITwoWayEvents = keyof typeof twoWayHandler
-
 export type ITwoWayRequest = {
   readonly id: string
-  readonly event: ITwoWayEvents
-  readonly arguments_: ITwoWayHandlers[ITwoWayEvents]["args"]
+  readonly event: ITwoWayChannel
+  readonly arguments_: Parameters<ITwoWayHandlers[ITwoWayChannel]>
 }
 
 export type IBackendEmitChannels = keyof IOneWayHandlersConsume

@@ -6,6 +6,7 @@ import {
   getSupportedMusicFiles,
   getUnsupportedMusicFiles,
   hasCover,
+  isDefined,
   removeDuplicates,
 } from "@sing-shared/Pures"
 import { isLeft, left, right } from "fp-ts/lib/Either"
@@ -13,8 +14,19 @@ import log from "ololog"
 import slash from "slash"
 
 import { deleteFromDirectoryInverted, getFilesFromDirectory } from "../Helper"
-import { addTrackToDB, deleteTracksInverted } from "./Crud"
-import { convertMetadata, getCover, getRawMetaDataFromFilepath, saveCover } from "./Metadata"
+import {
+  addTrackToDB,
+  deleteAlbumsInverted,
+  deleteArtistsInverted,
+  deleteCoversInverted,
+  deleteTracksInverted,
+} from "./Crud"
+import {
+  convertMetadata,
+  getCover,
+  getRawMetaDataFromFilepath,
+  saveCover,
+} from "./Metadata"
 
 import type {
   IErrorArrayIsEmpty,
@@ -23,6 +35,9 @@ import type {
 
 import type { IHandlerEmitter } from "@/types/Types"
 import type { DirectoryPath } from "@sing-types/Filesystem"
+import createPrismaClient from "./CustomPrismaClient"
+
+const prisma = createPrismaClient()
 
 //? The error rendering functionality is not implemented yet, so there is no need to return the errors (and make the typing more complicated)
 
@@ -107,7 +122,7 @@ export async function syncMusic(
 
   if (fileReadErrors.length > 0) log("fileReadErrors:", fileReadErrors)
 
-  log("Getting metada")
+  log("Getting metadata")
 
   const metaData = await Promise.all(
     rawMetaData.map(convertMetadata(coversDirectory))
@@ -121,7 +136,7 @@ export async function syncMusic(
         .filter(hasCover)
         .map((data) => data.common.picture)
         .map(getCover(coversDirectory))
-        .map(async(coverData) => saveCover(await coverData))
+        .map(async (coverData) => saveCover(await coverData))
     )
   )
 
@@ -144,30 +159,59 @@ export async function syncMusic(
     }
   }
 
-  const addedFilepaths = addedDBTracks.map((track) => track.filepath)
+  const addedFilepaths = addedDBTracks.map(({ filepath }) => filepath)
+  const addedAlbums = addedDBTracks
+    .map(({ albumName }) => albumName)
+    .filter(isDefined)
+  const addedArtists = addedDBTracks
+    .map(({ artistName }) => artistName)
+    .filter(isDefined)
+  const addedCovers = addedDBTracks
+    .map(({ coverPath }) => coverPath)
+    .filter(isDefined)
 
   //* Clean up
   // Remove unused tracks in the database
   const deleteTracksResult = await deleteTracksInverted(addedFilepaths)
+  const deleteArtistsResult = await deleteArtistsInverted(addedArtists)
+  const deleteAlbumsResult = await deleteAlbumsInverted(addedAlbums)
+  const deleteCoversResult = await deleteCoversInverted(addedCovers)
 
   if (isLeft(deleteTracksResult))
     log("deleteTracksResult:", deleteTracksResult.left)
+  if (isLeft(deleteArtistsResult))
+    log("deleteArtistsResult:", deleteArtistsResult.left)
+  if (isLeft(deleteAlbumsResult))
+    log("deleteAlbumsResult:", deleteAlbumsResult.left)
+  if (isLeft(deleteCoversResult))
+    log("deleteCoversResult:", deleteCoversResult.left)
 
   // Remove unused covers
-  const deleteCoversResult = await deleteFromDirectoryInverted(
+  const deleteCoversFilesystemResult = await deleteFromDirectoryInverted(
     coversDirectory,
     savedCoverPaths.filter(removeDuplicates)
   )
-  const deleteCoverErrors = isLeft(deleteCoversResult)
-    ? [deleteCoversResult.left]
-    : deleteCoversResult.right.deletionErrors
 
-  if (deleteCoverErrors.length > 0) log("deleteCoverError:", deleteCoverErrors)
+  if (isLeft(deleteCoversFilesystemResult))
+    log(deleteCoversFilesystemResult.left)
+  else if (deleteCoversFilesystemResult.right.deletionErrors.length > 0)
+    log(deleteCoversFilesystemResult.right.deletionErrors)
+
+  const deleteCoverErrors =
+    isLeft(deleteCoversResult) && deleteCoversResult.left
+
+  if (deleteCoverErrors) log("deleteCoverError:", deleteCoverErrors)
 
   // Emit added tracks and errors as right values
   handlerEmitter.emit("sendToMain", {
     emitToRenderer: true,
     event: "syncedMusic",
-    data: right({ tracks: addedDBTracks, artists: [], albums: [] }),
+    data: right({
+      tracks: addedDBTracks,
+      artists: await prisma.artist.findMany(),
+      albums: await prisma.album.findMany(),
+    }),
   })
+
+  log("Finished syncing music")
 }

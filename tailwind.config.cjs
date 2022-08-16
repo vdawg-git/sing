@@ -50,6 +50,7 @@ module.exports = {
       white: "#F3F2EA",
       green: colors.green,
       red: colors.red,
+      pureBlack: "#0000",
     },
     extend: {
       boxShadow: {},

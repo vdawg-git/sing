@@ -1,15 +1,17 @@
-import { flattenObject, removeKeys, stringifyArraysInObject } from "@sing-shared/Pures"
+import {
+  flattenObject,
+  removeKeys,
+  stringifyArraysInObject,
+} from "@sing-shared/Pures"
 import { curry2 } from "fp-ts-std/Function"
 import { isRight, left, right } from "fp-ts/lib/Either"
 import { pipe } from "fp-ts/lib/function"
 import { parseFile, selectCover } from "music-metadata"
-import Vibrant from "node-vibrant"
 import { createHash } from "node:crypto"
 
 import { checkPathAccessible, writeFileToDisc } from "../Helper"
 
 import type { IPicture } from "music-metadata"
-
 import type { Prisma } from "@prisma/client"
 import type {
   IError,
@@ -44,7 +46,6 @@ async function convertMetadataNotCurried(
     | keyof IRawAudioMetadata["format"]
   )[] = [
     "artists",
-    "picture",
     "rating",
     "replaygain_album_gain",
     "replaygain_album_peak",
@@ -63,11 +64,13 @@ async function convertMetadataNotCurried(
       filepath: rawMetaData.filepath,
     },
     removeKeys(undesiredProperties),
+    // @ts-ignore - flattenObject generic seems to remove the filepath in the type
     flattenObject,
-    // stringifyArraysInObject,
-    addRelationFields(coverFolderPath)
+    addRelationFields(coverFolderPath),
+    async (x) => stringifyArraysInObject(await x)
   )
 
+  // @ts-ignore Why Typescript, why
   return result
 }
 
@@ -83,34 +86,7 @@ export async function getCoverNotCurried(
   const extension = `.${coverData.format.split("/").at(-1)}`
   const path = (coverFolderPath + md5 + extension) as FilePath
 
-  const {
-    Vibrant: Vibrant_,
-    DarkVibrant,
-    LightVibrant,
-    Muted,
-    DarkMuted,
-  } = await Vibrant.from(coverData.data).maxDimension(400).getPalette()
-
-  // Add the palettes if they exist to the object
-  const dominantColors = {
-    ...(Vibrant_ && {
-      vibrant: Vibrant_.hsl,
-    }),
-    ...(DarkVibrant && {
-      darkVibrant: DarkVibrant.hsl,
-    }),
-    ...(LightVibrant && {
-      lightVibrant: LightVibrant.hsl,
-    }),
-    ...(Muted && {
-      muted: Muted.hsl,
-    }),
-    ...(DarkMuted && {
-      darkMuted: DarkMuted.hsl,
-    }),
-  }
-
-  return { md5, path, buffer: coverData.data, dominantColors }
+  return { md5, path, buffer: coverData.data }
 }
 
 export const getCover = curry2(getCoverNotCurried)
@@ -148,7 +124,9 @@ async function addRelationFieldsNotCurried<
   const { album, albumartist, artist, picture, ...data } = rawData
 
   const coverData =
-    picture && (await getCoverNotCurried(coversDirectory, picture))
+    picture !== undefined && picture.length > 0
+      ? await getCoverNotCurried(coversDirectory, picture)
+      : undefined
 
   const coverInput: Prisma.CoverCreateNestedOneWithoutTracksInput | undefined =
     coverData
@@ -158,7 +136,6 @@ async function addRelationFieldsNotCurried<
             create: {
               md5: coverData.md5,
               filepath: coverData.path,
-              domintantColors: JSON.stringify(coverData.dominantColors),
             },
           },
         }
@@ -195,7 +172,7 @@ async function addRelationFieldsNotCurried<
             where: { name: album },
             create: {
               name: album,
-              ...(albumartistInput && { artist: albumartistInput }),
+              artist: albumartistInput || artistInput || undefined, // TODO display the most used artist for the album if no album artist is set
               ...(coverInput && { cover: coverInput }),
             },
           },

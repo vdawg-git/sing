@@ -38,6 +38,8 @@ const defaultRules = {
   "@typescript-eslint/no-explicit-any": ["error", { ignoreRestArgs: true }],
   "no-shadow": "off",
   "@typescript-eslint/no-shadow": ["error", { ignoreTypeValueShadow: true }],
+  "func-style": ["error", "declaration"],
+  "unicorn/no-useless-undefined": "off",
 }
 
 module.exports = {
@@ -59,6 +61,9 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 12,
     sourceType: "module",
+    ecmaFeatures: {
+      classes: false,
+    },
   },
   plugins: ["@typescript-eslint"],
   ignorePatterns: ["node_modules/**", "**/dist/**"],

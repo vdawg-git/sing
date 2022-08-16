@@ -81,7 +81,7 @@
         data-testid={testArtistID}
         data-testattribute={TEST_ATTRIBUTES.queueItemArtist}
       >
-        {displayMetadata("artist", track)}
+        {displayMetadata("artistName", track)}
       </span>
     </div>
   </div>
