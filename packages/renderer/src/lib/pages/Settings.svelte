@@ -25,7 +25,7 @@
       </p>
       <FoldersPicker bind:paths />
       <Button
-        text="Save and sync"
+        label="Save and sync"
         testid={id.settingsFoldersSaveButton}
         classes="w-full mt-8"
         on:click={async () => {

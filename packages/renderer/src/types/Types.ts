@@ -1,4 +1,5 @@
 import type { ITrack } from "@sing-types/Types"
+import type { AsyncOrSync } from "ts-essentials"
 
 export type IPlayState = "PLAYING" | "PAUSED" | "STOPPED"
 export type ISourceType =
@@ -17,3 +18,9 @@ export interface IQueueItem {
   readonly isManuallyAdded: boolean
   readonly track: ITrack
 }
+
+export type IHeroMetaDataItem = AsyncOrSync<{
+  label: string
+  to?: string
+  bold?: boolean
+}>

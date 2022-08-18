@@ -2,10 +2,14 @@
   import TrackItem from "@/lib/molecules/TrackItem.svelte"
   import Settings from "@/lib/pages/Settings.svelte"
   import player, { tracks } from "@/lib/manager/PlayerManager"
-  import type { ISourceType } from "@/types/Types"
+  import type { IHeroMetaDataItem, ISourceType } from "@/types/Types"
   import { TEST_IDS } from "@/TestConsts"
+  import HeroHeading from "../organisms/HeroHeading.svelte"
+  import { onMount } from "svelte/types/runtime/internal/lifecycle"
 
   const sourceType: ISourceType = "ALL_TRACKS"
+
+  let metadata: IHeroMetaDataItem[] = [{ label: `${$tracks.length} tracks` }]
 </script>
 
 <main
@@ -15,9 +19,7 @@
 		overflow-x-clip"
 >
   <div class="mx-auto mt-32 w-full max-w-[1560px] p-6 ">
-    <h1 data-testid={TEST_IDS.myTracksTitle} class="mb-10 text-4xl">
-      Your Tracks
-    </h1>
+    <HeroHeading title="Your tracks" {metadata} />
     {#await $tracks then allTracks}
       {#if allTracks.length === 0}
         <Settings />

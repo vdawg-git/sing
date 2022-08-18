@@ -26,11 +26,9 @@ const playStateStore = writable<IPlayState>("STOPPED")
 const volumeStore = writable(1)
 const currentTimeStore = writable(0)
 const durationStore = writable(0)
-const tracksStore = writable<readonly ITrack[] | Promise<readonly ITrack[]>>([])
-const albumsStore = writable<readonly IAlbum[] | Promise<readonly IAlbum[]>>([])
-const artistsStore = writable<readonly IArtist[] | Promise<readonly IArtist[]>>(
-  []
-)
+const tracksStore = writable<readonly ITrack[]>([])
+const albumsStore = writable<readonly IAlbum[]>([])
+const artistsStore = writable<readonly IArtist[]>([])
 
 // TODO add genre to the db, too
 
