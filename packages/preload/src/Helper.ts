@@ -30,20 +30,10 @@ export function createBackendEnquirer(childProcess: ChildProcess) {
    * @returns A promise resolving with the data of the awaited event.
    */
   function queryBackend<T extends ITwoWayChannel>(
-    {
-      event,
-      arguments_,
-      id: queryID,
-    }: Readonly<{
-      event: T
-      arguments_: Parameters<ITwoWayHandlers[T]>
-      id: string
-    }>,
+    query: IBackendQuery<T>,
     timeout = 10_000
   ): ReturnType<ITwoWayHandlers[T]> {
     const queryResponse = new Promise((resolve, reject) => {
-      const query: IBackendQuery = { event, queryID, arguments_ }
-
       // Send the query to the backend
       childProcess.send(query)
 
@@ -65,7 +55,7 @@ export function createBackendEnquirer(childProcess: ChildProcess) {
         if (!isBackendQueryResponse(message)) return
 
         // If it does not match the send ID then ignore it and continue waiting for the next corresponding response
-        if (message.queryID !== queryID) return
+        if (message.queryID !== query.queryID) return
 
         // Clean up itself
         childProcess.removeListener("message", handleResponse)
