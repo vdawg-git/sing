@@ -1,29 +1,24 @@
 <script lang="ts">
   import type { SvelteComponentDev } from "svelte/internal"
 
-  type IButtonType = "solid" | "outline"
-
   export let label: string
-  export let type: IButtonType = "solid"
+  export let primary = true
   export let classes: string | undefined = undefined
   export let testid: string | undefined = undefined
-  export let icon: SvelteComponentDev | undefined = undefined
+  export let icon: typeof SvelteComponentDev | undefined = undefined
 
-  const buttonTypes: Record<IButtonType, string> = {
-    solid: "bg-grey-100  text-grey-900 hover:bg-grey-200",
-    outline:
-      "bg-transparent text-white border border-grey-100 hover:text-grey-100 hover:border-grey-300",
-  }
-
-  const buttonClass = buttonTypes[type] ?? ""
+  const buttonClass = primary
+    ? "bg-grey-100  text-grey-900"
+    : "text-white bg-grey-600"
 </script>
 
 <button
   data-testid={testid}
   on:click
-  class="flex min-w-[9rem] cursor-pointer  justify-center rounded-xl 
-		    px-6 py-3 uppercase {buttonClass} {classes} "
+  class="flex min-w-[9rem] cursor-pointer  justify-center gap-3 rounded-lg
+		    px-6 py-3 uppercase  transition-opacity hover:opacity-80 active:opacity-60
+        {buttonClass} {classes}"
 >
-  <svelte:component this={icon} />
+  <svelte:component this={icon} class="-ml-2 h-6 w-6" />
   {label}
 </button>

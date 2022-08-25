@@ -1,21 +1,20 @@
+import type { FilePath } from "@sing-types/Filesystem"
 import type {
   IBackendEmitToFrontend,
-  IDataSendToBackend,
-  ITwoWayRequest,
-  ITwoWayResponse,
-} from "@sing-types/Types"
-
+  IBackendEvent,
+  IBackendQuery,
+  IBackendQueryResponse,
+} from "@sing-types/IPC"
 import type { ICoverData } from "./Types"
-
 import type { IPicture } from "music-metadata"
 
 export function isICoverData(toTest: unknown): toTest is ICoverData {
   if (typeof toTest !== "object" || toTest === null) return false
 
   const keysToCheck: Record<keyof ICoverData, (x: unknown) => boolean> = {
-    coverMD5: (x: unknown) => typeof x === "string",
-    coverPath: (x: unknown) => typeof x === "string",
-    coverBuffer: (x: unknown) => Buffer.isBuffer(x),
+    md5: (x: unknown) => typeof x === "string",
+    path: (x: unknown) => typeof x === "string",
+    buffer: (x: unknown) => Buffer.isBuffer(x),
   }
 
   return Object.entries(keysToCheck).every((keyValue) => {
@@ -35,18 +34,18 @@ export function isIPicture(toTest: unknown): toTest is IPicture {
   return true
 }
 
-export function isTwoWayEvent(toTest: unknown): toTest is ITwoWayRequest {
+export function isBackendQuery(toTest: unknown): toTest is IBackendQuery {
   if (typeof toTest !== "object" || toTest === null) return false
-  if (typeof (toTest as ITwoWayRequest)?.event !== "string") return false
-  if (typeof (toTest as ITwoWayRequest)?.id !== "string") return false
+  if (typeof (toTest as IBackendQuery)?.event !== "string") return false
+  if (typeof (toTest as IBackendQuery)?.queryID !== "string") return false
 
   return true
 }
 
-export function isOneWayEvent(toTest: unknown): toTest is IDataSendToBackend {
+export function isBackendEvent(toTest: unknown): toTest is IBackendEvent {
   if (typeof toTest !== "object" || toTest === null) return false
-  if ((toTest as ITwoWayResponse)?.id !== undefined) return false
-  if (typeof (toTest as IDataSendToBackend)?.event !== "string") return false
+  if ((toTest as IBackendQueryResponse)?.queryID !== undefined) return false
+  if (typeof (toTest as IBackendEvent)?.event !== "string") return false
 
   return true
 }
@@ -55,7 +54,7 @@ export function isBackendMessageToForward(
   data: unknown
 ): data is IBackendEmitToFrontend {
   if (typeof data !== "object" || data === null) return false
-  if ((data as IBackendEmitToFrontend)?.emitToRenderer !== true) return false
+  if ((data as IBackendEmitToFrontend)?.forwardToRenderer !== true) return false
   if ((data as IBackendEmitToFrontend)?.event === undefined) return false
   if (!(("data" as keyof IBackendEmitToFrontend) in data)) return false
 
@@ -66,7 +65,7 @@ export function isEventToForwardToRenderer(
   data: unknown
 ): data is IBackendEmitToFrontend {
   if (typeof data !== "object" || data === null) return false
-  if ((data as ITwoWayResponse)?.id !== undefined) return false
+  if ((data as IBackendQueryResponse)?.queryID !== undefined) return false
   if ((data as IBackendEmitToFrontend)?.event === undefined) return false
   if (!(("data" as keyof IBackendEmitToFrontend) in data)) return false
 
@@ -78,9 +77,9 @@ if (import.meta.vitest) {
 
   test("isICoverData happy", () => {
     const given: ICoverData = {
-      coverMD5: "coverMD5",
-      coverPath: "coverPath",
-      coverBuffer: Buffer.from("coverBuffer"),
+      md5: "coverMD5",
+      path: "path" as FilePath,
+      buffer: Buffer.from("coverBuffer"),
     }
 
     expect(isICoverData(given)).toBe(true)

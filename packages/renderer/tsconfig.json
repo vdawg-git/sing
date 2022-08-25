@@ -30,6 +30,7 @@
       "@tests/*": ["./tests/*"],
       "@sing-main/*": ["../main/src/*"],
       "@sing-preload/*": ["../preload/src/*"],
+      "@sing-shared/*": ["../shared/*"],
       "@sing-types/*": ["../../types/*"]
     },
     "lib": ["ESNext", "dom", "dom.iterable"]

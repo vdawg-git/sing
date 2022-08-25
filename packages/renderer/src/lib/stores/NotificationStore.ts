@@ -1,8 +1,8 @@
 import { writable } from "svelte/store"
 
-import type { INotification } from "@sing-types/Types"
+import type { INotificationBase, INotification } from "@sing-types/Types"
 
-const { subscribe, update } = writable<INotification[]>([])
+const { subscribe, update } = writable<INotificationBase[]>([])
 
 window.api.listen("createNotification", (_event, notification) => {
   update(($store) => [
@@ -18,8 +18,16 @@ export function addNotification(
   notification: INotification,
   position: "top" | "bottom" = "top"
 ): void {
+  const toAdd: INotificationBase =
+    notification.id !== undefined
+      ? (notification as INotificationBase)
+      : {
+          ...notification,
+          id: Symbol(notification.label),
+        }
+
   update(($store) =>
-    position === "top" ? [notification, ...$store] : [...$store, notification]
+    position === "top" ? [toAdd, ...$store] : [...$store, toAdd]
   )
 }
 

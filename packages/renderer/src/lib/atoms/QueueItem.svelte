@@ -19,7 +19,7 @@
   export let testQueuePlayedIndex: number | undefined = undefined
   export let testQueueNextIndex: number | undefined = undefined
 
-  // set up test ids
+  // set up test ids based on item index positon
   $: [testTitleID, testArtistID] = (() => {
     switch (testId) {
       case testID.queueCurrentTrack:
@@ -65,7 +65,7 @@
         data-testattribute={TEST_ATTRIBUTES.queueItemCover}
       />
     {:else}
-      <div class="h-12 w-12 bg-grey-700" />
+      <div class="h-12 w-12 shrink-0 rounded bg-grey-700" />
     {/if}
 
     <div class="grid grow-0 grid-flow-row items-center">
@@ -77,7 +77,7 @@
         {displayMetadata("title", track)}
       </span>
       <span
-        class="-mt-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm text-grey-300"
+        class="-mt-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-bold text-grey-300"
         data-testid={testArtistID}
         data-testattribute={TEST_ATTRIBUTES.queueItemArtist}
       >

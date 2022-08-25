@@ -2,10 +2,10 @@
 **			Font 
 **=================================================================*/
 @font-face {
-	font-family: "Outfit";
-	src: url("./fonts/Outfit[wght].ttf");
-	font-weight: 400;
-	font-style: normal;
+  font-family: "Outfit";
+  src: url("./fonts/Outfit[wght].ttf");
+  font-weight: 400;
+  font-style: normal;
 }
 
 /**==================================================================
@@ -15,47 +15,48 @@
 @tailwind components;
 @tailwind utilities;
 
-
-body {@apply text-white}
+body {
+  @apply bg-grey-900 text-white;
+}
 
 /** --------------------------------------------------------------
 **      Workaround tailwind bug
 ** ----------------------------------------------------------------*/
-:root, ::before, ::after {
-	--tw-backdrop-blur: blur(0);
-	 --tw-backdrop-brightness: brightness(100%);
-	 --tw-backdrop-contrast: contrast(100%);
-	 --tw-backdrop-grayscale:grayscale(0%);
-	 --tw-backdrop-hue-rotate: hue-rotate(0deg) ;
-	 --tw-backdrop-invert: invert(0%) ;
-	 --tw-backdrop-opacity: opacity(100%) ;
-	 --tw-backdrop-saturate: saturate(100%);
-	 --tw-backdrop-sepia: sepia(0%) ;
+:root,
+::before,
+::after {
+  --tw-backdrop-blur: blur(0);
+  --tw-backdrop-brightness: brightness(100%);
+  --tw-backdrop-contrast: contrast(100%);
+  --tw-backdrop-grayscale: grayscale(0%);
+  --tw-backdrop-hue-rotate: hue-rotate(0deg);
+  --tw-backdrop-invert: invert(0%);
+  --tw-backdrop-opacity: opacity(100%);
+  --tw-backdrop-saturate: saturate(100%);
+  --tw-backdrop-sepia: sepia(0%);
 }
-
 
 /**==================================================================
 **			Scrollbar 
 **=================================================================*/
 
 body {
-	scrollbar-gutter: stable;
+  scrollbar-gutter: stable;
 }
 
 ::-webkit-scrollbar {
-	position: absolute;
-	width: 8px;
-	z-index: 99999;
-
+  position: absolute;
+  width: 8px;
+  z-index: 99999;
 }
 
 ::-webkit-scrollbar-track {
-	background: transparent;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-	background-color: theme(colors.grey.500);
-	border-radius: 9999px;
+  background-color: theme(colors.grey.500);
+  border-radius: 9999px;
 }
 
 /**==================================================================
@@ -63,13 +64,20 @@ body {
 **=================================================================*/
 
 /* Disable scrollbars on viewport */
-body { overflow:hidden}
+body {
+  overflow: hidden;
+}
 
 /* Hide focus outline created by svelte-navigator */
-h1, h2, h3, h4, h5, h6 {
-	&:focus {
-		outline: none;
-	}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  &:focus {
+    outline: none;
+  }
 }
 
 /**==================================================================
@@ -78,7 +86,7 @@ h1, h2, h3, h4, h5, h6 {
 *,
 *::after,
 *::before {
-	-webkit-user-select: none;
-	-webkit-user-drag: none;
-	-webkit-app-region: no-drag;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-app-region: no-drag;
 }

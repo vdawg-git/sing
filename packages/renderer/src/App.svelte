@@ -10,6 +10,9 @@
   import initNotificationHandler from "./lib/manager/NotificationManager"
   import { onDestroy } from "svelte"
   import Albums from "./lib/pages/Albums.svelte"
+  import Album from "./lib/pages/Album.svelte"
+  import Artists from "./lib/pages/Artists.svelte"
+  import Artist from "./lib/pages/Artist.svelte"
 
   const hashHistory = createHistory(createHashSource())
 
@@ -22,32 +25,55 @@
   })
 </script>
 
-<main class="select-none bg-grey-900 text-white ">
+<main class="select-none  text-white ">
   <NotificationsRenderer />
 
   <Router history={hashHistory}>
     <div class="flex">
       <Sidebar />
-      <div class="h-screen w-full overflow-auto   sm:ml-2 md:ml-6 lg:ml-10 ">
-        <Route path={ROUTES.settingsGeneral}>
-          <Settings />
-        </Route>
-        <Route path={ROUTES.settingsLibrary}>
-          <Settings />
-        </Route>
 
-        <Route path={ROUTES.tracks}>
-          <Tracks />
-        </Route>
-        <Route path={ROUTES.albums}>
-          <Albums />
-        </Route>
+      <main
+        class="
+          flex h-screen max-h-screen
+          w-full content-start  items-start
+          justify-center overflow-auto overflow-x-clip
+          p-6 sm:px-2 md:px-6 lg:px-10"
+      >
+        <div class="w-full max-w-full lg:max-w-[1560px]">
+          <Route path={ROUTES.settingsGeneral}>
+            <Settings />
+          </Route>
+          <Route path={ROUTES.settingsLibrary}>
+            <Settings />
+          </Route>
 
-        <Route>
-          <Tracks />
-        </Route>
-      </div>
+          <Route path={ROUTES.tracks}>
+            <Tracks />
+          </Route>
+
+          <Route path={`${ROUTES.albums}/*`}>
+            <Route path="/">
+              <Albums />
+            </Route>
+
+            <Route path=":albumID" component={Album} />
+          </Route>
+
+          <Route path={`${ROUTES.artists}/*`}>
+            <Route path="/">
+              <Artists />
+            </Route>
+
+            <Route path=":artistID" component={Artist} />
+          </Route>
+
+          <Route>
+            <Tracks />
+          </Route>
+        </div>
+      </main>
     </div>
+
     <Playbar />
   </Router>
 </main>

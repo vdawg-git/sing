@@ -16,7 +16,7 @@
     playState,
     currentTime,
     volume as volumeStore,
-  } from "@/lib/manager/PlayerManager"
+  } from "@/lib/manager/player/index"
 
   $: track = $currentTrack?.track
 
@@ -66,19 +66,21 @@
     class="mr-6 flex max-w-fit shrink grow basis-[20rem] gap-4 overflow-hidden text-ellipsis"
   >
     <!---- Cover -->
-    {#if track?.coverPath}
-      <img
-        class="h-14 w-14 shrink-0 bg-grey-600"
-        alt={track?.title || "Title" + " " + " cover"}
-        src={"file://" + track?.coverPath}
-        data-testid={TEST_IDS.playbarCover}
-      />
-    {:else}
-      <div
-        class="h-14 w-14 shrink-0 bg-grey-600"
-        data-testid={TEST_IDS.playbarCover}
-      />
-    {/if}
+    <div class="relative h-14 w-14 shrink-0 bg-grey-600">
+      {#if track?.coverPath}
+        <img
+          class="absolute inset-0 rounded-sm"
+          alt={track?.title || "Title" + " " + " cover"}
+          src={"file://" + track?.coverPath}
+          data-testid={TEST_IDS.playbarCover}
+        />
+      {:else}
+        <div
+          class="absolute inset-0 rounded-sm bg-grey-600"
+          data-testid={TEST_IDS.playbarCover}
+        />
+      {/if}
+    </div>
 
     <!---- Meta -->
     {#if track}
@@ -91,7 +93,7 @@
         </div>
         <div class="flex max-w-full gap-3">
           <div
-            class="shrink-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm text-grey-300"
+            class="shrink-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-grey-300"
             data-testid={TEST_IDS.playbarArtist}
           >
             {displayMetadata("artistName", track)}
@@ -187,7 +189,7 @@
   .button {
     color: theme(colors.white);
     cursor: pointer;
-    transition: color 120ms cubic-bezier(0.4, 0, 0.2, 1),
+    transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1),
       transform 120ms cubic-bezier(0.4, 0, 0.2, 1);
     /* @apply transition-transform active:scale-95; */
 

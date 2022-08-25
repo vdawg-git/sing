@@ -6,6 +6,8 @@ import { copyFile } from "node:fs/promises"
 import path from "node:path"
 import log from "ololog"
 
+import type { FilePath } from "@sing-types/Filesystem"
+
 export function chooseFolders() {
   const paths = dialog.showOpenDialog({
     properties: ["openDirectory", "multiSelections"],
@@ -15,7 +17,7 @@ export function chooseFolders() {
 }
 
 // Check if database exists. If not copy the empty master to make it available
-export async function checkDatabase(databasePath: string) {
+export async function checkDatabase(databasePath: FilePath) {
   const checkAccessible = await checkPathAccessible(databasePath)
   if (isLeft(checkAccessible)) {
     const possibleError = checkAccessible.left.error

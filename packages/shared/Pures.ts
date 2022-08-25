@@ -1,13 +1,11 @@
 /// <reference types="vitest/importMeta" />
+import { isKeyOfObject } from "@sing-types/Typeguards"
 import { readonlyArray as FPArray } from "fp-ts"
 import { curry2 } from "fp-ts-std/Function"
 import { pipe } from "fp-ts/Function"
 import { isLeft, isRight, left, right } from "fp-ts/lib/Either"
 
-import {
-  SUPPORTED_MUSIC_FORMATS,
-  UNSUPPORTED_MUSIC_FORMATS,
-} from "../backend/src/lib/FileFormats"
+import { SUPPORTED_MUSIC_FORMATS, UNSUPPORTED_MUSIC_FORMATS } from "../backend/src/lib/FileFormats"
 
 import type { Either } from "fp-ts/lib/Either"
 
@@ -19,10 +17,9 @@ import type {
 import type {
   ArraysToString,
   FlattenObject,
-  NullValuesToOptional,
+  NullToUndefined,
 } from "@sing-types/Utilities"
 import type { FilePath } from "@sing-types/Filesystem"
-
 export function filterPathsByExtenstions(
   extensions: readonly string[],
   paths: readonly FilePath[]
@@ -205,12 +202,29 @@ export function removeDuplicates<T>(
 
 export function removeNulledKeys<T extends Record<string, unknown>>(
   object: T
-): NullValuesToOptional<T> {
+): NullToUndefined<T> {
   const result = Object.fromEntries(
     Object.entries(object).filter(([_, value]) => value !== null)
-  ) as NullValuesToOptional<T>
+  ) as NullToUndefined<T>
 
   return result
+}
+
+export function getErrorMessage(
+  defaultMessage: string,
+  error: unknown
+): string {
+  if (typeof error === "string") return error
+  if (typeof error !== "object" || error === null) return defaultMessage
+
+  if (isKeyOfObject(error, "message") && typeof error.message === "string") {
+    return error.message
+  }
+  if (isKeyOfObject(error, "error")) {
+    return getErrorMessage(defaultMessage, error.error)
+  }
+
+  return defaultMessage
 }
 
 export function getRightOrThrow<A>(either: Either<unknown, A>): A {

@@ -7,7 +7,7 @@
   import Logo from "virtual:icons/custom/drool"
   import IconMusic from "virtual:icons/heroicons-outline/music-note"
   import IconSettings from "virtual:icons/heroicons-outline/cog"
-  // import IconMicrophone from "virtual:icons/heroicons-outline/microphone"
+  import IconArtists from "virtual:icons/heroicons-outline/microphone"
   // import IconPlaylist from "virtual:icons/tabler/playlist"
   import IconAlbum from "virtual:icons/ri/album-line"
   // import IconGenre from "virtual:icons/mdi/guitar-pick-outline"
@@ -22,6 +22,7 @@
   }[] = [
     { name: "Tracks", icon: IconMusic, to: "tracks" },
     { name: "Albums", icon: IconAlbum, to: "albums" },
+    { name: "Artists", icon: IconArtists, to: "artists" },
   ]
 </script>
 
@@ -48,7 +49,7 @@
       <svelte:component
         this={item.icon}
         slot="icon"
-        class="mr-3 h-6 w-6 text-grey-300"
+        class="mr-3 h-6 w-6 text-grey-200"
       />
       <div slot="label">{item.name}</div>
     </SidebarItem>

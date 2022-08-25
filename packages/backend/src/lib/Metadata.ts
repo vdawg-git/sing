@@ -172,7 +172,7 @@ async function addRelationFieldsNotCurried<
             where: { name: album },
             create: {
               name: album,
-              artist: albumartistInput || artistInput || undefined, // TODO display the most used artist for the album if no album artist is set
+              artistEntry: artistInput, // TODO display the most used artist for the album if no album artist is set
               ...(coverInput && { cover: coverInput }),
             },
           },

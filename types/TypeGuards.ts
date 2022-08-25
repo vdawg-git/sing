@@ -1,17 +1,25 @@
-import type { IIDBackendAnswer } from "./Types"
+import type { IBackendQueryResponse } from "./IPC"
 
 export function isError(error: unknown): error is Error {
   return error instanceof Error
 }
 
-export function isIDBackendAnswer(
+export function isBackendQueryResponse(
   response: unknown
-): response is IIDBackendAnswer {
+): response is IBackendQueryResponse {
   if (typeof response !== "object" || response === null) return false
-  if (typeof (response as IIDBackendAnswer)?.id !== "string") return false
-  if ((response as IIDBackendAnswer)?.data === undefined) return false
+  if (typeof (response as IBackendQueryResponse)?.queryID !== "string")
+    return false
+  if ((response as IBackendQueryResponse)?.data === undefined) return false
 
   return true
+}
+
+export function isKeyOfObject<T, Key extends string | number | symbol>(
+  object: T,
+  key: Key
+): object is T & { [key in Key]: unknown } {
+  return key in object
 }
 
 // export function isIFrontendEventsConsumeData(data: unknown): data is IFrontendEventsConsume[keyof IFrontendEventsConsume] {

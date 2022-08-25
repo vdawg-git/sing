@@ -10,28 +10,30 @@ import type {
 import type {
   IFrontendEventsConsume,
   IFrontendEventsSend,
-} from "@sing-types/Types"
+} from "@sing-types/IPC"
 
 import type { Prisma } from "@prisma/client"
 
-export async function getTracks(
-  options: Prisma.TrackFindManyArgs | undefined = undefined
-) {
+export async function getTracks(options?: Prisma.TrackFindManyArgs) {
   return ipcRenderer.invoke("getTracks", options)
 }
-export async function getAlbums(
-  options: Prisma.AlbumFindManyArgs | undefined = undefined
-) {
+export async function getAlbums(options?: Prisma.AlbumFindManyArgs) {
   return ipcRenderer.invoke("getAlbums", options)
 }
-export async function getArtists(
-  options: Prisma.ArtistFindManyArgs | undefined = undefined
-) {
+
+export async function getAlbum(options: Prisma.AlbumFindUniqueOrThrowArgs) {
+  return ipcRenderer.invoke("getAlbum", options)
+}
+
+export async function getArtists(options?: Prisma.ArtistFindManyArgs) {
   return ipcRenderer.invoke("getArtists", options)
 }
-export async function getCovers(
-  options: Prisma.CoverFindManyArgs | undefined = undefined
-) {
+
+export async function getArtist(options: Prisma.ArtistFindUniqueOrThrowArgs) {
+  return ipcRenderer.invoke("getArtist", options)
+}
+
+export async function getCovers(options?: Prisma.CoverFindManyArgs) {
   return ipcRenderer.invoke("getCovers", options)
 }
 

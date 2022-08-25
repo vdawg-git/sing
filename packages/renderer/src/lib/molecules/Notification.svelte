@@ -98,7 +98,10 @@
 >
   <div class="flex gap-3 px-6 py-4">
     {#if type != undefined}
-      <svelte:component this={usedIcon} class={`${iconClass} -ml-2 h-6 w-6`} />
+      <svelte:component
+        this={usedIcon}
+        class={`${iconClass} -ml-2 h-6 w-6 shrink-0`}
+      />
     {/if}
     {label}
   </div>
@@ -117,7 +120,7 @@
 
   <button
     data-testattribute={TEST_ATTRIBUTES.notificationCloseButton}
-    class="absolute top-0 right-0 p-2 opacity-70 hover:opacity-100"
+    class="absolute top-0 right-0  p-2 opacity-70 hover:opacity-100"
     on:click={handleClose}
   >
     <IconClose class="h-4 w-4 {iconClass}" />

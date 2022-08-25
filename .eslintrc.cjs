@@ -39,7 +39,6 @@ const defaultRules = {
   "no-shadow": "off",
   "@typescript-eslint/no-shadow": ["error", { ignoreTypeValueShadow: true }],
   "func-style": ["error", "declaration"],
-  "unicorn/no-useless-undefined": "off",
 }
 
 module.exports = {

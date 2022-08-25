@@ -1,4 +1,4 @@
-import { isIDBackendAnswer } from "@sing-types/TypeGuards"
+import { isBackendQueryResponse } from "@sing-types/TypeGuards"
 import c from "ansicolor"
 import log from "ololog"
 
@@ -6,21 +6,21 @@ import { webContents } from "./TypedIPC"
 
 import type { ParametersWithoutFirst } from "@sing-types/Utilities"
 import type { TypedWebContents } from "./types/Types"
-
 import type { ChildProcess } from "node:child_process"
-
 import type {
   ITwoWayChannel,
   ITwoWayHandlers,
   IBackendEmitChannels,
-  IOneWayHandlersConsume,
-} from "@sing-types/Types"
+  IEventHandlersConsume,
+  IBackendQuery,
+} from "../../../types/IPC"
+
 /**
  *
- * @param {ChildProcess}  childProcess - The child_process instance to listen and send events to
- * @returns
+ * @param childProcess - The child process to send queries to and receive responses from.
+ * @returns The response from the`childProcess` as a promise.
  */
-export function createPromisifiedForkEmitter(childProcess: ChildProcess) {
+export function createBackendEnquirer(childProcess: ChildProcess) {
   return queryBackend
 
   /**
@@ -32,50 +32,71 @@ export function createPromisifiedForkEmitter(childProcess: ChildProcess) {
   function queryBackend<T extends ITwoWayChannel>(
     {
       event,
-      args,
-      id,
-    }: { event: T; args: Parameters<ITwoWayHandlers[T]>; id: string },
+      arguments_,
+      id: queryID,
+    }: Readonly<{
+      event: T
+      arguments_: Parameters<ITwoWayHandlers[T]>
+      id: string
+    }>,
     timeout = 10_000
-  ): Promise<ReturnType<ITwoWayHandlers[T]>> {
-    const promise = new Promise((resolve, reject) => {
-      childProcess.on("message", listenerResolve)
+  ): ReturnType<ITwoWayHandlers[T]> {
+    const queryResponse = new Promise((resolve, reject) => {
+      const query: IBackendQuery = { event, queryID, arguments_ }
 
-      childProcess.send({ event, id, args })
+      // Send the query to the backend
+      childProcess.send(query)
 
-      function listenerResolve(message: unknown) {
-        // Filter out unrelated events
-        if (!isIDBackendAnswer(message)) return
-        // If it does not match the send ID then ignore it and continue waiting for the next event
-        if (message.id !== id) return
+      // Await the corresponding answer from the backend
+      childProcess.on("message", handleResponse)
 
-        // Clean up itself
-        childProcess.removeListener("message", listenerResolve)
-        // Return data from the event
-        resolve(message.data)
-      }
-
-      // Reject the promise after the timeout has passed
+      // Reject the promise after the timeout has passed (if a timeout has been passed)
       if (timeout !== -1) {
         setTimeout(() => {
-          childProcess.removeListener("message", listenerResolve)
+          childProcess.removeListener("message", handleResponse)
+
           reject(new Error(`Request timed out after ${timeout}ms`))
         }, timeout)
       }
-    })
 
-    return promise as Promise<ReturnType<ITwoWayHandlers[T]>>
+      // The handler for the response
+      function handleResponse(message: unknown) {
+        // Filter out unrelated responses
+        if (!isBackendQueryResponse(message)) return
+
+        // If it does not match the send ID then ignore it and continue waiting for the next corresponding response
+        if (message.queryID !== queryID) return
+
+        // Clean up itself
+        childProcess.removeListener("message", handleResponse)
+
+        // Return data from the event
+        resolve(message.data)
+      }
+    })
+    return queryResponse as ReturnType<ITwoWayHandlers[T]>
   }
 }
 
-export function createBackendSender(childProcess: ChildProcess) {
+/**
+ * Create a typed function which emits data to the child process. It only emits, it does not get a response. For this use {@link createBackendEnquirer}
+ * @param childProcess The child process to emit data to
+ * @returns A function to emit data to the child process.
+ */
+export function createBackendEmitter(childProcess: ChildProcess) {
   return emitToBackend
 
+  /**
+   *
+   * @param param0 The data to emit to the child process.
+   * @returns Nothing, it just emits.
+   */
   async function emitToBackend<Event extends IBackendEmitChannels>({
     event,
     arguments_,
   }: {
     readonly event: Event
-    readonly arguments_: ParametersWithoutFirst<IOneWayHandlersConsume[Event]>
+    readonly arguments_: ParametersWithoutFirst<IEventHandlersConsume[Event]>
   }) {
     childProcess.send({ event, arguments_ })
   }

@@ -10,7 +10,7 @@
     nextTracks,
     currentTrack,
     playIndex,
-  } from "@/lib/manager/PlayerManager"
+  } from "@/lib/manager/player/index"
   import QueueItem from "@/lib/atoms/QueueItem.svelte"
   import { fly } from "svelte/transition"
   import { sineInOut } from "svelte/easing"

@@ -68,7 +68,7 @@
     "vitest": "^0.21.0"
   },
   "dependencies": {
-    "@prisma/client": "^4.1.1",
+    "@prisma/client": "^4.2.1",
     "ansicolor": "^1.1.100",
     "electron-store": "^8.1.0",
     "electron-updater": "5.2.1",
@@ -82,7 +82,8 @@
     "ololog": "^1.1.175",
     "prisma": "^4.1.1",
     "slash": "3.0.0",
-    "svelte-navigator": "^3.1.6"
+    "svelte-navigator": "^3.1.6",
+    "svelte-tiny-virtual-list": "^2.0.5"
   },
   "prisma": {
     "schema": "prisma/schema.prisma"

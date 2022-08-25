@@ -1,9 +1,9 @@
 import type {
   IFrontendEventsConsume,
   IFrontendEventsSend,
-} from "@sing-types/Types"
+} from "../../../../types/IPC"
 
-import type { ParametersWithoutFirst } from "@sing-types/Utilities"
+import type { ParametersWithoutFirst } from "../../../../types/Utilities"
 
 import type {
   IpcMain,

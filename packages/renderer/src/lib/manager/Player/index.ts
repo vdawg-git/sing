@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { sortAlphabetically } from "@/Helper"
-import audioPlayer from "@/lib/manager/AudioPlayer"
-import indexStore from "@/lib/stores/PlayIndex"
-import queueStore from "@/lib/stores/QueueStore"
-import { isLeft } from "fp-ts/lib/Either"
+import { doSideEffectWithEither, sortAlphabetically } from "@/Helper"
+import audioPlayer from "@/lib/manager/player/AudioPlayer"
 import { derived, get, writable } from "svelte/store"
+
+import indexStore from "./stores/PlayIndex"
+import queueStore from "./stores/QueueStore"
 
 import type {
   IPlayLoop,
@@ -265,57 +265,65 @@ function createPlayerManager() {
 }
 
 async function initialiseStores() {
-  const tracksResponse = await window.api.getTracks()
-  const albumsResponse = await window.api.getAlbums()
+  doSideEffectWithEither(
+    await window.api.getTracks(),
+    "Failed to get tracks",
+    (tracks) => {
+      const sortedTracks = [...tracks].sort(sortAlphabetically)
 
-  if (isLeft(tracksResponse)) {
-    console.error(tracksResponse.left.error)
-    return
-  }
+      tracksStore.set(sortedTracks)
+      queueStore.setUpcomingFromSource(sortedTracks, 0)
+      audioPlayer.setSource(sortedTracks[0].filepath)
+    }
+  )
 
-  if (isLeft(albumsResponse)) {
-    console.error(albumsResponse.left.error)
-    return
-  }
-  if (!tracksResponse.right?.length) {
-    console.warn("Received tracks response array is empty")
-    return
-  }
+  doSideEffectWithEither(
+    await window.api.getAlbums(),
+    "Failed to get albums",
+    (albums) => {
+      albumsStore.set(albums)
+    }
+  )
 
-  const tracks = [...tracksResponse.right].sort(sortAlphabetically)
-  const albums = albumsResponse.right
+  doSideEffectWithEither(
+    await window.api.getArtists(),
+    "Failed to get artists",
+    (artists) => {
+      artistsStore.set(artists)
+    }
+  )
 
-  tracksStore.set(tracks)
-  albumsStore.set(albums)
-  queueStore.setUpcomingFromSource(tracks, 0)
   indexStore.set(0)
-  audioPlayer.setSource(tracks[0].filepath)
 }
 
 function handleSyncUpdate(_event: IpcRendererEvent, data: ISyncResult) {
-  if (isLeft(data)) return
+  doSideEffectWithEither(
+    data,
+    "Failed to update the library. Please restart the app",
+    ({ tracks, albums, artists }) => {
+      const sortedTracks = [...tracks].sort(sortAlphabetically)
 
-  if (!data.right || data.right.tracks.length === 0) {
-    console.warn("Received tracks at tracksStore -> data is not valid:", data)
-  }
+      if (tracks.length === 0) {
+        console.warn("Received tracks at tracksStore -> data is not valid:", {
+          tracks,
+          albums,
+          artists,
+        })
+      }
 
-  const newTracks = [...data.right.tracks].sort(sortAlphabetically)
-  const newAlbums = [...data.right.albums]
-  const newArtists = [...data.right.artists]
+      // Update the stores
+      tracksStore.set(sortedTracks)
+      albumsStore.set(albums)
+      artistsStore.set(artists)
 
-  // Update the stores
-  tracksStore.set(newTracks)
-  albumsStore.set(newAlbums)
-  artistsStore.set(newArtists)
+      const newIndex = queueStore.removeItemsFromNewTracks(
+        sortedTracks,
+        get(indexStore)
+      )
 
-  const newIndex = queueStore.removeItemsFromNewTracks(
-    newTracks,
-    get(indexStore)
+      indexStore.set(newIndex)
+    }
   )
-
-  indexStore.set(newIndex)
-
-  console.log(get(currentTrack))
 }
 
 // Export default

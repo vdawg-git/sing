@@ -21,12 +21,8 @@ import {
   deleteCoversInverted,
   deleteTracksInverted,
 } from "./Crud"
-import {
-  convertMetadata,
-  getCover,
-  getRawMetaDataFromFilepath,
-  saveCover,
-} from "./Metadata"
+import createPrismaClient from "./CustomPrismaClient"
+import { convertMetadata, getCover, getRawMetaDataFromFilepath, saveCover } from "./Metadata"
 
 import type {
   IErrorArrayIsEmpty,
@@ -35,9 +31,10 @@ import type {
 
 import type { IHandlerEmitter } from "@/types/Types"
 import type { DirectoryPath } from "@sing-types/Filesystem"
-import createPrismaClient from "./CustomPrismaClient"
 
 const prisma = createPrismaClient()
+
+// TODO sync should update cover of albums if they changed (it works for tracks)
 
 //? The error rendering functionality is not implemented yet, so there is no need to return the errors (and make the typing more complicated)
 

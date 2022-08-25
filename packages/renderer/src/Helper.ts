@@ -1,8 +1,13 @@
+import { fold } from "fp-ts/lib/Either"
 import { createHashHistory } from "history"
 
-import type { ITrack } from "@sing-types/Types"
+import { getErrorMessage } from "../../shared/Pures"
+import { addNotification } from "./lib/stores/NotificationStore"
+
+import type { ITrack, IError } from "@sing-types/Types"
 import type { HistorySource } from "svelte-navigator"
 import type AnyObject from "svelte-navigator/types/AnyObject"
+import type { Either } from "fp-ts/lib/Either"
 
 export function titleToDisplay(track: ITrack): string {
   if (track?.title) return track.title
@@ -48,6 +53,27 @@ export function isSubdirectory(ancestor: string, child: string): boolean {
   return papaDDirectories.every(
     (directory, index) => childDDirectories[index] === directory
   )
+}
+
+export function doSideEffectWithEither<A>(
+  data: Either<IError, A>,
+  onLeftErrorMessage: string,
+  onRight: (argument_: A) => void
+): void {
+  fold((error) => {
+    console.error(error)
+
+    const label = `${onLeftErrorMessage}\n${getErrorMessage(
+      `Error receiving data`,
+      error
+    )}`
+
+    addNotification({
+      label,
+      type: "danger",
+      duration: -1,
+    })
+  }, onRight)(data)
 }
 
 // // To be used in the future again, for now lets keep it simple again

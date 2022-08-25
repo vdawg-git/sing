@@ -1,6 +1,6 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
-  import { albums } from "@/lib/manager/player/index"
+  import { artists } from "@/lib/manager/player/index"
   import NothingHereYet from "../organisms/NothingHereYet.svelte"
   import HeroHeading from "../organisms/HeroHeading.svelte"
 
@@ -11,25 +11,28 @@
 
   const navigate = useNavigate()
 
-  // TODO display one album with non-album tagged tracks as the "Unknown album"
+  console.log($artists)
+
+  // TODO display one artist with non-artist tagged tracks as the "Unknown artist"
 </script>
 
-{#await $albums then allAlbums}
+{#await $artists then allArtists}
   <HeroHeading
-    title="Your albums"
+    title="Your artists"
     metadata={[
-      { label: `${allAlbums.length} album${allAlbums.length > 1 ? "s" : ""}` },
+      {
+        label: `${allArtists.length} artist${allArtists.length > 1 ? "s" : ""}`,
+      },
     ]}
   />
-  {#if allAlbums.length === 0}
+  {#if allArtists.length === 0}
     <NothingHereYet />
   {:else}
     <CardList
-      items={allAlbums.map((album) => ({
-        title: album.name,
-        image: album.coverPath,
-        secondaryText: album.artist,
+      items={allArtists.map((artist) => ({
+        title: artist.name,
       }))}
+      isImageCircle={true}
     />
   {/if}
 {/await}

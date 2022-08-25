@@ -1,14 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-type NonNull<T> = T extends null ? never : T
 
-export type NullableKeys<T> = NonNullable<
-  {
-    [K in keyof T]: T[K] extends NonNull<T[K]> ? never : K
-  }[keyof T]
->
-
-export type NullValuesToOptional<T> = Omit<T, NullableKeys<T>> &
-  Partial<Pick<T, NullableKeys<T>>>
+import type { DeepReadonly } from "ts-essentials"
 
 export type AllowedIndexes<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -19,8 +11,6 @@ export type AllowedIndexes<
 > = T extends readonly [infer _, ...infer Rest]
   ? AllowedIndexes<Rest, [...Result, Result["length"]]>
   : Result[number]
-
-export type Writeable<T> = { -readonly [P in keyof T]: T[P] }
 
 /**
  * Transfrom `[[[nestedType]]]` to `nestedType`
@@ -100,4 +90,14 @@ export type ArraysToString<T extends Record<string, unknown>> = {
     : T[key] extends Record<string, unknown>
     ? ArraysToString<T[key]>
     : T[key]
+}
+
+export type DeepReadonlyNullToUndefined<T> = DeepReadonly<NullToUndefined<T>>
+
+export type NullToUndefined<T> = {
+  [Key in keyof T]: T[Key] extends object
+    ? NullToUndefined<T[Key]>
+    : keyof T[Key] extends null
+    ? Exclude<T[Key], null> | undefined
+    : T[Key]
 }

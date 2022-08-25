@@ -5,8 +5,14 @@ import slash from "slash"
 import userSettingsStore from "../../main/src/lib/UserSettings"
 import { queryBackend } from "./BackendProcess"
 
+import type { Either } from "fp-ts/lib/Either"
 import type { IpcMainInvokeEvent, OpenDialogReturnValue } from "electron"
-import type { IElectronPaths } from "@sing-types/Types"
+import type {
+  IAlbumWithTracks,
+  IArtist,
+  IElectronPaths,
+  IError,
+} from "@sing-types/Types"
 import type {
   IUserSettings,
   IUserSettingsKey,
@@ -16,6 +22,9 @@ import type { DirectoryPath } from "@sing-types/Filesystem"
 
 const createUID = hexoid()
 
+/**
+ * Query the backend or the main-electron process for data
+ */
 const mainQueryHandlers = {
   getTracks: async (
     _: IpcMainInvokeEvent,
@@ -23,35 +32,58 @@ const mainQueryHandlers = {
   ) =>
     queryBackend({
       event: "getTracks",
-      args: [options],
-      id: createUID(),
+      arguments_: [options],
+      queryID: createUID(),
     }),
+
   getAlbums: async (
     _: IpcMainInvokeEvent,
     options: Prisma.AlbumFindManyArgs | undefined
   ) =>
     queryBackend({
       event: "getAlbums",
-      args: [options],
-      id: createUID(),
+      arguments_: [options],
+      queryID: createUID(),
     }),
+
+  getAlbum: async (
+    _: IpcMainInvokeEvent,
+    options: Prisma.AlbumFindUniqueOrThrowArgs
+  ): Promise<Either<IError, IAlbumWithTracks>> =>
+    queryBackend({
+      event: "getAlbum",
+      arguments_: [options],
+      queryID: createUID(),
+    }),
+
   getArtists: async (
     _: IpcMainInvokeEvent,
     options: Prisma.ArtistFindManyArgs | undefined
   ) =>
     queryBackend({
       event: "getArtists",
-      args: [options],
-      id: createUID(),
+      arguments_: [options],
+      queryID: createUID(),
     }),
+
+  getArtist: async (
+    _: IpcMainInvokeEvent,
+    options: Prisma.ArtistFindUniqueOrThrowArgs
+  ): Promise<Either<IError, IArtist>> =>
+    queryBackend({
+      event: "getArtist",
+      arguments_: [options],
+      queryID: createUID(),
+    }),
+
   getCovers: async (
     _: IpcMainInvokeEvent,
     options: Prisma.CoverFindManyArgs | undefined
   ) =>
     queryBackend({
       event: "getCovers",
-      args: [options],
-      id: createUID(),
+      arguments_: [options],
+      queryID: createUID(),
     }),
 
   openDirectoryPicker: async (
@@ -66,9 +98,9 @@ const mainQueryHandlers = {
 
     const { filePaths, canceled } = await dialog.showOpenDialog(dialogOptions)
 
-    const unixedPaths = filePaths.map((filePath) =>
-      slash(filePath)
-    ) as DirectoryPath[] // Convert to UNIX path
+    const unixedPaths = filePaths.map(
+      (filePath) => slash(filePath) // Convert to UNIX path
+    ) as DirectoryPath[]
 
     return { filePaths: unixedPaths, canceled }
   },
