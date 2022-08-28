@@ -1,5 +1,3 @@
-import indexStore from "@/lib/stores/PlayIndex"
-import queueStore from "@/lib/stores/QueueStore"
 import { get } from "svelte/store"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -14,8 +12,9 @@ const {
   default: player,
   currentTrack,
   playIndex,
+  queue,
   playState,
-} = await import("@/lib/manager/PlayerManager")
+} = await import("@/lib/manager/player/index")
 
 afterEach(async () => {
   vi.resetModules()
@@ -30,13 +29,13 @@ it("load the source of the first track on load", async () => {
 describe("fn: playQueueIndex", async () => {
   beforeEach(async () => {
     queueItemFactory.rewindSequence()
-    queueStore.set(queueItemFactory.buildList(50))
-    indexStore.set(10)
+    queue.set(queueItemFactory.buildList(50))
+    playIndex.set(10)
   })
 
   it("correctly sets current track", async () => {
     const indexToGo = 20
-    const $queue = get(queueStore)
+    const $queue = get(queue)
 
     player.playQueueIndex(indexToGo)
 

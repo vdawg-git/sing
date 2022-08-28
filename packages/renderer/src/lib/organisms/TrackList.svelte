@@ -1,20 +1,27 @@
 <script lang="ts">
-  import player from "@/lib/manager/player/index"
   import TrackItem from "../molecules/TrackItem.svelte"
   import VirtualList from "svelte-tiny-virtual-list"
+  import { createEventDispatcher } from "svelte"
 
   import type { ITestIDs } from "@/TestConsts"
-  import type { ITrack } from "@sing-types/Types"
-  import type { ISourceType, ITrackListDisplayOptions } from "@/types/Types"
+  import type {
+    IPlayFromSourceQuery,
+    ITrack,
+    ITracksSource,
+  } from "@sing-types/Types"
+  import type { ITrackListDisplayOptions } from "@/types/Types"
 
   export let tracks: readonly ITrack[]
   export let testID: ITestIDs
-  export let sourceType: ISourceType
   export let displayOptions: ITrackListDisplayOptions = {
     cover: true,
     album: true,
     artist: true,
   }
+
+  const dispatch = createEventDispatcher<{
+    play: { id: number; index: number }
+  }>()
 
   const usedDisplayOptions: ITrackListDisplayOptions = {
     cover: true,
@@ -24,7 +31,11 @@
   }
 
   let listHeight: number
-  let index: number // Typescript dont cry
+  let index: number // Typescript dont cry - Svelte Navigator injects this and TS does not know about it
+
+  function dispatchPlay(id: number, index: number) {
+    dispatch("play", { index, id })
+  }
 </script>
 
 <div class="flex w-full  flex-col">
@@ -61,9 +72,7 @@
         let:index
         track={tracks[index]}
         displayOptions={usedDisplayOptions}
-        on:dblclick={() => {
-          player.playSource(tracks[index], sourceType, tracks, index)
-        }}
+        on:dblclick={() => dispatchPlay(tracks[index].id, index)}
       />
     </VirtualList>
   </div>

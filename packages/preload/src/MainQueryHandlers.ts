@@ -32,7 +32,7 @@ const mainQueryHandlers = {
   ) =>
     queryBackend({
       event: "getTracks",
-      arguments_: [options],
+      arguments_: options,
       queryID: createUID(),
     }),
 
@@ -42,7 +42,7 @@ const mainQueryHandlers = {
   ) =>
     queryBackend({
       event: "getAlbums",
-      arguments_: [options],
+      arguments_: options,
       queryID: createUID(),
     }),
 
@@ -52,7 +52,7 @@ const mainQueryHandlers = {
   ): Promise<Either<IError, IAlbumWithTracks>> =>
     queryBackend({
       event: "getAlbum",
-      arguments_: [options],
+      arguments_: options,
       queryID: createUID(),
     }),
 
@@ -62,7 +62,7 @@ const mainQueryHandlers = {
   ) =>
     queryBackend({
       event: "getArtists",
-      arguments_: [options],
+      arguments_: options,
       queryID: createUID(),
     }),
 
@@ -72,7 +72,7 @@ const mainQueryHandlers = {
   ): Promise<Either<IError, IArtist>> =>
     queryBackend({
       event: "getArtist",
-      arguments_: [options],
+      arguments_: options,
       queryID: createUID(),
     }),
 
@@ -82,7 +82,7 @@ const mainQueryHandlers = {
   ) =>
     queryBackend({
       event: "getCovers",
-      arguments_: [options],
+      arguments_: options,
       queryID: createUID(),
     }),
 

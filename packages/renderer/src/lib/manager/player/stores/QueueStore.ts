@@ -40,6 +40,11 @@ function createQueueStore() {
     update(($queue) => $queue.slice(0, index + 1))
   }
 
+  /**
+   *
+   * @param tracks The tracks to add as IQueueItems
+   * @param queueIndex The current index of the queue. It will add the tracks after it
+   */
   function setUpcomingFromSource(
     tracks: readonly ITrack[],
     queueIndex: number

@@ -1,27 +1,26 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { doSideEffectWithEither, sortAlphabetically } from "@/Helper"
 import audioPlayer from "@/lib/manager/player/AudioPlayer"
+import { map as mapEither } from "fp-ts/lib/Either"
 import { derived, get, writable } from "svelte/store"
 
 import indexStore from "./stores/PlayIndex"
 import queueStore from "./stores/QueueStore"
 
+import type { Either } from "fp-ts/lib/Either"
+import type { IPlayState, IQueueItem } from "@/types/Types"
 import type {
-  IPlayLoop,
-  IPlayMode,
-  IPlayState,
-  IQueueItem,
-  ISourceType,
-} from "@/types/Types"
-import type { ITrack, ISyncResult, IAlbum, IArtist } from "@sing-types/Types"
+  ITrack,
+  ISyncResult,
+  IAlbum,
+  IArtist,
+  IPlayFromSourceQuery,
+  IError,
+  ITracksSort,
+} from "@sing-types/Types"
 import type { Unsubscriber } from "svelte/store"
 import type { IpcRendererEvent } from "electron"
 
 // Create stores / state
-const playLoopStore = writable<IPlayLoop>("NONE")
-const playModeStore = writable<IPlayMode>("DEFAULT")
-const sourceTypeStore = writable<ISourceType>("NONE")
-const sourceIDStore = writable<string>("")
 const playStateStore = writable<IPlayState>("STOPPED")
 const volumeStore = writable(1)
 const currentTimeStore = writable(0)
@@ -50,50 +49,27 @@ export const nextTracks = derived(
 )
 
 function createPlayerManager() {
-  let $playLoop: IPlayLoop = "LOOP_QUEUE"
-  let $playMode: IPlayMode = "DEFAULT"
-  let $sourceType: ISourceType = "NONE"
-  let $sourceID = ""
   let $playState: IPlayState = "STOPPED"
   let $queue: IQueueItem[] = []
   let $currentIndex = -1
   let $currentTrack: IQueueItem
-  let $currentTime: number
   let seekAnimationID: number
 
   // Subscribe to all stores and get the unsubscribers
-  // Some vars here just exists for future code
   const unsubscribers: Unsubscriber[] = [
     queueStore.subscribe(($newQueue) => {
       $queue = $newQueue
     }),
     indexStore.subscribe(($newIndex) => {
       $currentIndex = $newIndex
+      resetCurrentTime()
     }),
-    playLoopStore.subscribe(($loop) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      $playLoop = $loop
-    }),
-    playModeStore.subscribe(($mode) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      $playMode = $mode
-    }),
-    sourceTypeStore.subscribe(($source) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      $sourceType = $source
-    }),
-    sourceIDStore.subscribe(($id) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      $sourceID = $id
-    }),
+
     playStateStore.subscribe(handlePlayStateUpdate),
     currentTrack.subscribe(($newCurrentTrack) => {
       $currentTrack = $newCurrentTrack
     }),
-    currentTimeStore.subscribe(($newCurrentTime) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      $currentTime = $newCurrentTime
-    }),
+
     window.api.listen("syncedMusic", handleSyncUpdate),
   ]
 
@@ -106,8 +82,8 @@ function createPlayerManager() {
     isMuted,
     next,
     pause,
-    playQueueIndex,
-    playSource,
+    playQueueIndex: playFromQueue,
+    playFromSource,
     previous,
     removeIndexFromQueue,
     resume,
@@ -158,34 +134,25 @@ function createPlayerManager() {
     cancelAnimationFrame(seekAnimationID)
   }
 
-  function resetCurrentTime() {
-    currentTimeStore.set(0)
-  }
-
   /**
    * Starts playback and initializes the queue
    */
-  function playSource(
-    track: ITrack,
-    fromSource: ISourceType,
-    sourceTracks: readonly ITrack[],
-    fromIndex: number
-  ) {
-    indexStore.increment()
-    queueStore.setCurrent(track, $currentIndex)
+  async function playFromSource(source: IPlayFromSourceQuery) {
+    const tracksEither = await getSource(source, { title: "asc" })
 
-    const sourcePreviousTracks = sourceTracks.slice(0, fromIndex)
-    const sourceUpcomingTracks = sourceTracks.slice(fromIndex + 1) // +1 to remove the new current track of it
+    doSideEffectWithEither(
+      tracksEither,
+      "Error while trying to play selected music",
+      (tracks) => {
+        indexStore.increment()
+        queueStore.setUpcomingFromSource(tracks, $currentIndex)
 
-    queueStore.setUpcomingFromSource(
-      [...sourceUpcomingTracks, ...sourcePreviousTracks],
-      $currentIndex + 1
+        startPlayingTrack($currentTrack.track)
+      }
     )
-
-    playTrack($currentTrack.track)
   }
 
-  function playTrack(track: ITrack) {
+  function startPlayingTrack(track: ITrack) {
     playStateStore.set("PLAYING")
     audioPlayer.play(track.filepath)
   }
@@ -202,7 +169,6 @@ function createPlayerManager() {
       if (index >= $queue.length - 1) return 0
       return index + 1
     })
-    resetCurrentTime()
 
     // Play next song
     if ($playState === "STOPPED" || $playState === "PAUSED")
@@ -215,7 +181,6 @@ function createPlayerManager() {
       if (index <= 0) return $queue.length - 1
       return index - 1
     })
-    resetCurrentTime()
 
     if ($playState === "STOPPED" || $playState === "PAUSED")
       audioPlayer.setSource($currentTrack.track.filepath)
@@ -245,10 +210,13 @@ function createPlayerManager() {
     audioPlayer.destroy()
   }
 
-  function playQueueIndex(index: number): void {
+  /**
+   * Play a track from the queue and update the index according to the track index in the queue.
+   */
+  function playFromQueue(index: number): void {
     indexStore.set(index)
 
-    playTrack($currentTrack.track)
+    startPlayingTrack($currentTrack.track)
   }
 
   function removeIndexFromQueue(index: number): void {
@@ -259,21 +227,21 @@ function createPlayerManager() {
     }
 
     if ($currentIndex === index && $playState === "PLAYING") {
-      playTrack($currentTrack.track)
+      startPlayingTrack($currentTrack.track)
     }
   }
 }
 
 async function initialiseStores() {
   doSideEffectWithEither(
-    await window.api.getTracks(),
+    await window.api.getTracks({ orderBy: { title: "asc" } }),
     "Failed to get tracks",
     (tracks) => {
-      const sortedTracks = [...tracks].sort(sortAlphabetically)
+      if (tracks.length === 0) return
 
-      tracksStore.set(sortedTracks)
-      queueStore.setUpcomingFromSource(sortedTracks, 0)
-      audioPlayer.setSource(sortedTracks[0].filepath)
+      tracksStore.set(tracks)
+      queueStore.setUpcomingFromSource(tracks, 0)
+      audioPlayer.setSource(tracks[0].filepath)
     }
   )
 
@@ -326,19 +294,64 @@ function handleSyncUpdate(_event: IpcRendererEvent, data: ISyncResult) {
   )
 }
 
-// Export default
-const manager = createPlayerManager()
-export default manager
+async function getSource(
+  source: IPlayFromSourceQuery,
+  orderBy: ITracksSort
+): Promise<Either<IError, readonly ITrack[]>> {
+  switch (source.type) {
+    case "album": {
+      return extractTracks(
+        await window.api.getAlbumWithTracks({
+          prismaOptions: {
+            where: { name: source.id },
+          },
+          orderBy,
+        }),
+        source.index
+      )
+    }
+    case "artist": {
+      return extractTracks(
+        await window.api.getArtistWithTracks({
+          prismaOptions: { where: { name: source.id } },
+          orderBy,
+        }),
+        source.index
+      )
+    }
+    case "track": {
+      return mapEither((tracks: ITrack[]) => tracks.slice(source.index))(
+        await window.api.getTracks({ orderBy })
+      )
+    }
+    default:
+      throw new Error("Invalid source specified at getSource in PlayerManager")
+  }
 
-// Export stores as read-only to prevent bugs
+  function extractTracks(
+    item: Either<IError, { tracks: readonly ITrack[] }>,
+    fromIndex = 0
+  ): Either<IError, readonly ITrack[]> {
+    return mapEither((album: { tracks: readonly ITrack[] }) =>
+      album.tracks.slice(fromIndex)
+    )(item)
+  }
+}
+
+function resetCurrentTime() {
+  currentTimeStore.set(0)
+}
+
+// Export default
+const player = createPlayerManager()
+export default player
+
+// Export stores only as read-only to prevent bugs
 export const playIndex = { subscribe: indexStore.subscribe }
-export const playLoop = { subscribe: playLoopStore.subscribe }
-export const playMode = { subscribe: playModeStore.subscribe }
-export const sourceType = { subscribe: sourceTypeStore.subscribe }
-export const sourceID = { subscribe: sourceIDStore.subscribe }
 export const playState = { subscribe: playStateStore.subscribe }
 export const volume = { subscribe: volumeStore.subscribe }
 export const currentTime = { subscribe: currentTimeStore.subscribe }
 export const tracks = { subscribe: tracksStore.subscribe }
 export const albums = { subscribe: albumsStore.subscribe }
 export const artists = { subscribe: artistsStore.subscribe }
+export const queue = { subscribe: queueStore.subscribe }

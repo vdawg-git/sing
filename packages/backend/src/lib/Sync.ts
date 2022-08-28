@@ -6,7 +6,6 @@ import {
   getSupportedMusicFiles,
   getUnsupportedMusicFiles,
   hasCover,
-  isDefined,
   removeDuplicates,
 } from "@sing-shared/Pures"
 import { isLeft, left, right } from "fp-ts/lib/Either"
@@ -16,10 +15,10 @@ import slash from "slash"
 import { deleteFromDirectoryInverted, getFilesFromDirectory } from "../Helper"
 import {
   addTrackToDB,
-  deleteAlbumsInverted,
-  deleteArtistsInverted,
-  deleteCoversInverted,
+  deleteEmptyAlbums,
+  deleteEmptyArtists,
   deleteTracksInverted,
+  deleteUnusedCoversInDatabase,
 } from "./Crud"
 import createPrismaClient from "./CustomPrismaClient"
 import { convertMetadata, getCover, getRawMetaDataFromFilepath, saveCover } from "./Metadata"
@@ -60,7 +59,7 @@ export async function syncMusic(
       ),
     }
 
-    log.red(error)
+    log.error.red(error)
 
     handlerEmitter.emit("sendToMain", {
       event: "syncedMusic",
@@ -76,7 +75,7 @@ export async function syncMusic(
       message: "No directories to sync provided.",
     }
 
-    log.red("No directories to sync provided", error)
+    log.error.red("No directories to sync provided", error)
 
     handlerEmitter.emit("sendToMain", {
       event: "syncedMusic",
@@ -157,31 +156,25 @@ export async function syncMusic(
   }
 
   const addedFilepaths = addedDBTracks.map(({ filepath }) => filepath)
-  const addedAlbums = addedDBTracks
-    .map(({ albumName }) => albumName)
-    .filter(isDefined)
-  const addedArtists = addedDBTracks
-    .map(({ artistName }) => artistName)
-    .filter(isDefined)
-  const addedCovers = addedDBTracks
-    .map(({ coverPath }) => coverPath)
-    .filter(isDefined)
 
   //* Clean up
   // Remove unused tracks in the database
   const deleteTracksResult = await deleteTracksInverted(addedFilepaths)
-  const deleteArtistsResult = await deleteArtistsInverted(addedArtists)
-  const deleteAlbumsResult = await deleteAlbumsInverted(addedAlbums)
-  const deleteCoversResult = await deleteCoversInverted(addedCovers)
+  const deleteArtistsResult = await deleteEmptyArtists()
+  const deleteAlbumsResult = await deleteEmptyAlbums()
+  const deleteCoversResult = await deleteUnusedCoversInDatabase()
 
-  if (isLeft(deleteTracksResult))
-    log("deleteTracksResult:", deleteTracksResult.left)
+  if (isLeft(deleteTracksResult)) {
+    log.error.red("deleteTracksResult:", deleteTracksResult.left)
+    // @ts-ignore
+    log.error.red("deleteTracksResult:", deleteTracksResult.left.error.message)
+  }
   if (isLeft(deleteArtistsResult))
-    log("deleteArtistsResult:", deleteArtistsResult.left)
+    log.error.red("deleteArtistsResult:", deleteArtistsResult.left)
   if (isLeft(deleteAlbumsResult))
-    log("deleteAlbumsResult:", deleteAlbumsResult.left)
+    log.error.red("deleteAlbumsResult:", deleteAlbumsResult.left)
   if (isLeft(deleteCoversResult))
-    log("deleteCoversResult:", deleteCoversResult.left)
+    log.error.red("deleteCoversResult:", deleteCoversResult.left)
 
   // Remove unused covers
   const deleteCoversFilesystemResult = await deleteFromDirectoryInverted(
@@ -190,14 +183,14 @@ export async function syncMusic(
   )
 
   if (isLeft(deleteCoversFilesystemResult))
-    log(deleteCoversFilesystemResult.left)
+    log.error.red(deleteCoversFilesystemResult.left)
   else if (deleteCoversFilesystemResult.right.deletionErrors.length > 0)
-    log(deleteCoversFilesystemResult.right.deletionErrors)
+    log.error.red(deleteCoversFilesystemResult.right.deletionErrors)
 
   const deleteCoverErrors =
     isLeft(deleteCoversResult) && deleteCoversResult.left
 
-  if (deleteCoverErrors) log("deleteCoverError:", deleteCoverErrors)
+  if (deleteCoverErrors) log.error.red("deleteCoverError:", deleteCoverErrors)
 
   // Emit added tracks and errors as right values
   handlerEmitter.emit("sendToMain", {

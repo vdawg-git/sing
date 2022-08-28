@@ -1,17 +1,15 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
-  import { artists } from "@/lib/manager/player/index"
+  import player, { artists } from "@/lib/manager/player/index"
   import NothingHereYet from "../organisms/NothingHereYet.svelte"
   import HeroHeading from "../organisms/HeroHeading.svelte"
-
-  import type { ISourceType } from "@/types/Types"
   import CardList from "../organisms/CardList.svelte"
 
-  const sourceType: ISourceType = "ALL_TRACKS"
+  import type { ITracksSource } from "@sing-types/Types"
+
+  const sourceType: ITracksSource = "artist"
 
   const navigate = useNavigate()
-
-  console.log($artists)
 
   // TODO display one artist with non-artist tagged tracks as the "Unknown artist"
 </script>
@@ -31,8 +29,11 @@
     <CardList
       items={allArtists.map((artist) => ({
         title: artist.name,
+        id: artist.name,
       }))}
       isImageCircle={true}
+      on:play={({ detail: id }) =>
+        player.playFromSource({ id, type: sourceType })}
     />
   {/if}
 {/await}

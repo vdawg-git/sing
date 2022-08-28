@@ -41,19 +41,19 @@ export interface IEventHandlersConsume {
   readonly syncMusic: typeof syncMusic
 }
 
-export type ITwoWayHandlers = typeof queryHandlers
-export type ITwoWayChannel = keyof ITwoWayHandlers
+export type IQueryHandlers = typeof queryHandlers
+export type IQueryChannels = keyof IQueryHandlers
 
 export type IBackendQueryResponse = {
   readonly queryID: string
-  readonly data: ReturnType<ITwoWayHandlers[ITwoWayChannel]>
+  readonly data: ReturnType<IQueryHandlers[IQueryChannels]>
   readonly forwardToRenderer: false
 }
 
-export type IBackendQuery<T extends ITwoWayChannel = ITwoWayChannel> = {
+export type IBackendQuery<T extends IQueryChannels = IQueryChannels> = {
   readonly queryID: string
   readonly event: T
-  readonly arguments_: Parameters<ITwoWayHandlers[T]>
+  readonly arguments_: ParametersFlattened<IQueryHandlers[T]>
 }
 
 export type IBackendEmitChannels = keyof IEventHandlersConsume
@@ -86,6 +86,7 @@ export type IBackendEvent<
 
 export type IBackendRequest = IBackendQuery | IBackendEvent
 
+// Helper validation
 type ValidateBackToFrontEvents<
   T extends Readonly<
     Record<IBackendEmitChannels, keyof IFrontendEventsSend | undefined>

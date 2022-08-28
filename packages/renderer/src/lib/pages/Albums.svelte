@@ -1,13 +1,13 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
-  import { albums } from "@/lib/manager/player/index"
+  import player, { albums } from "@/lib/manager/player/index"
   import NothingHereYet from "../organisms/NothingHereYet.svelte"
   import HeroHeading from "../organisms/HeroHeading.svelte"
-
-  import type { ISourceType } from "@/types/Types"
   import CardList from "../organisms/CardList.svelte"
 
-  const sourceType: ISourceType = "ALL_TRACKS"
+  import type { ITracksSource } from "@sing-types/Types"
+
+  const sourceType: ITracksSource = "album"
 
   const navigate = useNavigate()
 
@@ -27,9 +27,12 @@
     <CardList
       items={allAlbums.map((album) => ({
         title: album.name,
+        id: album.name,
         image: album.coverPath,
         secondaryText: album.artist,
       }))}
+      on:play={({ detail: id }) =>
+        player.playFromSource({ id, type: sourceType })}
     />
   {/if}
 {/await}

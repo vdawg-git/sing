@@ -1,5 +1,16 @@
 import { ipcRenderer } from "./TypedIPC"
 
+import type { MarkRequired } from "ts-essentials"
+
+import type {
+  IAlbumWithTracks,
+  IArtistWithTracks,
+  IError,
+  ITracksSort,
+} from "@sing-types/Types"
+
+import type { Either } from "fp-ts/lib/Either"
+
 import type { IMainQueryHandlers } from "./types/Types"
 
 import type {
@@ -14,7 +25,11 @@ import type {
 
 import type { Prisma } from "@prisma/client"
 
-export async function getTracks(options?: Prisma.TrackFindManyArgs) {
+type WithTracksSort<T> = { prismaOptions: T } & { orderBy: ITracksSort }
+
+export async function getTracks(
+  options: MarkRequired<Prisma.TrackFindManyArgs, "orderBy">
+) {
   return ipcRenderer.invoke("getTracks", options)
 }
 export async function getAlbums(options?: Prisma.AlbumFindManyArgs) {
@@ -25,12 +40,34 @@ export async function getAlbum(options: Prisma.AlbumFindUniqueOrThrowArgs) {
   return ipcRenderer.invoke("getAlbum", options)
 }
 
+export async function getAlbumWithTracks({
+  prismaOptions,
+  orderBy,
+}: WithTracksSort<Prisma.AlbumFindUniqueOrThrowArgs>): Promise<
+  Either<IError, IAlbumWithTracks>
+> {
+  return getAlbum({
+    ...prismaOptions,
+    include: { tracks: { orderBy } },
+  })
+}
+
 export async function getArtists(options?: Prisma.ArtistFindManyArgs) {
   return ipcRenderer.invoke("getArtists", options)
 }
 
 export async function getArtist(options: Prisma.ArtistFindUniqueOrThrowArgs) {
   return ipcRenderer.invoke("getArtist", options)
+}
+
+export async function getArtistWithTracks({
+  prismaOptions,
+  orderBy,
+}: WithTracksSort<Prisma.AlbumFindUniqueOrThrowArgs>) {
+  return getArtist({
+    ...prismaOptions,
+    include: { tracks: { orderBy } },
+  }) as Promise<Either<IError, IArtistWithTracks>>
 }
 
 export async function getCovers(options?: Prisma.CoverFindManyArgs) {

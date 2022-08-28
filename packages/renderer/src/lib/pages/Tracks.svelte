@@ -1,11 +1,13 @@
 <script lang="ts">
-  import { tracks } from "@/lib/manager/player/index"
-  import type { IHeroMetaDataItem, ISourceType } from "@/types/Types"
-  import HeroHeading from "../organisms/HeroHeading.svelte"
-  import NothingHereYet from "../organisms/NothingHereYet.svelte"
-  import TrackList from "../organisms/TrackList.svelte"
+  import player, { tracks } from "@/lib/manager/player/index"
+  import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
+  import NothingHereYet from "@/lib/organisms/NothingHereYet.svelte"
+  import TrackList from "@/lib/organisms/TrackList.svelte"
 
-  const sourceType: ISourceType = "ALL_TRACKS"
+  import type { IHeroMetaDataItem } from "@/types/Types"
+  import type { ITracksSource } from "@sing-types/Types"
+
+  const sourceType: ITracksSource = "track"
 
   let metadata: IHeroMetaDataItem[] = [{ label: `${$tracks.length} tracks` }]
 </script>
@@ -15,5 +17,14 @@
 {#if $tracks.length === 0}
   <NothingHereYet />
 {:else}
-  <TrackList testID="trackItems" {sourceType} tracks={$tracks} />
+  <TrackList
+    testID="trackItems"
+    tracks={$tracks}
+    on:play={({ detail }) =>
+      player.playFromSource({
+        type: sourceType,
+        id: detail.id,
+        index: detail.index,
+      })}
+  />
 {/if}

@@ -21,10 +21,10 @@ import type { FilePath } from "@sing-types/Filesystem"
 const prisma = createPrismaClient()
 
 export async function getTracks(
-  options: [Prisma.TrackFindManyArgs | undefined]
+  options?: Prisma.TrackFindManyArgs
 ): Promise<Either<IError, ITrack[]>> {
   try {
-    const result = (await prisma.track.findMany(...options)) as ITrack[]
+    const result = (await prisma.track.findMany(options)) as ITrack[]
 
     return right(result)
   } catch (error) {
@@ -33,10 +33,10 @@ export async function getTracks(
 }
 
 export async function getAlbums(
-  options: [Prisma.AlbumFindManyArgs | undefined]
+  options?: Prisma.AlbumFindManyArgs
 ): Promise<Either<IError, IAlbum[]>> {
   try {
-    const result = (await prisma.album.findMany(...options)) as IAlbum[]
+    const result = (await prisma.album.findMany(options)) as IAlbum[]
 
     return right(result)
   } catch (error) {
@@ -45,12 +45,12 @@ export async function getAlbums(
 }
 
 export async function getAlbum(
-  options: [Prisma.AlbumFindUniqueOrThrowArgs]
+  options: Prisma.AlbumFindUniqueOrThrowArgs
 ): Promise<Either<IError, IAlbumWithTracks>> {
   try {
     const usedOptions: Prisma.AlbumFindUniqueOrThrowArgs = {
       include: { tracks: true },
-      ...options[0],
+      ...options,
     }
 
     const result = (await prisma.album.findUniqueOrThrow(
@@ -64,7 +64,7 @@ export async function getAlbum(
 }
 
 export async function getCovers(
-  options: Prisma.CoverFindManyArgs | undefined
+  options?: Prisma.CoverFindManyArgs
 ): Promise<Either<IError, ICover[]>> {
   try {
     const result = (await prisma.cover.findMany(options)) as ICover[]
@@ -76,12 +76,12 @@ export async function getCovers(
 }
 
 export async function getArtists(
-  options: [Prisma.ArtistFindManyArgs | undefined]
+  options?: Prisma.ArtistFindManyArgs
 ): Promise<Either<IError, IArtist[]>> {
   try {
     log(options)
 
-    const result = (await prisma.artist.findMany(...options)) as IArtist[]
+    const result = (await prisma.artist.findMany(options)) as IArtist[]
 
     return right(result)
   } catch (error) {
@@ -90,12 +90,10 @@ export async function getArtists(
 }
 
 export async function getArtist(
-  options: [Prisma.ArtistFindUniqueOrThrowArgs]
+  options: Prisma.ArtistFindUniqueOrThrowArgs
 ): Promise<Either<IError, IArtist>> {
   try {
-    const result = (await prisma.artist.findUniqueOrThrow(
-      ...options
-    )) as IArtist
+    const result = (await prisma.artist.findUniqueOrThrow(options)) as IArtist
 
     return right(result)
   } catch (error) {
@@ -121,53 +119,68 @@ export async function addTrackToDB(
 export async function deleteTracksInverted(
   filepaths: FilePath[]
 ): Promise<Either<IError, number>> {
-  return prisma.track
-    .deleteMany({
-      where: {
-        filepath: { notIn: filepaths },
-      },
-    })
-    .then((deleteAmount) => right(deleteAmount.count))
+  const pathsString = filepaths
+    .map((path) => path.replace("'", "''")) // Prevent the query from breaking if a values contains a single quote
+    .map((path) => `'${path}'`)
+    .join(",")
+
+  return prisma
+    .$executeRawUnsafe(
+      `DELETE FROM TRACK WHERE FILEPATH NOT IN (${pathsString})`
+    )
+    .then((deleteAmount) => right(deleteAmount))
+}
+
+export async function deleteEmptyAlbums(): Promise<Either<IError, number>> {
+  return prisma.$executeRaw`
+    DELETE FROM
+      ALBUM
+    WHERE
+      name in (
+        SELECT
+          ALBUM.name
+        FROM
+          ALBUM
+          LEFT JOIN TRACK ON Album.name = TRACK.albumName
+        WHERE
+          TRACK.title IS NULL
+      )`
+    .then((deleteAmount) => right(deleteAmount))
     .catch((error) => createError(error, "Failed to remove from database"))
 }
 
-export async function deleteAlbumsInverted(
-  names: string[]
-): Promise<Either<IError, number>> {
-  return prisma.album
-    .deleteMany({
-      where: {
-        name: { notIn: names },
-      },
-    })
-    .then((deleteAmount) => right(deleteAmount.count))
-    .catch((error) => createError(error, "Failed to remove from database"))
+export async function deleteEmptyArtists(): Promise<Either<IError, number>> {
+  return prisma.$executeRaw`
+    DELETE FROM
+      ARTIST
+    WHERE
+      name in (
+        SELECT
+          ARTIST.name
+        FROM
+          ARTIST
+          LEFT JOIN TRACK ON ARTIST.name = TRACK.artistName
+        WHERE
+          TRACK.title IS NULL
+      )`.then((deleteAmount) => right(deleteAmount))
 }
 
-export async function deleteArtistsInverted(
-  names: string[]
-): Promise<Either<IError, number>> {
-  return prisma.artist
-    .deleteMany({
-      where: {
-        name: { notIn: names },
-      },
-    })
-    .then((deleteAmount) => right(deleteAmount.count))
-    .catch((error) => createError(error, "Failed to remove from database"))
-}
-
-export async function deleteCoversInverted(
-  filepaths: string[]
-): Promise<Either<IError, number>> {
-  return prisma.cover
-    .deleteMany({
-      where: {
-        filepath: { notIn: filepaths },
-      },
-    })
-    .then((deleteAmount) => right(deleteAmount.count))
-    .catch((error) => createError(error, "Failed to remove from database"))
+export async function deleteUnusedCoversInDatabase(): Promise<
+  Either<IError, number>
+> {
+  return prisma.$executeRaw`
+    DELETE FROM
+      COVER
+    WHERE
+      filepath in (
+        SELECT
+          COVER.filepath
+        FROM
+          COVER
+          LEFT JOIN TRACK ON COVER.filepath = TRACK.coverPath
+        WHERE
+          TRACK.coverPath IS NULL
+      )`.then((deleteAmount) => right(deleteAmount))
 }
 
 function createError(error: unknown, type: IErrorTypes): Either<IError, never> {
@@ -175,7 +188,7 @@ function createError(error: unknown, type: IErrorTypes): Either<IError, never> {
 
   if (!isKeyOfObject(error, "message")) return left({ type, error })
 
-  log(error?.message)
+  log.error.red(error?.message)
 
   return left({
     type,

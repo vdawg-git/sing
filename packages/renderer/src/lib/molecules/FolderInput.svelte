@@ -49,19 +49,21 @@
 
     dispatch("folderEdited", { oldPath: path, newPaths })
   }
+
+  const filledClass = "bg-grey-400 text-white hover:bg-grey-500"
+  const unfilledClass =
+    "bg-grey-600 text-color-200 hover:text-grey-200 hover:bg-grey-700"
 </script>
 
 <button
   data-testID={testID}
   data-testattribute={TEST_ATTRIBUTES.folderInput}
   class="
-			group  flex
-			h-12  w-full place-content-between  items-center
-			rounded-xl border
-			border-grey-300 pl-3
-			text-left transition-colors
-			duration-100 ease-out hover:border-grey-200
-      hover:text-white
+			group   flex h-12  w-full place-content-between  items-center 
+      rounded-lg	pl-3 text-left transition-colors
+			duration-100 ease-out 
+      {path ? filledClass : unfilledClass}
+      
 			"
   on:click={() => handleClick()}
 >
@@ -70,7 +72,7 @@
   {#if path}
     <div
       data-testattribute={TEST_ATTRIBUTES.folderInputDeleteIcon}
-      class="h-12 p-3 text-grey-200 hover:text-orange-500"
+      class="h-12 p-3  hover:text-orange-500"
       on:click|stopPropagation={dispatchRemove}
     >
       <IconFolderRemove class="h-6 w-6 " />
@@ -81,3 +83,6 @@
     </div>
   {/if}
 </button>
+
+<style lang="postcss">
+</style>

@@ -1,26 +1,31 @@
 <script lang="ts">
+  import { onMount } from "svelte"
   import { either } from "fp-ts"
+  import { addNotification } from "@/lib/stores/NotificationStore"
+  import IconPlay from "virtual:icons/heroicons-outline/play"
+  import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
+
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
   import TrackList from "@/lib/organisms/TrackList.svelte"
-  import { addNotification } from "@/lib/stores/NotificationStore"
 
-  import type { IAlbumWithTracks, IError, ITrack } from "@sing-types/Types"
+  import type { Either } from "fp-ts/lib/Either"
+  import type {
+    IAlbumWithTracks,
+    IError,
+    ITrack,
+    ITracksSource,
+  } from "@sing-types/Types"
   import type {
     IHeroAction,
     IHeroMetaDataItem,
-    ISourceType,
     ITrackListDisplayOptions,
   } from "@/types/Types"
-  import type { Either } from "fp-ts/lib/Either"
-  import { onMount } from "svelte"
-  import IconPlay from "virtual:icons/heroicons-outline/play"
-  import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
 
   export let albumID: string
 
   let album: IAlbumWithTracks | undefined = undefined
 
-  const sourceType: ISourceType = "ALBUM"
+  const sourceType: ITracksSource = "album"
 
   let tracks: ITrack[] = []
   $: tracks = album !== undefined ? (album?.tracks as ITrack[]) : []
@@ -75,5 +80,5 @@
     {actions}
   />
 
-  <TrackList testID="trackItems" {sourceType} {tracks} {displayOptions} />
+  <TrackList testID="trackItems" {tracks} {displayOptions} />
 {/if}

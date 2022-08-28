@@ -8,8 +8,8 @@ import type { ParametersWithoutFirst } from "@sing-types/Utilities"
 import type { TypedWebContents } from "./types/Types"
 import type { ChildProcess } from "node:child_process"
 import type {
-  ITwoWayChannel,
-  ITwoWayHandlers,
+  IQueryChannels,
+  IQueryHandlers,
   IBackendEmitChannels,
   IEventHandlersConsume,
   IBackendQuery,
@@ -29,10 +29,10 @@ export function createBackendEnquirer(childProcess: ChildProcess) {
    * @param timeout How many `ms` to wait for the event. If `-1` wait forever. Default is `10_000`.
    * @returns A promise resolving with the data of the awaited event.
    */
-  function queryBackend<T extends ITwoWayChannel>(
+  function queryBackend<T extends IQueryChannels>(
     query: IBackendQuery<T>,
     timeout = 10_000
-  ): ReturnType<ITwoWayHandlers[T]> {
+  ): ReturnType<IQueryHandlers[T]> {
     const queryResponse = new Promise((resolve, reject) => {
       // Send the query to the backend
       childProcess.send(query)
@@ -64,7 +64,7 @@ export function createBackendEnquirer(childProcess: ChildProcess) {
         resolve(message.data)
       }
     })
-    return queryResponse as ReturnType<ITwoWayHandlers[T]>
+    return queryResponse as ReturnType<IQueryHandlers[T]>
   }
 }
 

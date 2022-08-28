@@ -18,9 +18,9 @@ export type AllowedIndexes<
  *     type unnestedX = innerArray<x> //=> `string`
  *
  */
-export type InnerArray<T extends unknown[]> = T["length"] extends 1
+export type InnerArray<T extends unknown[]> = T["length"] extends 0 | 1
   ? T[0] extends unknown[]
-    ? T[0]["length"] extends 1
+    ? T[0]["length"] extends 0 | 1
       ? InnerArray<T[0]>
       : T[0]
     : T[0]

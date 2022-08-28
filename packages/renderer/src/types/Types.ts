@@ -4,13 +4,6 @@ import type { SvelteComponentDev } from "svelte/internal"
 import type { AsyncOrSync } from "ts-essentials"
 
 export type IPlayState = "PLAYING" | "PAUSED" | "STOPPED"
-export type ISourceType =
-  | "NONE"
-  | "ALL_TRACKS"
-  | "ALBUM"
-  | "MANUAL"
-  | "PLAYLIST"
-  | "ARTIST"
 export type IPlayMode = "DEFAULT" | "REPEAT" | "SHUFFLE"
 export type IPlayLoop = "NONE" | "LOOP_QUEUE" | "LOOP_TRACK"
 
@@ -42,6 +35,7 @@ export interface IHeroAction {
 
 export interface ICardProperties {
   title: string
+  id: string
   secondaryText?: string
   image?: FilePath
 }

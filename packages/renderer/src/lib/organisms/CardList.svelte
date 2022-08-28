@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { createEventDispatcher } from "svelte"
   import { useNavigate } from "svelte-navigator"
   import Card from "../molecules/Card.svelte"
 
@@ -8,6 +9,12 @@
   export let isImageCircle = false
 
   const navigate = useNavigate()
+
+  const dispatch = createEventDispatcher<{ play: string }>()
+
+  function dispatchPlay(id: string) {
+    dispatch("play", id)
+  }
 </script>
 
 <div class="flex w-full flex-wrap gap-6">
@@ -15,8 +22,8 @@
     <Card
       data={item}
       {isImageCircle}
-      on:clickedPrimary={() => navigate(items[index].title)}
-      on:play
+      on:clickedPrimary={() => navigate(items[index].id)}
+      on:play={() => dispatchPlay(items[index].id)}
     />
   {/each}
 

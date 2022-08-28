@@ -4,7 +4,12 @@ import type { Track, Album, Artist, Cover, Prisma } from "@prisma/client"
 import type { Either } from "fp-ts/lib/Either"
 import type * as mm from "music-metadata"
 import type { app } from "electron"
-import type { DeepReadonly, MarkOptional } from "ts-essentials"
+import type {
+  CamelCase,
+  DeepReadonly,
+  MarkOptional,
+  StrictExtract,
+} from "ts-essentials"
 import type { DeepReadonlyNullToUndefined } from "./Utilities"
 
 export type ITrack = DeepReadonlyNullToUndefined<Track> & {
@@ -15,9 +20,7 @@ export type IAlbum = DeepReadonlyNullToUndefined<Album> & {
   coverPath?: FilePath
 }
 
-export type IAlbumWithTracks = DeepReadonlyNullToUndefined<
-  Prisma.AlbumGetPayload<{ include: { tracks: true } }>
-> & {
+export type IAlbumWithTracks = IAlbum & { tracks: ITrack[] } & {
   coverPath?: FilePath
 }
 
@@ -63,6 +66,20 @@ export type INotificationTypes =
   | "warning"
   | "danger"
   | "default"
+
+export type ITracksSort = Pick<
+  Prisma.TrackOrderByWithRelationInput,
+  "artistName" | "albumName" | "duration" | "title"
+>
+
+export type ITracksSource = CamelCase<
+  StrictExtract<Prisma.ModelName, "Artist" | "Album" | "Track">
+>
+export type IPlayFromSourceQuery = {
+  type: StrictExtract<ITracksSource, "album" | "artist" | "track">
+  id?: string | number
+  index?: number
+}
 
 export type IErrorTypes =
   | "Invalid arguments"

@@ -4,13 +4,19 @@
 
   import type { ICardProperties } from "@/types/Types"
 
-  const dispatch = createEventDispatcher()
+  interface IDispatcher {
+    clickedPrimary: never
+    clickedSecondary: never
+    play: never
+  }
+
+  const dispatch = createEventDispatcher<IDispatcher>()
 
   export let data: ICardProperties
   export let isImageCircle = false
 
   function handleClickPrimary(_: MouseEvent) {
-    dispatch("clickedPrimary", data.title)
+    dispatch("clickedPrimary")
   }
 
   function handleClickSecondary() {
