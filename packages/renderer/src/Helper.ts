@@ -1,7 +1,7 @@
 import { fold } from "fp-ts/lib/Either"
 import { createHashHistory } from "history"
 
-import { getErrorMessage } from "../../shared/Pures"
+import { convertFilepathToFilename, getErrorMessage } from "../../shared/Pures"
 import { addNotification } from "./lib/stores/NotificationStore"
 
 import type { ITrack, IError } from "@sing-types/Types"
@@ -12,11 +12,7 @@ import type { Either } from "fp-ts/lib/Either"
 export function titleToDisplay(track: ITrack): string {
   if (track?.title) return track.title
 
-  const filename = track.filepath.split("/").at(-1) as string
-  const dotIndex = filename?.lastIndexOf(".")
-  const title = filename?.slice(0, Math.max(0, dotIndex))
-
-  return title
+  return convertFilepathToFilename(false, track.filepath)
 }
 
 export function displayMetadata(type: keyof ITrack, track: ITrack): string {
@@ -55,7 +51,7 @@ export function isSubdirectory(ancestor: string, child: string): boolean {
   )
 }
 
-export function doSideEffectWithEither<A>(
+export function doOrNotifyEither<A>(
   data: Either<IError, A>,
   onLeftErrorMessage: string,
   onRight: (argument_: A) => void

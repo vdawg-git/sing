@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type { DeepReadonly } from "ts-essentials"
+import type { ReadonlyDeep, Exact, Merge } from "type-fest"
 
 export type AllowedIndexes<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -92,7 +92,7 @@ export type ArraysToString<T extends Record<string, unknown>> = {
     : T[key]
 }
 
-export type DeepReadonlyNullToUndefined<T> = DeepReadonly<NullToUndefined<T>>
+export type DeepReadonlyNullToUndefined<T> = ReadonlyDeep<NullToUndefined<T>>
 
 export type NullToUndefined<T> = {
   [Key in keyof T]: T[Key] extends object
@@ -101,3 +101,13 @@ export type NullToUndefined<T> = {
     ? Exclude<T[Key], null> | undefined
     : T[Key]
 }
+
+export type OnlyKeysOf<
+  U extends Record<string, unknown>,
+  T extends Partial<Exact<Record<keyof U, unknown>, T>>
+> = T
+
+export type Override<
+  U extends Record<string, unknown>,
+  T extends Partial<Exact<Record<keyof U, unknown>, T>>
+> = Merge<U, T>

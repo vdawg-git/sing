@@ -10,6 +10,12 @@
   export let title: string
   export let metadata: IHeroMetaDataItem[]
   export let actions: IHeroAction[] | undefined = undefined
+
+  // TODO Resize titel automatically to fit the text (with a min and max size) - https://dev.to/jankapunkt/make-text-fit-it-s-parent-size-using-javascript-m40
+  // For that an invisible clone of the original could be created, measured and then check if it is overflowing vertically
+  // Height needs to be adjusted too as the texts descenders start clipping with the default height
+
+  // TODO add bg hero image(s)
 </script>
 
 <header class="mb-10 mt-32 flex max-w-full flex-col justify-start gap-10">
@@ -31,7 +37,7 @@
         <div class="">{type}</div>
       {/if}
       <h1
-        class="block  h-[120px] overflow-x-hidden text-ellipsis whitespace-nowrap text-8xl"
+        class="block h-[120px] overflow-x-hidden text-ellipsis whitespace-nowrap text-8xl"
       >
         {title}
       </h1>

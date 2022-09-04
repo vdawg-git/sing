@@ -1,8 +1,10 @@
 import { removeNulledKeys } from "@sing-shared/Pures"
 import { isKeyOfObject } from "@sing-types/Typeguards"
 import { left, right } from "fp-ts/Either"
+import { map as mapArray } from "fp-ts/lib/ReadonlyArray"
 import log from "ololog"
 
+import { SQL_STRINGS as S } from "./Consts"
 import createPrismaClient from "./CustomPrismaClient"
 
 import type { Prisma } from "@prisma/client"
@@ -12,7 +14,6 @@ import type {
   ITrack,
   ICover,
   IArtist,
-  IAlbumWithTracks,
   IErrorTypes,
 } from "@sing-types/Types"
 import type { Either } from "fp-ts/Either"
@@ -20,85 +21,103 @@ import type { FilePath } from "@sing-types/Filesystem"
 
 const prisma = createPrismaClient()
 
+// TODO Update changed covers correctly (now they are getting deleted for whatever reason)
+
 export async function getTracks(
   options?: Prisma.TrackFindManyArgs
-): Promise<Either<IError, ITrack[]>> {
-  try {
-    const result = (await prisma.track.findMany(options)) as ITrack[]
-
-    return right(result)
-  } catch (error) {
-    return createError(error, "Failed to get from database")
-  }
+): Promise<Either<IError, readonly ITrack[]>> {
+  return prisma.track
+    .findMany(options)
+    .then(mapArray(removeNulledKeys))
+    .then((tracks) => right(tracks as ITrack[]))
+    .catch(createError("Failed to get from database"))
 }
 
 export async function getAlbums(
   options?: Prisma.AlbumFindManyArgs
 ): Promise<Either<IError, IAlbum[]>> {
-  try {
-    const result = (await prisma.album.findMany(options)) as IAlbum[]
-
-    return right(result)
-  } catch (error) {
-    return createError(error, "Failed to get from database")
-  }
+  return prisma.album
+    .findMany({
+      orderBy: { name: "asc" },
+      ...options,
+      include: {
+        tracks: true,
+        ...options?.include,
+      },
+    })
+    .then((albums) => albums.map(removeNulledKeys) as unknown as IAlbum[])
+    .then(right)
+    .catch(createError("Failed to remove unused albums from the database"))
 }
 
 export async function getAlbum(
   options: Prisma.AlbumFindUniqueOrThrowArgs
-): Promise<Either<IError, IAlbumWithTracks>> {
-  try {
-    const usedOptions: Prisma.AlbumFindUniqueOrThrowArgs = {
-      include: { tracks: true },
-      ...options,
-    }
-
-    const result = (await prisma.album.findUniqueOrThrow(
-      usedOptions
-    )) as IAlbumWithTracks
-
-    return right(result)
-  } catch (error) {
-    return createError(error, "Failed to get from database")
+): Promise<Either<IError, IAlbum>> {
+  const usedOptions: Prisma.AlbumFindUniqueOrThrowArgs = {
+    include: { tracks: true },
+    ...options,
   }
+
+  return prisma.album
+    .findUniqueOrThrow(usedOptions)
+    .then(removeNulledKeys)
+    .then((album) => right(album as IAlbum))
+    .catch(createError("Failed to get from database"))
 }
 
 export async function getCovers(
   options?: Prisma.CoverFindManyArgs
 ): Promise<Either<IError, ICover[]>> {
-  try {
-    const result = (await prisma.cover.findMany(options)) as ICover[]
-
-    return right(result)
-  } catch (error) {
-    return createError(error, "Failed to get from database")
-  }
+  return prisma.cover
+    .findMany(options)
+    .then(mapArray(removeNulledKeys))
+    .then((covers) => right(covers as ICover[]))
+    .catch(createError("Failed to get from database"))
 }
 
 export async function getArtists(
   options?: Prisma.ArtistFindManyArgs
 ): Promise<Either<IError, IArtist[]>> {
-  try {
-    log(options)
-
-    const result = (await prisma.artist.findMany(options)) as IArtist[]
-
-    return right(result)
-  } catch (error) {
-    return createError(error, "Failed to get from database")
+  const usedOptions: Prisma.ArtistFindManyArgs = {
+    orderBy: { name: "asc" },
+    ...(options && { options }),
+    include: {
+      ...(options?.include && { ...options.include }),
+      albums: {
+        include: {
+          coverPath: true,
+        },
+      },
+    },
   }
+
+  return prisma.artist
+    .findMany(usedOptions)
+    .then(mapArray(removeNulledKeys))
+    .then((artists) => right(artists as IArtist[]))
+    .catch(createError("Failed to get from database"))
 }
 
 export async function getArtist(
   options: Prisma.ArtistFindUniqueOrThrowArgs
 ): Promise<Either<IError, IArtist>> {
-  try {
-    const result = (await prisma.artist.findUniqueOrThrow(options)) as IArtist
-
-    return right(result)
-  } catch (error) {
-    return createError(error, "Failed to get from database")
+  const usedOptions: Prisma.ArtistFindUniqueOrThrowArgs = {
+    ...options,
+    include: {
+      ...options.include,
+      albums: {
+        include: {
+          coverPath: true,
+        },
+      },
+    },
   }
+
+  return prisma.artist
+    .findUniqueOrThrow(usedOptions)
+    .then(removeNulledKeys)
+    .then((artist) => right(artist as unknown as IArtist))
+    .catch(createError("Failed to get from database"))
 }
 
 export async function addTrackToDB(
@@ -112,86 +131,110 @@ export async function addTrackToDB(
       update: track,
       create: track,
     })
-    .then((addedTrack) => right(removeNulledKeys(addedTrack) as ITrack))
-    .catch((error) => createError(error, "Failed to add track to database"))
+    .then(removeNulledKeys)
+    .then((addedTrack) => right(addedTrack as ITrack))
+    .catch(createError("Failed to add track to database"))
 }
 
 export async function deleteTracksInverted(
-  filepaths: FilePath[]
+  filepaths: readonly FilePath[]
 ): Promise<Either<IError, number>> {
+  log(filepaths)
+
   const pathsString = filepaths
-    .map((path) => path.replace("'", "''")) // Prevent the query from breaking if a values contains a single quote
+    .map((path) => path.replace(/'/g, "''")) // Prevent the query from breaking if a value contains single quote(s)
     .map((path) => `'${path}'`)
     .join(",")
 
+  const query = `DELETE FROM ${S.TRACK} WHERE ${S.filepath} NOT IN (${pathsString})`
+  log(query)
+
   return prisma
-    .$executeRawUnsafe(
-      `DELETE FROM TRACK WHERE FILEPATH NOT IN (${pathsString})`
-    )
+    .$executeRawUnsafe(query)
     .then((deleteAmount) => right(deleteAmount))
+    .catch(createError("Failed to remove unused tracks from the database"))
 }
 
 export async function deleteEmptyAlbums(): Promise<Either<IError, number>> {
-  return prisma.$executeRaw`
+  const query = `
     DELETE FROM
-      ALBUM
+      ${S.ALBUM}
     WHERE
-      name in (
+      ${S.name} in (
         SELECT
-          ALBUM.name
+          ${S["ALBUM.name"]}
         FROM
-          ALBUM
-          LEFT JOIN TRACK ON Album.name = TRACK.albumName
+          ${S.ALBUM}
+          LEFT JOIN ${S.TRACK} ON ${S["ALBUM.name"]} = ${S["TRACK.album"]}
         WHERE
-          TRACK.title IS NULL
+          ${S["TRACK.title"]} IS NULL
       )`
+
+  return prisma
+    .$executeRawUnsafe(query)
     .then((deleteAmount) => right(deleteAmount))
-    .catch((error) => createError(error, "Failed to remove from database"))
+    .catch(createError("Failed to remove unused albums from the database"))
 }
 
 export async function deleteEmptyArtists(): Promise<Either<IError, number>> {
-  return prisma.$executeRaw`
+  const query = `
     DELETE FROM
-      ARTIST
+      ${S.ARTIST}
     WHERE
-      name in (
+      ${S.name} in (
         SELECT
-          ARTIST.name
+          ${S["ARTIST.name"]}
         FROM
-          ARTIST
-          LEFT JOIN TRACK ON ARTIST.name = TRACK.artistName
+          ${S.ARTIST}
+          LEFT JOIN ${S.TRACK} ON ${S["ARTIST.name"]} = ${S["TRACK.artist"]}
         WHERE
-          TRACK.title IS NULL
-      )`.then((deleteAmount) => right(deleteAmount))
+          ${S["TRACK.title"]} IS NULL
+
+      )`
+
+  return prisma
+    .$executeRawUnsafe(query)
+    .then((deleteAmount) => right(deleteAmount))
+    .catch(createError("Failed to remove unused artists from the database"))
 }
 
 export async function deleteUnusedCoversInDatabase(): Promise<
   Either<IError, number>
 > {
-  return prisma.$executeRaw`
+  const query = `
     DELETE FROM
-      COVER
+      ${S.COVER}
     WHERE
-      filepath in (
+      ${S.filepath} in (
         SELECT
-          COVER.filepath
+          ${S["COVER.filepath"]}
         FROM
-          COVER
-          LEFT JOIN TRACK ON COVER.filepath = TRACK.coverPath
+          ${S.COVER}
+          LEFT JOIN ${S.TRACK} ON ${S["COVER.filepath"]} = ${S["TRACK.cover"]}
         WHERE
-          TRACK.coverPath IS NULL
-      )`.then((deleteAmount) => right(deleteAmount))
+          ${S["TRACK.cover"]} IS NULL
+      )`
+
+  return prisma
+    .$executeRawUnsafe(query)
+    .then((deleteAmount) => right(deleteAmount))
+    .catch(createError("Failed to remove unused covers from the database"))
 }
 
-function createError(error: unknown, type: IErrorTypes): Either<IError, never> {
-  if (typeof error !== "object" || error === null) return left({ type, error })
+function createError(
+  type: IErrorTypes
+): (error: unknown) => Either<IError, never> {
+  return (error) => {
+    if (typeof error !== "object" || error === null)
+      return left({ type, error })
 
-  if (!isKeyOfObject(error, "message")) return left({ type, error })
+    if (!isKeyOfObject(error, "message")) return left({ type, error })
 
-  log.error.red(error?.message)
+    log.error.red(error)
 
-  return left({
-    type,
-    error: { ...error, message: error.message },
-  })
+    return left({
+      type,
+      error: { ...error, message: error.message },
+    })
+  }
 }

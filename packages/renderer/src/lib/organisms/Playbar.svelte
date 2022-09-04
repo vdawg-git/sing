@@ -11,7 +11,8 @@
   import Seekbar from "../molecules/Seekbar.svelte"
   import { TEST_IDS } from "@/TestConsts"
 
-  import player, {
+  import {
+    player,
     currentTrack,
     playState,
     currentTime,
@@ -67,11 +68,11 @@
   >
     <!---- Cover -->
     <div class="relative h-14 w-14 shrink-0 bg-grey-600">
-      {#if track?.coverPath}
+      {#if track?.cover}
         <img
           class="absolute inset-0 rounded-sm"
           alt={track?.title || "Title" + " " + " cover"}
-          src={"file://" + track?.coverPath}
+          src={"file://" + track?.cover}
           data-testid={TEST_IDS.playbarCover}
         />
       {:else}
@@ -96,7 +97,7 @@
             class="shrink-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-grey-300"
             data-testid={TEST_IDS.playbarArtist}
           >
-            {displayMetadata("artistName", track)}
+            {displayMetadata("artist", track)}
           </div>
         </div>
       </div>

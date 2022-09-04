@@ -4,11 +4,7 @@
   import { createEventDispatcher } from "svelte"
 
   import type { ITestIDs } from "@/TestConsts"
-  import type {
-    IPlayFromSourceQuery,
-    ITrack,
-    ITracksSource,
-  } from "@sing-types/Types"
+  import type { IPlaySource, ITrack, ISortOptions } from "@sing-types/Types"
   import type { ITrackListDisplayOptions } from "@/types/Types"
 
   export let tracks: readonly ITrack[]
@@ -18,9 +14,14 @@
     album: true,
     artist: true,
   }
+  export let sort: ISortOptions["tracks"]
+
+  // TODO make display options generic. Maybe using a hashmap to generate the html (having the title always rendered)
+
+  // TODO if track is playing, pause on click
 
   const dispatch = createEventDispatcher<{
-    play: { id: number; index: number }
+    play: IPlaySource & { index: number }
   }>()
 
   const usedDisplayOptions: ITrackListDisplayOptions = {
@@ -30,11 +31,11 @@
     ...displayOptions,
   }
 
-  let listHeight: number
-  let index: number // Typescript dont cry - Svelte Navigator injects this and TS does not know about it
+  let listHeight: number // Gets set by the virtual list within it, buit Typescript does not know it
+  let index: number // Gets set by the virtual list within it, buit Typescript does not know it
 
-  function dispatchPlay(id: number, index: number) {
-    dispatch("play", { index, id })
+  function dispatchPlay(index: number) {
+    dispatch("play", { index, sort, type: "tracks" })
   }
 </script>
 
@@ -72,7 +73,7 @@
         let:index
         track={tracks[index]}
         displayOptions={usedDisplayOptions}
-        on:dblclick={() => dispatchPlay(tracks[index].id, index)}
+        on:dblclick={() => dispatchPlay(index)}
       />
     </VirtualList>
   </div>

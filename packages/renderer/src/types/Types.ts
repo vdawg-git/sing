@@ -8,16 +8,16 @@ export type IPlayMode = "DEFAULT" | "REPEAT" | "SHUFFLE"
 export type IPlayLoop = "NONE" | "LOOP_QUEUE" | "LOOP_TRACK"
 
 export interface IQueueItem {
-  index: number
+  readonly index: number
   readonly queueID: symbol
   readonly isManuallyAdded: boolean
   readonly track: ITrack
 }
 
 export type IHeroMetaDataItem = AsyncOrSync<{
-  label: string
-  to?: string
-  bold?: boolean
+  readonly label: string
+  readonly to?: string
+  readonly bold?: boolean
 }>
 
 export interface ITrackListDisplayOptions {
@@ -27,15 +27,15 @@ export interface ITrackListDisplayOptions {
 }
 
 export interface IHeroAction {
-  icon: typeof SvelteComponentDev | undefined
-  label: string
-  callback: (...arguments_: any[]) => void
-  primary?: boolean
+  readonly icon: typeof SvelteComponentDev | undefined
+  readonly label: string
+  readonly callback: (...arguments_: any[]) => void
+  readonly primary?: boolean
 }
 
 export interface ICardProperties {
-  title: string
-  id: string
-  secondaryText?: string
-  image?: FilePath
+  readonly title: string
+  readonly id: string
+  readonly secondaryText?: string
+  readonly image?: FilePath
 }

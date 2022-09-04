@@ -7,6 +7,8 @@
 
   let paths: DirectoryPath[]
 
+  $: isButtonDisabled = paths !== undefined && paths.length === 0
+
   onMount(
     async () =>
       (paths = (await window.api.getUserSetting("musicFolders")) || [])
@@ -38,6 +40,7 @@
 
           await window.api.sync()
         }}
+        disabled={isButtonDisabled}
       />
     </div>
   </div>

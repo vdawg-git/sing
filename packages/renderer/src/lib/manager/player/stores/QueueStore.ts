@@ -10,9 +10,8 @@ function createQueueStore() {
     removeIndex,
     removeItemsFromNewTracks,
     reset,
-    set,
     setCurrent,
-    setUpcomingFromSource,
+    setTracks,
     subscribe,
     update,
   }
@@ -36,8 +35,8 @@ function createQueueStore() {
     update(($queue) => _removeIndex($queue, index))
   }
 
-  function reset(index: number): void {
-    update(($queue) => $queue.slice(0, index + 1))
+  function reset(): void {
+    set([])
   }
 
   /**
@@ -45,22 +44,22 @@ function createQueueStore() {
    * @param tracks The tracks to add as IQueueItems
    * @param queueIndex The current index of the queue. It will add the tracks after it
    */
-  function setUpcomingFromSource(
+  function setTracks(
     tracks: readonly ITrack[],
-    queueIndex: number
+    queueIndex: number,
+    isKeepingManuallyAddedTracks = true
   ): void {
     update(($queue) => {
-      const played = $queue.slice(0, queueIndex)
-      const manuallyAdded = $queue
-        .slice(queueIndex)
-        .filter((item) => item.isManuallyAdded)
+      const [newCurrent, ...newQueueItems]: readonly IQueueItem[] =
+        _convertTracksToQueueItem(tracks, 0)
 
-      const newQueueItems: readonly IQueueItem[] = _convertTracksToQueueItem(
-        tracks,
-        queueIndex
-      )
-
-      return [...played, ...manuallyAdded, ...newQueueItems]
+      return [
+        newCurrent,
+        ...(isKeepingManuallyAddedTracks
+          ? _getUnplayedManuallyAddedTracks($queue, queueIndex)
+          : []),
+        ...newQueueItems,
+      ]
     })
   }
 
@@ -76,6 +75,13 @@ function createQueueStore() {
       return $queue
     })
   }
+}
+
+function _getUnplayedManuallyAddedTracks(
+  queue: IQueueItem[],
+  queueIndex: number
+) {
+  return queue.slice(queueIndex).filter((item) => item.isManuallyAdded)
 }
 
 export function _convertTracksToQueueItem(

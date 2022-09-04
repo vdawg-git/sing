@@ -5,6 +5,7 @@ dist
 thumbs.db
 Scratch.ts
 Scratch.js
+Scratch.*
 **/_Scratch.ts
 **/_Scratch.js
 **/testDB.db

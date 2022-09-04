@@ -19,7 +19,7 @@ import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"
 
 export async function getFilesFromDirectory(
   directory: DirectoryPath
-): Promise<Either<IErrorFSDirectoryReadFailed,readonly FilePath[]>> {
+): Promise<Either<IErrorFSDirectoryReadFailed, readonly FilePath[]>> {
   try {
     return right(await recursion(directory))
   } catch (error) {
@@ -30,7 +30,9 @@ export async function getFilesFromDirectory(
     })
   }
 
-  async function recursion(directoryRecursive: string): Promise<readonly FilePath[]> {
+  async function recursion(
+    directoryRecursive: string
+  ): Promise<readonly FilePath[]> {
     const dirents = await readdir(directoryRecursive, {
       withFileTypes: true,
     })
@@ -73,11 +75,11 @@ export async function writeFileToDisc<T extends FilePath>(
 
 export async function deleteFromDirectoryInverted(
   directory: DirectoryPath,
-  filesNotToDelete:readonly FilePath[]
+  filesNotToDelete: readonly FilePath[]
 ): Promise<
   Either<
     IErrorFSDirectoryReadFailed,
-    { deletedFiles:readonly FilePath[]; deletionErrors: readonly unknown[] }
+    { deletedFiles: readonly FilePath[]; deletionErrors: readonly unknown[] }
   >
 > {
   const allFiles = await getFilesFromDirectory(directory)
@@ -113,8 +115,10 @@ export async function deleteFiles(
   return Promise.all(result)
 }
 
-// Check if database exists. If not copy the empty master to make it available
-export async function checkDatabase(databasePath: FilePath) {
+/**
+ * Check if database exists. If not copy the empty master database over to the user directory to make it available
+ */
+export async function checkAndCreateDatabase(databasePath: FilePath) {
   const checkAccessible = await checkPathAccessible(databasePath)
   if (isLeft(checkAccessible)) {
     const possibleError = checkAccessible.left.error

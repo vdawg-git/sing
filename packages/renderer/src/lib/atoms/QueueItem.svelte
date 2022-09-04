@@ -56,9 +56,9 @@
   on:dblclick
 >
   <div class="flex grow gap-3">
-    {#if track?.coverPath}
+    {#if track?.cover}
       <img
-        src={"file://" + track.coverPath}
+        src={"file://" + track.cover}
         alt={displayMetadata("title", track) + " cover"}
         class="h-12 w-12 rounded"
         class:opacity-70={state === "HAS_PLAYED"}
@@ -81,7 +81,7 @@
         data-testid={testArtistID}
         data-testattribute={TEST_ATTRIBUTES.queueItemArtist}
       >
-        {displayMetadata("artistName", track)}
+        {displayMetadata("artist", track)}
       </span>
     </div>
   </div>

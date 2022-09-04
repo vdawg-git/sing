@@ -31,7 +31,7 @@ let isFirstInit = true
  * @param {import('vite').ViteDevServer} watchServer Renderer watch server instance.
  * Needs to set up `VITE_DEV_SERVER_URL` environment variable from {@link import('vite').ViteDevServer.resolvedUrls}
  */
-const setupMainPackageWatcher = ({ resolvedUrls }) => {
+function setupMainPackageWatcher({ resolvedUrls }) {
   // eslint-disable-next-line prefer-destructuring
   process.env.VITE_DEV_SERVER_URL = resolvedUrls.local[0]
 
@@ -95,7 +95,7 @@ const setupMainPackageWatcher = ({ resolvedUrls }) => {
  * @param {import('vite').ViteDevServer} watchServer Renderer watch server instance.
  * Needs to set up `VITE_DEV_SERVER_URL` environment variable from {@link import('vite').ViteDevServer.resolvedUrls}
  */
-const setupBackendPackageWatcher = ({ resolvedUrls }) => {
+function setupBackendPackageWatcher({ resolvedUrls }) {
   // eslint-disable-next-line prefer-destructuring
   process.env.VITE_DEV_SERVER_URL = resolvedUrls.local[0]
 
@@ -163,8 +163,8 @@ const setupBackendPackageWatcher = ({ resolvedUrls }) => {
  * @param {import('vite').ViteDevServer} watchServer Renderer watch server instance.
  * Required to access the web socket of the page. By sending the `full-reload` command to the socket, it reloads the web page.
  */
-const setupPreloadPackageWatcher = ({ ws }) =>
-  build({
+function setupPreloadPackageWatcher({ ws }) {
+  return build({
     mode,
     logLevel,
     build: {
@@ -186,6 +186,7 @@ const setupPreloadPackageWatcher = ({ ws }) =>
       },
     ],
   })
+}
 
 ;(async () => {
   try {

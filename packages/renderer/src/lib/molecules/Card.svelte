@@ -73,7 +73,7 @@
       </div>
       {#if data.secondaryText}
         <a
-          class="max-w-max cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-grey-200 transition-colors hover:text-white"
+          class="max-w-max cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold tracking-wider text-grey-200 transition-colors hover:text-grey-300"
           on:click={handleClickSecondary}
         >
           {data.secondaryText}

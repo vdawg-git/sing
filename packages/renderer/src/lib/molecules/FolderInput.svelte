@@ -72,10 +72,10 @@
   {#if path}
     <div
       data-testattribute={TEST_ATTRIBUTES.folderInputDeleteIcon}
-      class="h-12 p-3  hover:text-orange-500"
+      class="h-12 p-3  transition-colors "
       on:click|stopPropagation={dispatchRemove}
     >
-      <IconFolderRemove class="h-6 w-6 " />
+      <IconFolderRemove class="h-6 w-6 hover:text-orange-500" />
     </div>
   {:else}
     <div class="pr-3">

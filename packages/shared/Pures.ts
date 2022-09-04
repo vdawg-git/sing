@@ -12,6 +12,8 @@ import type { Either } from "fp-ts/lib/Either"
 import type {
   IRawAudioMetadata,
   IRawAudioMetadataWithPicture,
+  ISortOptions,
+  ITrack,
 } from "@sing-types/Types"
 
 import type {
@@ -20,6 +22,7 @@ import type {
   NullToUndefined,
 } from "@sing-types/Utilities"
 import type { FilePath } from "@sing-types/Filesystem"
+
 export function filterPathsByExtenstions(
   extensions: readonly string[],
   paths: readonly FilePath[]
@@ -31,6 +34,20 @@ export function filterPathsByExtenstions(
       return includedInArray(extensions)(pathExtension)
     })
   )
+}
+
+export function convertFilepathToFilename(
+  keepExtension: boolean,
+  filepath: FilePath
+): string {
+  const filename = filepath.split("/").at(-1) as string
+
+  if (keepExtension) return filename
+
+  const dotIndex = filename?.lastIndexOf(".")
+  const filenameWithoutExtension = filename?.slice(0, Math.max(0, dotIndex))
+
+  return filenameWithoutExtension
 }
 
 export function getSupportedMusicFiles(
@@ -239,6 +256,41 @@ export function hasCover(
   if (!Array.isArray(object.common?.picture)) return false
 
   return true
+}
+
+export function sortTracks([sortBy, sortOrder]: ISortOptions["tracks"]): (
+  tracks: readonly ITrack[]
+) => readonly ITrack[] {
+  return (tracks) => {
+    const sorted = [...tracks].sort((a, b) => {
+      if (a[sortBy] === undefined || b[sortBy] === undefined) {
+        return sortString(
+          a.title ?? convertFilepathToFilename(false, a.filepath),
+          b.title ?? convertFilepathToFilename(false, b.filepath)
+        )
+      }
+
+      if (typeof a[sortBy] === "number" && typeof b[sortBy] === "number") {
+        return (a[sortBy] as number) - (b[sortBy] as number)
+      }
+      if (typeof a[sortBy] === "string" && typeof b[sortBy] === "string") {
+        return sortString(a[sortBy] as string, b[sortBy] as string)
+      }
+
+      throw new Error("Invalid sort type")
+    })
+
+    return sortOrder === "ascending" ? sorted : sorted.reverse()
+  }
+}
+
+/**
+ * To be used with a Array.prototype.sort() argument
+ */
+export function sortString(a2: string, b2: string): 0 | -1 | 1 {
+  if (a2 > b2) return 1
+  if (a2 < b2) return -1
+  return 0
 }
 
 /**

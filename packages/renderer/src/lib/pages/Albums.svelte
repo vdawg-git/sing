@@ -1,13 +1,11 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
-  import player, { albums } from "@/lib/manager/player/index"
+  import { player, albums } from "@/lib/manager/player/index"
   import NothingHereYet from "../organisms/NothingHereYet.svelte"
   import HeroHeading from "../organisms/HeroHeading.svelte"
   import CardList from "../organisms/CardList.svelte"
 
-  import type { ITracksSource } from "@sing-types/Types"
-
-  const sourceType: ITracksSource = "album"
+  import { ROUTES } from "@/Consts"
 
   const navigate = useNavigate()
 
@@ -28,11 +26,19 @@
       items={allAlbums.map((album) => ({
         title: album.name,
         id: album.name,
-        image: album.coverPath,
+        image: album.cover,
         secondaryText: album.artist,
       }))}
       on:play={({ detail: id }) =>
-        player.playFromSource({ id, type: sourceType })}
+        player.playFromSource({
+          id,
+          type: "albums",
+          sort: ["trackNo", "ascending"],
+        })}
+      on:clickedPrimary={({ detail: id }) =>
+        navigate(`/${ROUTES.albums}/${id}`)}
+      on:clickedSecondary={({ detail: id }) =>
+        navigate(`/${ROUTES.artists}/${id}`)}
     />
   {/if}
 {/await}

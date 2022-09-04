@@ -1,12 +1,26 @@
 <script lang="ts">
+  import { useNavigate } from "svelte-navigator"
+  import { ROUTES } from "@/Consts"
   import { displayMetadata } from "@/Helper"
   import { TEST_ATTRIBUTES } from "@/TestConsts"
-  import type { ITrackListDisplayOptions } from "@/types/Types"
 
+  import type { ITrackListDisplayOptions } from "@/types/Types"
   import type { ITrack } from "@sing-types/Types"
+  import type { StrictExtract } from "ts-essentials"
 
   export let track!: ITrack
   export let displayOptions: ITrackListDisplayOptions
+
+  const navigate = useNavigate()
+
+  function navigateTo(type: StrictExtract<keyof ITrack, "album" | "artist">) {
+    if (!track[type]) return
+
+    const route = `/${type === "album" ? ROUTES.albums : ROUTES.artists}/${
+      track[type]
+    }`
+    return () => navigate(route)
+  }
 </script>
 
 <div
@@ -21,10 +35,10 @@
   <div class="mr-6 min-w-0 flex-1 basis-44 py-2">
     <div class="flex min-w-0 items-center">
       {#if displayOptions.cover}
-        {#if track?.coverPath}
+        {#if track?.cover}
           <img
             data-testattribute={TEST_ATTRIBUTES.trackItemCover}
-            src="file://{track.coverPath}"
+            src="file://{track.cover}"
             alt="Cover of {track?.title || track.filepath.split('/').at(-1)}"
             class="mr-4 h-12 w-12 shrink-0 grow-0 rounded"
           />
@@ -46,22 +60,30 @@
 
   <!---- Artist -->
   {#if displayOptions.artist}
-    <div
+    <a
       data-testattribute={TEST_ATTRIBUTES.trackItemArtist}
-      class="mr-6 flex-1 basis-32  overflow-hidden text-ellipsis whitespace-nowrap align-middle"
+      on:click|preventDefault={navigateTo("artist")}
+      class="mr-6 flex-1 basis-32  overflow-hidden text-ellipsis whitespace-nowrap align-middle {!!track.artist
+        ? 'transition-colors hover:text-grey-200 active:hover:text-grey-300 disabled:hover:text-white'
+        : ''}"
     >
-      {displayMetadata("artistName", track)}
-    </div>
+      {displayMetadata("artist", track)}
+    </a>
   {/if}
 
   <!---- Album -->
   {#if displayOptions.album}
-    <div
+    <a
       data-testattribute={TEST_ATTRIBUTES.trackItemAlbum}
-      class="mr-6 flex-1 basis-32 overflow-hidden  text-ellipsis whitespace-nowrap align-middle"
+      on:click|preventDefault={navigateTo("album")}
+      class="mr-6 flex-1 basis-32 overflow-hidden  text-ellipsis whitespace-nowrap align-middle 
+        {!!track.album
+        ? 'transition-colors hover:text-grey-200 active:hover:text-grey-300 disabled:hover:text-white'
+        : ''}
+      "
     >
-      {displayMetadata("albumName", track)}
-    </div>
+      {displayMetadata("album", track)}
+    </a>
   {/if}
 
   <!---- Duration -->

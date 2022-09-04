@@ -1,8 +1,4 @@
-import {
-  flattenObject,
-  removeKeys,
-  stringifyArraysInObject,
-} from "@sing-shared/Pures"
+import { flattenObject, removeKeys, stringifyArraysInObject } from "@sing-shared/Pures"
 import { curry2 } from "fp-ts-std/Function"
 import { isRight, left, right } from "fp-ts/lib/Either"
 import { pipe } from "fp-ts/lib/function"
@@ -10,6 +6,8 @@ import { parseFile, selectCover } from "music-metadata"
 import { createHash } from "node:crypto"
 
 import { checkPathAccessible, writeFileToDisc } from "../Helper"
+
+import type { StrictExtract, StrictOmit } from "ts-essentials"
 
 import type { IPicture } from "music-metadata"
 import type { Prisma } from "@prisma/client"
@@ -100,6 +98,18 @@ export async function saveCover({
   return isRight(accessible) ? right(path) : writeFileToDisc(buffer, path)
 }
 
+type _UsedKeys = StrictExtract<
+  keyof Prisma.TrackCreateInput,
+  "artistName" | "albumartistName" | "coverPath" | "albumName"
+>
+type _AllKeys = keyof Prisma.TrackCreateInput
+// Use new OnlyKeysOf type for this
+type _ValidateTrackKeys<
+  T extends Readonly<{
+    [K in _AllKeys as K extends _UsedKeys ? K : never]: unknown
+  }>
+> = T
+
 async function addRelationFieldsNotCurried<
   T extends {
     readonly album?: string
@@ -112,14 +122,21 @@ async function addRelationFieldsNotCurried<
   coversDirectory: DirectoryPath,
   rawData: T
 ): Promise<
-  Omit<T, "album" | "albumartist" | "artist" | "picture"> & {
-    readonly artist: Prisma.ArtistCreateNestedOneWithoutAlbumsInput | undefined
-    readonly album: Prisma.AlbumCreateNestedOneWithoutTracksInput | undefined
-    readonly cover: Prisma.CoverCreateNestedOneWithoutTracksInput | undefined
-    readonly albumartist:
-      | Prisma.ArtistCreateNestedOneWithoutAlbumartistTracksInput
-      | undefined
-  }
+  StrictOmit<T, "album" | "albumartist" | "artist" | "picture"> &
+    _ValidateTrackKeys<{
+      readonly artistName:
+        | Prisma.ArtistCreateNestedOneWithoutAlbumsInput
+        | undefined
+      readonly albumName:
+        | Prisma.AlbumCreateNestedOneWithoutTracksInput
+        | undefined
+      readonly coverPath:
+        | Prisma.CoverCreateNestedOneWithoutTracksInput
+        | undefined
+      readonly albumartistName:
+        | Prisma.ArtistCreateNestedOneWithoutAlbumartistTracksInput
+        | undefined
+    }>
 > {
   const { album, albumartist, artist, picture, ...data } = rawData
 
@@ -172,23 +189,23 @@ async function addRelationFieldsNotCurried<
             where: { name: album },
             create: {
               name: album,
-              artistEntry: artistInput, // TODO display the most used artist for the album if no album artist is set
-              ...(coverInput && { cover: coverInput }),
+              ...(artistInput !== undefined && { artistEntry: artistInput }), // TODO display the most used artist for the album if no album artist is set
+              ...(coverInput !== undefined && { coverPath: coverInput }),
             },
           },
         }
       : undefined
 
   return {
-    ...data,
+    ...(data as StrictOmit<T, "album" | "albumartist" | "artist" | "picture">),
 
-    artist: artistInput,
+    artistName: artistInput,
 
-    albumartist: albumartistInput,
+    albumartistName: albumartistInput,
 
-    cover: coverInput,
+    coverPath: coverInput,
 
-    album: albumInput,
+    albumName: albumInput,
   } as const
 }
 

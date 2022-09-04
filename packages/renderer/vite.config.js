@@ -23,6 +23,7 @@ const config = {
       "@sing-types": `${path.join(PACKAGE_ROOT, "..", "..", "types")}/`,
       "@sing-main": `${path.join(PACKAGE_ROOT, "..", "main", "src")}/`,
       "@sing-preload": `${path.join(PACKAGE_ROOT, "..", "preload", "src")}/`,
+      "@sing-shared": `${path.join(PACKAGE_ROOT, "..", "shared")}/`,
     },
   },
   plugins: [

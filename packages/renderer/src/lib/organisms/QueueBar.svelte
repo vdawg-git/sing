@@ -5,7 +5,8 @@
 
 <script lang="ts">
   import { TEST_ATTRIBUTES, TEST_IDS } from "@/TestConsts"
-  import player, {
+  import {
+    player,
     playedTracks,
     nextTracks,
     currentTrack,
@@ -39,16 +40,16 @@
 <main
   data-testid={TEST_IDS.queueBar}
   class="
-    custom 
-     absolute   right-6 bottom-0 
+    custom_ 
+    absolute right-6 bottom-0 
     z-10 h-[calc(100vh-5.5rem)]
     w-[25rem] rounded-3xl
-    bg-grey-800/80
+    bg-grey-800/90
     backdrop-blur-md
   "
   transition:fly={{
     x: 400,
-    duration: 600,
+    duration: 300,
     easing: sineInOut,
     opacity: 100,
   }}
@@ -62,13 +63,12 @@
     <!---- Queue Tracks-->
     <div
       class="
-          scrollbar 
-          mask  mb-6 mt-0
+          scrollbar_ 
+          mask_ mb-6 mt-0
           flex max-h-full grow flex-col
-           gap-6
+          gap-6
           overflow-y-auto
-          px-4 pr-4
-          pt-2
+          px-4 pr-4 pt-2
         "
       bind:this={scroller}
       on:scroll={() => {
@@ -147,29 +147,29 @@
 </main>
 
 <style lang="postcss">
-  .scrollbar {
+  .scrollbar_ {
     scrollbar-gutter: stable;
   }
 
-  .scrollbar::-webkit-scrollbar {
+  .scrollbar_::-webkit-scrollbar {
     position: absolute;
     width: 0.5rem;
   }
 
-  .scrollbar::-webkit-scrollbar-track {
+  .scrollbar_::-webkit-scrollbar-track {
     background: transparent;
   }
 
-  .scrollbar::-webkit-scrollbar-thumb {
+  .scrollbar_::-webkit-scrollbar-thumb {
     @apply bg-grey-600;
     border-radius: 9999px;
   }
 
-  .custom {
+  .custom_ {
     box-shadow: 0px 0px 24px 0px rgba(0, 0, 0, 0.5);
   }
 
-  .mask {
+  .mask_ {
     -webkit-mask-image: linear-gradient(
       to bottom,
       transparent 12px,

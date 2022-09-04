@@ -1,3 +1,5 @@
+import log from "ololog"
+
 import { isBackendMessageToForward } from "../../backend/src/types/TypeGuards"
 import { backendProcess } from "./BackendProcess"
 import { sendToRenderer } from "./Helper"

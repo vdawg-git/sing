@@ -1,5 +1,7 @@
-import { doSideEffectWithEither, sortAlphabetically } from "@/Helper"
+import { doOrNotifyEither, sortAlphabetically } from "@/Helper"
 import audioPlayer from "@/lib/manager/player/AudioPlayer"
+import { sortTracks } from "@sing-shared/Pures"
+import { dequal } from "dequal"
 import { map as mapEither } from "fp-ts/lib/Either"
 import { derived, get, writable } from "svelte/store"
 
@@ -13,9 +15,8 @@ import type {
   ISyncResult,
   IAlbum,
   IArtist,
-  IPlayFromSourceQuery,
   IError,
-  ITracksSort,
+  IPlaySource,
 } from "@sing-types/Types"
 import type { Unsubscriber } from "svelte/store"
 import type { IpcRendererEvent } from "electron"
@@ -28,6 +29,10 @@ const durationStore = writable(0)
 const tracksStore = writable<readonly ITrack[]>([])
 const albumsStore = writable<readonly IAlbum[]>([])
 const artistsStore = writable<readonly IArtist[]>([])
+const sourceStore = writable<IPlaySource>({
+  type: "tracks",
+  sort: ["title", "ascending"],
+})
 
 // TODO add genre to the db, too
 
@@ -41,7 +46,7 @@ export const currentTrack = derived(
 )
 export const playedTracks = derived(
   [queueStore, indexStore],
-  ([$queue, $index]) => $queue.slice(0, $index)
+  ([$queue, $index]) => $queue.slice($index - 20 > 0 ? $index - 20 : 0, $index) // Display only the last 20 played tracks or less if there are no more
 )
 export const nextTracks = derived(
   [queueStore, indexStore],
@@ -137,15 +142,30 @@ function createPlayerManager() {
   /**
    * Starts playback and initializes the queue
    */
-  async function playFromSource(source: IPlayFromSourceQuery) {
-    const tracksEither = await getSource(source, { title: "asc" })
+  async function playFromSource(source: IPlaySource, index = 0) {
+    const { type, id, sort } = source
 
-    doSideEffectWithEither(
+    console.log("sourceStore:", get(sourceStore))
+    console.log("new source:", source)
+    console.log(dequal(get(sourceStore), source))
+
+    if (dequal(get(sourceStore), source)) {
+      indexStore.set(index)
+
+      startPlayingTrack($currentTrack.track)
+      return
+    }
+
+    // If the source has changed (user played an album and then started playing an artist)
+    const tracksEither = await getTracksFromSource({ type, id })
+
+    doOrNotifyEither(
       tracksEither,
       "Error while trying to play selected music",
       (tracks) => {
-        indexStore.increment()
-        queueStore.setUpcomingFromSource(tracks, $currentIndex)
+        indexStore.set(index)
+        queueStore.setTracks(sortTracks(sort)(tracks), $currentIndex)
+        sourceStore.set(source)
 
         startPlayingTrack($currentTrack.track)
       }
@@ -233,19 +253,19 @@ function createPlayerManager() {
 }
 
 async function initialiseStores() {
-  doSideEffectWithEither(
+  doOrNotifyEither(
     await window.api.getTracks({ orderBy: { title: "asc" } }),
     "Failed to get tracks",
     (tracks) => {
       if (tracks.length === 0) return
 
       tracksStore.set(tracks)
-      queueStore.setUpcomingFromSource(tracks, 0)
+      queueStore.setTracks(tracks, 0)
       audioPlayer.setSource(tracks[0].filepath)
     }
   )
 
-  doSideEffectWithEither(
+  doOrNotifyEither(
     await window.api.getAlbums(),
     "Failed to get albums",
     (albums) => {
@@ -253,7 +273,7 @@ async function initialiseStores() {
     }
   )
 
-  doSideEffectWithEither(
+  doOrNotifyEither(
     await window.api.getArtists(),
     "Failed to get artists",
     (artists) => {
@@ -265,7 +285,9 @@ async function initialiseStores() {
 }
 
 function handleSyncUpdate(_event: IpcRendererEvent, data: ISyncResult) {
-  doSideEffectWithEither(
+  console.log("Sync update received")
+
+  doOrNotifyEither(
     data,
     "Failed to update the library. Please restart the app",
     ({ tracks, albums, artists }) => {
@@ -294,36 +316,33 @@ function handleSyncUpdate(_event: IpcRendererEvent, data: ISyncResult) {
   )
 }
 
-async function getSource(
-  source: IPlayFromSourceQuery,
-  orderBy: ITracksSort
-): Promise<Either<IError, readonly ITrack[]>> {
-  switch (source.type) {
-    case "album": {
+async function getTracksFromSource({
+  type,
+  id,
+}: Pick<IPlaySource, "type" | "id">): Promise<
+  Either<IError, readonly ITrack[]>
+> {
+  switch ({ type, id }.type) {
+    case "albums": {
       return extractTracks(
-        await window.api.getAlbumWithTracks({
-          prismaOptions: {
-            where: { name: source.id },
-          },
-          orderBy,
-        }),
-        source.index
+        await window.api.getAlbum({
+          where: { name: id },
+        })
       )
     }
-    case "artist": {
+
+    case "artists": {
       return extractTracks(
-        await window.api.getArtistWithTracks({
-          prismaOptions: { where: { name: source.id } },
-          orderBy,
-        }),
-        source.index
+        await window.api.getArtistWithAlbumsAndTracks({
+          where: { name: id },
+        })
       )
     }
-    case "track": {
-      return mapEither((tracks: ITrack[]) => tracks.slice(source.index))(
-        await window.api.getTracks({ orderBy })
-      )
+
+    case "tracks": {
+      return window.api.getTracks()
     }
+
     default:
       throw new Error("Invalid source specified at getSource in PlayerManager")
   }
@@ -342,9 +361,7 @@ function resetCurrentTime() {
   currentTimeStore.set(0)
 }
 
-// Export default
-const player = createPlayerManager()
-export default player
+export const player = createPlayerManager()
 
 // Export stores only as read-only to prevent bugs
 export const playIndex = { subscribe: indexStore.subscribe }

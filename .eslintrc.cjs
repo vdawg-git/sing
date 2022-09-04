@@ -1,3 +1,5 @@
+const ts = require("typescript")
+
 const defaultRules = {
   "no-console": "off",
   "import/no-extraneous-dependencies": [
@@ -63,8 +65,9 @@ module.exports = {
     ecmaFeatures: {
       classes: false,
     },
+    extraFileExtensions: [".svelte"],
   },
-  plugins: ["@typescript-eslint"],
+  plugins: ["svelte3", "@typescript-eslint"],
   ignorePatterns: ["node_modules/**", "**/dist/**"],
   rules: {
     ...defaultRules,
@@ -83,12 +86,16 @@ module.exports = {
       ],
       parser: "Espree",
       plugins: [],
-      parserOptions: {
-        ecmaVersion: 12,
-      },
-      rules: {
-        ...defaultRules,
-      },
+      parserOptions: { ecmaVersion: 12 },
+      rules: defaultRules,
+    },
+    {
+      files: ["*.svelte"],
+      processor: "svelte3/svelte3",
+      rules: defaultRules,
     },
   ],
+  settings: {
+    "svelte3/typescript": ts,
+  },
 }

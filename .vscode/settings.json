@@ -8,5 +8,18 @@
 
   "svelte.plugin.svelte.compilerWarnings": {
     "a11y-missing-attribute": "ignore"
-  }
+  },
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.preferences.autoImportFileExcludePatterns": [
+    "**/node_modules/fp-ts/lib/Console",
+    "**/node_modules/fp-ts/lib/EitherT",
+    "**/node_modules/fp-ts/lib/IOEither",
+    "**/node_modules/fp-ts/lib/JSON",
+    "**/node_modules/fp-ts/lib/Map",
+    "**/node_modules/fp-ts/lib/Number",
+    "**/node_modules/fp-ts/lib/Option",
+    "**/node_modules/fp-ts/lib/Task",
+    "**/node_modules/fp-ts/lib/TaskEither",
+    "**/node_modules/fp-ts/lib/FunctorWithIndex"
+  ]
 }
