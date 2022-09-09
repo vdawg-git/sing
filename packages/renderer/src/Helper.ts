@@ -72,6 +72,84 @@ export function doOrNotifyEither<A>(
   }, onRight)(data)
 }
 
+export function isOverflowingX(element: HTMLElement): boolean {
+  return element.scrollWidth > element.clientWidth
+}
+
+export function getFontSize(element: HTMLElement): number {
+  const stringedNumber = element.style.fontSize.replace("px", "")
+
+  return Number(stringedNumber)
+}
+
+export function setFontSize(element: HTMLElement, size: number) {
+  // eslint-disable-next-line no-param-reassign
+  element.style.fontSize = `${size}px`
+}
+
+/**
+ * To be used with the `use:` directive on an element with text
+ */
+export function doTextResizeToFitElement(
+  element: HTMLElement,
+  {
+    minSize,
+    maxSize,
+    step,
+  }: {
+    minSize: number
+    maxSize: number
+    step: number
+  }
+): SvelteActionReturnType {
+  let isFirtstExecution = true
+  let screenResizeTimeout: NodeJS.Timeout
+  let lastScreensize = document.body.clientWidth
+
+  startResizingFont()
+
+  document.addEventListener("resize", startResizingFont)
+
+  return {
+    destroy: () => document.removeEventListener("resize", startResizingFont),
+  }
+
+  function startResizingFont() {
+    if (isFirtstExecution) {
+      resizeFont()
+      isFirtstExecution = false
+      return
+    }
+
+    // Start the resize after a timeout to prevent spamming the function when the user resizes the screen
+    clearTimeout(screenResizeTimeout) // And cancel it everytime he resizes within the timeout
+    screenResizeTimeout = setTimeout(resizeFont, 900) // Then start it again
+
+    // Returns the fontSize index to be used
+    function resizeFont(): void {
+      const currentScreensize = document.body.clientWidth
+
+      if (!isFirtstExecution && currentScreensize === lastScreensize) return // no need to resize again
+
+      // Start with the min size and scale it up
+      setFontSize(element, minSize)
+
+      // if it starts overflowing, stop the scaling and go back back one step
+      let size = minSize
+
+      while (!isOverflowingX(element) && size <= maxSize) {
+        size += step
+
+        setFontSize(element, size)
+      }
+
+      setFontSize(element, size - step)
+
+      lastScreensize = currentScreensize
+    }
+  }
+}
+
 // // To be used in the future again, for now lets keep it simple again
 // export function truncatePath(path: string, length: number): string {
 //   const ellipse = "… "

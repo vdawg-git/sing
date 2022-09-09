@@ -76,6 +76,7 @@
     image={album.cover}
     type="Album"
     {actions}
+    backgroundImages={album.cover}
   />
 
   <TrackList

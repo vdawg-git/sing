@@ -11,15 +11,26 @@
   },
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.preferences.autoImportFileExcludePatterns": [
+    "**/node_modules/fp-ts/lib/Bifunctor",
+    "**/node_modules/fp-ts/lib/Bounded",
     "**/node_modules/fp-ts/lib/Console",
+    "**/node_modules/fp-ts/lib/Date",
     "**/node_modules/fp-ts/lib/EitherT",
+    "**/node_modules/fp-ts/lib/FromThese",
+    "**/node_modules/fp-ts/lib/FunctorWithIndex",
+    "**/node_modules/fp-ts/lib/IO",
     "**/node_modules/fp-ts/lib/IOEither",
+    "**/node_modules/fp-ts/lib/IOOption",
     "**/node_modules/fp-ts/lib/JSON",
     "**/node_modules/fp-ts/lib/Map",
+    "**/node_modules/fp-ts/lib/Monoid",
     "**/node_modules/fp-ts/lib/Number",
     "**/node_modules/fp-ts/lib/Option",
+    "**/node_modules/fp-ts/lib/OptionT",
     "**/node_modules/fp-ts/lib/Task",
     "**/node_modules/fp-ts/lib/TaskEither",
-    "**/node_modules/fp-ts/lib/FunctorWithIndex"
+    "**/node_modules/fp-ts/lib/These",
+    "**/node_modules/fp-ts/lib/TheseT",
+    "**/node_modules/fp-ts/"
   ]
 }

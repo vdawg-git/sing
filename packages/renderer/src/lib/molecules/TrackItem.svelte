@@ -63,8 +63,9 @@
     <a
       data-testattribute={TEST_ATTRIBUTES.trackItemArtist}
       on:click|preventDefault={navigateTo("artist")}
-      class="mr-6 flex-1 basis-32  overflow-hidden text-ellipsis whitespace-nowrap align-middle {!!track.artist
-        ? 'transition-colors hover:text-grey-200 active:hover:text-grey-300 disabled:hover:text-white'
+      class="mr-6 flex-1 basis-32  overflow-hidden text-ellipsis whitespace-nowrap align-middle 
+        {!!track.artist
+        ? 'hover:text-grey-200 active:hover:text-grey-300 disabled:hover:text-white'
         : ''}"
     >
       {displayMetadata("artist", track)}
@@ -96,7 +97,7 @@
 
   <!---- Hover bg -->
   <div
-    class="w-[calc(100% + 2rem)] group-active:bg-grey-60 absolute inset-0 -z-10 -ml-4  -mr-4 h-full  rounded-xl group-hover:bg-grey-700"
+    class="w-[calc(100% + 2rem)] group-active:bg-grey-60 absolute inset-0 -z-10 -ml-4  -mr-4 h-full  rounded-xl group-hover:bg-grey-500/60"
   />
 </div>
 

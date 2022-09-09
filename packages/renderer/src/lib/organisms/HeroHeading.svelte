@@ -4,29 +4,31 @@
   import type { FilePath } from "@sing-types/Filesystem"
 
   import Button from "@/lib/atoms/Button.svelte"
+  import { doTextResizeToFitElement } from "@/Helper"
+  import BackgroundGallery from "../atoms/BackgroundGallery.svelte"
 
   export let image: FilePath | undefined = undefined
   export let type: "Artist" | "Album" | "Playlist" | undefined = undefined
   export let title: string
   export let metadata: IHeroMetaDataItem[]
   export let actions: IHeroAction[] | undefined = undefined
+  export let backgroundImages: FilePath[] | FilePath | undefined = undefined
 
-  // TODO Resize titel automatically to fit the text (with a min and max size) - https://dev.to/jankapunkt/make-text-fit-it-s-parent-size-using-javascript-m40
-  // For that an invisible clone of the original could be created, measured and then check if it is overflowing vertically
-  // Height needs to be adjusted too as the texts descenders start clipping with the default height
+  // TODO disable focus indicator for now
 
-  // TODO add bg hero image(s)
+  // TODO Make scrollbars vanish when user has not scrolled for a while
 </script>
 
-<header class="mb-10 mt-32 flex max-w-full flex-col justify-start gap-10">
+<header class="mb-10 mt-32 flex max-w-full flex-col justify-start gap-10 ">
   <div class="flex max-w-full items-end gap-10 text-ellipsis ">
     <!-- Image / Cover -->
     {#if image}
       <div class="relative h-52 w-52 shrink-0">
         <img src={image} class="h-full w-full rounded" />
+        <!---- Backglow / Blur -->
         <img
           src={image}
-          class="absolute left-2  top-4 -z-10 h-48 w-48 rounded-lg opacity-40 blur-lg"
+          class="_backdrop absolute left-2 top-4 -z-10 h-48 w-48 rounded-lg opacity-40"
         />
       </div>
     {/if}
@@ -36,14 +38,17 @@
       {#if type}
         <div class="">{type}</div>
       {/if}
+
+      <!---- Title -->
       <h1
-        class="block h-[120px] overflow-x-hidden text-ellipsis whitespace-nowrap text-8xl"
+        class="block overflow-x-hidden text-ellipsis whitespace-nowrap text-8xl leading-tight"
+        use:doTextResizeToFitElement={{ minSize: 40, maxSize: 96, step: 8 }}
       >
         {title}
       </h1>
 
       <!-- Metadata -->
-      <div class="-mt-6 flex gap-2">
+      <div class="flex gap-2">
         {#each metadata as data}
           {#await data then awaitedData}
             <div
@@ -62,6 +67,10 @@
     </div>
   </div>
 
+  {#if backgroundImages}
+    <BackgroundGallery {backgroundImages} />
+  {/if}
+
   <!--- Actions -->
   {#if actions}
     <div class="flex gap-6">
@@ -71,3 +80,9 @@
     </div>
   {/if}
 </header>
+
+<style>
+  ._backdrop {
+    filter: blur(16px) brightness(2.5) saturate(2);
+  }
+</style>

@@ -90,3 +90,12 @@ h6 {
   -webkit-user-drag: none;
   -webkit-app-region: no-drag;
 }
+
+/**==================================================================
+**			Custom utillity classes 
+**=================================================================*/
+.squishy {
+  &:active {
+    transform: scale(0.99, 0.97);
+  }
+}

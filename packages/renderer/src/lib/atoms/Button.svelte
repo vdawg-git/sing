@@ -16,8 +16,9 @@
 <button
   data-testid={testid}
   on:click
-  class="flex min-w-[9rem] cursor-pointer  justify-center gap-3 rounded-lg
-		    px-6 py-3 uppercase  transition-opacity hover:opacity-80 active:opacity-60 disabled:cursor-default disabled:bg-grey-300 disabled:hover:opacity-100
+  class="squishy flex min-w-[9rem]  cursor-pointer justify-center gap-3
+		    rounded-lg px-6 py-3  uppercase transition-all hover:opacity-80 active:opacity-60 disabled:cursor-default
+        disabled:bg-grey-300 disabled:hover:opacity-100 
         {buttonClass} {classes}"
   {disabled}
 >

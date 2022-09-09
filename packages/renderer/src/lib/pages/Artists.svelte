@@ -41,7 +41,6 @@
           id,
           type: "artists",
           sort: ["album", "ascending"],
-          index: 0,
         })}
       on:clickedPrimary={navigateToArtist}
       on:clickedSecondary={navigateToArtist}

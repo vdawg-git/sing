@@ -139,15 +139,12 @@ export async function addTrackToDB(
 export async function deleteTracksInverted(
   filepaths: readonly FilePath[]
 ): Promise<Either<IError, number>> {
-  log(filepaths)
-
   const pathsString = filepaths
     .map((path) => path.replace(/'/g, "''")) // Prevent the query from breaking if a value contains single quote(s)
     .map((path) => `'${path}'`)
     .join(",")
 
   const query = `DELETE FROM ${S.TRACK} WHERE ${S.filepath} NOT IN (${pathsString})`
-  log(query)
 
   return prisma
     .$executeRawUnsafe(query)
