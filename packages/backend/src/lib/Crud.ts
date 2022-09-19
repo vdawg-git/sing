@@ -7,7 +7,7 @@ import log from "ololog"
 import { SQL_STRINGS as S } from "./Consts"
 import createPrismaClient from "./CustomPrismaClient"
 
-import type { Prisma } from "@prisma/client"
+import type { Prisma, PrismaPromise } from "@prisma/client"
 import type {
   IAlbum,
   IError,
@@ -77,7 +77,7 @@ export async function getCovers(
 
 export async function getArtists(
   options?: Prisma.ArtistFindManyArgs
-): Promise<Either<IError, IArtist[]>> {
+): Promise<Either<IError, readonly IArtist[]>> {
   const usedOptions: Prisma.ArtistFindManyArgs = {
     orderBy: { name: "asc" },
     ...(options && { options }),
@@ -91,10 +91,14 @@ export async function getArtists(
     },
   }
 
-  return prisma.artist
-    .findMany(usedOptions)
+  const response = prisma.artist.findMany(usedOptions) as PrismaPromise<
+    IArtist[]
+  >
+
+  return response
     .then(mapArray(removeNulledKeys))
-    .then((artists) => right(artists as IArtist[]))
+    .then(mapArray(addArtistImage))
+    .then(right)
     .catch(createError("Failed to get from database"))
 }
 
@@ -113,10 +117,14 @@ export async function getArtist(
     },
   }
 
-  return prisma.artist
-    .findUniqueOrThrow(usedOptions)
+  const response = prisma.artist.findUniqueOrThrow(
+    usedOptions
+  ) as unknown as PrismaPromise<IArtist>
+
+  return response
     .then(removeNulledKeys)
-    .then((artist) => right(artist as unknown as IArtist))
+    .then(addArtistImage)
+    .then(right)
     .catch(createError("Failed to get from database"))
 }
 
@@ -227,11 +235,21 @@ function createError(
 
     if (!isKeyOfObject(error, "message")) return left({ type, error })
 
-    log.error.red(error)
+    log.error.red(type, error)
 
     return left({
       type,
       error: { ...error, message: error.message },
     })
+  }
+}
+
+function addArtistImage(artist: IArtist): IArtist {
+  // Get the artist image from one of his album covers. Later we will use an API for that
+  const image = artist.albums.find(({ cover }) => cover === undefined)?.cover
+
+  return {
+    ...artist,
+    image,
   }
 }

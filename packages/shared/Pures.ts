@@ -36,18 +36,22 @@ export function filterPathsByExtenstions(
   )
 }
 
-export function convertFilepathToFilename(
-  keepExtension: boolean,
+export function convertFilepathToFilename(filepath: FilePath): string {
+  const filename = filepath.split("/").at(-1) as string
+
+  const dotLocation = filename?.lastIndexOf(".")
+
+  const filenameWithoutExtension = filename?.slice(0, Math.max(0, dotLocation))
+
+  return filenameWithoutExtension
+}
+
+export function convertFilepathToFilenameWithExtension(
   filepath: FilePath
 ): string {
   const filename = filepath.split("/").at(-1) as string
 
-  if (keepExtension) return filename
-
-  const dotIndex = filename?.lastIndexOf(".")
-  const filenameWithoutExtension = filename?.slice(0, Math.max(0, dotIndex))
-
-  return filenameWithoutExtension
+  return filename
 }
 
 export function getSupportedMusicFiles(
@@ -265,8 +269,8 @@ export function sortTracks([sortBy, sortOrder]: ISortOptions["tracks"]): (
     const sorted = [...tracks].sort((a, b) => {
       if (a[sortBy] === undefined || b[sortBy] === undefined) {
         return sortString(
-          a.title ?? convertFilepathToFilename(false, a.filepath),
-          b.title ?? convertFilepathToFilename(false, b.filepath)
+          a.title ?? convertFilepathToFilename(a.filepath),
+          b.title ?? convertFilepathToFilename(b.filepath)
         )
       }
 
@@ -298,6 +302,29 @@ export function sortString(a2: string, b2: string): 0 | -1 | 1 {
  */
 export function isDefined<T>(input: T | undefined | null): input is T {
   return input !== undefined && input !== null
+}
+
+/**
+ * To be used with `Array.reduce`
+ * @param total
+ * @param toAdd
+ * @returns The total of the summed numbers
+ */
+export function sumUpNumber(total: number, toAdd: number): number {
+  return total + toAdd
+}
+
+/**
+ * Designed to be used with `Array.filter()`, but also on its own
+ * @param item To item to be checked
+ * @returns True if the item is truthy, false otherwise
+ */
+export function filterOutFalsy<T>(
+  item: T | undefined | false | "" | null | 0
+): item is T {
+  if (item === undefined) return false
+
+  return true
 }
 
 // ?########################################################################

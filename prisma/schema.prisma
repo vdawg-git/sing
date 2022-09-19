@@ -10,9 +10,10 @@ datasource db {
 }
 
 model Track {
-  id       Int     @id @default(autoincrement())
-  title    String?
-  filepath String  @unique
+  id        Int        @id @default(autoincrement())
+  title     String?
+  filepath  String     @unique
+  playlists Playlist[]
 
   artistName      Artist? @relation(name: "artist", fields: [artist], references: [name])
   artist          String?
@@ -170,6 +171,7 @@ model Artist {
   tracks            Track[] @relation(name: "artist")
   albumartistTracks Track[] @relation(name: "albumartist")
   albums            Album[]
+  image             String? /// This is the filepath to the image
 }
 
 model Cover {
@@ -177,4 +179,9 @@ model Cover {
   filepath String  @unique
   album    Album?
   tracks   Track[]
+}
+
+model Playlist {
+  id     String  @id
+  tracks Track[]
 }

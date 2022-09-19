@@ -57,6 +57,9 @@ module.exports = {
       transitionTimingFunction: {
         bounce: "cubic-bezier(0.375, 0.055, 0.195, 1.535)",
       },
+      fontSize: {
+        xs2: ["10px", "12px"],
+      },
     },
   },
   plugins: [],

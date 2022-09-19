@@ -156,7 +156,7 @@ function createPlayerManager() {
       return
     }
 
-    // If the source has changed (user played an album and then started playing an artist)
+    // If the source has changed (For exmaple: User played an album and then started playing an artist)
     const tracksEither = await getTracksFromSource({ type, id })
 
     doOrNotifyEither(

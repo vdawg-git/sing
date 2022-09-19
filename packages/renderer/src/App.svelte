@@ -13,6 +13,7 @@
   import Album from "./lib/pages/Album.svelte"
   import Artists from "./lib/pages/Artists.svelte"
   import Artist from "./lib/pages/Artist.svelte"
+  import Searchbar from "./lib/organisms/Searchbar.svelte"
 
   const hashHistory = createHistory(createHashSource())
 
@@ -26,9 +27,11 @@
 </script>
 
 <main class="select-none  text-white ">
-  <NotificationsRenderer />
-
   <Router history={hashHistory}>
+    <NotificationsRenderer />
+
+    <Searchbar />
+
     <div class="flex">
       <Sidebar />
 

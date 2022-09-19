@@ -5,7 +5,7 @@
   import { createEventDispatcher } from "svelte"
   import IconClose from "virtual:icons/heroicons-outline/x"
   import { TEST_IDS as testID, TEST_ATTRIBUTES } from "@/TestConsts"
-  import { displayMetadata, titleToDisplay } from "@/Helper"
+  import { displayMetadata } from "@/Helper"
   type ITestIDs =
     | typeof testID.queueCurrentTrack
     | typeof testID.queuePreviousTrack
