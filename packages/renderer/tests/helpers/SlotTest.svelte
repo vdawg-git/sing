@@ -3,8 +3,9 @@
 
   import type { SvelteComponentDev } from "svelte/internal"
 
-  export let componentToTest: SvelteComponentDev
-  export let slottedComponent: SvelteComponentDev | undefined = undefined
+  export let componentToTest: ConstructorOfATypedSvelteComponent
+  export let slottedComponent: ConstructorOfATypedSvelteComponent | undefined =
+    undefined
 </script>
 
 <svelte:component

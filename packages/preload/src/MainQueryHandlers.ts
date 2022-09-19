@@ -7,12 +7,7 @@ import { queryBackend } from "./BackendProcess"
 
 import type { Either } from "fp-ts/lib/Either"
 import type { IpcMainInvokeEvent, OpenDialogReturnValue } from "electron"
-import type {
-  IAlbumWithTracks,
-  IArtist,
-  IElectronPaths,
-  IError,
-} from "@sing-types/Types"
+import type { IAlbum, IArtist, IElectronPaths, IError } from "@sing-types/Types"
 import type {
   IUserSettings,
   IUserSettingsKey,
@@ -49,7 +44,7 @@ const mainQueryHandlers = {
   getAlbum: async (
     _: IpcMainInvokeEvent,
     options: Prisma.AlbumFindUniqueOrThrowArgs
-  ): Promise<Either<IError, IAlbumWithTracks>> =>
+  ): Promise<Either<IError, IAlbum>> =>
     queryBackend({
       event: "getAlbum",
       arguments_: options,
@@ -109,6 +104,13 @@ const mainQueryHandlers = {
     _: IpcMainInvokeEvent,
     setting: Key
   ): Promise<IUserSettings[Key]> => userSettingsStore.get(setting),
+
+  search: async (_: IpcMainInvokeEvent, query: string) =>
+    queryBackend({
+      event: "search",
+      arguments_: query,
+      queryID: createUID(),
+    }),
 }
 
 export default mainQueryHandlers

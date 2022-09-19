@@ -28,7 +28,10 @@
 
 <nav
   data-testid={id.sidebar}
-  class="custom_style h-screen w-[15.5rem] flex-shrink-0 rounded-3xl bg-grey-800/50 p-6"
+  class="
+    custom_style z-10 h-screen w-[15.5rem] 
+    flex-shrink-0 rounded-3xl bg-grey-800/50 p-6
+    "
 >
   <div class="mb-10 flex justify-between">
     <Logo class="h-6 w-6  text-white/50" />

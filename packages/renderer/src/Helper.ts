@@ -12,7 +12,7 @@ import type { Either } from "fp-ts/lib/Either"
 export function titleToDisplay(track: ITrack): string {
   if (track?.title) return track.title
 
-  return convertFilepathToFilename(false, track.filepath)
+  return convertFilepathToFilename(track.filepath)
 }
 
 export function displayMetadata(type: keyof ITrack, track: ITrack): string {

@@ -88,6 +88,7 @@ export function listen<Key extends keyof IFrontendEventsConsume>(
 ) {
   ipcRenderer.on(channel, listener)
 
+  // Return the unsubscribe function, because unsubscribing doesn't work otherwise
   return () => ipcRenderer.removeListener(channel, listener)
 }
 
@@ -97,4 +98,8 @@ export function resetMusic(): void {
 
 export function getListeners(event: keyof IFrontendEventsSend) {
   ipcRenderer.listeners(event)
+}
+
+export async function search(query: string) {
+  return ipcRenderer.invoke("search", query)
 }

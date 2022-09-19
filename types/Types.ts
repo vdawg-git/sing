@@ -3,10 +3,18 @@ import type { app } from "electron"
 import type * as mm from "music-metadata"
 import type { CamelCase, ReadonlyDeep, SetOptional } from "type-fest"
 import type { Either } from "fp-ts/lib/Either"
-import type { Track, Album, Artist, Cover, Prisma } from "@prisma/client"
+import type {
+  Track,
+  Album,
+  Artist,
+  Cover,
+  Prisma,
+  Playlist,
+} from "@prisma/client"
 import type { DeepReadonlyNullToUndefined, OnlyKeysOf } from "./Utilities"
 import type { FilePath } from "./Filesystem"
 import type { StrictExtract } from "ts-essentials"
+import type Fuse from "fuse.js"
 
 export type ITrack = DeepReadonlyNullToUndefined<Track> & {
   readonly filepath: FilePath
@@ -61,6 +69,8 @@ export type ISyncResult = Either<
     readonly albums: readonly IAlbum[]
   }
 >
+
+export type IPlaylist = Playlist
 
 export type IElectronPaths = Parameters<typeof app.getPath>[0]
 
@@ -134,7 +144,7 @@ export interface IErrorMMDParsingError extends IError {
 }
 
 export type ITracksSource = `${CamelCase<
-  StrictExtract<Prisma.ModelName, "Artist" | "Album" | "Track">
+  StrictExtract<Prisma.ModelName, "Artist" | "Album" | "Track" | "Playlist">
 >}s`
 
 export type ISortOrder = "ascending" | "descending"
@@ -148,52 +158,69 @@ export type ITrackSortTypes = StrictExtract<
   "album" | "artist" | "duration" | "title" | "trackNo"
 >
 
+// TODO makes albums sortable by release date
+/**
+ * The sort options for the different pages.
+ * Like albums can be sorted by name (in the future also by release data) and tracks can be sorted a much bigger variety of options
+ */
 export type ISortOptions = makeSortOptions<{
   albums: "name"
   tracks: ITrackSortTypes
   artists: "name"
+  playlists: "name"
 }>
 
 export type IPlaySource = {
-  [Key in ITracksSource]: ReadonlyDeep<{
-    type: Key
+  [Source in ITracksSource]: ReadonlyDeep<{
+    type: Source
     // Only tracks need to be sorted for the queue
     sort: ISortOptions["tracks"]
-    // Only tracks have a numeric id, and we don't need their ID when playing back a source, as they would be played from "My tracks" anyway and otherwise it is always an album, artist etc. with an ID
-    id?: Key extends StrictExtract<ITracksSource, "tracks"> ? never : string
+    // Only playback of a track has a numeric id, and we don't need this ID when playing back a source, as they are being played from "My tracks" anyway and otherwise it is always an album, artist etc. with an ID
+    id?: Source extends StrictExtract<ITracksSource, "tracks"> ? never : string
   }>
 }[ITracksSource]
 
-// const x: IPlaySourceCommand = {
-//   type: "albums",
-//   index: 0,
-//   id: "lol",
-//   sort: ["trackNo", "ascending"]
-// }
+/**
+ * This is the structure of the data to get searched. The primary and secondary etc. determine the search weigth accordingly
+ */
+export interface ISearchItemData {
+  readonly type: "artist" | "album" | "track"
+  readonly primary: string
+  readonly secondary?: string
+  readonly tertiary?: string
+  readonly image?: FilePath
+}
 
-// const {sort} = x
+/**
+ * The search results from the backend to the renderer.
+ * Keys without results do not get included
+ */
+export interface ISearchResult {
+  readonly topMatches?: readonly Fuse.FuseResult<ISearchItemData>[]
 
-// type AllXOR<T extends any[]> = T extends [infer Only]
-//   ? Only
-//   : T extends [infer A, infer B, ...infer Rest]
-//   ? AllXOR<[XOR<A, B>, ...Rest]>
-//   : never
+  readonly artists?: readonly {
+    name: string
+    image: FilePath | undefined
+    score?: number
+  }[]
 
-// interface x {
-//   a: string
-//   b: string
-//   c: string
-// }
+  readonly albums?: readonly {
+    name: string
+    artist?: string
+    image?: FilePath
+    score?: number
+  }[]
 
-// type limitToX<T extends Exact<x, T>> = T
+  readonly tracks?: readonly {
+    title: string
+    artist?: string
+    album?: string
+    image?: FilePath
+    score?: number
+  }[]
+}
 
-// type x2 = limitToX<{
-//   a: string
-//   b: string
-//   c: string
-
-// }>
-
-// type x = Prisma.ArtistGetPayload<{
-//   include: { tracks: true; albums: true }
-// }>
+export interface ISubtext {
+  label: string
+  onClick?: () => void
+}

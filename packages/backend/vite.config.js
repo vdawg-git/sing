@@ -38,6 +38,7 @@ const config = {
       external: [
         "@prisma/client",
         "ololog",
+        "fuse.js",
         ...builtinModules.flatMap((p) => [p, `node:${p}`]),
       ],
       output: {
