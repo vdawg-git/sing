@@ -13,10 +13,12 @@ import type {
   IRawAudioMetadata,
   IRawAudioMetadataWithPicture,
   ISortOptions,
+  ISortOrder,
   ITrack,
 } from "@sing-types/Types"
 
 import type {
+  KeyOfConditional,
   ArraysToString,
   FlattenObject,
   NullToUndefined,
@@ -262,11 +264,16 @@ export function hasCover(
   return true
 }
 
-export function sortTracks([sortBy, sortOrder]: ISortOptions["tracks"]): (
-  tracks: readonly ITrack[]
-) => readonly ITrack[] {
+export function sortTracks([sortBy, sortOrder]:
+  | ISortOptions["tracks"]
+  | ["RANDOM"]): (tracks: readonly ITrack[]) => readonly ITrack[] {
   return (tracks) => {
+    if (sortBy === "RANDOM") {
+      return shuffleArray(tracks)
+    }
+
     const sorted = [...tracks].sort((a, b) => {
+      // If the value at the specified key is undefined, then sort by the title or if this one is undefined, too, sort by the filename
       if (a[sortBy] === undefined || b[sortBy] === undefined) {
         return sortString(
           a.title ?? convertFilepathToFilename(a.filepath),
@@ -277,6 +284,7 @@ export function sortTracks([sortBy, sortOrder]: ISortOptions["tracks"]): (
       if (typeof a[sortBy] === "number" && typeof b[sortBy] === "number") {
         return (a[sortBy] as number) - (b[sortBy] as number)
       }
+
       if (typeof a[sortBy] === "string" && typeof b[sortBy] === "string") {
         return sortString(a[sortBy] as string, b[sortBy] as string)
       }
@@ -284,8 +292,61 @@ export function sortTracks([sortBy, sortOrder]: ISortOptions["tracks"]): (
       throw new Error("Invalid sort type")
     })
 
+    // The sort was done ascending, reverse it if it should be descending
     return sortOrder === "ascending" ? sorted : sorted.reverse()
   }
+}
+
+/**
+ *
+ * @param sortBy The key which values get sorted. Only numbers and strings are supported
+ * @returns A function which takes in an array of objects and sorts it
+ */
+export function sortByKey<T extends Record<string, unknown>>(
+  [sortBy, sortOrder]:
+    | readonly [KeyOfConditional<T, string | number>, ISortOrder]
+    | readonly ["RANDOM"],
+  array: readonly T[]
+): readonly T[] {
+  if (sortBy === "RANDOM") {
+    return shuffleArray(array)
+  }
+
+  const sorted = [...array].sort((a, b) => {
+    if (typeof a[sortBy] === "string" && typeof a[sortBy] === "string") {
+      return sortString(a[sortBy] as string, b[sortBy] as string)
+    }
+
+    if (typeof a[sortBy] === "number" && typeof b[sortBy] === "number") {
+      return (a[sortBy] as number) - (b[sortBy] as number)
+    }
+
+    throw new Error(
+      `Invalid value to sort. Sortable types are string & string and number & number. Received types: \nA: "${typeof a[
+        sortBy
+      ]}" with the value "${a[sortBy]}" \nand B: type "${typeof b[
+        sortBy
+      ]}" with the value "${a[sortBy]}"`
+    )
+  }) as unknown as T[]
+
+  return sortOrder === "ascending" ? sorted : sorted.reverse()
+}
+
+export function shuffleArray<T>(array: readonly T[]): readonly T[] {
+  return array
+    .map((value) => ({ value, sort: Math.random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ value }) => value)
+}
+
+/**
+ * Not really pure, please dont judge me
+ * @param max The maximum
+ * @returns An integer from 0 to max
+ */
+export function createRandomIntegerFromZeroTo(max: number) {
+  return Math.max(0, Math.floor(max * Math.random()))
 }
 
 /**

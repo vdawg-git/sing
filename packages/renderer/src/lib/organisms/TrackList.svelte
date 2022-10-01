@@ -39,7 +39,8 @@
   }
 </script>
 
-<div class="flex w-full  flex-col">
+<div class="flex w-full flex-col">
+  <!---- Header -->
   <div
     class="
       flex w-full py-4 text-left 
@@ -57,6 +58,8 @@
       <div class="mr-6 flex-1 basis-32">Album</div>{/if}
     <div class="flex-1 grow-0 basis-12 text-right">Length</div>
   </div>
+
+  <!---- List -->
   <div
     data-testid={testID}
     class="tracksList w-full"
@@ -77,8 +80,9 @@
       />
     </VirtualList>
   </div>
+
   <!---- Add an empty element to allow for scrolling elements which are behind the playbar -->
-  <div class=" h-24 w-full" />
+  <div class="h-24 w-full" />
 </div>
 
 <style>

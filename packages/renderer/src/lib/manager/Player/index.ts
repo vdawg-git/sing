@@ -1,25 +1,28 @@
 import { doOrNotifyEither, sortAlphabetically } from "@/Helper"
 import audioPlayer from "@/lib/manager/player/AudioPlayer"
-import { sortTracks } from "@sing-shared/Pures"
 import { dequal } from "dequal"
 import { map as mapEither } from "fp-ts/lib/Either"
 import { derived, get, writable } from "svelte/store"
+import { match } from "ts-pattern"
 
 import indexStore from "./stores/PlayIndex"
 import queueStore from "./stores/QueueStore"
 
 import type { Either } from "fp-ts/lib/Either"
-import type { IPlayState, IQueueItem } from "@/types/Types"
+import type { IPlayLoop, IPlayState, IQueueItem } from "@/types/Types"
 import type {
   ITrack,
   ISyncResult,
   IAlbum,
   IArtist,
   IError,
-  IPlaySource,
+  IPlayblackToSend,
+  IPlayback,
+  INewPlayback,
+  ISortOptions,
 } from "@sing-types/Types"
-import type { Unsubscriber } from "svelte/store"
 import type { IpcRendererEvent } from "electron"
+// TODO Add genre to the db, too
 
 // Create stores / state
 const playStateStore = writable<IPlayState>("STOPPED")
@@ -29,17 +32,17 @@ const durationStore = writable(0)
 const tracksStore = writable<readonly ITrack[]>([])
 const albumsStore = writable<readonly IAlbum[]>([])
 const artistsStore = writable<readonly IArtist[]>([])
-const sourceStore = writable<IPlaySource>({
-  type: "tracks",
-  sort: ["title", "ascending"],
+const playbackStore = writable<IPlayback>({
+  source: "tracks",
+  sortBy: ["title", "ascending"],
 })
+const isShuffleOnStore = writable(false)
+const playLoopStore = writable<IPlayLoop>("NONE")
 
-// TODO add genre to the db, too
-
-// Init stores with the music
+// Initialise stores with the music from the database
 await initialiseStores()
 
-// Now it makes sense to create and use the derived stores
+// Now it makes sense to create and use the derived stores, as the base stores are initialised
 export const currentTrack = derived(
   [queueStore, indexStore],
   ([$queue, $index]) => $queue[$index]
@@ -53,242 +56,318 @@ export const nextTracks = derived(
   ([$queue, $index]) => $queue.slice($index + 1)
 )
 
-function createPlayerManager() {
-  let $playState: IPlayState = "STOPPED"
-  let $queue: IQueueItem[] = []
-  let $currentIndex = -1
-  let $currentTrack: IQueueItem
-  let seekAnimationID: number
+// Bind the values of the stores localy.
+let $playState: IPlayState = "STOPPED"
+let $queue: IQueueItem[] = []
+let $currentIndex = -1
+let $currentTrack: IQueueItem
+let seekAnimationID: number
+let $isShuffleOn: boolean
+let $playLoop: IPlayLoop
 
-  // Subscribe to all stores and get the unsubscribers
-  const unsubscribers: Unsubscriber[] = [
-    queueStore.subscribe(($newQueue) => {
-      $queue = $newQueue
-    }),
-    indexStore.subscribe(($newIndex) => {
-      $currentIndex = $newIndex
-      resetCurrentTime()
-    }),
+// How to do "set shuffle" and then "unset shuffle" ?
 
-    playStateStore.subscribe(handlePlayStateUpdate),
-    currentTrack.subscribe(($newCurrentTrack) => {
-      $currentTrack = $newCurrentTrack
-    }),
+/**
+ * Stores the state before the user hit `shuffle`, so that when the user disables shuffling again, it can revert back to normal.
+ */
+// let beforeShuffle: { sort: ISortOptions["tracks"]; index: number } | undefined
 
-    window.api.listen("syncedMusic", handleSyncUpdate),
-  ]
+queueStore.subscribe(($newQueue) => {
+  $queue = $newQueue
+})
 
-  // Events
-  audioPlayer.audio.addEventListener("ended", handleTrackEnded)
-  audioPlayer.audio.addEventListener("volumechange", onVolumeChange)
+indexStore.subscribe(($newIndex) => {
+  $currentIndex = $newIndex
+  resetCurrentTime()
+})
 
-  return {
-    destroy,
-    isMuted,
-    next,
-    pause,
-    playQueueIndex: playFromQueue,
-    playFromSource,
-    previous,
-    removeIndexFromQueue,
-    resume,
-    seekTo,
-    setMuted,
-    setVolume,
-  }
+playStateStore.subscribe(handlePlayStateUpdate)
 
-  function handleTrackEnded() {
-    next()
-  }
+currentTrack.subscribe(($newCurrentTrack) => {
+  $currentTrack = $newCurrentTrack
+})
 
-  function handlePlayStateUpdate(newState: IPlayState) {
-    $playState = newState
+isShuffleOnStore.subscribe(($newPlayMode) => {
+  $isShuffleOn = $newPlayMode
+})
 
-    if (newState === "PLAYING") {
-      durationStore.set($currentTrack.track?.duration || 0)
-      intervalUpdateTime()
-    } else {
-      cancelIntervalUpdateTime()
-    }
-  }
+playLoopStore.subscribe(($newPlayLoop) => {
+  $playLoop = $newPlayLoop
+})
 
-  function onVolumeChange() {
-    volumeStore.set(audioPlayer.getVolume())
-  }
+// Events
+window.api.listen("syncedMusic", handleSyncUpdate)
+audioPlayer.audio.addEventListener("ended", handlePlayNext)
+audioPlayer.audio.addEventListener("volumechange", onVolumeChange)
 
-  function setVolume(newVolume: number) {
-    audioPlayer.setVolume(newVolume)
-  }
+export function handlePlayNext() {
+  // I want to find a way to make this nicer
 
-  function seekTo(percentage: number) {
-    const newCurrentTime = ($currentTrack.track.duration || 0) * percentage
-    audioPlayer.audio.currentTime = newCurrentTime
+  // If the current track is set to loop, loop it
+  if ($playLoop === "LOOP_TRACK") {
+    durationStore.set(0)
 
-    currentTimeStore.set(newCurrentTime)
-  }
-
-  function intervalUpdateTime() {
-    const newTime = audioPlayer.getCurrentTime()
-
-    currentTimeStore.set(newTime)
-
-    seekAnimationID = requestAnimationFrame(intervalUpdateTime)
-  }
-
-  function cancelIntervalUpdateTime() {
-    cancelAnimationFrame(seekAnimationID)
-  }
-
-  /**
-   * Starts playback and initializes the queue
-   */
-  async function playFromSource(source: IPlaySource, index = 0) {
-    const { type, id, sort } = source
-
-    console.log("sourceStore:", get(sourceStore))
-    console.log("new source:", source)
-    console.log(dequal(get(sourceStore), source))
-
-    if (dequal(get(sourceStore), source)) {
-      indexStore.set(index)
-
+    if ($playState === "PLAYING") {
       startPlayingTrack($currentTrack.track)
-      return
     }
 
-    // If the source has changed (For exmaple: User played an album and then started playing an artist)
-    const tracksEither = await getTracksFromSource({ type, id })
+    return
+  }
 
-    doOrNotifyEither(
-      tracksEither,
-      "Error while trying to play selected music",
-      (tracks) => {
-        indexStore.set(index)
-        queueStore.setTracks(sortTracks(sort)(tracks), $currentIndex)
-        sourceStore.set(source)
+  // If the queue reached its end
+  if ($currentIndex === $queue.length - 1) {
+    if ($playLoop === "LOOP_QUEUE") {
+      indexStore.set(0)
 
+      if ($playState === "PLAYING") {
         startPlayingTrack($currentTrack.track)
       }
-    )
-  }
+    } else if ($playState === "PLAYING") {
+      console.log("Play random")
 
-  function startPlayingTrack(track: ITrack) {
-    playStateStore.set("PLAYING")
-    audioPlayer.play(track.filepath)
-  }
-
-  function resume() {
-    playStateStore.set("PLAYING")
-
-    audioPlayer.resume()
-  }
-
-  function next() {
-    // Update index
-    indexStore.update((index) => {
-      if (index >= $queue.length - 1) return 0
-      return index + 1
-    })
-
-    // Play next song
-    if ($playState === "STOPPED" || $playState === "PAUSED")
-      audioPlayer.setSource($currentTrack.track.filepath)
-    else audioPlayer.play($currentTrack.track.filepath)
-  }
-
-  function previous() {
-    indexStore.update((index) => {
-      if (index <= 0) return $queue.length - 1
-      return index - 1
-    })
-
-    if ($playState === "STOPPED" || $playState === "PAUSED")
-      audioPlayer.setSource($currentTrack.track.filepath)
-    else {
-      audioPlayer.play($currentTrack.track.filepath)
+      playRandomTracksPlayback()
+    } else {
+      goToRandomTracksPlayback()
     }
+  } else {
+    // If it did not reach its end and it is not looping. simply go to the next track
+    console.log("Playing next")
+
+    playNext()
+  }
+}
+
+export function handleClickedPrevious() {
+  playPrevious()
+}
+
+async function playRandomTracksPlayback() {
+  await goToRandomTracksPlayback()
+
+  startPlayingTrack($currentTrack.track)
+}
+
+// Maybe better as only a new Playbacksource, which would set a new queue and index anyway
+async function goToRandomTracksPlayback() {
+  const playback = {
+    source: "tracks",
+    sortBy: ["title", "ascending"],
+    isShuffleOn: true,
+  } as const
+
+  const tracksEither = await getTracksFromSource(playback)
+
+  doOrNotifyEither(
+    "Error while trying to play selected music",
+    (tracks) => {
+      setNewPlayback({
+        tracks,
+        index: 0,
+        playback,
+      })
+    },
+    tracksEither
+  )
+}
+
+export function setVolume(newVolume: number) {
+  audioPlayer.setVolume(newVolume)
+}
+
+export function seekTo(percentage: number) {
+  const newCurrentTime = ($currentTrack.track.duration || 0) * percentage
+  audioPlayer.audio.currentTime = newCurrentTime
+
+  currentTimeStore.set(newCurrentTime)
+}
+
+export function resumePlayback() {
+  playStateStore.set("PLAYING")
+
+  audioPlayer.resume()
+}
+
+function playPrevious() {
+  indexStore.update((index) => {
+    if (index <= 0) return $queue.length - 1
+    return index - 1
+  })
+
+  if ($playState === "STOPPED" || $playState === "PAUSED")
+    audioPlayer.setSource($currentTrack.track.filepath)
+  else {
+    audioPlayer.play($currentTrack.track.filepath)
+  }
+}
+
+export function pausePlayback() {
+  playStateStore.set("PAUSED")
+  audioPlayer.pause()
+}
+
+export function setMuted(muted: boolean) {
+  audioPlayer.setMuted(muted)
+}
+
+export function isMuted() {
+  return audioPlayer.isMuted()
+}
+
+/**
+ * Play a track from the queue and update the index according to the track index in the queue.
+ */
+export function playFromQueue(index: number): void {
+  indexStore.set(index)
+
+  startPlayingTrack($currentTrack.track)
+}
+
+export function removeIndexFromQueue(index: number): void {
+  queueStore.removeIndex(index)
+
+  if (index < $currentIndex) {
+    indexStore.decrement() // So that the current track stays the same
   }
 
-  function pause() {
-    playStateStore.set("PAUSED")
-    audioPlayer.pause()
+  if ($currentIndex === index && $playState === "PLAYING") {
+    startPlayingTrack($currentTrack.track)
   }
+}
 
-  function setMuted(muted: boolean) {
-    audioPlayer.setMuted(muted)
-  }
+/**
+ * Starts playback and initializes a new queue
+ */
+export async function playNewSource(playback: INewPlayback, index = 0) {
+  console.log("sourceStore:", get(playbackStore))
+  console.log("new source:", playback)
+  console.log(dequal(get(playbackStore), playback))
 
-  function isMuted() {
-    return audioPlayer.isMuted()
-  }
-
-  function destroy() {
-    for (const unsubscriber of unsubscribers) {
-      unsubscriber()
-    }
-
-    audioPlayer.destroy()
-  }
-
-  /**
-   * Play a track from the queue and update the index according to the track index in the queue.
-   */
-  function playFromQueue(index: number): void {
+  // If the source stayed the same then just go to the specified index of the queue
+  if (dequal(get(playbackStore), playback)) {
     indexStore.set(index)
 
     startPlayingTrack($currentTrack.track)
+    return
   }
 
-  function removeIndexFromQueue(index: number): void {
-    queueStore.removeIndex(index)
+  // If the source has changed
+  // For example: User played an album and then started playing an artist
+  const defaultSort: ISortOptions["tracks"] = ["title", "ascending"]
 
-    if (index < $currentIndex) {
-      indexStore.decrement() // So that the current track stays the same
-    }
+  const tracksEither = await getTracksFromSource({
+    sortBy: defaultSort,
+    ...playback,
+    isShuffleOn: $isShuffleOn,
+  })
 
-    if ($currentIndex === index && $playState === "PLAYING") {
+  doOrNotifyEither(
+    "Error while trying to play selected music",
+    (tracks) => {
+      setNewPlayback({
+        tracks,
+        index,
+        playback: { sortBy: defaultSort, ...playback },
+      })
+
       startPlayingTrack($currentTrack.track)
-    }
+    },
+    tracksEither
+  )
+}
+
+/**
+ * Starts and sets a new playback.
+ * If not sortBy is set then use the default sorting
+ */
+function setNewPlayback({
+  index,
+  tracks,
+  playback,
+}: {
+  index: number
+  tracks: readonly ITrack[]
+  playback: IPlayback
+}): void {
+  indexStore.set(index)
+  queueStore.setTracks(tracks, $currentIndex)
+  playbackStore.set(playback)
+}
+
+function playNext() {
+  // Update index
+  indexStore.increment()
+
+  startPlayingTrack($currentTrack.track)
+}
+
+function goToNextTrack() {
+  indexStore.increment()
+}
+
+function handlePlayStateUpdate(newState: IPlayState) {
+  $playState = newState
+
+  if (newState === "PLAYING") {
+    durationStore.set($currentTrack.track?.duration || 0)
+    startIntervalUpdateTime()
+  } else {
+    cancelIntervalUpdateTime()
   }
+}
+
+function onVolumeChange() {
+  volumeStore.set(audioPlayer.getVolume())
+}
+
+function startIntervalUpdateTime() {
+  const newTime = audioPlayer.getCurrentTime()
+
+  currentTimeStore.set(newTime)
+
+  seekAnimationID = requestAnimationFrame(startIntervalUpdateTime)
+}
+
+function cancelIntervalUpdateTime() {
+  cancelAnimationFrame(seekAnimationID)
+}
+
+function startPlayingTrack(track: ITrack) {
+  playStateStore.set("PLAYING")
+  audioPlayer.play(track.filepath)
 }
 
 async function initialiseStores() {
   doOrNotifyEither(
-    await window.api.getTracks({ orderBy: { title: "asc" } }),
     "Failed to get tracks",
-    (tracks) => {
-      if (tracks.length === 0) return
+    (newTracks) => {
+      if (newTracks.length === 0) return
 
-      tracksStore.set(tracks)
-      queueStore.setTracks(tracks, 0)
-      audioPlayer.setSource(tracks[0].filepath)
-    }
+      tracksStore.set(newTracks)
+      queueStore.setTracks(newTracks, 0)
+      audioPlayer.setSource(newTracks[0].filepath)
+    },
+    await window.api.getTracks()
   )
 
   doOrNotifyEither(
-    await window.api.getAlbums(),
     "Failed to get albums",
-    (albums) => {
-      albumsStore.set(albums)
-    }
+    albumsStore.set,
+    await window.api.getAlbums()
   )
 
   doOrNotifyEither(
-    await window.api.getArtists(),
     "Failed to get artists",
-    (artists) => {
-      artistsStore.set(artists)
-    }
+    artistsStore.set,
+    await window.api.getArtists()
   )
 
   indexStore.set(0)
 }
 
-function handleSyncUpdate(_event: IpcRendererEvent, data: ISyncResult) {
+function handleSyncUpdate(_event: IpcRendererEvent, syncResult: ISyncResult) {
   console.log("Sync update received")
 
   doOrNotifyEither(
-    data,
     "Failed to update the library. Please restart the app",
     ({ tracks, albums, artists }) => {
       const sortedTracks = [...tracks].sort(sortAlphabetically)
@@ -312,47 +391,49 @@ function handleSyncUpdate(_event: IpcRendererEvent, data: ISyncResult) {
       )
 
       indexStore.set(newIndex)
-    }
+    },
+    syncResult
   )
 }
 
-async function getTracksFromSource({
-  type,
-  id,
-}: Pick<IPlaySource, "type" | "id">): Promise<
-  Either<IError, readonly ITrack[]>
-> {
-  switch ({ type, id }.type) {
-    case "albums": {
-      return extractTracks(
+async function getTracksFromSource(
+  playback: IPlayblackToSend
+): Promise<Either<IError, readonly ITrack[]>> {
+  return match(playback)
+    .with({ source: "artists" }, async ({ sourceID, sortBy, isShuffleOn }) =>
+      extractTracks(
         await window.api.getAlbum({
-          where: { name: id },
+          where: { name: sourceID },
+          sortBy,
+          isShuffleOn,
         })
       )
-    }
-
-    case "artists": {
-      return extractTracks(
-        await window.api.getArtistWithAlbumsAndTracks({
-          where: { name: id },
+    )
+    .with({ source: "albums" }, async ({ sourceID, sortBy, isShuffleOn }) =>
+      extractTracks(
+        await window.api.getAlbum({
+          where: { name: sourceID },
+          sortBy,
+          isShuffleOn,
         })
       )
-    }
-
-    case "tracks": {
-      return window.api.getTracks()
-    }
-
-    default:
-      throw new Error("Invalid source specified at getSource in PlayerManager")
-  }
+    )
+    .with({ source: "tracks" }, ({ isShuffleOn, sortBy }) =>
+      window.api.getTracks({ isShuffleOn, sortBy })
+    )
+    .with({ source: "playlists" }, () => {
+      throw new Error(
+        "Error at getTracksFromSource: Playlists are not implemented yet"
+      )
+    })
+    .exhaustive()
 
   function extractTracks(
     item: Either<IError, { tracks: readonly ITrack[] }>,
     fromIndex = 0
   ): Either<IError, readonly ITrack[]> {
-    return mapEither((album: { tracks: readonly ITrack[] }) =>
-      album.tracks.slice(fromIndex)
+    return mapEither(({ tracks }: { tracks: readonly ITrack[] }) =>
+      tracks.slice(fromIndex)
     )(item)
   }
 }
@@ -361,9 +442,7 @@ function resetCurrentTime() {
   currentTimeStore.set(0)
 }
 
-export const player = createPlayerManager()
-
-// Export stores only as read-only to prevent bugs
+// Export some stores as read-only to prevent bugs
 export const playIndex = { subscribe: indexStore.subscribe }
 export const playState = { subscribe: playStateStore.subscribe }
 export const volume = { subscribe: volumeStore.subscribe }

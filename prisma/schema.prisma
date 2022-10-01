@@ -182,6 +182,6 @@ model Cover {
 }
 
 model Playlist {
-  id     String  @id
+  name   String  @id
   tracks Track[]
 }

@@ -4,7 +4,6 @@ import type { SvelteComponentDev } from "svelte/internal"
 import type { AsyncOrSync } from "ts-essentials"
 
 export type IPlayState = "PLAYING" | "PAUSED" | "STOPPED"
-export type IPlayMode = "DEFAULT" | "REPEAT" | "SHUFFLE"
 export type IPlayLoop = "NONE" | "LOOP_QUEUE" | "LOOP_TRACK"
 
 export interface IQueueItem {

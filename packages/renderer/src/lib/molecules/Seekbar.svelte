@@ -28,13 +28,13 @@
 
 <main
   class="
-  contain_ group -mt-1.5 cursor-pointer py-3"
+   group -mt-1.5 cursor-pointer py-3"
   on:click={handleSeekClick}
   bind:this={seekbar}
 >
   <div
     data-testid={test.seekbar}
-    class="contain_ relative -mt-2 h-[2px] rounded-full bg-orange-800"
+    class="relative -mt-2 h-[2px] rounded-full bg-orange-800"
   >
     <div
       data-testid={test.seekbarProgressbar}
@@ -81,9 +81,5 @@
 
   .shadow_small {
     box-shadow: 0px 0px 12px black;
-  }
-
-  .contain_ {
-    contain: layout size style;
   }
 </style>

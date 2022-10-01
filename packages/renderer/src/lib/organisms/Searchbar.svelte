@@ -1,9 +1,9 @@
 <script lang="ts">
   import IconSearch from "virtual:icons/heroicons-outline/search"
   import SearchResultBlock from "@/lib/molecules/SearchResultBlock.svelte"
+  import IconX from "virtual:icons/heroicons-outline/x"
 
   import type { ISearchResult } from "@sing-types/Types"
-  import { keyof } from "io-ts"
 
   let searchInputElement: HTMLInputElement
   let isFocused = false
@@ -29,76 +29,97 @@
   $: {
     if (searchInput !== undefined) {
       window.api.search(searchInput).then((response) => {
-        console.log(response)
         searchResult = response
       })
     }
   }
 
-  $: console.log({
-    isActive,
-    hasResponse,
-    isFocused,
-    searchResult,
-  })
-
   function handleFocused() {
     isFocused = true
   }
 
-  function handleFocusedLost() {
-    // isFocused = false
-    // searchInput = undefined // Reset the input to the placeholder text
-    // resetSearchResponse()
+  function close() {
+    isFocused = false
+    searchInputElement?.blur()
+    searchInput = undefined
   }
 
   function handleClick() {
     searchInputElement.focus()
   }
-
-  /**
-   * Reset the response data to avoid showing old results when reopening the search bar
-   */
-  function resetSearchResponse() {
-    searchResult = undefined
-  }
 </script>
 
 <div
   class="
-    absolute top-10 right-6 z-50 cursor-text rounded-full 
-    bg-grey-600/60 px-3 py-2.5 backdrop-blur-md transition-[width,heigth]
-    {isFocused ? 'w-[496px]' : 'w-64'}
+    custom_ flex max-h-[calc(100vh-120px)] cursor-text flex-col overflow-x-hidden
+    border border-grey-400/50 shadow-xl backdrop-blur-md  
+    {isFocused ? 'bg-grey-800/80' : 'bg-grey-700/40 hover:bg-grey-800/50'} 
   "
+  style="border-radius: {isFocused ? '12px' : '48px'};
+         width: {isFocused ? 'calc(100% - 48px)' : '256px'};
+         "
   on:click={handleClick}
 >
-  <div class="flex items-center gap-3">
-    <!--- Input -->
+  <!--- Input -->
+  <div class="group flex items-center gap-3 px-3  py-2.5">
     <div class="shrink-0 grow-0">
       <IconSearch class="h-5 w-5 text-white" />
     </div>
     <input
       type="text"
-      class="grow bg-transparent outline-none placeholder:text-grey-200"
+      class="grow bg-transparent outline-none placeholder:text-grey-100"
       placeholder="Search"
       bind:this={searchInputElement}
       on:focus={handleFocused}
-      on:focusout={handleFocusedLost}
       bind:value={searchInput}
     />
+
+    <!---- Close Button -->
+    {#if isFocused}
+      <button on:click|stopPropagation={close}>
+        <IconX class="h-6 w-6 text-grey-300 hover:text-grey-400" />
+      </button>
+    {/if}
   </div>
 
   <!---- Results -->
   {#if isFocused && isActive && hasResponse}
-    {#if hasMatches && searchResult !== undefined}
-      {#each resultsAsTuples as data}
-        <SearchResultBlock {data} />
-      {/each}
-      <div class="">Results should be here</div>
-    {:else}
-      <div class="">No results</div>
-    {/if}
-  {:else}
-    Is not active
+    <div class="mask_ max-h-full overflow-y-auto overflow-x-hidden pt-3">
+      {#if hasMatches && searchResult !== undefined}
+        <div class="flex flex-col gap-3">
+          {#each resultsAsTuples as data}
+            <SearchResultBlock {data} on:closeSearchbar={close} />
+          {/each}
+          <!---- Spacer element -->
+          <div class="h-6 w-6" />
+        </div>
+      {:else}
+        <div class="p-3 pt-0">No results</div>
+      {/if}
+    </div>
   {/if}
 </div>
+
+<style>
+  .custom_ {
+    transition: all;
+    transition-duration: 130ms;
+  }
+
+  .mask_ {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0px,
+      black 12px,
+      black 90%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0px,
+      black 12px,
+      black 90%,
+      transparent 100%
+    );
+  }
+</style>

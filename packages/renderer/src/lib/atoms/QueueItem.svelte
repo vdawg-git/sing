@@ -4,12 +4,13 @@
   import type { IQueueItem } from "@/types/Types"
   import { createEventDispatcher } from "svelte"
   import IconClose from "virtual:icons/heroicons-outline/x"
-  import { TEST_IDS as testID, TEST_ATTRIBUTES } from "@/TestConsts"
+  import { TEST_IDS, TEST_ATTRIBUTES } from "@/TestConsts"
   import { displayMetadata } from "@/Helper"
+
   type ITestIDs =
-    | typeof testID.queueCurrentTrack
-    | typeof testID.queuePreviousTrack
-    | typeof testID.queueNextTrack
+    | typeof TEST_IDS.queueCurrentTrack
+    | typeof TEST_IDS.queuePreviousTrack
+    | typeof TEST_IDS.queueNextTrack
     | undefined
 
   export let queueItemData: IQueueItem
@@ -19,15 +20,21 @@
   export let testQueuePlayedIndex: number | undefined = undefined
   export let testQueueNextIndex: number | undefined = undefined
 
-  // set up test ids based on item index positon
+  // set up test ids for the artist and title meta based on the item index positon
   $: [testTitleID, testArtistID] = (() => {
     switch (testId) {
-      case testID.queueCurrentTrack:
-        return [testID.queueCurrentTrackTitle, testID.queueCurrentTrackArtist]
-      case testID.queuePreviousTrack:
-        return [testID.queuePreviousTrackTitle, testID.queuePreviousTrackArtist]
-      case testID.queueNextTrack:
-        return [testID.queueNextTrackTitle, testID.queueNextTrackArtist]
+      case TEST_IDS.queueCurrentTrack:
+        return [
+          TEST_IDS.queueCurrentTrackTitle,
+          TEST_IDS.queueCurrentTrackArtist,
+        ]
+      case TEST_IDS.queuePreviousTrack:
+        return [
+          TEST_IDS.queuePreviousTrackTitle,
+          TEST_IDS.queuePreviousTrackArtist,
+        ]
+      case TEST_IDS.queueNextTrack:
+        return [TEST_IDS.queueNextTrackTitle, TEST_IDS.queueNextTrackArtist]
       default:
         return [undefined, undefined]
     }
@@ -42,7 +49,7 @@
   }
 </script>
 
-<main
+<div
   class="
     group relative flex w-full cursor-pointer items-center
     justify-between gap-6
@@ -56,6 +63,7 @@
   on:dblclick
 >
   <div class="flex grow gap-3">
+    <!---- Cover  -->
     {#if track?.cover}
       <img
         src={"file://" + track.cover}
@@ -68,6 +76,7 @@
       <div class="h-12 w-12 shrink-0 rounded bg-grey-700" />
     {/if}
 
+    <!---- Meta -->
     <div class="grid grow-0 grid-flow-row items-center">
       <span
         class="overflow-hidden text-ellipsis whitespace-nowrap text-base"
@@ -85,6 +94,8 @@
       </span>
     </div>
   </div>
+
+  <!---- Remove button -->
   <button
     class="shrink-0 grow-0"
     data-testattribute={TEST_ATTRIBUTES.queueItemDeleteIcon}
@@ -95,4 +106,4 @@
   <div
     class="absolute inset-[-0.5rem] left-[-0.55rem] -z-10 rounded-xl  group-hover:bg-grey-300/10 "
   />
-</main>
+</div>

@@ -18,13 +18,10 @@ export type AllowedIndexes<
  *     type unnestedX = innerArray<x> //=> `string`
  *
  */
-export type InnerArray<T extends unknown[]> = T["length"] extends 0 | 1
-  ? T[0] extends unknown[]
-    ? T[0]["length"] extends 0 | 1
-      ? InnerArray<T[0]>
-      : T[0]
-    : T[0]
-  : T
+export type InnerArray<T extends readonly unknown[] | unknown[]> =
+  T extends (infer U)[] ? (U extends unknown[] ? InnerArray<U> : U) : never
+
+export type RevertEnumerable<T> = T extends unknown[] ? InnerArray<T> : T
 
 export type ParametersFlattened<T extends (...arguments_: any[]) => any> =
   InnerArray<Parameters<T>>
@@ -111,3 +108,27 @@ export type Override<
   U extends Record<string, unknown>,
   T extends Partial<Exact<Record<keyof U, unknown>, T>>
 > = Merge<U, T>
+
+export type KeysToTuple<T extends Record<string, unknown>> = {
+  [Key in keyof T]: readonly [Key, T[Key]]
+}[keyof T]
+
+/**
+ * Take a type and filter out its keys which match the condition.
+ * @example 
+  type x = {
+    a: 1
+    b: "2"
+    c: {}
+    d: () => void
+  }
+
+  type filtered = AllowedKeyNames<x, string | number>
+  // => "a" | "b" 
+
+  @link https://medium.com/dailyjs/typescript-create-a-condition-based-subset-types-9d902cea5b8c
+ * 
+ */
+export type KeyOfConditional<Base, Condition> = {
+  [Key in keyof Base]: Base[Key] extends Condition ? Key : never
+}[keyof Base]

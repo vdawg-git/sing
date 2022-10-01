@@ -28,9 +28,9 @@
   }
 </script>
 
-<div class="group relative z-10" on:click>
+<div class="group relative" on:click>
   <div
-    class="z-20 flex w-[220px] flex-col gap-3 rounded-lg bg-grey-600/60 p-4 backdrop-blur
+    class="flex w-[220px] flex-col gap-3 rounded-lg bg-grey-600/60 p-4 backdrop-blur
     transition-all ease-out group-hover:bg-grey-500/60
     "
   >
@@ -55,7 +55,7 @@
       </a>
       <!--- Play button -->
       <button
-        class="playButton_ absolute -bottom-4 right-0 z-20 h-14 w-14  rounded-full text-white   opacity-0 transition-all
+        class="playButton_ absolute -bottom-4 right-0 z-10 h-14 w-14  rounded-full text-white   opacity-0 transition-all
         group-hover:opacity-100"
         on:click={handlePlay}
       >

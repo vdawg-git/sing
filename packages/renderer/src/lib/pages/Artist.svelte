@@ -1,10 +1,14 @@
 <script lang="ts">
-  import { onMount } from "svelte"
-  import { either } from "fp-ts"
   import IconPlay from "virtual:icons/heroicons-outline/play"
   import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
+  import CardList from "../organisms/CardList.svelte"
+
+  import { either } from "fp-ts"
+  import { useNavigate, useParams } from "svelte-navigator"
+  import { playNewSource } from "../manager/player"
   import { addNotification } from "@/lib/stores/NotificationStore"
+  import { ROUTES } from "@/Consts"
 
   import type {
     IArtistWithAlbumsAndTracks,
@@ -13,27 +17,35 @@
   } from "@sing-types/Types"
   import type { IHeroAction } from "@/types/Types"
   import type { Either } from "fp-ts/lib/Either"
-  import { player } from "../manager/player"
-  import CardList from "../organisms/CardList.svelte"
-  import { useNavigate } from "svelte-navigator"
-  import { ROUTES } from "@/Consts"
+  import { backgroundImagesStore } from "../stores/BackgroundImages"
 
   export let artistID: string
 
+  // TODO display tracks with unknown album
+
   const navigate = useNavigate()
+  const params = useParams<{ artistID: string }>()
 
   let artist: IArtistWithAlbumsAndTracks | undefined = undefined
 
+  params.subscribe(async ({ artistID }) => {
+    artist = await getArtist(artistID)
+    console.log({ artist })
+
+    backgroundImagesStore.set(artist?.image)
+  })
+
   const sourceType: ITracksSource = "artists"
 
-  const actions: IHeroAction[] = [
+  let actions: IHeroAction[]
+  $: actions = [
     {
       label: "Play",
       icon: IconPlay,
       callback: () =>
-        player.playFromSource({
-          type: sourceType,
-          id: artistID,
+        playNewSource({
+          source: sourceType,
+          sourceID: artistID,
           sort: ["album", "ascending"],
         }),
       primary: true,
@@ -41,14 +53,9 @@
     { label: "Shuffle", icon: IconShuffle, callback: () => {}, primary: false },
   ]
 
-  onMount(async () => {
-    artist = await getArtist(artistID)
-  })
-
   async function getArtist(albumID: string) {
-    const albumEither = (await window.api.getArtistWithAlbumsAndTracks({
+    const albumEither = (await window.api.getArtist({
       where: { name: albumID },
-      include: { tracks: true },
     })) as Either<IError, IArtistWithAlbumsAndTracks>
 
     return either.getOrElseW((error) => {
@@ -65,7 +72,7 @@
     title={artistID}
     metadata={[
       {
-        label: `${artist.tracks.length} tracks${
+        label: `${artist.tracks.length} track${
           artist.tracks.length > 1 ? "s" : ""
         }`,
       },
@@ -82,9 +89,9 @@
       secondaryText: album.artist,
     }))}
     on:play={({ detail: id }) =>
-      player.playFromSource({
-        type: "albums",
-        id,
+      playNewSource({
+        source: "albums",
+        sourceID: id,
         sort: ["trackNo", "ascending"],
       })}
     on:clickedPrimary={({ detail: id }) => navigate(`/${ROUTES.albums}/${id}`)}

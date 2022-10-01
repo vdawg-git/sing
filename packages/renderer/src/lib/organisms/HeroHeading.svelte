@@ -10,13 +10,14 @@
   export let image: FilePath | undefined = undefined
   export let type: "Artist" | "Album" | "Playlist" | undefined = undefined
   export let title: string
-  export let metadata: IHeroMetaDataItem[]
-  export let actions: IHeroAction[] | undefined = undefined
-  export let backgroundImages: FilePath[] | FilePath | undefined = undefined
+  export let metadata: readonly IHeroMetaDataItem[]
+  export let actions: readonly IHeroAction[] | undefined = undefined
 
   // TODO disable focus indicator for now
 
   // TODO Make scrollbars vanish when user has not scrolled for a while
+
+  // TODO fix auto resizing and heading size
 </script>
 
 <header class="mb-10 mt-32 flex max-w-full flex-col justify-start gap-10 ">
@@ -28,7 +29,7 @@
         <!---- Backglow / Blur -->
         <img
           src={image}
-          class="_backdrop absolute left-2 top-4 -z-10 h-48 w-48 rounded-lg opacity-40"
+          class="_backdrop absolute left-2 top-4 -z-10 h-48 w-48 rounded-lg opacity-30"
         />
       </div>
     {/if}
@@ -66,10 +67,6 @@
       </div>
     </div>
   </div>
-
-  {#if backgroundImages}
-    <BackgroundGallery {backgroundImages} />
-  {/if}
 
   <!--- Actions -->
   {#if actions}

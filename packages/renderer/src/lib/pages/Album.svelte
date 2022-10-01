@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { onMount } from "svelte"
   import { either } from "fp-ts"
-  import { addNotification } from "@/lib/stores/NotificationStore"
   import IconPlay from "virtual:icons/heroicons-outline/play"
   import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
+  import { useParams } from "svelte-navigator"
 
+  import { addNotification } from "@/lib/stores/NotificationStore"
+  import { playNewSource } from "../manager/player"
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
   import TrackList from "@/lib/organisms/TrackList.svelte"
 
@@ -15,14 +16,22 @@
     IHeroMetaDataItem,
     ITrackListDisplayOptions,
   } from "@/types/Types"
-  import { player } from "../manager/player"
+  import { backgroundImagesStore } from "../stores/BackgroundImages"
 
   export let albumID: string
 
-  let album: IAlbum | undefined = undefined
+  const params = useParams<{ albumID: string }>()
 
-  let tracks: ITrack[] = []
-  $: tracks = album !== undefined ? (album?.tracks as ITrack[]) : []
+  let album: IAlbum | undefined
+
+  // Update the page when the album is changed on navigation
+  params.subscribe(async ({ albumID }) => {
+    album = await getAlbum(albumID)
+    backgroundImagesStore.set(album?.cover)
+  })
+
+  let tracks: readonly ITrack[] = []
+  $: tracks = album !== undefined ? album?.tracks : []
 
   let metadata: IHeroMetaDataItem[]
   $: metadata = [
@@ -31,24 +40,21 @@
     },
   ]
 
-  const actions: IHeroAction[] = [
+  let actions: readonly IHeroAction[]
+  $: actions = [
     {
       label: "Play",
       icon: IconPlay,
       callback: () =>
-        player.playFromSource({
-          type: "albums",
-          id: albumID,
+        playNewSource({
+          source: "albums",
+          sourceID: albumID,
           sort: ["trackNo", "ascending"],
         }),
       primary: true,
     },
     { label: "Shuffle", icon: IconShuffle, callback: () => {}, primary: false },
   ]
-
-  onMount(async () => {
-    album = await getAlbum(albumID)
-  })
 
   const displayOptions: ITrackListDisplayOptions = {
     cover: false,
@@ -76,7 +82,6 @@
     image={album.cover}
     type="Album"
     {actions}
-    backgroundImages={album.cover}
   />
 
   <TrackList
@@ -84,10 +89,10 @@
     {tracks}
     {displayOptions}
     on:play={({ detail }) =>
-      player.playFromSource(
+      playNewSource(
         {
-          type: "albums",
-          id: albumID,
+          source: "albums",
+          sourceID: albumID,
           sort: ["trackNo", "ascending"],
         },
         detail.index

@@ -29,8 +29,9 @@
 <nav
   data-testid={id.sidebar}
   class="
-    custom_style z-10 h-screen w-[15.5rem] 
-    flex-shrink-0 rounded-3xl bg-grey-800/50 p-6 backdrop-blur-sm
+    custom_style z-30 h-screen w-[15.5rem]  flex-shrink-0
+    flex-grow-0 rounded-3xl border border-grey-400/50 bg-grey-800/50
+    p-6 backdrop-blur-sm
     "
 >
   <div class="mb-10 flex justify-between">

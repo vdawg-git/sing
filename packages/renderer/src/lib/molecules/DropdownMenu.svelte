@@ -36,7 +36,7 @@
   }
 </script>
 
-<div class="z-50">
+<div class="">
   <button
     data-testID={iconTestID}
     on:click={handleClick}
@@ -52,7 +52,7 @@
   {#if open}
     <div
       data-testID={menuTestID}
-      class="absolute min-w-[15rem] overflow-hidden rounded-lg bg-grey-600"
+      class="absolute z-50 min-w-[15rem] overflow-hidden rounded-lg bg-grey-600"
       use:handleOutClick
       on:click={(_e) => (open = false)}
     >

@@ -39,22 +39,29 @@ export function isClickOutsideNode(
 }
 
 export function isSubdirectory(ancestor: string, child: string): boolean {
-  const papaDDirectories = ancestor
+  const papaDirectories = ancestor
     .split("/")
     .filter((directory) => directory !== "")
   const childDDirectories = child
     .split("/")
     .filter((directory) => directory !== "")
 
-  return papaDDirectories.every(
+  return papaDirectories.every(
     (directory, index) => childDDirectories[index] === directory
   )
 }
 
+/**
+ * Do a side-effect if the given data is right.
+ * Otherwiese, if it is left, log the error and display the provided error message to the user.
+ * @param onLeftErrorMessage The message to be displayed to the user when an error occurs
+ * @param onRight The callback to execute when the passed data is right (has no error)
+ * @param data The data as an Either
+ */
 export function doOrNotifyEither<A>(
-  data: Either<IError, A>,
   onLeftErrorMessage: string,
-  onRight: (argument_: A) => void
+  onRight: (argument_: A) => void,
+  data: Either<IError, A>
 ): void {
   fold((error) => {
     console.error(error)

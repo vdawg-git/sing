@@ -57,7 +57,7 @@
     data-testid={testID.playbarVolumeIcon}
     {disabled}
     on:click={toggleMute}
-    class="transition-transform active:scale-95"
+    class="transition-transform hover:text-grey-200 active:scale-95"
   >
     {#if !muted}
       <IconVolume class="h-6 w-6" />

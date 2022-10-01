@@ -23,7 +23,7 @@
   // TODO Make the secondary work
 </script>
 
-<div class="flex w-full flex-wrap gap-6">
+<div class="flex h-full w-full flex-wrap gap-6 overflow-y-scroll">
   {#each items as item}
     <Card
       data={item}

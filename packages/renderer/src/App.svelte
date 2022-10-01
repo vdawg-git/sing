@@ -14,6 +14,9 @@
   import Artists from "./lib/pages/Artists.svelte"
   import Artist from "./lib/pages/Artist.svelte"
   import Searchbar from "./lib/organisms/Searchbar.svelte"
+  import BackAndForthNavigation from "./lib/molecules/BackAndForthNavigation.svelte"
+  import { backgroundImagesStore } from "./lib/stores/BackgroundImages"
+  import BackgroundGallery from "./lib/atoms/BackgroundGallery.svelte"
 
   const hashHistory = createHistory(createHashSource())
 
@@ -24,25 +27,43 @@
       unsubscriber()
     }
   })
+
+  // TODO Make the BackgroundGallery a child of body and pass images to it via a store
+  // because of https://css-tricks.com/popping-hidden-overflow/
 </script>
 
-<main class="select-none  text-white ">
+<div
+  class="h-screen max-h-screen w-screen max-w-[100vw] select-none overflow-hidden text-white "
+>
   <Router history={hashHistory}>
     <NotificationsRenderer />
 
-    <Searchbar />
+    <Playbar />
 
-    <div class="flex">
+    <div class="flex w-full">
       <Sidebar />
+
+      <div
+        class="fixed top-10 right-6 z-20 flex w-[calc(100vw-304px)] justify-between gap-6"
+      >
+        <BackAndForthNavigation />
+        <Searchbar />
+      </div>
 
       <main
         class="
-          flex h-screen max-h-screen
-          w-full content-start  items-start
-          justify-center overflow-auto overflow-x-clip
-          p-6 sm:px-2 md:px-6 lg:px-10"
+          relative flex h-screen
+          max-h-screen w-full
+          content-start items-start
+          justify-center  overflow-x-visible overflow-y-scroll  p-6
+          sm:px-2 md:px-6 lg:px-10
+          "
       >
-        <div class="w-full max-w-full lg:max-w-[1560px]">
+        <!---- Pages -->
+
+        <div
+          class="max-h-screen w-full max-w-full overflow-x-visible lg:max-w-[1560px]"
+        >
           <Route path={ROUTES.settingsGeneral}>
             <Settings />
           </Route>
@@ -70,6 +91,7 @@
             <Route path=":artistID" component={Artist} />
           </Route>
 
+          <!---- Default route -->
           <Route>
             <Tracks />
           </Route>
@@ -77,6 +99,6 @@
       </main>
     </div>
 
-    <Playbar />
+    <BackgroundGallery images={$backgroundImagesStore} />
   </Router>
-</main>
+</div>

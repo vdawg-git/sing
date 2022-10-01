@@ -1,4 +1,4 @@
-const ts = require("typescript")
+// const ts = require("typescript")
 
 const defaultRules = {
   "no-console": "off",
@@ -96,6 +96,6 @@ module.exports = {
     },
   ],
   settings: {
-    "svelte3/typescript": ts,
+    "svelte3/typescript": true,
   },
 }

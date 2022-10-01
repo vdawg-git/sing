@@ -3,6 +3,8 @@
   import IconPlay from "virtual:icons/heroicons-outline/play"
   import IconNext from "virtual:icons/heroicons-outline/fast-forward"
   import IconQueue from "virtual:icons/heroicons-outline/view-list"
+  import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
+  import IconLoop from "virtual:icons/fluent/arrow-repeat-all-24-filled"
   import VolumeControl from "@/lib/molecules/VolumeControl.svelte"
   import { onMount } from "svelte"
   import { displayMetadata } from "@/Helper"
@@ -12,11 +14,16 @@
   import { TEST_IDS } from "@/TestConsts"
 
   import {
-    player,
     currentTrack,
     playState,
     currentTime,
     volume as volumeStore,
+    seekTo,
+    setVolume,
+    handleClickedPrevious,
+    pausePlayback,
+    resumePlayback,
+    handlePlayNext,
   } from "@/lib/manager/player/index"
 
   $: track = $currentTrack?.track
@@ -25,7 +32,7 @@
 
   let volume: number = 1
   $: {
-    player.setVolume(volume)
+    setVolume(volume)
   }
 
   onMount(() => {
@@ -37,17 +44,17 @@
   }
 
   function handleSeek({ detail: percentage }: CustomEvent) {
-    player.seekTo(percentage)
+    seekTo(percentage)
   }
 </script>
 
-<main
+<div
   class="
     custom_shadow absolute inset-x-0
-    bottom-0 z-20 grid h-[72px]
+    bottom-0 z-40 grid h-[72px]
     w-full grid-cols-3 items-center  justify-between  
-    rounded-3xl bg-grey-700/80
-    px-6 backdrop-blur-xl
+    rounded-3xl border
+    border-grey-400/50 bg-grey-700/80 px-6 backdrop-blur-xl
   "
   data-testid={TEST_IDS.playbar}
 >
@@ -109,23 +116,33 @@
   <!---- Pause / Play / Next buttons-->
   <div class="flex min-w-[20rem] max-w-[62.5rem]  flex-col items-center">
     <div class="mb-1 flex items-center gap-6 text-white ">
+      <!---- Shuffle Button -->
+      <button
+        data-testid={TEST_IDS.playbarModeIcon}
+        class="button text-grey-300 hover:text-grey-400"
+        disabled={!track}
+      >
+        <IconShuffle class="h-5 w-5" />
+      </button>
+
       <!---- Backwards button-->
       <button
-        on:click={() => player.previous()}
+        on:click={() => handleClickedPrevious()}
         data-testid={TEST_IDS.playbarBackButton}
         disabled={!$currentTrack}
-        class="button "
+        class="button text-white hover:text-grey-200"
       >
         <div class="rotate-180">
           <IconNext class="h-8 w-8" />
         </div>
       </button>
+
       <!---- Play button-->
       <button
         on:click={() =>
-          $playState === "PLAYING" ? player.pause() : player.resume()}
+          $playState === "PLAYING" ? pausePlayback() : resumePlayback()}
         disabled={!$currentTrack}
-        class="button"
+        class="button text-white hover:text-grey-200"
       >
         {#if $playState === "PLAYING"}
           <IconPause
@@ -139,14 +156,24 @@
           />
         {/if}
       </button>
+
       <!---- Forward button-->
       <button
-        on:click={() => player.next()}
+        on:click={() => handlePlayNext()}
         data-testid={TEST_IDS.playbarNextButton}
         disabled={!track}
-        class="button"
+        class="button text-white hover:text-grey-200"
       >
         <IconNext class="h-8 w-8 " stroke-width="0" />
+      </button>
+
+      <!---- Loop Button-->
+      <button
+        data-testid={TEST_IDS.playbarLoopIcon}
+        class="button text-grey-300 hover:text-grey-400"
+        disabled={!track}
+      >
+        <IconLoop class="h-5 w-5" />
       </button>
     </div>
   </div>
@@ -156,23 +183,15 @@
   <div class="flex items-center gap-6 justify-self-end">
     <VolumeControl bind:value={volume} />
 
-    <!--- To be developed and tested
-    <button data-testid={test.playbarModeIcon} class="button" disabled={!track}>
-      <IconShuffle class="h-6 w-6 sm:h-6" />
-    </button>
-    <button data-testid={test.playbarLoopIcon} class="button" disabled={!track}>
-      <IconRepeat class="h-6 w-6 sm:h-6" />
-    </button>
-    -->
     <button
-      class="button"
       data-testid={TEST_IDS.playbarQueueIcon}
+      class="button text-white hover:text-grey-200"
       on:click|stopPropagation={handleClickQueueIcon}
     >
       <IconQueue class="h-6 w-6" />
     </button>
   </div>
-</main>
+</div>
 
 {#if showQueue}
   <QueueBar />
@@ -188,7 +207,6 @@
   }
 
   .button {
-    color: theme(colors.white);
     cursor: pointer;
     transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1),
       transform 120ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -196,10 +214,6 @@
 
     &:active {
       transform: scale(0.96, 0.89);
-    }
-
-    &:hover {
-      color: theme(colors.grey.300);
     }
 
     &:disabled {

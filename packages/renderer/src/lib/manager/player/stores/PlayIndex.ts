@@ -1,3 +1,4 @@
+import { add, subtract } from "fp-ts-std/Number"
 import { writable } from "svelte/store"
 
 function createIndexStore() {
@@ -6,11 +7,11 @@ function createIndexStore() {
   return { set, update, subscribe, increment, decrement }
 
   function increment() {
-    update(($index) => $index + 1)
+    update(add(1))
   }
 
   function decrement() {
-    update(($index) => $index - 1)
+    update(subtract(1))
   }
 }
 

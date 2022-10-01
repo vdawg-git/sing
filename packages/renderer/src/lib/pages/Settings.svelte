@@ -4,6 +4,7 @@
   import { onMount } from "svelte"
   import { TEST_IDS as id } from "@/TestConsts"
   import type { DirectoryPath } from "@sing-types/Filesystem"
+  import { backgroundImagesStore } from "../stores/BackgroundImages"
 
   let paths: DirectoryPath[]
 
@@ -13,6 +14,9 @@
     async () =>
       (paths = (await window.api.getUserSetting("musicFolders")) || [])
   )
+
+  // Remove background images from the previous page
+  backgroundImagesStore.set(undefined)
 </script>
 
 <main class="h-max w-full p-6 pb-24">

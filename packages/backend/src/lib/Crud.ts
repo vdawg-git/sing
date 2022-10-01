@@ -1,4 +1,4 @@
-import { removeNulledKeys } from "@sing-shared/Pures"
+import { removeNulledKeys, sortByKey, sortTracks } from "@sing-shared/Pures"
 import { isKeyOfObject } from "@sing-types/Typeguards"
 import { left, right } from "fp-ts/Either"
 import { map as mapArray } from "fp-ts/lib/ReadonlyArray"
@@ -7,7 +7,7 @@ import log from "ololog"
 import { SQL_STRINGS as S } from "./Consts"
 import createPrismaClient from "./CustomPrismaClient"
 
-import type { Prisma, PrismaPromise } from "@prisma/client"
+import type { PrismaPromise, Prisma } from "@prisma/client"
 import type {
   IAlbum,
   IError,
@@ -15,6 +15,12 @@ import type {
   ICover,
   IArtist,
   IErrorTypes,
+  IArtistGetArgument,
+  IArtistFindManyArgument,
+  IAlbumGetArgument,
+  IAlbumFindManyArgument,
+  ITrackFindManyArgument,
+  ISortOptions,
 } from "@sing-types/Types"
 import type { Either } from "fp-ts/Either"
 import type { FilePath } from "@sing-types/Filesystem"
@@ -23,51 +29,75 @@ const prisma = createPrismaClient()
 
 // TODO Update changed covers correctly (now they are getting deleted for whatever reason)
 
-export async function getTracks(
-  options?: Prisma.TrackFindManyArgs
-): Promise<Either<IError, readonly ITrack[]>> {
-  return prisma.track
-    .findMany(options)
+export async function getArtists(
+  options?: IArtistFindManyArgument
+): Promise<Either<IError, readonly IArtist[]>> {
+  const prismaOptions: Prisma.ArtistFindManyArgs = {
+    where: options?.where,
+    include: {
+      albums: {
+        include: {
+          coverPath: true,
+        },
+      },
+      tracks: true,
+    },
+  }
+
+  const defaultSort: ISortOptions["artists"] = ["name", "ascending"]
+
+  const response = prisma.artist.findMany(prismaOptions) as PrismaPromise<
+    IArtist[]
+  >
+
+  return response
     .then(mapArray(removeNulledKeys))
-    .then((tracks) => right(tracks as ITrack[]))
+    .then(mapArray(addArtistImage))
+    .then((artists) => sortByKey(options?.sortBy ?? defaultSort, artists))
+    .then(right)
     .catch(createError("Failed to get from database"))
 }
 
 export async function getAlbums(
-  options?: Prisma.AlbumFindManyArgs
-): Promise<Either<IError, IAlbum[]>> {
+  options?: IAlbumFindManyArgument
+): Promise<Either<IError, readonly IAlbum[]>> {
+  const prismaOptions: Prisma.AlbumFindManyArgs = {
+    where: options?.where,
+    include: { tracks: true },
+  }
+
+  const defaultSort: ISortOptions["albums"] = ["name", "ascending"]
+
   return prisma.album
-    .findMany({
-      orderBy: { name: "asc" },
-      ...options,
-      include: {
-        tracks: true,
-        ...options?.include,
-      },
-    })
-    .then((albums) => albums.map(removeNulledKeys) as unknown as IAlbum[])
-    .then(right)
+    .findMany(prismaOptions)
+    .then(mapArray(removeNulledKeys))
+    .then((albums) => sortByKey(options?.sortBy ?? defaultSort, albums))
+    .then((albums) => right(albums as unknown as IAlbum[]))
     .catch(createError("Failed to remove unused albums from the database"))
 }
 
-export async function getAlbum(
-  options: Prisma.AlbumFindUniqueOrThrowArgs
-): Promise<Either<IError, IAlbum>> {
-  const usedOptions: Prisma.AlbumFindUniqueOrThrowArgs = {
-    include: { tracks: true },
-    ...options,
-  }
+export async function getTracks(
+  options?: ITrackFindManyArgument
+): Promise<Either<IError, readonly ITrack[]>> {
+  const prismaOptions: Prisma.TrackFindManyArgs = { where: options?.where }
 
-  return prisma.album
-    .findUniqueOrThrow(usedOptions)
-    .then(removeNulledKeys)
-    .then((album) => right(album as IAlbum))
+  const defaultSort: ISortOptions["tracks"] = ["title", "ascending"]
+
+  const usedSort: ISortOptions["tracks"] | ["RANDOM"] = options?.isShuffleOn
+    ? ["RANDOM"]
+    : options?.sortBy ?? defaultSort
+
+  return prisma.track
+    .findMany(prismaOptions)
+    .then(mapArray(removeNulledKeys))
+    .then((tracks) => sortTracks(usedSort)(tracks as readonly ITrack[]))
+    .then(right)
     .catch(createError("Failed to get from database"))
 }
 
 export async function getCovers(
   options?: Prisma.CoverFindManyArgs
-): Promise<Either<IError, ICover[]>> {
+): Promise<Either<IError, readonly ICover[]>> {
   return prisma.cover
     .findMany(options)
     .then(mapArray(removeNulledKeys))
@@ -75,56 +105,44 @@ export async function getCovers(
     .catch(createError("Failed to get from database"))
 }
 
-export async function getArtists(
-  options?: Prisma.ArtistFindManyArgs
-): Promise<Either<IError, readonly IArtist[]>> {
-  const usedOptions: Prisma.ArtistFindManyArgs = {
-    orderBy: { name: "asc" },
-    ...(options && { options }),
-    include: {
-      ...(options?.include && { ...options.include }),
-      albums: {
-        include: {
-          coverPath: true,
-        },
+export async function getArtist(
+  options: IArtistGetArgument
+): Promise<Either<IError, IArtist>> {
+  const include: Prisma.ArtistInclude = {
+    albums: {
+      include: {
+        coverPath: true,
       },
     },
-  }
+    tracks: true,
+  } as const
 
-  const response = prisma.artist.findMany(usedOptions) as PrismaPromise<
-    IArtist[]
-  >
+  const rawAlbum = prisma.artist.findUniqueOrThrow({
+    where: options.where,
+    include,
+  }) as unknown as PrismaPromise<IArtist>
 
-  return response
-    .then(mapArray(removeNulledKeys))
-    .then(mapArray(addArtistImage))
+  return rawAlbum
+    .then(removeNulledKeys)
+    .then(addArtistImage)
     .then(right)
     .catch(createError("Failed to get from database"))
 }
 
-export async function getArtist(
-  options: Prisma.ArtistFindUniqueOrThrowArgs
-): Promise<Either<IError, IArtist>> {
-  const usedOptions: Prisma.ArtistFindUniqueOrThrowArgs = {
-    ...options,
-    include: {
-      ...options.include,
-      albums: {
-        include: {
-          coverPath: true,
-        },
-      },
-    },
+export async function getAlbum(
+  options: IAlbumGetArgument
+): Promise<Either<IError, IAlbum>> {
+  const include: Prisma.AlbumInclude = {
+    tracks: true,
   }
 
-  const response = prisma.artist.findUniqueOrThrow(
-    usedOptions
-  ) as unknown as PrismaPromise<IArtist>
-
-  return response
+  return prisma.album
+    .findUniqueOrThrow({
+      where: options.where,
+      include,
+    })
     .then(removeNulledKeys)
-    .then(addArtistImage)
-    .then(right)
+    .then((album) => right(album as IAlbum))
     .catch(createError("Failed to get from database"))
 }
 
@@ -152,7 +170,10 @@ export async function deleteTracksInverted(
     .map((path) => `'${path}'`)
     .join(",")
 
-  const query = `DELETE FROM ${S.TRACK} WHERE ${S.filepath} NOT IN (${pathsString})`
+  const query = `DELETE FROM 
+                  ${S.TRACK} 
+                WHERE 
+                  ${S.filepath} NOT IN (${pathsString})`
 
   return prisma
     .$executeRawUnsafe(query)
@@ -194,7 +215,6 @@ export async function deleteEmptyArtists(): Promise<Either<IError, number>> {
           LEFT JOIN ${S.TRACK} ON ${S["ARTIST.name"]} = ${S["TRACK.artist"]}
         WHERE
           ${S["TRACK.title"]} IS NULL
-
       )`
 
   return prisma
@@ -244,9 +264,11 @@ function createError(
   }
 }
 
-function addArtistImage(artist: IArtist): IArtist {
+function addArtistImage<T extends { albums: readonly { cover?: string }[] }>(
+  artist: T
+): T {
   // Get the artist image from one of his album covers. Later we will use an API for that
-  const image = artist.albums.find(({ cover }) => cover === undefined)?.cover
+  const image = artist.albums.find(({ cover }) => cover !== undefined)?.cover
 
   return {
     ...artist,

@@ -1,8 +1,12 @@
 import { ipcRenderer } from "./TypedIPC"
 
-import type { Either } from "fp-ts/lib/Either"
-
-import type { IArtistWithAlbumsAndTracks, IError } from "@sing-types/Types"
+import type {
+  IAlbumFindManyArgument,
+  IAlbumGetArgument,
+  IArtistFindManyArgument,
+  IArtistGetArgument,
+  ITrackFindManyArgument,
+} from "@sing-types/Types"
 
 import type { IMainQueryHandlers } from "./types/Types"
 
@@ -18,37 +22,28 @@ import type {
 
 import type { Prisma } from "@prisma/client"
 
-export async function getTracks(options?: Prisma.TrackFindManyArgs) {
+/**
+ * The default sort is ["title", "ascending"] and gets used if it is not specified.
+ * The default for isShuffleOn is false and gets used if it is not specified.
+ */
+export async function getTracks(options?: ITrackFindManyArgument) {
   return ipcRenderer.invoke("getTracks", options)
 }
 
-export async function getAlbums(options?: Prisma.AlbumFindManyArgs) {
+export async function getAlbums(options?: IAlbumFindManyArgument) {
   return ipcRenderer.invoke("getAlbums", options)
 }
 
-export async function getAlbum(options: Prisma.AlbumFindUniqueOrThrowArgs) {
+export async function getAlbum(options: IAlbumGetArgument) {
   return ipcRenderer.invoke("getAlbum", options)
 }
 
-export async function getArtists(options?: Prisma.ArtistFindManyArgs) {
+export async function getArtists(options?: IArtistFindManyArgument) {
   return ipcRenderer.invoke("getArtists", options)
 }
 
-export async function getArtist(options: Prisma.ArtistFindUniqueOrThrowArgs) {
+export async function getArtist(options: IArtistGetArgument) {
   return ipcRenderer.invoke("getArtist", options)
-}
-
-export async function getArtistWithAlbumsAndTracks(
-  options: Prisma.AlbumFindUniqueOrThrowArgs
-) {
-  return getArtist({
-    ...options,
-    include: {
-      albums: true,
-      tracks: true,
-      ...(options?.include && options.include),
-    },
-  }) as Promise<Either<IError, IArtistWithAlbumsAndTracks>>
 }
 
 export async function getCovers(options?: Prisma.CoverFindManyArgs) {

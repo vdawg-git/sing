@@ -6,11 +6,13 @@
 <script lang="ts">
   import { TEST_ATTRIBUTES, TEST_IDS } from "@/TestConsts"
   import {
-    player,
     playedTracks,
     nextTracks,
     currentTrack,
     playIndex,
+    playFromQueue,
+    removeIndexFromQueue,
+    pausePlayback,
   } from "@/lib/manager/player/index"
   import QueueItem from "@/lib/atoms/QueueItem.svelte"
   import { fly } from "svelte/transition"
@@ -33,7 +35,7 @@
   }
 
   function handleRemove(index: number) {
-    player.removeIndexFromQueue(index)
+    removeIndexFromQueue(index)
   }
 </script>
 
@@ -42,9 +44,9 @@
   class="
     custom_ 
     absolute right-6 bottom-0 
-    z-10 h-[calc(100vh-5.5rem)]
+    z-10 h-[calc(100vh-8rem)]
     w-[25rem] rounded-3xl
-    bg-grey-800/90
+    border border-grey-400/50 bg-grey-800/90
     backdrop-blur-md
   "
   transition:fly={{
@@ -94,7 +96,7 @@
                 : undefined}
               testQueuePlayedIndex={index}
               testattribute={TEST_ATTRIBUTES.queuePreviousTracks}
-              on:dblclick={() => player.playQueueIndex(queueItemData.index)}
+              on:dblclick={() => playFromQueue(queueItemData.index)}
               on:remove={() => handleRemove(queueItemData.index)}
             />
           {/each}
@@ -111,7 +113,7 @@
             queueItemData={$currentTrack}
             state="PLAYING"
             testId={TEST_IDS.queueCurrentTrack}
-            on:dblclick={() => player.pause()}
+            on:dblclick={() => pausePlayback()}
             on:remove={() => handleRemove($currentTrack.index)}
           />
         </div>
@@ -133,7 +135,7 @@
                 testId={index === 0 ? "queueNextTrack" : undefined}
                 testQueueNextIndex={index}
                 testattribute={TEST_ATTRIBUTES.queueNextTracks}
-                on:dblclick={() => player.playQueueIndex(queueItemData.index)}
+                on:dblclick={() => playFromQueue(queueItemData.index)}
                 on:remove={() => handleRemove(queueItemData.index)}
               />
             {/each}
@@ -176,7 +178,5 @@
       black 44px,
       black
     );
-
-    /* background: linear-gradient(to top, black, black 92%, white 97%); */
   }
 </style>

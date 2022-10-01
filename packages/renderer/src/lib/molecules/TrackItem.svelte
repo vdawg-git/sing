@@ -21,6 +21,8 @@
     }`
     return () => navigate(route)
   }
+
+  // TODO links should not be bigger than the text (no clicking empty space and getting forwarded)
 </script>
 
 <div
@@ -100,9 +102,3 @@
     class="w-[calc(100% + 2rem)] group-active:bg-grey-60 absolute inset-0 -z-10 -ml-4  -mr-4 h-full  rounded-xl group-hover:bg-grey-500/60"
   />
 </div>
-
-<style lang="postcss">
-  /* .contain {
-    contain: strict;
-  } */
-</style>

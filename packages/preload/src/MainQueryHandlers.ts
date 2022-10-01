@@ -7,7 +7,16 @@ import { queryBackend } from "./BackendProcess"
 
 import type { Either } from "fp-ts/lib/Either"
 import type { IpcMainInvokeEvent, OpenDialogReturnValue } from "electron"
-import type { IAlbum, IArtist, IElectronPaths, IError } from "@sing-types/Types"
+import type {
+  IAlbum,
+  IAlbumFindManyArgument,
+  IAlbumGetArgument,
+  IArtist,
+  IArtistFindManyArgument,
+  IElectronPaths,
+  IError,
+  ITrackFindManyArgument,
+} from "@sing-types/Types"
 import type {
   IUserSettings,
   IUserSettingsKey,
@@ -23,7 +32,7 @@ const createUID = hexoid()
 const mainQueryHandlers = {
   getTracks: async (
     _: IpcMainInvokeEvent,
-    options: Prisma.TrackFindManyArgs | undefined
+    options: ITrackFindManyArgument | undefined
   ) =>
     queryBackend({
       event: "getTracks",
@@ -33,7 +42,7 @@ const mainQueryHandlers = {
 
   getAlbums: async (
     _: IpcMainInvokeEvent,
-    options: Prisma.AlbumFindManyArgs | undefined
+    options: IAlbumFindManyArgument | undefined
   ) =>
     queryBackend({
       event: "getAlbums",
@@ -43,7 +52,7 @@ const mainQueryHandlers = {
 
   getAlbum: async (
     _: IpcMainInvokeEvent,
-    options: Prisma.AlbumFindUniqueOrThrowArgs
+    options: IAlbumGetArgument
   ): Promise<Either<IError, IAlbum>> =>
     queryBackend({
       event: "getAlbum",
@@ -53,7 +62,7 @@ const mainQueryHandlers = {
 
   getArtists: async (
     _: IpcMainInvokeEvent,
-    options: Prisma.ArtistFindManyArgs | undefined
+    options: IArtistFindManyArgument | undefined
   ) =>
     queryBackend({
       event: "getArtists",
@@ -63,7 +72,7 @@ const mainQueryHandlers = {
 
   getArtist: async (
     _: IpcMainInvokeEvent,
-    options: Prisma.ArtistFindUniqueOrThrowArgs
+    options: IAlbumGetArgument
   ): Promise<Either<IError, IArtist>> =>
     queryBackend({
       event: "getArtist",

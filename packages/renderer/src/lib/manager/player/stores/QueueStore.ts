@@ -43,6 +43,7 @@ function createQueueStore() {
    *
    * @param tracks The tracks to add as IQueueItems
    * @param queueIndex The current index of the queue. It will add the tracks after it
+   * @param isKeepingManuallyAddedTracks Wether to keep manually added tracks or not.
    */
   function setTracks(
     tracks: readonly ITrack[],
@@ -84,7 +85,7 @@ function _getUnplayedManuallyAddedTracks(
   return queue.slice(queueIndex).filter((item) => item.isManuallyAdded)
 }
 
-export function _convertTracksToQueueItem(
+function _convertTracksToQueueItem(
   tracks: readonly ITrack[],
   continueFromIndex: number
 ): IQueueItem[] {
@@ -96,7 +97,7 @@ export function _convertTracksToQueueItem(
   }))
 }
 
-export function _remapIndexes(
+function _remapIndexes(
   queueItems: readonly IQueueItem[],
   indexToStart = 0
 ): IQueueItem[] {
@@ -111,7 +112,7 @@ export function _remapIndexes(
   })
 }
 
-export function _removeIndex(
+function _removeIndex(
   queueItems: readonly IQueueItem[],
   indexes: readonly number[] | number
 ): IQueueItem[] {
@@ -133,7 +134,7 @@ function remove(
   return queueItems.filter((_, index) => !indexes.includes(index))
 }
 
-export function _removeItemsFromNewTracks(
+function _removeItemsFromNewTracks(
   queueItems: readonly IQueueItem[],
   newTrackItems: readonly ITrack[],
   currentIndex: number

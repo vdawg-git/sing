@@ -1,6 +1,7 @@
 /* eslint-disable unicorn/no-process-exit */
 import { restoreOrCreateWindow } from "@/mainWindow"
 import { app } from "electron"
+import debug from "electron-debug"
 import log from "ololog"
 
 import ipc from "../../preload/src/ipcMain"
@@ -9,6 +10,8 @@ import { checkDatabase } from "./Helper"
 
 log.noLocate.inverse("  Main script started  ")
 log.noLocate(import.meta.env.DEV ? "Dev mode" : "production mode")
+
+debug() // Wont activate in production automatically
 
 checkDatabase(databasePath)
 
