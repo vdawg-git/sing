@@ -39,6 +39,7 @@ export type IArtist = DeepReadonlyNullToUndefined<Artist> &
       include: { albums: true; tracks: true }
     }>,
     {
+      readonly tracks: readonly ITrack[]
       readonly albums: readonly IAlbum[]
       readonly image?: FilePath
     }
@@ -149,14 +150,14 @@ export interface IErrorMMDParsingError extends IError {
   readonly type: "File metadata parsing failed"
 }
 
-export type IPlaySources = `${CamelCase<
+export type IPlaySource = `${CamelCase<
   StrictExtract<Prisma.ModelName, "Artist" | "Album" | "Track" | "Playlist">
 >}s`
 
 export type ISortOrder = "ascending" | "descending"
 
-type makeSortOptions<T extends Record<IPlaySources, string>> = {
-  readonly [key in IPlaySources]: readonly [T[key], ISortOrder]
+type makeSortOptions<T extends Record<IPlaySource, string>> = {
+  readonly [key in IPlaySource]: readonly [T[key], ISortOrder]
 }
 
 /**
@@ -185,30 +186,35 @@ export type ISortOptions = makeSortOptions<{
  */
 export type IPlayback =
   | {
-      readonly [Source in IPlaySources as Source extends StrictExtract<
-        IPlaySources,
+      readonly [Source in IPlaySource as Source extends StrictExtract<
+        IPlaySource,
         "tracks"
       >
         ? never
         : Source]: {
         readonly source: Source
+
         // Only tracks need to be sorted for the queue
         readonly sortBy: ISortOptions["tracks"]
 
         // The ID of the source to be played. For example, an album id. If the source is all tracks, which would be type {type: "tracks"}, then this field is not needed as the type already induces this.
         // So in this case, typing something like "ALL_TRACKS" to clarify the source.
         readonly sourceID: string
+
+        readonly isShuffleOn: boolean
       }
-    }[StrictExclude<IPlaySources, "tracks">]
+    }[StrictExclude<IPlaySource, "tracks">]
   | {
-      readonly source: StrictExtract<IPlaySources, "tracks">
+      readonly source: StrictExtract<IPlaySource, "tracks">
       readonly sortBy: ISortOptions["tracks"]
+      readonly isShuffleOn: boolean
     }
 
 /**
  * When creating a new playback the sortBy field can be optional and will fall back to the default.
+ * If is `isShuffleOn` is defined then set the `shuffleState` to the given value.
  */
-export type INewPlayback = SetOptional<IPlayback, "sortBy">
+export type INewPlayback = SetOptional<IPlayback, "sortBy" | "isShuffleOn">
 
 /**
  * The playback to be send to the backend to receive the new queue.

@@ -19,22 +19,6 @@ body {
   @apply bg-grey-900 text-white;
 }
 
-/** --------------------------------------------------------------
-**      Workaround tailwind bug
-** ----------------------------------------------------------------*/
-:root,
-::before,
-::after {
-  --tw-backdrop-blur: blur(0);
-  --tw-backdrop-brightness: brightness(100%);
-  --tw-backdrop-contrast: contrast(100%);
-  --tw-backdrop-grayscale: grayscale(0%);
-  --tw-backdrop-hue-rotate: hue-rotate(0deg);
-  --tw-backdrop-invert: invert(0%);
-  --tw-backdrop-opacity: opacity(100%);
-  --tw-backdrop-saturate: saturate(100%);
-  --tw-backdrop-sepia: sepia(0%);
-}
 
 /**==================================================================
 **			Scrollbar 

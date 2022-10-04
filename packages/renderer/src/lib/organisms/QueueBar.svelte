@@ -51,7 +51,7 @@
   "
   transition:fly={{
     x: 400,
-    duration: 300,
+    duration: 250,
     easing: sineInOut,
     opacity: 100,
   }}

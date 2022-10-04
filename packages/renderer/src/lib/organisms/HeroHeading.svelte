@@ -42,8 +42,8 @@
 
       <!---- Title -->
       <h1
-        class="block overflow-x-hidden text-ellipsis whitespace-nowrap text-8xl leading-tight"
-        use:doTextResizeToFitElement={{ minSize: 40, maxSize: 96, step: 8 }}
+        class="block h-max overflow-x-hidden  text-ellipsis whitespace-nowrap leading-normal"
+        use:doTextResizeToFitElement={{ minSize: 40, maxSize: 120, step: 8 }}
       >
         {title}
       </h1>

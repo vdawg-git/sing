@@ -3,7 +3,7 @@
 import "./setupBasicMocks"
 
 import { fireEvent, render } from "@testing-library/svelte"
-import { right } from "fp-ts/lib/Either"
+import * as E from "fp-ts/lib/Either"
 import { get } from "svelte/store"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -36,7 +36,7 @@ describe("with valid data", async () => {
   beforeEach(async () => {
     vitest
       .mocked(window.api.getTracks)
-      .mockImplementation(async () => right(mockedTracks))
+      .mockImplementation(async () => E.right(mockedTracks))
   })
 
   describe("displays", async () => {
@@ -77,7 +77,7 @@ describe("with valid data", async () => {
           const data: ITrack[] = Array.from({ length: 21 })
             .fill(mockedTracks)
             .flat() as ITrack[]
-          return right(data)
+          return E.right(data)
         })
 
       vitest.resetModules()
@@ -294,7 +294,7 @@ describe("behaves correctly when queue is empty", async () => {
     // Mock response to be empty and regenerate the import || clear its cache
     vitest
       .mocked(window.api.getTracks)
-      .mockImplementation(async () => right([]))
+      .mockImplementation(async () => E.right([]))
     vitest.resetModules()
 
     QueueBarComponent = (await import(

@@ -27,8 +27,8 @@ model Track {
   playCount Int? @default(0) // Todo implement play stats
   skipCount Int? @default(0)
 
-  trackNo Int?
-  trackOf Int?
+  trackNo Int? /// The number of the track in an album. For example: *1* (of 12)
+  trackOf Int? /// The total number of tracks in an album. For example: *12* 
   diskNo  Int?
   diskOf  Int?
   year    Int?

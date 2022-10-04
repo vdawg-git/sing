@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { right } from "fp-ts/Either"
+import * as E from "fp-ts/Either"
 import { vi } from "vitest"
 
 import trackFactory from "./factories/trackFactory"
@@ -14,7 +14,7 @@ const tracks = trackFactory.buildList(30)
 
 export const mockedApiTracks: readonly ITrack[] = tracks
 export const mockedApiTracksResponse: Either<IError, readonly ITrack[]> =
-  right(tracks)
+  E.right(tracks)
 
 function createMockedElectronAPI(): typeof ipcRenderer {
   return {

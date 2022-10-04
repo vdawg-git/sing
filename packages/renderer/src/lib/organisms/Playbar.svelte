@@ -24,6 +24,8 @@
     pausePlayback,
     resumePlayback,
     handlePlayNext,
+    shuffleState,
+    toggleShuffle,
   } from "@/lib/manager/player/index"
 
   $: track = $currentTrack?.track
@@ -119,8 +121,13 @@
       <!---- Shuffle Button -->
       <button
         data-testid={TEST_IDS.playbarModeIcon}
-        class="button text-grey-300 hover:text-grey-400"
+        class="button 
+          {$shuffleState
+          ? 'hover-text-grey-300 text-white'
+          : 'text-grey-300 hover:text-grey-400'}
+        "
         disabled={!track}
+        on:click={toggleShuffle}
       >
         <IconShuffle class="h-5 w-5" />
       </button>

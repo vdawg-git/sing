@@ -1,7 +1,7 @@
-import { doOrNotifyEither, sortAlphabetically } from "@/Helper"
+import { doOrNotifyEither, moveElementFromToIndex, sortAlphabetically } from "@/Helper"
 import audioPlayer from "@/lib/manager/player/AudioPlayer"
 import { dequal } from "dequal"
-import { map as mapEither } from "fp-ts/lib/Either"
+import * as E from "fp-ts/lib/Either"
 import { derived, get, writable } from "svelte/store"
 import { match } from "ts-pattern"
 
@@ -22,6 +22,7 @@ import type {
   ISortOptions,
 } from "@sing-types/Types"
 import type { IpcRendererEvent } from "electron"
+
 // TODO Add genre to the db, too
 
 // Create stores / state
@@ -35,8 +36,8 @@ const artistsStore = writable<readonly IArtist[]>([])
 const playbackStore = writable<IPlayback>({
   source: "tracks",
   sortBy: ["title", "ascending"],
+  isShuffleOn: false,
 })
-const isShuffleOnStore = writable(false)
 const playLoopStore = writable<IPlayLoop>("NONE")
 
 // Initialise stores with the music from the database
@@ -56,11 +57,17 @@ export const nextTracks = derived(
   ([$queue, $index]) => $queue.slice($index + 1)
 )
 
+export const shuffleState = derived(
+  playbackStore,
+  ({ isShuffleOn }) => isShuffleOn
+)
+
 // Bind the values of the stores localy.
 let $playState: IPlayState = "STOPPED"
 let $queue: IQueueItem[] = []
 let $currentIndex = -1
 let $currentTrack: IQueueItem
+let $playback: IPlayback
 let seekAnimationID: number
 let $isShuffleOn: boolean
 let $playLoop: IPlayLoop
@@ -87,8 +94,15 @@ currentTrack.subscribe(($newCurrentTrack) => {
   $currentTrack = $newCurrentTrack
 })
 
-isShuffleOnStore.subscribe(($newPlayMode) => {
-  $isShuffleOn = $newPlayMode
+playbackStore.subscribe(($newPlayback) => {
+  $playback = $newPlayback
+})
+
+/**
+ * Shuffle or unshuffle the current queue when the shuffle state changes
+ */
+shuffleState.subscribe(async ($newShuffleState) => {
+  $isShuffleOn = $newShuffleState
 })
 
 playLoopStore.subscribe(($newPlayLoop) => {
@@ -123,17 +137,19 @@ export function handlePlayNext() {
         startPlayingTrack($currentTrack.track)
       }
     } else if ($playState === "PLAYING") {
-      console.log("Play random")
-
       playRandomTracksPlayback()
     } else {
       goToRandomTracksPlayback()
     }
-  } else {
-    // If it did not reach its end and it is not looping. simply go to the next track
-    console.log("Playing next")
 
+    return
+  }
+
+  // If it did not reach its end and it is not looping. simply go to the next track
+  if ($playState === "PLAYING") {
     playNext()
+  } else {
+    goToNextTrack()
   }
 }
 
@@ -141,33 +157,53 @@ export function handleClickedPrevious() {
   playPrevious()
 }
 
-async function playRandomTracksPlayback() {
-  await goToRandomTracksPlayback()
+export async function toggleShuffle() {
+  playbackStore.update(({ isShuffleOn, ...rest }) => {
+    doOrNotifyEither(
+      "Failed to set shuffle. Could not retrieve tracks.",
+      async (tracks) => {
+        const trackID = $currentTrack.track.id
 
-  startPlayingTrack($currentTrack.track)
-}
+        const indexAndTracks: { index: number; tracks: readonly ITrack[] } =
+          match(isShuffleOn)
+            .with(true, () => {
+              const indexToMove = tracks.findIndex(
+                (track) => track.id === trackID
+              ) as number
 
-// Maybe better as only a new Playbacksource, which would set a new queue and index anyway
-async function goToRandomTracksPlayback() {
-  const playback = {
-    source: "tracks",
-    sortBy: ["title", "ascending"],
-    isShuffleOn: true,
-  } as const
+              return {
+                index: 0,
+                tracks: moveElementFromToIndex(
+                  indexToMove,
+                  0,
+                  tracks
+                ) as ITrack[],
+              }
+            })
+            .with(false, () => ({
+              index: tracks.findIndex(
+                (track) => track.id === trackID
+              ) as number,
+              tracks,
+            }))
+            .exhaustive()
 
-  const tracksEither = await getTracksFromSource(playback)
-
-  doOrNotifyEither(
-    "Error while trying to play selected music",
-    (tracks) => {
-      setNewPlayback({
-        tracks,
-        index: 0,
-        playback,
+        setNewPlayback({
+          ...indexAndTracks,
+          playback: { ...$playback, isShuffleOn },
+        })
+      },
+      getTracksFromSource({
+        ...$playback,
+        isShuffleOn,
       })
-    },
-    tracksEither
-  )
+    )
+
+    return {
+      isShuffleOn: !isShuffleOn,
+      ...rest,
+    }
+  })
 }
 
 export function setVolume(newVolume: number) {
@@ -237,13 +273,13 @@ export function removeIndexFromQueue(index: number): void {
 /**
  * Starts playback and initializes a new queue
  */
-export async function playNewSource(playback: INewPlayback, index = 0) {
+export async function playNewSource(newPlayback: INewPlayback, index = 0) {
   console.log("sourceStore:", get(playbackStore))
-  console.log("new source:", playback)
-  console.log(dequal(get(playbackStore), playback))
+  console.log("new source:", newPlayback)
+  console.log(dequal(get(playbackStore), newPlayback))
 
   // If the source stayed the same then just go to the specified index of the queue
-  if (dequal(get(playbackStore), playback)) {
+  if (dequal($playback, newPlayback)) {
     indexStore.set(index)
 
     startPlayingTrack($currentTrack.track)
@@ -252,13 +288,17 @@ export async function playNewSource(playback: INewPlayback, index = 0) {
 
   // If the source has changed
   // For example: User played an album and then started playing an artist
+
   const defaultSort: ISortOptions["tracks"] = ["title", "ascending"]
 
-  const tracksEither = await getTracksFromSource({
+  // Keep the old shuffle state if no new one was provided
+  const newPlaybackToSet: IPlayblackToSend = {
     sortBy: defaultSort,
-    ...playback,
     isShuffleOn: $isShuffleOn,
-  })
+    ...newPlayback,
+  }
+
+  const tracksEither = await getTracksFromSource(newPlaybackToSet)
 
   doOrNotifyEither(
     "Error while trying to play selected music",
@@ -266,10 +306,45 @@ export async function playNewSource(playback: INewPlayback, index = 0) {
       setNewPlayback({
         tracks,
         index,
-        playback: { sortBy: defaultSort, ...playback },
+        playback: newPlaybackToSet, // Default sort will get overriden if it was specified in the argument
       })
 
       startPlayingTrack($currentTrack.track)
+    },
+    tracksEither
+  )
+}
+
+async function playRandomTracksPlayback() {
+  await goToRandomTracksPlayback()
+
+  startPlayingTrack($currentTrack.track)
+}
+
+async function setCurrentTrackByID(id: number) {
+  const queueIndex = $queue.findIndex(({ track }) => track.id === id)
+
+  indexStore.set(queueIndex)
+}
+
+// Maybe better as only a new Playbacksource, which would set a new queue and index anyway
+async function goToRandomTracksPlayback() {
+  const playback = {
+    source: "tracks",
+    sortBy: ["title", "ascending"],
+    isShuffleOn: true,
+  } as const
+
+  const tracksEither = await getTracksFromSource(playback)
+
+  doOrNotifyEither(
+    "Error while trying to play selected music",
+    (tracks) => {
+      setNewPlayback({
+        tracks,
+        index: 0,
+        playback,
+      })
     },
     tracksEither
   )
@@ -364,7 +439,10 @@ async function initialiseStores() {
   indexStore.set(0)
 }
 
-function handleSyncUpdate(_event: IpcRendererEvent, syncResult: ISyncResult) {
+async function handleSyncUpdate(
+  _event: IpcRendererEvent,
+  syncResult: ISyncResult
+) {
   console.log("Sync update received")
 
   doOrNotifyEither(
@@ -402,7 +480,7 @@ async function getTracksFromSource(
   return match(playback)
     .with({ source: "artists" }, async ({ sourceID, sortBy, isShuffleOn }) =>
       extractTracks(
-        await window.api.getAlbum({
+        await window.api.getArtist({
           where: { name: sourceID },
           sortBy,
           isShuffleOn,
@@ -432,7 +510,7 @@ async function getTracksFromSource(
     item: Either<IError, { tracks: readonly ITrack[] }>,
     fromIndex = 0
   ): Either<IError, readonly ITrack[]> {
-    return mapEither(({ tracks }: { tracks: readonly ITrack[] }) =>
+    return E.map(({ tracks }: { tracks: readonly ITrack[] }) =>
       tracks.slice(fromIndex)
     )(item)
   }

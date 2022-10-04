@@ -8,7 +8,7 @@ import {
   hasCover,
   removeDuplicates,
 } from "@sing-shared/Pures"
-import { getOrElseW, isLeft, left, right } from "fp-ts/lib/Either"
+import * as E from "fp-ts/lib/Either"
 import log from "ololog"
 import slash from "slash"
 
@@ -61,7 +61,7 @@ export async function syncMusic(
 
     toMainEmitter.emit("sendToMain", {
       event: "syncedMusic",
-      data: left(error),
+      data: E.left(error),
       forwardToRenderer: true,
     })
     return
@@ -77,7 +77,7 @@ export async function syncMusic(
 
     toMainEmitter.emit("sendToMain", {
       event: "syncedMusic",
-      data: left(error),
+      data: E.left(error),
       forwardToRenderer: true,
     })
     return
@@ -147,7 +147,7 @@ export async function syncMusic(
     // It should await each operation to make it non-async
     // eslint-disable-next-line no-await-in-loop
     const result = await addTrackToDB(track)
-    if (isLeft(result)) failedDBTracks.push(result.left)
+    if (E.isLeft(result)) failedDBTracks.push(result.left)
     else {
       addedDBTracks.push(result.right)
     }
@@ -162,16 +162,16 @@ export async function syncMusic(
   const deleteAlbumsResult = await deleteEmptyAlbums()
   const deleteCoversResult = await deleteUnusedCoversInDatabase()
 
-  if (isLeft(deleteTracksResult)) {
+  if (E.isLeft(deleteTracksResult)) {
     log.error.red("deleteTracksResult:", deleteTracksResult.left)
     // @ts-ignore
     log.error.red("deleteTracksResult:", deleteTracksResult.left.error.message)
   }
-  if (isLeft(deleteArtistsResult))
+  if (E.isLeft(deleteArtistsResult))
     log.error.red("deleteArtistsResult:", deleteArtistsResult.left)
-  if (isLeft(deleteAlbumsResult))
+  if (E.isLeft(deleteAlbumsResult))
     log.error.red("deleteAlbumsResult:", deleteAlbumsResult.left)
-  if (isLeft(deleteCoversResult))
+  if (E.isLeft(deleteCoversResult))
     log.error.red("deleteCoversResult:", deleteCoversResult.left)
 
   // Remove unused covers
@@ -180,22 +180,22 @@ export async function syncMusic(
     savedCoverPaths.filter(removeDuplicates)
   )
 
-  if (isLeft(deleteCoversFilesystemResult))
+  if (E.isLeft(deleteCoversFilesystemResult))
     log.error.red(deleteCoversFilesystemResult.left)
   else if (deleteCoversFilesystemResult.right.deletionErrors.length > 0)
     log.error.red(deleteCoversFilesystemResult.right.deletionErrors)
 
   const deleteCoverErrors =
-    isLeft(deleteCoversResult) && deleteCoversResult.left
+    E.isLeft(deleteCoversResult) && deleteCoversResult.left
 
   if (deleteCoverErrors) log.error.red("deleteCoverError:", deleteCoverErrors)
 
-  const artists = getOrElseW(() => {
+  const artists = E.getOrElseW(() => {
     emitError(toMainEmitter, "Failed to get artists")
     return []
   })(await getArtists())
 
-  const albums = getOrElseW(() => {
+  const albums = E.getOrElseW(() => {
     emitError(toMainEmitter, "Failed to get artists")
     return []
   })(await getAlbums())
@@ -204,7 +204,7 @@ export async function syncMusic(
   toMainEmitter.emit("sendToMain", {
     forwardToRenderer: true,
     event: "syncedMusic",
-    data: right({
+    data: E.right({
       tracks: addedDBTracks,
       artists,
       albums,

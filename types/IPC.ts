@@ -13,9 +13,9 @@ import type { IError, ITrack, IAlbum, IArtist, INotification } from "./Types"
 export type ISyncResult = Either<
   IError,
   {
-    readonly tracks: ITrack[]
-    readonly artists: IArtist[]
-    readonly albums: IAlbum[]
+    readonly tracks: readonly ITrack[]
+    readonly artists: readonly IArtist[]
+    readonly albums: readonly IAlbum[]
   }
 >
 

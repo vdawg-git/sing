@@ -1,7 +1,7 @@
 import { convertMetadata, getCover, getCoverNotCurried, saveCover } from "@/lib/Metadata"
 import { isICoverData } from "@/types/TypeGuards"
 import { getExtension, getLeftValues, getRightValues, hasCover, removeNulledKeys } from "@sing-shared/Pures"
-import { flow, pipe } from "fp-ts/lib/function"
+import { flow, pipe } from "fp-ts/Function"
 import * as A from "fp-ts/lib/ReadonlyArray"
 import { vol } from "memfs"
 import { beforeEach, describe, expect, it, vi } from "vitest"

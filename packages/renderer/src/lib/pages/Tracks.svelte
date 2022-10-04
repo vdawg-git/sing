@@ -9,9 +9,9 @@
   import { backgroundImagesStore } from "../stores/BackgroundImages"
 
   import type { IHeroMetaDataItem } from "@/types/Types"
-  import type { ITracksSource } from "@sing-types/Types"
+  import type { IPlaySource } from "@sing-types/Types"
 
-  const sourceType: ITracksSource = "tracks"
+  const sourceType: IPlaySource = "tracks"
 
   let metadata: IHeroMetaDataItem[] = [{ label: `${$tracks.length} tracks` }]
 
@@ -37,12 +37,6 @@
     tracks={$tracks}
     sort={["title", "ascending"]}
     on:play={({ detail }) =>
-      playNewSource(
-        {
-          source: sourceType,
-          sort: detail.sort,
-        },
-        detail.index
-      )}
+      playNewSource({ source: sourceType }, detail.index)}
   />
 {/if}

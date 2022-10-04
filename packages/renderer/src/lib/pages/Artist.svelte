@@ -13,8 +13,9 @@
   import type {
     IArtistWithAlbumsAndTracks,
     IError,
-    ITracksSource,
+    INewPlayback,
   } from "@sing-types/Types"
+
   import type { IHeroAction } from "@/types/Types"
   import type { Either } from "fp-ts/lib/Either"
   import { backgroundImagesStore } from "../stores/BackgroundImages"
@@ -28,34 +29,49 @@
 
   let artist: IArtistWithAlbumsAndTracks | undefined = undefined
 
+  $: console.log(artist)
+
   params.subscribe(async ({ artistID }) => {
     artist = await getArtist(artistID)
-    console.log({ artist })
 
     backgroundImagesStore.set(artist?.image)
   })
 
-  const sourceType: ITracksSource = "artists"
+  const source: INewPlayback = {
+    source: "artists" as const,
+    sourceID: artistID,
+    sortBy: ["album", "ascending"],
+  }
 
   let actions: IHeroAction[]
   $: actions = [
     {
       label: "Play",
       icon: IconPlay,
-      callback: () =>
+      callback: async () =>
         playNewSource({
-          source: sourceType,
-          sourceID: artistID,
-          sort: ["album", "ascending"],
+          ...source,
+          isShuffleOn: false,
         }),
       primary: true,
     },
-    { label: "Shuffle", icon: IconShuffle, callback: () => {}, primary: false },
+    {
+      label: "Shuffle",
+      icon: IconShuffle,
+      callback: async () =>
+        playNewSource({
+          ...source,
+          isShuffleOn: true,
+        }),
+      primary: false,
+    },
   ]
 
   async function getArtist(albumID: string) {
-    const albumEither = (await window.api.getArtist({
+    const artistEither = (await window.api.getArtist({
       where: { name: albumID },
+      sortBy: ["album", "ascending"],
+      isShuffleOn: false,
     })) as Either<IError, IArtistWithAlbumsAndTracks>
 
     return either.getOrElseW((error) => {
@@ -63,7 +79,7 @@
       console.log(error)
 
       return undefined
-    })(albumEither)
+    })(artistEither)
   }
 </script>
 
@@ -92,7 +108,6 @@
       playNewSource({
         source: "albums",
         sourceID: id,
-        sort: ["trackNo", "ascending"],
       })}
     on:clickedPrimary={({ detail: id }) => navigate(`/${ROUTES.albums}/${id}`)}
   />

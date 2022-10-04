@@ -1,5 +1,9 @@
-import { fold } from "fp-ts/lib/Either"
+import { pipe } from "fp-ts/Function"
+import * as E from "fp-ts/lib/Either"
+import * as O from "fp-ts/Option"
+import * as RA from "fp-ts/ReadonlyArray"
 import { createHashHistory } from "history"
+import { isDefined } from "ts-is-present"
 
 import { convertFilepathToFilename, getErrorMessage } from "../../shared/Pures"
 import { addNotification } from "./lib/stores/NotificationStore"
@@ -56,18 +60,18 @@ export function isSubdirectory(ancestor: string, child: string): boolean {
  * Otherwiese, if it is left, log the error and display the provided error message to the user.
  * @param onLeftErrorMessage The message to be displayed to the user when an error occurs
  * @param onRight The callback to execute when the passed data is right (has no error)
- * @param data The data as an Either
+ * @param data The data as an Either or Promise<Either> which will get awaited
  */
-export function doOrNotifyEither<A>(
+export async function doOrNotifyEither<A>(
   onLeftErrorMessage: string,
   onRight: (argument_: A) => void,
-  data: Either<IError, A>
-): void {
-  fold((error) => {
+  data: Either<IError, A> | Promise<Either<IError, A>>
+): Promise<void> {
+  E.fold((error) => {
     console.error(error)
 
     const label = `${onLeftErrorMessage}\n${getErrorMessage(
-      `Error receiving data`,
+      `Error receiving data:\n`,
       error
     )}`
 
@@ -76,7 +80,7 @@ export function doOrNotifyEither<A>(
       type: "danger",
       duration: -1,
     })
-  }, onRight)(data)
+  }, onRight)(await data)
 }
 
 export function isOverflowingX(element: HTMLElement): boolean {
@@ -115,10 +119,10 @@ export function doTextResizeToFitElement(
 
   startResizingFont()
 
-  document.addEventListener("resize", startResizingFont)
+  window.addEventListener("resize", startResizingFont)
 
   return {
-    destroy: () => document.removeEventListener("resize", startResizingFont),
+    destroy: () => window.removeEventListener("resize", startResizingFont),
   }
 
   function startResizingFont() {
@@ -253,10 +257,54 @@ export function sortAlphabetically(a: ITrack, b: ITrack) {
   return titleA.localeCompare(titleB, undefined, { numeric: true })
 }
 
-export function insertIntoArray<T extends never[]>(
-  array: T,
-  index: number,
-  ...newItems: T
-) {
-  return [...array.slice(0, index), ...newItems, ...array.slice(index)]
+export function moveElementFromToIndex<T>(
+  currentIndex: number,
+  newIndex: number,
+  array_: readonly T[]
+): readonly T[] | undefined {
+  const valueToMove = array_[currentIndex]
+  return pipe(
+    array_,
+    RA.deleteAt(currentIndex),
+    O.map(RA.insertAt(newIndex, valueToMove)),
+    O.flatten,
+    // eslint-disable-next-line unicorn/no-useless-undefined
+    O.toUndefined
+  )
+}
+
+/**
+ * Create a function to be used with the `use:` element directive.
+ * It stops the propagation of the click event if the click is outside.
+ * @param callback The callback to run when the user clicks out of the element.
+ * @param extraElements The extra elements which get treated as "inside click" elements.
+ * @return The function to be used with the `use` directive
+ */
+export function createOnOutClick(
+  callback: (event: MouseEvent) => void,
+  extraElements?: (HTMLElement | undefined)[]
+): (node: HTMLElement) => void {
+  return (node: HTMLElement) => {
+    function listener(event: MouseEvent) {
+      const extraElementsFiltered = extraElements?.filter(isDefined) || []
+
+      if (
+        ![...extraElementsFiltered, node].some((element) =>
+          isClickOutsideNode(event, element)
+        )
+      ) {
+        return
+      }
+      event.stopPropagation()
+      callback(event)
+    }
+
+    document.addEventListener("click", listener, true)
+
+    return {
+      destroy: () => {
+        document.removeEventListener("click", listener, true)
+      },
+    }
+  }
 }

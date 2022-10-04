@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { isClickOutsideNode } from "../../Helper"
+  import { createOnOutClick, isClickOutsideNode } from "../../Helper"
   import IconDotsVr from "virtual:icons/heroicons-outline/dots-vertical"
   import IconDotsHr from "virtual:icons/heroicons-outline/dots-horizontal"
 
@@ -8,40 +8,23 @@
   export let menuTestID: string
   export let iconTestID: string
 
-  let iconButton: HTMLElement
-
   const iconClasses =
     "rounded-full w-8 h-8 p-1 text-grey-300 cursor-pointer hover:bg-grey-600 "
 
   function handleClick() {
+    if (open) return
+    open = true
+  }
+
+  function handleOnOutClick() {
     open = !open
   }
 
-  function handleOutClick(node: HTMLElement) {
-    const curriedOutClick = (event: MouseEvent) => {
-      open = !(
-        (
-          isClickOutsideNode(event, node) &&
-          isClickOutsideNode(event, iconButton)
-        ) // If clicked on the icon button, this will return true. But the handleClick on the button closes the menu then. It works?
-      )
-    }
-    document.addEventListener("click", curriedOutClick, true)
-
-    return {
-      destroy: () => {
-        document.removeEventListener("click", curriedOutClick, true)
-      },
-    }
-  }
+  const onOutClick = createOnOutClick(handleOnOutClick)
 </script>
 
 <div class="">
-  <button
-    data-testID={iconTestID}
-    on:click={handleClick}
-    bind:this={iconButton}
-  >
+  <button data-testID={iconTestID} on:click={handleClick}>
     {#if icon == "horizontal"}
       <IconDotsHr class={iconClasses} />
     {:else}
@@ -53,8 +36,8 @@
     <div
       data-testID={menuTestID}
       class="absolute z-50 min-w-[15rem] overflow-hidden rounded-lg bg-grey-600"
-      use:handleOutClick
-      on:click={(_e) => (open = false)}
+      use:onOutClick
+      on:click={() => (open = false)}
     >
       <slot>
         Menu is empty

@@ -3,8 +3,7 @@ import { resetMockedPrisma } from "@/lib/__mocks__/CustomPrismaClient"
 import createPrismaClient from "@/lib/CustomPrismaClient"
 import { syncMusic } from "@/lib/Sync"
 import { getRightOrThrow, removeKeys, removeNulledKeys } from "@sing-shared/Pures"
-import { ITrack } from "@sing-types/Types"
-import { Either, isLeft } from "fp-ts/lib/Either"
+import * as E from "fp-ts/lib/Either"
 import { vol, Volume } from "memfs"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -21,6 +20,9 @@ import {
   unusedCoversJSON,
 } from "./Helper/Consts"
 import createMockedEmitter from "./helper/MockedEmitter"
+
+import type { ITrack } from "@sing-types/Types"
+import type { Either } from "fp-ts/lib/Either"
 
 vi.mock("fs/promises")
 vi.mock("electron")
@@ -42,7 +44,7 @@ it("fs mocking works", async () => {
   vol.fromNestedJSON(filesDefault)
 
   const result = await getFilesFromDirectory(musicFolder)
-  if (isLeft(result)) throw new Error(`${result.left.error}`)
+  if (E.isLeft(result)) throw new Error(`${result.left.error}`)
   const files = result.right
 
   expect(files).toEqual(expected)
@@ -165,7 +167,7 @@ describe("syncDirectories", async () => {
 
     const emitted = emitter.getEmits()[0] as Either<unknown, unknown>
 
-    expect(isLeft(emitted)).toBe(false)
+    expect(E.isLeft(emitted)).toBe(false)
   })
 
   it("should not return processing errors with valid data", async () => {
@@ -195,7 +197,7 @@ describe("syncDirectories", async () => {
 
     const emitted = emitter.getEmits()[0] as Either<unknown, unknown>
 
-    if (isLeft(result)) throw result.left.error
+    if (E.isLeft(result)) throw result.left.error
 
     const { failedDBTracks } = result.right
 
@@ -214,7 +216,7 @@ it("fs mocking reset works", async () => {
   vol.fromNestedJSON(filesDefault)
 
   const result = await getFilesFromDirectory(musicFolder)
-  if (isLeft(result)) throw new Error(`${result.left.error}`)
+  if (E.isLeft(result)) throw new Error(`${result.left.error}`)
   const files = result.right
 
   expect(files).toEqual(expected)

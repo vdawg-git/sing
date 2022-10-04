@@ -1,7 +1,7 @@
-import { removeNulledKeys, sortByKey, sortTracks } from "@sing-shared/Pures"
+import { removeNulledKeys, sortByKey, sortTracks, updateKeyValue } from "@sing-shared/Pures"
 import { isKeyOfObject } from "@sing-types/Typeguards"
-import { left, right } from "fp-ts/Either"
-import { map as mapArray } from "fp-ts/lib/ReadonlyArray"
+import * as E from "fp-ts/Either"
+import * as A from "fp-ts/lib/ReadonlyArray"
 import log from "ololog"
 
 import { SQL_STRINGS as S } from "./Consts"
@@ -51,10 +51,10 @@ export async function getArtists(
   >
 
   return response
-    .then(mapArray(removeNulledKeys))
-    .then(mapArray(addArtistImage))
+    .then(A.map(removeNulledKeys))
+    .then(A.map(addArtistImage))
     .then((artists) => sortByKey(options?.sortBy ?? defaultSort, artists))
-    .then(right)
+    .then(E.right)
     .catch(createError("Failed to get from database"))
 }
 
@@ -70,9 +70,9 @@ export async function getAlbums(
 
   return prisma.album
     .findMany(prismaOptions)
-    .then(mapArray(removeNulledKeys))
+    .then(A.map(removeNulledKeys))
     .then((albums) => sortByKey(options?.sortBy ?? defaultSort, albums))
-    .then((albums) => right(albums as unknown as IAlbum[]))
+    .then((albums) => E.right(albums as unknown as IAlbum[]))
     .catch(createError("Failed to remove unused albums from the database"))
 }
 
@@ -89,9 +89,9 @@ export async function getTracks(
 
   return prisma.track
     .findMany(prismaOptions)
-    .then(mapArray(removeNulledKeys))
+    .then(A.map(removeNulledKeys))
     .then((tracks) => sortTracks(usedSort)(tracks as readonly ITrack[]))
-    .then(right)
+    .then(E.right)
     .catch(createError("Failed to get from database"))
 }
 
@@ -100,14 +100,16 @@ export async function getCovers(
 ): Promise<Either<IError, readonly ICover[]>> {
   return prisma.cover
     .findMany(options)
-    .then(mapArray(removeNulledKeys))
-    .then((covers) => right(covers as ICover[]))
+    .then(A.map(removeNulledKeys))
+    .then((covers) => E.right(covers as ICover[]))
     .catch(createError("Failed to get from database"))
 }
 
-export async function getArtist(
-  options: IArtistGetArgument
-): Promise<Either<IError, IArtist>> {
+export async function getArtist({
+  where,
+  sortBy,
+  isShuffleOn,
+}: IArtistGetArgument): Promise<Either<IError, IArtist>> {
   const include: Prisma.ArtistInclude = {
     albums: {
       include: {
@@ -117,32 +119,47 @@ export async function getArtist(
     tracks: true,
   } as const
 
-  const rawAlbum = prisma.artist.findUniqueOrThrow({
-    where: options.where,
+  const defaultSort: ISortOptions["tracks"] = ["album", "ascending"]
+
+  const usedSort: ISortOptions["tracks"] | ["RANDOM"] = isShuffleOn
+    ? ["RANDOM"]
+    : sortBy ?? defaultSort
+
+  const rawArtist = prisma.artist.findUniqueOrThrow({
+    where,
     include,
   }) as unknown as PrismaPromise<IArtist>
 
-  return rawAlbum
+  return rawArtist
+    .then((artist) => updateKeyValue("tracks", sortTracks(usedSort), artist))
     .then(removeNulledKeys)
     .then(addArtistImage)
-    .then(right)
+    .then(E.right)
     .catch(createError("Failed to get from database"))
 }
 
-export async function getAlbum(
-  options: IAlbumGetArgument
-): Promise<Either<IError, IAlbum>> {
+export async function getAlbum({
+  where,
+  isShuffleOn,
+  sortBy,
+}: IAlbumGetArgument): Promise<Either<IError, IAlbum>> {
   const include: Prisma.AlbumInclude = {
     tracks: true,
   }
 
-  return prisma.album
-    .findUniqueOrThrow({
-      where: options.where,
-      include,
-    })
+  const sort: ISortOptions["tracks"] | ["RANDOM"] = isShuffleOn
+    ? ["RANDOM"]
+    : sortBy ?? ["trackNo", "ascending"]
+
+  const rawResponse = prisma.album.findUniqueOrThrow({
+    where,
+    include,
+  }) as unknown as PrismaPromise<IAlbum>
+
+  return rawResponse
+    .then((album) => updateKeyValue("tracks", sortTracks(sort), album))
     .then(removeNulledKeys)
-    .then((album) => right(album as IAlbum))
+    .then((album) => E.right(album as IAlbum))
     .catch(createError("Failed to get from database"))
 }
 
@@ -158,7 +175,7 @@ export async function addTrackToDB(
       create: track,
     })
     .then(removeNulledKeys)
-    .then((addedTrack) => right(addedTrack as ITrack))
+    .then((addedTrack) => E.right(addedTrack as ITrack))
     .catch(createError("Failed to add track to database"))
 }
 
@@ -172,12 +189,12 @@ export async function deleteTracksInverted(
 
   const query = `DELETE FROM 
                   ${S.TRACK} 
-                WHERE 
+                 WHERE 
                   ${S.filepath} NOT IN (${pathsString})`
 
   return prisma
     .$executeRawUnsafe(query)
-    .then((deleteAmount) => right(deleteAmount))
+    .then((deleteAmount) => E.right(deleteAmount))
     .catch(createError("Failed to remove unused tracks from the database"))
 }
 
@@ -198,7 +215,7 @@ export async function deleteEmptyAlbums(): Promise<Either<IError, number>> {
 
   return prisma
     .$executeRawUnsafe(query)
-    .then((deleteAmount) => right(deleteAmount))
+    .then((deleteAmount) => E.right(deleteAmount))
     .catch(createError("Failed to remove unused albums from the database"))
 }
 
@@ -219,7 +236,7 @@ export async function deleteEmptyArtists(): Promise<Either<IError, number>> {
 
   return prisma
     .$executeRawUnsafe(query)
-    .then((deleteAmount) => right(deleteAmount))
+    .then((deleteAmount) => E.right(deleteAmount))
     .catch(createError("Failed to remove unused artists from the database"))
 }
 
@@ -242,7 +259,7 @@ export async function deleteUnusedCoversInDatabase(): Promise<
 
   return prisma
     .$executeRawUnsafe(query)
-    .then((deleteAmount) => right(deleteAmount))
+    .then((deleteAmount) => E.right(deleteAmount))
     .catch(createError("Failed to remove unused covers from the database"))
 }
 
@@ -251,13 +268,13 @@ function createError(
 ): (error: unknown) => Either<IError, never> {
   return (error) => {
     if (typeof error !== "object" || error === null)
-      return left({ type, error })
+      return E.left({ type, error })
 
-    if (!isKeyOfObject(error, "message")) return left({ type, error })
+    if (!isKeyOfObject(error, "message")) return E.left({ type, error })
 
     log.error.red(type, error)
 
-    return left({
+    return E.left({
       type,
       error: { ...error, message: error.message },
     })

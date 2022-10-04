@@ -1,12 +1,12 @@
-/// <reference types="vitest/importMeta" />
 import { isKeyOfObject } from "@sing-types/Typeguards"
-import { readonlyArray as FPArray } from "fp-ts"
-import { curry2 } from "fp-ts-std/Function"
+import { curry2 } from "fp-ts-std/function"
 import { pipe } from "fp-ts/Function"
-import { isLeft, isRight, left, right } from "fp-ts/lib/Either"
+import * as E from "fp-ts/lib/Either"
+import * as A from "fp-ts/lib/ReadonlyArray"
 
 import { SUPPORTED_MUSIC_FORMATS, UNSUPPORTED_MUSIC_FORMATS } from "../backend/src/lib/FileFormats"
 
+// / <reference types="vitest/importMeta" />
 import type { Either } from "fp-ts/lib/Either"
 
 import type {
@@ -31,7 +31,7 @@ export function filterPathsByExtenstions(
 ): readonly FilePath[] {
   return pipe(
     paths,
-    FPArray.filter((path: string) => {
+    A.filter((path) => {
       const pathExtension = getExtension(path)
       return includedInArray(extensions)(pathExtension)
     })
@@ -68,8 +68,18 @@ export function getUnsupportedMusicFiles(
   return filterPathsByExtenstions(UNSUPPORTED_MUSIC_FORMATS, filePaths)
 }
 
-export function getExtension(string: string): string {
-  return string.split(".").at(-1) as string
+/**
+ * Get the extension of a filepath.
+ * @return The extension as a string or undefined if the filename does not have an extension.
+ * @example
+ * const path = "C:/Hi.mp3"
+ * const extension = getExtension(path) //=> "mp3"
+ *
+ * const weirdFile = "C:/Nope"
+ * const extension = getExtension(weirdFile) //=> undefined
+ */
+export function getExtension(string: FilePath): string | undefined {
+  return string.split(".").at(-1)
 }
 
 function includedInArrayNotCurried(
@@ -82,17 +92,17 @@ export const includedInArray = curry2(includedInArrayNotCurried)
 
 export function isFileSupported(
   supportedExtensions: readonly string[],
-  filePath: string
+  filePath: FilePath
 ): boolean {
   return pipe(filePath, getExtension, includedInArray(supportedExtensions))
 }
 
 export function getLeftValues<E, A>(array: Either<E, A>[]): E[] {
-  return array.filter(isLeft).map((value) => value.left)
+  return array.filter(E.isLeft).map((value) => value.left)
 }
 
 export function getRightValues<E, A>(array: Either<E, A>[]): A[] {
-  return array.filter(isRight).map((value) => value.right)
+  return array.filter(E.isRight).map((value) => value.right)
 }
 
 export function getLeftsRights<E, A>(
@@ -104,7 +114,7 @@ export function getLeftsRights<E, A>(
   }
 
   for (const item of array) {
-    if (isLeft(item)) {
+    if (E.isLeft(item)) {
       result.left.push(item.left)
     } else {
       result.right.push(item.right)
@@ -180,6 +190,13 @@ export function stringifyArraysInObject<T extends Record<string, unknown>>(
   }, {} as Record<string, unknown>) as ArraysToString<T>
 }
 
+/**
+ *
+ * @param array The array of objects to transform
+ * @example const array = [{a: 1, b: "Z"}, {a: 2, b: "X"}]
+ *
+ *  const transformed = objectsKeysInArrayToObject(array) // => {a: [1, 2], b: ["Z", "X"]}
+ */
 export function objectsKeysInArrayToObject<
   T extends readonly Record<string, unknown>[],
   K extends keyof T[number]
@@ -205,10 +222,20 @@ export function objectsKeysInArrayToObject<
   return result
 }
 
+export function updateKeyValue<
+  T extends Record<string, unknown>,
+  Key extends keyof T
+>(key: Key, updateFunction: (previousValue: T[Key]) => T[Key], object_: T): T {
+  return {
+    ...object_,
+    [key]: updateFunction(object_[key]),
+  }
+}
+
 /**
  * To be used with `Array.filter`
  * @example
- * const arr = [1, 1, ,1 , 2, 2]
+ * const arr = [1, 1, ,1 , 2, 2, 2]
  * const filtered = arr.filter(removeDuplicates)
  * // filtered  => [1 , 2]
  */
@@ -251,7 +278,7 @@ export function getErrorMessage(
 }
 
 export function getRightOrThrow<A>(either: Either<unknown, A>): A {
-  if (isLeft(either)) throw new Error(`${either.left}`)
+  if (E.isLeft(either)) throw new Error(`${either.left}`)
 
   return either.right
 }
@@ -274,12 +301,8 @@ export function sortTracks([sortBy, sortOrder]:
 
     const sorted = [...tracks].sort((a, b) => {
       // If the value at the specified key is undefined, then sort by the title or if this one is undefined, too, sort by the filename
-      if (a[sortBy] === undefined || b[sortBy] === undefined) {
-        return sortString(
-          a.title ?? convertFilepathToFilename(a.filepath),
-          b.title ?? convertFilepathToFilename(b.filepath)
-        )
-      }
+      if (b[sortBy] === undefined) return -1
+      if (a[sortBy] === undefined) return 1
 
       if (typeof a[sortBy] === "number" && typeof b[sortBy] === "number") {
         return (a[sortBy] as number) - (b[sortBy] as number)
@@ -491,7 +514,7 @@ if (import.meta.vitest) {
   })
 
   test("eitherArrayToObject", () => {
-    const given = [left(1), right(2), left(3)]
+    const given = [E.left(1), E.right(2), E.left(3)]
 
     const expected = {
       left: [1, 3],
@@ -534,7 +557,7 @@ if (import.meta.vitest) {
   })
 
   test("eitherArrayToObject", () => {
-    const given = [left(1), right(2), left(3)]
+    const given = [E.left(1), E.right(2), E.left(3)]
 
     const expected = {
       left: [1, 3],

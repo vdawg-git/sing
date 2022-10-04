@@ -1,7 +1,7 @@
 import { flattenObject, removeKeys, stringifyArraysInObject } from "@sing-shared/Pures"
-import { curry2 } from "fp-ts-std/Function"
-import { isRight, left, right } from "fp-ts/lib/Either"
-import { pipe } from "fp-ts/lib/function"
+import { curry2 } from "fp-ts-std/function"
+import { pipe } from "fp-ts/Function"
+import * as E from "fp-ts/lib/Either"
 import { parseFile, selectCover } from "music-metadata"
 import { createHash } from "node:crypto"
 
@@ -24,14 +24,14 @@ export async function getRawMetaDataFromFilepath(
   filepath: FilePath
 ): Promise<Either<IErrorMMDParsingError, IRawAudioMetadata>> {
   return parseFile(filepath)
-    .then((rawMetaData) => right({ ...rawMetaData, filepath }))
+    .then((rawMetaData) => E.right({ ...rawMetaData, filepath }))
     .catch((error) => {
       const catchedError: IErrorMMDParsingError = {
         type: "File metadata parsing failed",
         error,
         message: `${filepath} could not be parsed`,
       }
-      return left(catchedError)
+      return E.left(catchedError)
     })
 }
 
@@ -95,7 +95,7 @@ export async function saveCover({
 }: ICoverData): Promise<Either<IError, FilePath>> {
   const accessible = await checkPathAccessible(path) // If it's accessible it does already exist, so just return the path then
 
-  return isRight(accessible) ? right(path) : writeFileToDisc(buffer, path)
+  return E.isRight(accessible) ? E.right(path) : writeFileToDisc(buffer, path)
 }
 
 type _UsedKeys = StrictExtract<

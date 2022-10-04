@@ -1,7 +1,7 @@
 import { checkPathAccessible } from "@sing-backend/Helper"
 import { isError } from "@sing-types/Typeguards"
 import { dialog } from "electron"
-import { isLeft } from "fp-ts/lib/Either"
+import * as E from "fp-ts/lib/Either"
 import { copyFile } from "node:fs/promises"
 import path from "node:path"
 import log from "ololog"
@@ -19,7 +19,7 @@ export function chooseFolders() {
 // Check if database exists. If not copy the empty master to make it available
 export async function checkDatabase(databasePath: FilePath) {
   const checkAccessible = await checkPathAccessible(databasePath)
-  if (isLeft(checkAccessible)) {
+  if (E.isLeft(checkAccessible)) {
     const possibleError = checkAccessible.left.error
 
     if (

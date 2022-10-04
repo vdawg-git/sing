@@ -1,6 +1,6 @@
 /* eslint-disable unicorn/prefer-top-level-await */
 import { convertFilepathToFilename } from "@sing-shared/Pures"
-import { match as matchEither } from "fp-ts/lib/Either"
+import * as E from "fp-ts/lib/Either"
 import { map as mapArray } from "fp-ts/lib/ReadonlyArray"
 import Fuse from "fuse.js"
 import log from "ololog"
@@ -88,21 +88,21 @@ export async function search(query: string): Promise<ISearchResult> {
  */
 async function createSearchList(): Promise<readonly IToSearchData[]> {
   const artistItems: readonly IToSearchData[] = await getArtists().then(
-    matchEither(
+    E.match(
       logErrorAndReturnEmptyArray("Failed to get artists for createSearchList"),
       mapArray(convertArtistToSearchItem)
     )
   )
 
   const trackItems: readonly IToSearchData[] = await getTracks().then(
-    matchEither(
+    E.match(
       logErrorAndReturnEmptyArray("Failed to get tracks for createSearchList"),
       mapArray(convertTrackToSearchItem)
     )
   )
 
   const albumItems: readonly IToSearchData[] = await getAlbums().then(
-    matchEither(
+    E.match(
       logErrorAndReturnEmptyArray("Failed to get albums for createSearchList"),
       mapArray(convertAlbumToSearchItem)
     )

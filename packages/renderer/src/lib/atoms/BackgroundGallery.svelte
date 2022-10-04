@@ -5,9 +5,11 @@
 
   export let images: readonly FilePath[] | FilePath | undefined
 
-  const maxImages = 100
+  const maxImages = 50
 
   let element: HTMLElement | undefined
+
+  // TODO If only one image, get its dimensions and tiled it mirrored if it is too small to fill the view
 
   $: displayedImages = match(images)
     .with(P.nullish, () => [])
@@ -48,6 +50,7 @@
       ({ length }) => length > 5,
       () => (isScreenUltrawide() ? "410px" : "360px")
     )
+
     .when(
       ({ length }) => length > 0,
       ({ length }) => `${(1 / (length + 1)) * 100}%`
@@ -91,7 +94,7 @@
         <div
           style="background-image: url(file://{displayedImages[0]});"
           class="absolute inset-0 h-full w-full bg-repeat opacity-40"
-          transition:fade={{ duration: 550 }}
+          transition:fade={{ duration: 250 }}
         />
       {/if}
     {/key}

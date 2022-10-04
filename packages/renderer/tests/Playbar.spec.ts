@@ -2,7 +2,7 @@
 import "./setupBasicMocks"
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/svelte"
-import { right } from "fp-ts/lib/Either"
+import * as E from "fp-ts/lib/Either"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import mockedPlayer from "../src/lib/manager/__mocks__/AudioPlayer"
@@ -41,7 +41,7 @@ describe("behaves correctly with valid queue", async () => {
     const trackWithNoCover = trackFactory.build()
     delete trackWithNoCover.coverPath
 
-    const newMockedApiTracks = right([
+    const newMockedApiTracks = E.right([
       trackWithNoCover,
       ...trackFactory.buildList(20),
     ])
@@ -120,7 +120,7 @@ describe("behaves correctly with valid queue", async () => {
 
 describe("behaves correctly with no tracks", () => {
   beforeEach(async () => {
-    vi.mocked(window.api.getTracks).mockImplementation(async () => right([]))
+    vi.mocked(window.api.getTracks).mockImplementation(async () => E.right([]))
 
     Playbar = (await import(
       "@/lib/organisms/Playbar.svelte"

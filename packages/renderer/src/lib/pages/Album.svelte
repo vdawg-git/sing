@@ -10,7 +10,7 @@
   import TrackList from "@/lib/organisms/TrackList.svelte"
 
   import type { Either } from "fp-ts/lib/Either"
-  import type { IAlbum, IError, ITrack } from "@sing-types/Types"
+  import type { IAlbum, IError, ISortOptions, ITrack } from "@sing-types/Types"
   import type {
     IHeroAction,
     IHeroMetaDataItem,
@@ -21,6 +21,9 @@
   export let albumID: string
 
   const params = useParams<{ albumID: string }>()
+
+  // TODO fix the sorting.
+  const defaultSort: ISortOptions["tracks"] = ["trackNo", "ascending"]
 
   let album: IAlbum | undefined
 
@@ -49,11 +52,23 @@
         playNewSource({
           source: "albums",
           sourceID: albumID,
-          sort: ["trackNo", "ascending"],
+          sortBy: defaultSort,
+          isShuffleOn: false,
         }),
       primary: true,
     },
-    { label: "Shuffle", icon: IconShuffle, callback: () => {}, primary: false },
+    {
+      label: "Shuffle",
+      icon: IconShuffle,
+      callback: () =>
+        playNewSource({
+          source: "albums",
+          sourceID: albumID,
+          sortBy: defaultSort,
+          isShuffleOn: true,
+        }),
+      primary: false,
+    },
   ]
 
   const displayOptions: ITrackListDisplayOptions = {
@@ -64,6 +79,8 @@
   async function getAlbum(albumID: string) {
     const albumEither: Either<IError, IAlbum> = await window.api.getAlbum({
       where: { name: albumID },
+      sortBy: ["trackNo", "ascending"],
+      isShuffleOn: false,
     })
 
     return either.getOrElseW((error) => {
@@ -93,10 +110,10 @@
         {
           source: "albums",
           sourceID: albumID,
-          sort: ["trackNo", "ascending"],
+          sortBy: defaultSort,
         },
         detail.index
       )}
-    sort={["trackNo", "ascending"]}
+    sort={defaultSort}
   />
 {/if}

@@ -1,6 +1,6 @@
 import { isError } from "@sing-types/Typeguards"
 import c from "ansicolor"
-import { isLeft, left, right } from "fp-ts/lib/Either"
+import * as E from "fp-ts/lib/Either"
 import { copyFile, mkdir, readdir, stat, unlink, writeFile } from "node:fs/promises"
 import path from "node:path"
 import log from "ololog"
@@ -21,9 +21,9 @@ export async function getFilesFromDirectory(
   directory: DirectoryPath
 ): Promise<Either<IErrorFSDirectoryReadFailed, readonly FilePath[]>> {
   try {
-    return right(await recursion(directory))
+    return E.right(await recursion(directory))
   } catch (error) {
-    return left({
+    return E.left({
       type: "Directory read failed",
       error,
       message: `Error reading out path "${directory}" \n${error}`,
@@ -50,8 +50,8 @@ export async function checkPathAccessible<T extends FilePath>(
   pathToCheck: T
 ): Promise<Either<IErrorFSPathUnaccessible, T>> {
   return stat(pathToCheck)
-    .then(() => right(pathToCheck))
-    .catch((error) => left({ type: "Path not accessible", error }))
+    .then(() => E.right(pathToCheck))
+    .catch((error) => E.left({ type: "Path not accessible", error }))
 }
 
 export async function writeFileToDisc<T extends FilePath>(
@@ -60,7 +60,7 @@ export async function writeFileToDisc<T extends FilePath>(
 ): Promise<Either<IErrorFSWriteFailed, T>> {
   return mkdir(path.dirname(filepath), { recursive: true })
     .then(() => writeFile(filepath, content))
-    .then(() => right(filepath))
+    .then(() => E.right(filepath))
     .catch((error) => {
       console.error(c.red(error))
       const catchedError: IErrorFSWriteFailed = {
@@ -69,7 +69,7 @@ export async function writeFileToDisc<T extends FilePath>(
         error,
       }
 
-      return left(catchedError)
+      return E.left(catchedError)
     })
 }
 
@@ -84,7 +84,7 @@ export async function deleteFromDirectoryInverted(
 > {
   const allFiles = await getFilesFromDirectory(directory)
 
-  if (isLeft(allFiles)) return allFiles
+  if (E.isLeft(allFiles)) return allFiles
 
   const pathsToDelete = allFiles.right.filter(
     (file) => !filesNotToDelete.includes(file)
@@ -94,7 +94,7 @@ export async function deleteFromDirectoryInverted(
     await deleteFiles(pathsToDelete)
   )
 
-  return right({ deletionErrors, deletedFiles })
+  return E.right({ deletionErrors, deletedFiles })
 }
 
 export async function deleteFiles(
@@ -102,13 +102,13 @@ export async function deleteFiles(
 ): Promise<Either<IErrorFSDeletionFailed, FilePath>[]> {
   const result = fileList.map((file) =>
     unlink(file)
-      .then(() => right(file))
+      .then(() => E.right(file))
       .catch((error) => {
         const catchedError: IErrorFSDeletionFailed = {
           error,
           type: "File deletion failed" as const,
         }
-        return left(catchedError)
+        return E.left(catchedError)
       })
   )
 
@@ -120,7 +120,7 @@ export async function deleteFiles(
  */
 export async function checkAndCreateDatabase(databasePath: FilePath) {
   const checkAccessible = await checkPathAccessible(databasePath)
-  if (isLeft(checkAccessible)) {
+  if (E.isLeft(checkAccessible)) {
     const possibleError = checkAccessible.left.error
 
     if (
