@@ -10,7 +10,6 @@ function createQueueStore() {
     removeIndex,
     removeItemsFromNewTracks,
     reset,
-    setCurrent,
     setTracks,
     subscribe,
     update,
@@ -42,13 +41,13 @@ function createQueueStore() {
   /**
    *
    * @param tracks The tracks to add as IQueueItems
-   * @param queueIndex The current index of the queue. It will add the tracks after it
-   * @param isKeepingManuallyAddedTracks Wether to keep manually added tracks or not.
+   * @param queueIndex The current play index. Used internally to determine which manually added tracks are already played and thus should be removed.
+   * @param keepManuallyAddedTracks Wether to keep manually added tracks or not. Defaults to `true`.
    */
   function setTracks(
     tracks: readonly ITrack[],
     queueIndex: number,
-    isKeepingManuallyAddedTracks = true
+    keepManuallyAddedTracks = true
   ): void {
     update(($queue) => {
       const [newCurrent, ...newQueueItems]: readonly IQueueItem[] =
@@ -56,24 +55,11 @@ function createQueueStore() {
 
       return [
         newCurrent,
-        ...(isKeepingManuallyAddedTracks
+        ...(keepManuallyAddedTracks
           ? _getUnplayedManuallyAddedTracks($queue, queueIndex)
           : []),
         ...newQueueItems,
       ]
-    })
-  }
-
-  function setCurrent(track: ITrack, index: number) {
-    update(($queue) => {
-      const newQueueItem: IQueueItem = {
-        index,
-        isManuallyAdded: false,
-        track,
-        queueID: Symbol(`${track?.title} queueID`),
-      }
-      $queue.splice(index, 0, newQueueItem)
-      return $queue
     })
   }
 }

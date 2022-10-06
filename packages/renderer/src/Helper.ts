@@ -62,7 +62,7 @@ export function isSubdirectory(ancestor: string, child: string): boolean {
  * @param onRight The callback to execute when the passed data is right (has no error)
  * @param data The data as an Either or Promise<Either> which will get awaited
  */
-export async function doOrNotifyEither<A>(
+export async function doOrNotifyWithData<A>(
   onLeftErrorMessage: string,
   onRight: (argument_: A) => void,
   data: Either<IError, A> | Promise<Either<IError, A>>

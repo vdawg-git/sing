@@ -194,7 +194,7 @@ export type IPlayback =
         : Source]: {
         readonly source: Source
 
-        // Only tracks need to be sorted for the queue
+        // The queue only has tracks to be sorted
         readonly sortBy: ISortOptions["tracks"]
 
         // The ID of the source to be played. For example, an album id. If the source is all tracks, which would be type {type: "tracks"}, then this field is not needed as the type already induces this.
@@ -212,15 +212,10 @@ export type IPlayback =
 
 /**
  * When creating a new playback the sortBy field can be optional and will fall back to the default.
- * If is `isShuffleOn` is defined then set the `shuffleState` to the given value.
+ * If is `isShuffleOn` is defined then the `shuffleState` will be set to the given value.
+ * This data structure will be send to the backend to query tracks for the playback.
  */
 export type INewPlayback = SetOptional<IPlayback, "sortBy" | "isShuffleOn">
-
-/**
- * The playback to be send to the backend to receive the new queue.
- * It includes the shuffle property so that the backend can shuffle the queried tracks if set.
- */
-export type IPlayblackToSend = IPlayback & { readonly isShuffleOn: boolean }
 
 /**
  * The search results from the backend to the renderer.
@@ -287,8 +282,8 @@ export type IAlbumGetArgument =
 
 type MakeCustomPrismaUniqueFind<T extends { where: unknown }> =
   | Pick<T, "where"> & {
-      sortBy: ISortOptions["tracks"]
-      isShuffleOn: boolean
+      readonly sortBy?: ISortOptions["tracks"]
+      readonly isShuffleOn?: boolean
     }
 
 /**

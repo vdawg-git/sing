@@ -4,6 +4,8 @@ import { match, P } from "ts-pattern"
 import IconArrowRight from "virtual:icons/heroicons-outline/arrow-right"
 import IconPlay from "virtual:icons/heroicons-outline/play"
 
+import { playTrackAsShuffledTracks } from "../manager/player"
+
 import type {
   IAlbum,
   IArtist,
@@ -16,6 +18,12 @@ import type {
 import type {} from "@/types/Types"
 // const navigate = useNavigate()
 
+/**
+ *
+ * @param navigate The navigate hook to use for navigation.
+ * @param data The search result data for this block.
+ * @returns The converted data, ready to be displayed.
+ */
 export function convertSearchedDataToSearchItems(
   navigate: (route: string) => void,
   data: IConvertedSearchData
@@ -63,9 +71,7 @@ function convertTrackToSearchItem(
     image: track.cover,
     label,
     icon: IconPlay,
-    onClick() {
-      console.error(`Not implemented yet`)
-    },
+    onClick: async () => playTrackAsShuffledTracks(track),
   }
 }
 
@@ -82,9 +88,7 @@ function convertAlbumToSearchItem(
     subtexts,
     icon: IconArrowRight,
     label,
-    onClick() {
-      navigate(`${ROUTES.albums}/${album.name}`)
-    },
+    onClick: async () => navigate(`${ROUTES.albums}/${album.name}`),
   }
 }
 
@@ -113,7 +117,7 @@ function createAlbumSubtexts(
     ? [
         {
           label: albumArtist,
-          onClick: () => navigate(`${ROUTES.artists}/${albumArtist}`),
+          onClick: async () => navigate(`${ROUTES.artists}/${albumArtist}`),
         },
       ]
     : [{ label: "Unknown" }]
@@ -124,13 +128,16 @@ function createTrackSubtexts(
   { album, artist }: ITrack
 ): readonly ISearchItemSubtext[] {
   const albumItem: ISearchItemSubtext | undefined = album
-    ? { label: album, onClick: () => navigate(`${ROUTES.albums}/${album}`) }
+    ? {
+        label: album,
+        onClick: async () => navigate(`${ROUTES.albums}/${album}`),
+      }
     : undefined
 
   const artistItem: ISearchItemSubtext | undefined = artist
     ? {
         label: artist,
-        onClick: () => navigate(`${ROUTES.artists}/${artist}`),
+        onClick: async () => navigate(`${ROUTES.artists}/${artist}`),
       }
     : undefined
 
