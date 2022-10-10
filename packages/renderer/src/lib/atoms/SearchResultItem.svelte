@@ -47,7 +47,7 @@
         <!---- Chip label -->
         {#if label}
           <div
-            class="rounded bg-grey-500 px-1 py-1 text-xs2 uppercase text-grey-200"
+            class="rounded bg-grey-500 px-1 py-1 text-xs2 font-bold uppercase text-grey-200"
           >
             {label}
           </div>
@@ -58,7 +58,7 @@
           {#each subtexts as { label, onClick }, index}
             <div
               class="
-                flex- min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-bold tracking-wide text-grey-200
+                flex- min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium tracking-wide text-grey-200
                {onClick ? 'cursor-pointer hover:text-grey-300' : ''}
                {index === 0 ? 'shrink-[1] grow-[2]' : 'shrink-[2] grow-[1]'}
             "

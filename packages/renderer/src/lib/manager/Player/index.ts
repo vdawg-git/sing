@@ -389,7 +389,7 @@ async function goToRandomTracksPlayback() {
 }
 
 /**
- * Sets a new playback. Does not start playing or change the playing status.
+ * Sets a new playback. Does not pause or play.
  * Just updates the stores.
  */
 function setNewPlayback({

@@ -86,7 +86,7 @@
         {displayMetadata("title", track)}
       </span>
       <span
-        class="-mt-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-bold text-grey-300"
+        class="-mt-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-grey-300"
         data-testid={testArtistID}
         data-testattribute={TEST_ATTRIBUTES.queueItemArtist}
       >

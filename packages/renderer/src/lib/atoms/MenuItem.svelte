@@ -1,31 +1,24 @@
 <script lang="ts">
-  import type { IRoutes } from "@/Consts"
   import { TEST_ATTRIBUTES } from "@/TestConsts"
-  import { Link } from "svelte-navigator"
+  import type { IMenuArgumentItem } from "@/types/Types"
 
-  export let to: IRoutes | undefined = undefined
+  export let data: IMenuArgumentItem
 </script>
 
-{#if to}
-  <Link {to} data-testattribute={TEST_ATTRIBUTES.menuItem}>
-    <div
-      class="
-      flex cursor-pointer p-3 align-middle active:bg-grey-500
+<button on:click={data.onClick} data-testattribute={TEST_ATTRIBUTES.menuItem}>
+  <div
+    class="
+      flex cursor-pointer items-center gap-3 p-3 align-middle hover:bg-grey-700 active:bg-grey-800
       "
-    >
-      <slot name="icon" />
-      <slot name="label">No Text provided</slot>
+  >
+    {#if data.icon}
+      <svelte:component
+        this={data.icon}
+        class="h-8 w-8 cursor-pointer p-1 text-grey-300 hover:bg-grey-600 "
+      />
+    {/if}
+    <div class="">
+      {data.label}
     </div>
-  </Link>
-{:else}
-  <button on:click data-testattribute={TEST_ATTRIBUTES.menuItem}>
-    <div
-      class="
-      flex cursor-pointer p-3 align-middle active:bg-grey-500
-      "
-    >
-      <slot name="icon" />
-      <slot name="label">No Text provided</slot>
-    </div>
-  </button>
-{/if}
+  </div>
+</button>

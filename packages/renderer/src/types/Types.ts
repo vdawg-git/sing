@@ -38,3 +38,40 @@ export interface ICardProperties {
   readonly secondaryText?: string
   readonly image?: FilePath
 }
+
+/**
+ * The data to be used to render a menu.
+ * It is the converted {@link IMenuArgumentItem}[ ]
+ */
+export type IMenu = {
+  readonly id: symbol | "main"
+  readonly title: string
+  readonly items: readonly IMenuArgumentItem[]
+}
+
+/**
+ * The data to be passed as an array to the menu constructor.
+ * Similar to {@link IDropdownMeu}, but it gets converted internally, so that a nicer API can be used.
+ */
+export type IDropdownArgument = readonly (
+  | IMenuArgumentItem
+  | ISubmenuArgumentItem
+)[]
+
+export type IMenuArgumentItem = {
+  readonly type: "item"
+  readonly onClick: () => void
+  readonly label: string
+  readonly icon?: ConstructorOfATypedSvelteComponent
+}
+
+/**
+ * A menu item which opens up a submenu on click.
+ * @property subMenu The submenu to be displayed on click
+ */
+export type ISubmenuArgumentItem = {
+  readonly type: "subMenu"
+  readonly label: string
+  readonly icon?: ConstructorOfATypedSvelteComponent
+  readonly subMenu: readonly (IMenuArgumentItem | ISubmenuArgumentItem)[]
+}

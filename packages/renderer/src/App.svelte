@@ -1,22 +1,23 @@
 <script lang="ts">
   import { Router, Route, createHistory } from "svelte-navigator"
+  import { ROUTES } from "./Consts"
+  import { createHashSource } from "./Helper"
+  import { initNotificationHandler } from "./lib/manager/NotificationManager"
+  import { backgroundImagesStore } from "./lib/stores/BackgroundImages"
+  import { onDestroy } from "svelte"
   import Sidebar from "./lib/organisms/Sidebar.svelte"
   import Tracks from "./lib/pages/Tracks.svelte"
   import Playbar from "./lib/organisms/Playbar.svelte"
   import Settings from "@/lib/pages/Settings.svelte"
-  import { ROUTES } from "./Consts"
   import NotificationsRenderer from "./lib/organisms/NotificationsRenderer.svelte"
-  import { createHashSource } from "./Helper"
-  import initNotificationHandler from "./lib/manager/NotificationManager"
-  import { onDestroy } from "svelte"
   import Albums from "./lib/pages/Albums.svelte"
   import Album from "./lib/pages/Album.svelte"
   import Artists from "./lib/pages/Artists.svelte"
   import Artist from "./lib/pages/Artist.svelte"
   import Searchbar from "./lib/organisms/Searchbar.svelte"
   import BackAndForthNavigation from "./lib/molecules/BackAndForthNavigation.svelte"
-  import { backgroundImagesStore } from "./lib/stores/BackgroundImages"
   import BackgroundGallery from "./lib/atoms/BackgroundGallery.svelte"
+  import MenuElement from "./lib/manager/menu/MenuElement.svelte"
 
   const hashHistory = createHistory(createHashSource())
 
@@ -39,6 +40,8 @@
     <NotificationsRenderer />
 
     <Playbar />
+
+    <MenuElement />
 
     <div class="flex w-full">
       <Sidebar />

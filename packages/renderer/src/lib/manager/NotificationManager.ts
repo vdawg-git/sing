@@ -1,8 +1,17 @@
-import notificationHandlers from "./NotificationManagerHandlers"
+import { notificationHandlers } from "./NotificationManagerHandlers"
 
 import type { INotificationHandlers } from "./NotificationManagerHandlers"
 
-export default function initNotificationHandler() {
+/**
+ * Calls the subscribers from [./NotificationManagerHandlers.ts](./NotificationManagerHandlers.ts).
+ *
+ * The notifications themselves are stored in [NotificationStore.ts](..\stores\NotificationStore.ts).
+ *
+ * They are rendered in [NotificationsRenderer.svelte](..\organisms\NotificationsRenderer.svelte).
+ *
+ * @returns The unsubscribers
+ */
+export function initNotificationHandler() {
   const unsubscribers: INotificationHandlers[keyof INotificationHandlers][] = []
 
   for (const handler of Object.values(notificationHandlers)) {

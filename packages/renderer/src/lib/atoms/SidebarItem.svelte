@@ -9,7 +9,7 @@
   <div
     class="
     -ml-2 flex cursor-pointer rounded-xl p-3 align-middle 
-		active:bg-grey-500"
+		hover:bg-grey-500 active:bg-grey-500/50"
   >
     <slot name="icon" />
     <slot name="label">No Text provided</slot>

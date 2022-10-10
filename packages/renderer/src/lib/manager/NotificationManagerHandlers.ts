@@ -9,7 +9,13 @@ export interface INotificationHandlers {
   handleSyncSuccess: () => () => TypedIpcRenderer
 }
 
-const notificationHandlers: INotificationHandlers = {
+/**
+ * The listeners to be called at app startup.
+ * They should add notifications for their respective events.
+ *
+ * For example, the `handleSyncSuccess` manages the 'sync' notifications.
+ */
+export const notificationHandlers: INotificationHandlers = {
   handleSyncSuccess() {
     const unsubsriber = window.api.listen("syncedMusic", (_, syncResult) => {
       if (E.isLeft(syncResult)) {
@@ -37,5 +43,3 @@ const notificationHandlers: INotificationHandlers = {
     return unsubsriber
   },
 }
-
-export default notificationHandlers

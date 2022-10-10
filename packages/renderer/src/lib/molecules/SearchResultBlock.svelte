@@ -52,7 +52,6 @@
       <div class="text-xs2 font-bold uppercase tracking-widest text-grey-300">
         {displayedCategory}
       </div>
-      <IconChevronDown class="h-4 w-4 text-grey-300" />
     </div>
 
     <!---- Results -->

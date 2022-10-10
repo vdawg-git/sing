@@ -32,5 +32,8 @@
     "**/node_modules/fp-ts/lib/These",
     "**/node_modules/fp-ts/lib/TheseT",
     "**/node_modules/fp-ts/"
-  ]
+  ],
+  "explorer.fileNesting.patterns": {
+    "*.svelte": "${basename}Helper.ts"
+  }
 }

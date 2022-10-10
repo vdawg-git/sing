@@ -6,6 +6,7 @@
   import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
   import IconLoop from "virtual:icons/fluent/arrow-repeat-all-24-filled"
   import VolumeControl from "@/lib/molecules/VolumeControl.svelte"
+
   import { onMount } from "svelte"
   import { displayMetadata } from "@/Helper"
 
