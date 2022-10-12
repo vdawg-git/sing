@@ -1,6 +1,11 @@
+import { computePosition, flip, offset, platform, shift } from "@floating-ui/dom"
+import IconArrowRight from "virtual:icons/heroicons/arrow-right"
+
 import type {
   IMenu,
   IMenuArgumentItem,
+  IMenuID,
+  IMenuLocation,
   ISubmenuArgumentItem,
 } from "@/types/Types"
 
@@ -15,7 +20,9 @@ import type {
 export function createMenu(
   items: readonly (IMenuArgumentItem | ISubmenuArgumentItem)[],
   setMenuID: (id: symbol | "main") => void,
-  id: "main" | symbol = "main",
+  closeMenu: () => void,
+  previousMenu?: IMenuID,
+  id: IMenuID = "main",
   title = "main"
 ): readonly IMenu[] {
   // If no items are submenus, just return them as a menu
@@ -25,6 +32,7 @@ export function createMenu(
         id,
         title,
         items,
+        previousMenu,
       },
     ]
   }
@@ -33,7 +41,9 @@ export function createMenu(
     | IMenuArgumentItem
     | { transformedSubMenuItem: IMenuArgumentItem; menus: readonly IMenu[] }
   )[] = items.map((item) =>
-    item.type === "item" ? item : getItemAndMenusOfSubItem(item, setMenuID)
+    item.type === "item"
+      ? item
+      : getItemAndMenusOfSubItem(item, id, setMenuID, closeMenu)
   )
 
   const subMenus: readonly IMenu[] = raw
@@ -43,8 +53,17 @@ export function createMenu(
   const thisMenu: IMenu = {
     id,
     title,
+    previousMenu,
     items: raw.map((item) =>
-      isIMenuArgument(item) ? item : item.transformedSubMenuItem
+      isIMenuArgument(item)
+        ? {
+            ...item,
+            onClick: () => {
+              item.onClick()
+              closeMenu()
+            },
+          }
+        : item.transformedSubMenuItem
     ),
   }
 
@@ -53,7 +72,9 @@ export function createMenu(
 
 function getItemAndMenusOfSubItem(
   { label, icon, subMenu }: ISubmenuArgumentItem,
-  setMenuID: (id: symbol | "main") => void
+  previousMenu: IMenuID,
+  setMenuID: (id: symbol | "main") => void,
+  closeMenu: () => void
 ): {
   readonly transformedSubMenuItem: IMenuArgumentItem
   readonly menus: readonly IMenu[]
@@ -63,12 +84,59 @@ function getItemAndMenusOfSubItem(
   return {
     transformedSubMenuItem: {
       label,
-      icon,
+      leadingIcon: icon,
+      trailingIcon: IconArrowRight,
       type: "item",
       onClick: () => setMenuID(id),
     },
-    menus: createMenu(subMenu, setMenuID, id, label),
+    menus: createMenu(subMenu, setMenuID, closeMenu, previousMenu, id, label),
   }
+}
+
+/**
+ * Calculates the positon of the menu as a dropdown- or context menu.
+ * @param isAlreadyOpened Wheter to recalculate the already open menu position or if it is positioned initially.
+ */
+export async function calculatePosition(
+  nodeOrPosition: IMenuLocation,
+  menuElement: HTMLElement
+): Promise<{ x: number; y: number }> {
+  // Is the given menu location a HTMLElement to which we want to attach the menu
+  if ("addEventListener" in nodeOrPosition) {
+    return computePosition(nodeOrPosition, menuElement, {
+      platform,
+      placement: "bottom",
+      middleware: [offset(4), flip(), shift({ padding: 4 })],
+    })
+  }
+
+  // The given reference element is for the context menu
+  const { clientX, clientY } = nodeOrPosition
+
+  // Use a fake element as the reference for the position of the context menu
+  const fakeHTMLElement = {
+    clientHeight: 1,
+    clientWidth: 1,
+    clientLeft: clientX,
+    clientTop: clientY,
+
+    getBoundingClientRect: () => ({
+      x: clientX,
+      y: clientY,
+      top: clientY,
+      bottom: clientY,
+      left: clientX,
+      right: clientX,
+      width: 0,
+      height: 0,
+    }),
+  }
+
+  return computePosition(fakeHTMLElement, menuElement, {
+    placement: "bottom-end",
+    strategy: "fixed",
+    middleware: [offset(4), flip(), shift({ padding: 4 })],
+  })
 }
 
 function isIMenuArgument(argument_: unknown): argument_ is IMenuArgumentItem {

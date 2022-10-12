@@ -15,6 +15,7 @@
   import type { SvelteComponentDev } from "svelte/internal"
   import { ROUTES, type IRoutes } from "@/Consts"
   import { useNavigate } from "svelte-navigator"
+  import type { IOpenMenuArgument } from "@/types/Types"
 
   const navigate = useNavigate()
 
@@ -29,26 +30,24 @@
   ]
 
   // Temporary for testing purposes
-  const xSettings = {
+  const settingsDropdownItems: IOpenMenuArgument = {
     menuItems: [
       {
         label: "Settings",
-        icon: IconSettings,
+        leadingIcon: IconSettings,
         onClick: async () => navigate(ROUTES.settingsGeneral),
         type: "item",
       },
       {
         label: "Resync library",
-        icon: IconRefresh,
+        leadingIcon: IconRefresh,
         onClick: async () => window.api.sync(),
         type: "item",
       },
     ],
   } as const
 
-  const openSettingsMenu = createOpenMenu(xSettings)
-
-  const openContextMenu = createOpenContextMenu(xSettings)
+  const openSettingsMenu = createOpenMenu(settingsDropdownItems)
 </script>
 
 <nav
@@ -58,26 +57,19 @@
     flex-grow-0 rounded-3xl border border-grey-400/50 bg-grey-800/50
     p-6 backdrop-blur-sm
     "
-  use:openContextMenu
 >
   <div class="mb-10 flex justify-between">
     <Logo class="h-6 w-6  text-white/50" />
-    <div use:openSettingsMenu class="rounded-full p-1 hover:bg-grey-500">
-      <IconDotsVr class="h-6 w-6  text-grey-300 " />
-    </div>
-
-    <!-- <Menu menuTestID={id.sidebarMenu} iconTestID={id.sidebarMenuIcon}>
-      <MenuItem to="settingsGeneral">
-        <IconSettings slot="icon" class="mr-3 h-6 w-6 text-grey-300" />
-        <div slot="label">Settings</div>
-      </MenuItem>
-      <MenuItem on:click={() => window.api.sync()}>
-        <IconRefresh slot="icon" class="mr-3 h-6 w-6 text-grey-300" />
-        <div slot="label">Refresh</div>
-      </MenuItem>
-    </Menu> -->
+    <!---- Settings dropdown -->
+    <button
+      use:openSettingsMenu
+      class=" rounded-full p-1 hover:bg-grey-500 active:scale-90"
+    >
+      <IconDotsVr class=" h-6  w-6 text-grey-300 " />
+    </button>
   </div>
 
+  <!---- Sidebar items -->
   {#each menuItems as item}
     <SidebarItem to={item.to}>
       <svelte:component

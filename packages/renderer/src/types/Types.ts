@@ -39,15 +39,28 @@ export interface ICardProperties {
   readonly image?: FilePath
 }
 
+export type IMenuID = symbol | "main"
+
 /**
  * The data to be used to render a menu.
  * It is the converted {@link IMenuArgumentItem}[ ]
  */
 export type IMenu = {
-  readonly id: symbol | "main"
+  readonly id: IMenuID
   readonly title: string
   readonly items: readonly IMenuArgumentItem[]
+  readonly previousMenu: IMenuID | undefined // Link the previous menu and not the next, as there can be mutliple next menus.
 }
+
+/**
+ * Either the X and Y coordinates or an element for Popperjs
+ */
+export type IMenuLocation =
+  | HTMLElement
+  | {
+      clientX: number
+      clientY: number
+    }
 
 /**
  * The data to be passed as an array to the menu constructor.
@@ -62,7 +75,8 @@ export type IMenuArgumentItem = {
   readonly type: "item"
   readonly onClick: () => void
   readonly label: string
-  readonly icon?: ConstructorOfATypedSvelteComponent
+  readonly leadingIcon?: ConstructorOfATypedSvelteComponent
+  readonly trailingIcon?: ConstructorOfATypedSvelteComponent
 }
 
 /**
@@ -74,4 +88,13 @@ export type ISubmenuArgumentItem = {
   readonly label: string
   readonly icon?: ConstructorOfATypedSvelteComponent
   readonly subMenu: readonly (IMenuArgumentItem | ISubmenuArgumentItem)[]
+}
+
+/**
+ * The argument to open a menu with its items.
+ */
+export type IOpenMenuArgument = {
+  readonly menuItems: readonly (IMenuArgumentItem | ISubmenuArgumentItem)[]
+  readonly onEvent?: keyof DocumentEventMap
+  readonly testID?: string
 }

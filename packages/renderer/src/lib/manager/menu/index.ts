@@ -1,27 +1,23 @@
 import { writable } from "svelte/store"
 
-import type { IMenuArgumentItem } from "@/types/Types"
+import type {
+  IMenuArgumentItem,
+  IMenuLocation,
+  IOpenMenuArgument,
+  ISubmenuArgumentItem,
+} from "@/types/Types"
+import type { StrictOmit } from "ts-essentials"
 
 // const [popperReference, popperContent] = computePosition()
 
 const { set, subscribe } = writable<
   | {
       readonly nodeOrPosition: IMenuLocation
-      readonly items: readonly IMenuArgumentItem[]
+      readonly items: readonly (IMenuArgumentItem | ISubmenuArgumentItem)[]
       readonly testID?: string
     }
   | undefined
 >()
-
-/**
- * Either the X and Y coordinates or an element for Popperjs
- */
-type IMenuLocation =
-  | HTMLElement
-  | {
-      clientX: number
-      clientY: number
-    }
 
 /**
  * Create an use-directive action to open a menu.
@@ -32,11 +28,7 @@ export function createOpenMenu({
   menuItems,
   onEvent,
   testID,
-}: {
-  menuItems: readonly IMenuArgumentItem[]
-  onEvent?: keyof DocumentEventMap
-  testID?: string
-}): (node: HTMLElement) => { destroy: () => void } {
+}: IOpenMenuArgument): (node: HTMLElement) => { destroy: () => void } {
   return (node: HTMLElement) => {
     node.addEventListener(onEvent ?? "click", openMenu)
 
@@ -59,10 +51,9 @@ export function createOpenMenu({
 export function createOpenContextMenu({
   menuItems,
   testID,
-}: {
-  menuItems: readonly IMenuArgumentItem[]
-  testID?: string
-}): (node: HTMLElement) => { destroy: () => void } {
+}: StrictOmit<IOpenMenuArgument, "onEvent">): (node: HTMLElement) => {
+  destroy: () => void
+} {
   return (node: HTMLElement) => {
     // @ts-ignore TS wants this to take an `Event`, but I want it to take a PointerEvent.
     node.addEventListener("contextmenu", openContextMenu)

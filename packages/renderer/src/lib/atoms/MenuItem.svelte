@@ -5,20 +5,31 @@
   export let data: IMenuArgumentItem
 </script>
 
-<button on:click={data.onClick} data-testattribute={TEST_ATTRIBUTES.menuItem}>
+<button
+  on:click={data.onClick}
+  data-testattribute={TEST_ATTRIBUTES.menuItem}
+  on:click
+>
   <div
     class="
-      flex cursor-pointer items-center gap-3 p-3 align-middle hover:bg-grey-700 active:bg-grey-800
+      flex cursor-pointer items-center justify-start gap-3 py-3 px-4 text-left align-middle hover:bg-grey-700
+      active:bg-grey-800
       "
   >
-    {#if data.icon}
+    {#if data.leadingIcon}
       <svelte:component
-        this={data.icon}
-        class="h-8 w-8 cursor-pointer p-1 text-grey-300 hover:bg-grey-600 "
+        this={data.leadingIcon}
+        class="-ml-1 h-7 w-7 shrink-0 grow-0 cursor-pointer  text-grey-300"
       />
     {/if}
-    <div class="">
+    <div class="grow text-base">
       {data.label}
     </div>
+    {#if data.trailingIcon}
+      <svelte:component
+        this={data.trailingIcon}
+        class="h-7 w-7 shrink-0 grow-0 cursor-pointer text-grey-300"
+      />
+    {/if}
   </div>
 </button>
