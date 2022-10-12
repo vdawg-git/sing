@@ -8,8 +8,6 @@ import type {
 } from "@/types/Types"
 import type { StrictOmit } from "ts-essentials"
 
-// const [popperReference, popperContent] = computePosition()
-
 const { set, subscribe } = writable<
   | {
       readonly nodeOrPosition: IMenuLocation
@@ -71,6 +69,8 @@ export function createOpenContextMenu({
 }
 
 export function closeMenu() {
+  console.log("Close menu")
+
   set(undefined)
 }
 

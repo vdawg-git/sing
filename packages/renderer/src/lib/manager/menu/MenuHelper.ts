@@ -1,4 +1,10 @@
-import { computePosition, flip, offset, platform, shift } from "@floating-ui/dom"
+import {
+  computePosition,
+  flip,
+  offset,
+  platform,
+  shift,
+} from "@floating-ui/dom"
 import IconArrowRight from "virtual:icons/heroicons/arrow-right"
 
 import type {
@@ -31,7 +37,7 @@ export function createMenu(
       {
         id,
         title,
-        items,
+        items: items.map(addCloseMenuOnClick(closeMenu)),
         previousMenu,
       },
     ]
@@ -56,13 +62,7 @@ export function createMenu(
     previousMenu,
     items: raw.map((item) =>
       isIMenuArgument(item)
-        ? {
-            ...item,
-            onClick: () => {
-              item.onClick()
-              closeMenu()
-            },
-          }
+        ? addCloseMenuOnClick(closeMenu)(item)
         : item.transformedSubMenuItem
     ),
   }
@@ -95,7 +95,6 @@ function getItemAndMenusOfSubItem(
 
 /**
  * Calculates the positon of the menu as a dropdown- or context menu.
- * @param isAlreadyOpened Wheter to recalculate the already open menu position or if it is positioned initially.
  */
 export async function calculatePosition(
   nodeOrPosition: IMenuLocation,
@@ -143,23 +142,14 @@ function isIMenuArgument(argument_: unknown): argument_ is IMenuArgumentItem {
   return (argument_ as unknown as IMenuArgumentItem)?.type === "item"
 }
 
-// const argument: readonly (IMenuArgumentItem | ISubmenuArgumentItem)[] = [
-//   { label: "Item 1", onClick: () => {}, type: "item" },
-//   { label: "Item 2", onClick: () => {}, type: "item" },
-//   {
-//     label: "SUB Item 3",
-//     type: "subMenu",
-//     subMenu: [
-//       { label: "Item 2.1", onClick: () => {}, type: "item" },
-//       {
-//         label: "SUB Item 2.2",
-//         type: "subMenu",
-//         subMenu: [
-//           { label: "Item 3.1", onClick: () => {}, type: "item" },
-//           { label: "Item 3.3", onClick: () => {}, type: "item" },
-//         ],
-//       },
-//       { label: "Item 2.3", onClick: () => {}, type: "item" },
-//     ],
-//   },
-// ]
+function addCloseMenuOnClick(
+  closeMenu: () => void
+): (item: IMenuArgumentItem) => IMenuArgumentItem {
+  return (item: IMenuArgumentItem) => ({
+    ...item,
+    onClick: () => {
+      item.onClick()
+      closeMenu()
+    },
+  })
+}
