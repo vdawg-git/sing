@@ -1,29 +1,33 @@
 <script lang="ts">
-  import SidebarItem from "../atoms/SidebarItem.svelte"
-  import IconRefresh from "virtual:icons/heroicons-outline/refresh"
-  import Logo from "virtual:icons/custom/drool"
-  import IconMusic from "virtual:icons/heroicons-outline/music-note"
-  import IconSettings from "virtual:icons/heroicons-outline/cog"
-  import IconArtists from "virtual:icons/heroicons-outline/microphone"
-  import IconDotsVr from "virtual:icons/heroicons-outline/dots-vertical"
-  import { createOpenContextMenu, createOpenMenu } from "../manager/menu"
-
-  // import IconPlaylist from "virtual:icons/tabler/playlist"
-  import IconAlbum from "virtual:icons/ri/album-line"
-  // import IconGenre from "virtual:icons/mdi/guitar-pick-outline"
-  import { TEST_IDS as id } from "@/TestConsts"
-  import type { SvelteComponentDev } from "svelte/internal"
-  import { ROUTES, type IRoutes } from "@/Consts"
   import { useNavigate } from "svelte-navigator"
+  import Logo from "virtual:icons/custom/drool"
+  import IconSettings from "virtual:icons/heroicons-outline/cog"
+  import IconDotsVr from "virtual:icons/heroicons-outline/dots-vertical"
+  import IconArtists from "virtual:icons/heroicons-outline/microphone"
+  import IconMusic from "virtual:icons/heroicons-outline/music-note"
+  import IconRefresh from "virtual:icons/heroicons-outline/refresh"
+  import IconAlbum from "virtual:icons/ri/album-line"
+  import IconPlaylist from "virtual:icons/tabler/playlist"
+  // import IconPlaylist from "virtual:icons/tabler/playlist"
+  // import IconGenre from "virtual:icons/mdi/guitar-pick-outline"
+
+  import SidebarItem from "../atoms/SidebarItem.svelte"
+  import { createOpenMenu } from "../manager/menu"
+
+  import { ROUTES, type IRoutes } from "@/Consts"
+  import { TEST_IDS as id } from "@/TestConsts"
   import type { IOpenMenuArgument } from "@/types/Types"
+
+  import type { SvelteComponentDev } from "svelte/internal"
 
   const navigate = useNavigate()
 
   const menuItems: {
-    name: String
+    name: string
     icon: typeof SvelteComponentDev
     to: IRoutes
   }[] = [
+    { name: "Playlists", icon: IconPlaylist, to: "playlists" },
     { name: "Tracks", icon: IconMusic, to: "tracks" },
     { name: "Albums", icon: IconAlbum, to: "albums" },
     { name: "Artists", icon: IconArtists, to: "artists" },

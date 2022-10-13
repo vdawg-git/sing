@@ -1,10 +1,12 @@
 <script lang="ts">
-  import { TEST_IDS as test } from "@/TestConsts"
-  import { secondsToDuration } from "@/Helper"
   import { createEventDispatcher } from "svelte"
+
+  import { secondsToDuration } from "@/Helper"
+  import { TEST_IDS as test } from "@/TestConsts"
 
   export let currentTime: number | undefined | null
   export let duration: number | undefined | null
+
   $: progress = ((currentTime ?? 0) / (duration ?? 0)) * 100
 
   const dispatcher = createEventDispatcher()

@@ -2,6 +2,7 @@ export enum ROUTES {
   tracks = "tracks",
   artists = "artists",
   albums = "albums",
+  playlists = "playlists",
   settingsGeneral = "settingsGeneral",
   settingsLibrary = "settingsLibrary",
 }

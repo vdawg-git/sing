@@ -69,8 +69,6 @@ export function createOpenContextMenu({
 }
 
 export function closeMenu() {
-  console.log("Close menu")
-
   set(undefined)
 }
 

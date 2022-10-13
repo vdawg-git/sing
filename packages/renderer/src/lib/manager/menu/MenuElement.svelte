@@ -55,10 +55,6 @@
     ? Math.min(560, Math.max(activeMenuElement.scrollWidth, 240))
     : 240
 
-  $: {
-    console.log({ width: activeMenuElement?.scrollWidth, activeMenuWidth })
-  }
-
   // Make the animation when going back go to the right direction.
   // And revert it, so the animation going forward works.
   let introStart = () => {}
@@ -94,8 +90,6 @@
   function setXY(coordinates: Coords) {
     x = coordinates.x
     y = coordinates.y
-
-    console.log({ x, y })
   }
 </script>
 

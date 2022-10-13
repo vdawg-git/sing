@@ -1,19 +1,21 @@
 <script lang="ts">
+  import { onMount } from "svelte"
+  import IconLoopSingle from "virtual:icons/custom/repeat-single"
+  import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
+  import IconLoop from "virtual:icons/heroicons/arrow-path-rounded-square-20-solid"
+  import IconNext from "virtual:icons/heroicons-outline/fast-forward"
   import IconPause from "virtual:icons/heroicons-outline/pause"
   import IconPlay from "virtual:icons/heroicons-outline/play"
-  import IconNext from "virtual:icons/heroicons-outline/fast-forward"
   import IconQueue from "virtual:icons/heroicons-outline/view-list"
-  import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
-  import IconLoop from "virtual:icons/fluent/arrow-repeat-all-24-filled"
-  import VolumeControl from "@/lib/molecules/VolumeControl.svelte"
 
-  import { onMount } from "svelte"
-  import { displayMetadata } from "@/Helper"
-
-  import QueueBar from "./QueueBar.svelte"
+  import {
+    loopState,
+    setNextLoopState,
+  } from "../manager/player/stores/LoopStateStore"
   import Seekbar from "../molecules/Seekbar.svelte"
-  import { TEST_IDS } from "@/TestConsts"
 
+  import { displayMetadata } from "@/Helper"
+  import { TEST_IDS } from "@/TestConsts"
   import {
     currentTrack,
     playState,
@@ -28,12 +30,15 @@
     shuffleState,
     toggleShuffle,
   } from "@/lib/manager/player/index"
+  import VolumeControl from "@/lib/molecules/VolumeControl.svelte"
+
+  import QueueBar from "./QueueBar.svelte"
 
   $: track = $currentTrack?.track
 
   let showQueue = false
 
-  let volume: number = 1
+  let volume = 1
   $: {
     setVolume(volume)
   }
@@ -67,7 +72,7 @@
       <Seekbar
         currentTime={$currentTime}
         duration={track?.duration}
-        on:seek={(e) => handleSeek(e)}
+        on:seek={(event) => handleSeek(event)}
       />
     </div>
   </div>
@@ -115,17 +120,15 @@
   </div>
 
   <!---------------------------------->
-  <!---- Playback controls          -->
-  <!---- Pause / Play / Next buttons-->
+  <!----    Playback controls       -->
+  <!---------------------------------->
   <div class="flex min-w-[20rem] max-w-[62.5rem]  flex-col items-center">
     <div class="mb-1 flex items-center gap-6 text-white ">
       <!---- Shuffle Button -->
       <button
         data-testid={TEST_IDS.playbarModeIcon}
         class="button 
-          {$shuffleState
-          ? 'hover-text-grey-300 text-white'
-          : 'text-grey-300 hover:text-grey-400'}
+          {$shuffleState ? 'button-active' : 'button-inactive'}
         "
         disabled={!track}
         on:click={toggleShuffle}
@@ -138,7 +141,7 @@
         on:click={() => handleClickedPrevious()}
         data-testid={TEST_IDS.playbarBackButton}
         disabled={!$currentTrack}
-        class="button text-white hover:text-grey-200"
+        class="button button-active"
       >
         <div class="rotate-180">
           <IconNext class="h-8 w-8" />
@@ -150,7 +153,7 @@
         on:click={() =>
           $playState === "PLAYING" ? pausePlayback() : resumePlayback()}
         disabled={!$currentTrack}
-        class="button text-white hover:text-grey-200"
+        class="button button-active"
       >
         {#if $playState === "PLAYING"}
           <IconPause
@@ -170,22 +173,28 @@
         on:click={() => handlePlayNext()}
         data-testid={TEST_IDS.playbarNextButton}
         disabled={!track}
-        class="button text-white hover:text-grey-200"
+        class="button button-active"
       >
         <IconNext class="h-8 w-8 " stroke-width="0" />
       </button>
 
-      <!---- Loop Button-->
+      <!---- Loop Button -->
       <button
         data-testid={TEST_IDS.playbarLoopIcon}
-        class="button text-grey-300 hover:text-grey-400"
+        class="button {$loopState === 'NONE'
+          ? 'button-inactive'
+          : 'button-active'}"
         disabled={!track}
+        on:click={setNextLoopState}
       >
-        <IconLoop class="h-5 w-5" />
+        {#if $loopState === "LOOP_TRACK"}
+          <IconLoopSingle class="h-5 w-5" />
+        {:else}
+          <IconLoop class="h-5 w-5" />
+        {/if}
       </button>
     </div>
   </div>
-  <!------///----->
 
   <!---- Right icons-->
   <div class="flex items-center gap-6 justify-self-end">
@@ -193,7 +202,7 @@
 
     <button
       data-testid={TEST_IDS.playbarQueueIcon}
-      class="button text-white hover:text-grey-200"
+      class="button button-active"
       on:click|stopPropagation={handleClickQueueIcon}
     >
       <IconQueue class="h-6 w-6" />
@@ -228,6 +237,22 @@
       cursor: default;
       color: theme(colors.grey.300);
       @apply active:scale-[1];
+    }
+  }
+
+  .button-active {
+    color: theme(colors.white);
+
+    &:hover {
+      color: theme(colors.grey.100);
+    }
+  }
+
+  .button-inactive {
+    color: theme(colors.grey.300);
+
+    &:hover {
+      color: theme(colors.grey.400);
     }
   }
 </style>

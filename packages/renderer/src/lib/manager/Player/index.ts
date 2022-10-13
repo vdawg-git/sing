@@ -1,26 +1,33 @@
-import { doOrNotifyWithData, moveElementFromToIndex, sortAlphabetically } from "@/Helper"
-import audioPlayer from "@/lib/manager/player/AudioPlayer"
 import { dequal } from "dequal"
 import * as E from "fp-ts/lib/Either"
 import { derived, get, writable } from "svelte/store"
 import { match } from "ts-pattern"
 
-import indexStore from "./stores/PlayIndex"
-import queueStore from "./stores/QueueStore"
-
-import type { Either } from "fp-ts/lib/Either"
-import type { IPlayLoop, IPlayState, IQueueItem } from "@/types/Types"
 import type {
-  ITrack,
-  ISyncResult,
   IAlbum,
   IArtist,
   IError,
   INewPlayback,
   IPlayback,
   ISortOptions,
+  ISyncResult,
+  ITrack,
 } from "@sing-types/Types"
+
+import {
+  doOrNotifyWithData,
+  moveElementFromToIndex,
+  sortAlphabetically,
+} from "@/Helper"
+import audioPlayer from "@/lib/manager/player/AudioPlayer"
+import type { IPlayLoop, IPlayState, IQueueItem } from "@/types/Types"
+
+import { loopState } from "./stores/LoopStateStore"
+import indexStore from "./stores/PlayIndex"
+import queueStore from "./stores/QueueStore"
+
 import type { IpcRendererEvent } from "electron"
+import type { Either } from "fp-ts/lib/Either"
 
 // TODO Add genre to the db, too
 
@@ -37,7 +44,6 @@ const playbackStore = writable<IPlayback>({
   sortBy: ["title", "ascending"],
   isShuffleOn: false,
 })
-const playLoopStore = writable<IPlayLoop>("NONE")
 
 // Initialise stores with the music from the database
 await initialiseStores()
@@ -69,14 +75,7 @@ let $currentTrack: IQueueItem
 let $playback: IPlayback
 let seekAnimationID: number
 let $isShuffleOn: boolean
-let $playLoop: IPlayLoop
-
-// How to do "set shuffle" and then "unset shuffle" ?
-
-/**
- * Stores the state before the user hit `shuffle`, so that when the user disables shuffling again, it can revert back to normal.
- */
-// let beforeShuffle: { sort: ISortOptions["tracks"]; index: number } | undefined
+let $loopState: IPlayLoop
 
 queueStore.subscribe(($newQueue) => {
   $queue = $newQueue
@@ -104,8 +103,8 @@ shuffleState.subscribe(async ($newShuffleState) => {
   $isShuffleOn = $newShuffleState
 })
 
-playLoopStore.subscribe(($newPlayLoop) => {
-  $playLoop = $newPlayLoop
+loopState.subscribe(($newLoopState) => {
+  $loopState = $newLoopState
 })
 
 // Events
@@ -117,7 +116,7 @@ export function handlePlayNext() {
   // I want to find a way to make this nicer
 
   // If the current track is set to loop, loop it
-  if ($playLoop === "LOOP_TRACK") {
+  if ($loopState === "LOOP_TRACK") {
     durationStore.set(0)
 
     if ($playState === "PLAYING") {
@@ -129,7 +128,7 @@ export function handlePlayNext() {
 
   // If the queue reached its end
   if ($currentIndex === $queue.length - 1) {
-    if ($playLoop === "LOOP_QUEUE") {
+    if ($loopState === "LOOP_QUEUE") {
       indexStore.reset()
 
       if ($playState === "PLAYING") {
@@ -567,3 +566,5 @@ export const tracks = { subscribe: tracksStore.subscribe }
 export const albums = { subscribe: albumsStore.subscribe }
 export const artists = { subscribe: artistsStore.subscribe }
 export const queue = { subscribe: queueStore.subscribe }
+
+export { setNextLoopState } from "./stores/LoopStateStore"
