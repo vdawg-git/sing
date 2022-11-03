@@ -1,25 +1,42 @@
 import { get, writable } from "svelte/store"
 
-import type { IQueueItem } from "@/types/Types"
 import type { ITrack } from "@sing-types/Types"
+
+import type { IQueueItem } from "@/types/Types"
 
 function createQueueStore() {
   const { subscribe, set, update } = writable<IQueueItem[]>([])
 
   return {
     removeIndex,
-    removeItemsFromNewTracks,
+    intersectCurrentWithNewTracks,
     reset,
     setTracks,
     subscribe,
     update,
+    addToNext,
   }
 
-  function removeItemsFromNewTracks(
+  // ! TODO doimplement this
+  function addToNext(playIndex: number, tracks: ITrack | readonly ITrack[]) {
+    update(($items) => {
+      const playedTracks = $items.slice(0, playIndex)
+      const nextTracks = $items.slice(playIndex)
+    })
+  }
+
+  /**
+   * Removes all items from the queue, which are not included in the new ones.
+   * This is used to remove deleted tracks from the queue after a sync update.
+   * @param newTrackItems The available track items
+   * @param currentIndex The current index of the playback
+   * @returns The new index to set.
+   */
+  function intersectCurrentWithNewTracks(
     newTrackItems: readonly ITrack[],
     currentIndex: number
   ): number {
-    const { newQueue, newIndex } = _removeItemsFromNewTracks(
+    const { newQueue, newIndex } = _intersectWithItems(
       get({ subscribe }),
       newTrackItems,
       currentIndex
@@ -50,8 +67,9 @@ function createQueueStore() {
     keepManuallyAddedTracks = true
   ): void {
     update(($queue) => {
-      const [newCurrent, ...newQueueItems]: readonly IQueueItem[] =
-        _convertTracksToQueueItem(tracks, 0)
+      const [newCurrent, ...newQueueItems]: readonly IQueueItem[] = tracks.map(
+        _convertTrackToQueueItem(0)
+      )
 
       return [
         newCurrent,
@@ -71,16 +89,18 @@ function _getUnplayedManuallyAddedTracks(
   return queue.slice(queueIndex).filter((item) => item.isManuallyAdded)
 }
 
-function _convertTracksToQueueItem(
-  tracks: readonly ITrack[],
+/**
+ * Designed to be used with `Array.map`
+ */
+function _convertTrackToQueueItem(
   continueFromIndex: number
-): IQueueItem[] {
-  return tracks.map((track, index) => ({
+): (track: ITrack, index: number) => IQueueItem {
+  return (track, index) => ({
     index: continueFromIndex + index,
     queueID: Symbol(`${track?.title} queueID`),
     track,
     isManuallyAdded: false,
-  }))
+  })
 }
 
 function _remapIndexes(
@@ -120,7 +140,7 @@ function remove(
   return queueItems.filter((_, index) => !indexes.includes(index))
 }
 
-function _removeItemsFromNewTracks(
+function _intersectWithItems(
   queueItems: readonly IQueueItem[],
   newTrackItems: readonly ITrack[],
   currentIndex: number
@@ -149,6 +169,4 @@ function _removeItemsFromNewTracks(
   return { newIndex, newQueue }
 }
 
-const queue = createQueueStore()
-
-export default queue
+export const queueStore = createQueueStore()

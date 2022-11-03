@@ -1,11 +1,18 @@
-import { getFilesFromDirectory } from "@/Helper"
-import { resetMockedPrisma } from "@/lib/__mocks__/CustomPrismaClient"
-import createPrismaClient from "@/lib/CustomPrismaClient"
-import { syncMusic } from "@/lib/Sync"
-import { getRightOrThrow, removeKeys, removeNulledKeys } from "@sing-shared/Pures"
 import * as E from "fp-ts/lib/Either"
 import { vol, Volume } from "memfs"
 import { beforeEach, describe, expect, it, vi } from "vitest"
+
+import {
+  getRightOrThrow,
+  removeKeys,
+  removeNulledKeys,
+} from "@sing-shared/Pures"
+import type { ITrack } from "@sing-types/Types"
+
+import { getFilesFromDirectory } from "@/Helper"
+import { resetMockedPrisma } from "@/lib/__mocks__/CustomPrismaClient"
+import { createPrismaClient } from "@/lib/CustomPrismaClient"
+import { syncMusic } from "@/lib/Sync"
 
 import metaDataFactory from "./factories/metaDataFactory"
 import rawMetaDataFactory from "./factories/RawMetaDataFactory"
@@ -21,7 +28,6 @@ import {
 } from "./Helper/Consts"
 import createMockedEmitter from "./helper/MockedEmitter"
 
-import type { ITrack } from "@sing-types/Types"
 import type { Either } from "fp-ts/lib/Either"
 
 vi.mock("fs/promises")

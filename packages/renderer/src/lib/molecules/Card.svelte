@@ -1,8 +1,11 @@
 <script lang="ts">
-  import IconPlay from "virtual:icons/heroicons-solid/play"
   import { createEventDispatcher } from "svelte"
+  import IconPlay from "virtual:icons/heroicons-solid/play"
 
   import type { ICardProperties } from "@/types/Types"
+
+  import CoverAndPlaylistThumbnail from "../atoms/CoverAndPlaylistThumbnail.svelte"
+  import { useOpenContextMenu } from "../manager/menu"
 
   interface IDispatcher {
     clickedPrimary: never
@@ -14,6 +17,8 @@
 
   export let data: ICardProperties
   export let isImageCircle = false
+
+  $: contextMenuItems = data.contextMenuItems
 
   function handleClickPrimary(_: MouseEvent) {
     dispatch("clickedPrimary")
@@ -28,7 +33,11 @@
   }
 </script>
 
-<div class="group relative" on:click>
+<div
+  class="group relative"
+  on:click
+  use:useOpenContextMenu={{ menuItems: contextMenuItems }}
+>
   <div
     class="flex w-[220px] flex-col gap-3 rounded-lg bg-grey-600/60 p-4 backdrop-blur
     transition-all ease-out group-hover:bg-grey-500/60
@@ -36,22 +45,14 @@
   >
     <!--- Cover -->
     <div class="relative h-[188px] w-[188px]">
-      <a on:click={handleClickPrimary} class="cursor-pointer">
-        {#if data.image}
-          <img
-            class="cover_ 
-              {isImageCircle ? 'rounded-full' : 'rounded-lg'}    
-              "
-            src={`file://${data.image}`}
+      <a on:click={handleClickPrimary}>
+        <div class="cover_ cursor-pointer">
+          <CoverAndPlaylistThumbnail
+            classes=""
+            image={data.image}
+            isCircle={isImageCircle}
           />
-        {:else}
-          <div
-            class="cover_ bg-gradient-to-br from-grey-600 to-grey-700
-                {isImageCircle ? 'rounded-full' : 'rounded-lg'}    
-              "
-            class:rounded-full={isImageCircle}
-          />
-        {/if}
+        </div>
       </a>
       <!--- Play button -->
       <button
@@ -124,17 +125,18 @@
   .cover_ {
     width: 100%;
     height: 100%;
-    box-shadow: 0px 4px 12px -2px rgba(0, 0, 0, 0.8);
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.8));
     transform: scale(1, 1);
     transition: all 150ms cubic-bezier(0.165, 0.84, 0.44, 1);
 
+    .group:active &,
     &:active {
       transform: scale(0.99, 0.99);
-      box-shadow: 0px 2px 9px -2px rgba(0, 0, 0, 0.9) !important;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.7)) !important;
     }
 
     .group:hover & {
-      box-shadow: 0px 8px 19px -4px rgba(0, 0, 0, 0.9);
+      filter: drop-shadow(0 16px 16px rgba(0, 0, 0, 0.7));
     }
   }
 </style>

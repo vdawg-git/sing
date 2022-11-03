@@ -2,6 +2,7 @@
   import IconFolderRemove from "virtual:icons/heroicons-outline/folder-remove"
   import IconFolderAdd from "virtual:icons/heroicons-outline/folder-add"
   import { createEventDispatcher } from "svelte"
+
   import { TEST_ATTRIBUTES } from "@/TestConsts"
 
   export let path: string | undefined = undefined
@@ -19,7 +20,7 @@
       securityScopedBookmarks: false,
     })
 
-    if (canceled || filePaths.length === 0) return null
+    if (canceled || filePaths.length === 0) return undefined
 
     return filePaths
   }
@@ -34,7 +35,7 @@
 
   async function addNewFolder() {
     const folderPaths = await pickFolder()
-    if (folderPaths === null) return
+    if (folderPaths === undefined) return
 
     dispatch("folderAdded", folderPaths)
   }
@@ -45,7 +46,7 @@
 
   async function editFolder() {
     const newPaths = await pickFolder()
-    if (newPaths === null) return
+    if (newPaths === undefined) return
 
     dispatch("folderEdited", { oldPath: path, newPaths })
   }

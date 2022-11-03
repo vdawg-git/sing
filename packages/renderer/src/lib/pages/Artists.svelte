@@ -1,14 +1,16 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
-  import { artists, playNewSource } from "@/lib/manager/player/index"
-  import NothingHereYet from "../organisms/NothingHereYet.svelte"
-  import HeroHeading from "../organisms/HeroHeading.svelte"
-  import CardList from "../organisms/CardList.svelte"
+  import { isPresent } from "ts-is-present"
+
+  import { removeDuplicates } from "@sing-shared/Pures"
 
   import { ROUTES } from "@/Consts"
-  import { backgroundImagesStore } from "../stores/BackgroundImages"
-  import { isPresent } from "ts-is-present"
-  import { removeDuplicates } from "@sing-shared/Pures"
+  import { artists, playNewSource } from "@/lib/manager/player/index"
+  import { backgroundImages } from "@/lib/stores/BackgroundImages"
+
+  import CardList from "@/lib/organisms/CardList.svelte"
+  import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
+  import NothingHereYet from "@/lib/organisms/NothingHereYet.svelte"
 
   const navigate = useNavigate()
 
@@ -17,7 +19,7 @@
   }
 
   $: {
-    backgroundImagesStore.set(
+    backgroundImages.set(
       $artists
         .map((artist) => artist.image)
         .filter(isPresent)
@@ -25,6 +27,7 @@
     )
   }
 
+  // TODO Background images include artists images
   // TODO display one artist with non-artist tagged tracks as the "Unknown artist"
 </script>
 
@@ -52,7 +55,7 @@
         playNewSource({
           sourceID: id,
           source: "artists",
-          sort: ["album", "ascending"],
+          sortBy: ["album", "ascending"],
         })}
       on:clickedPrimary={navigateToArtist}
       on:clickedSecondary={navigateToArtist}

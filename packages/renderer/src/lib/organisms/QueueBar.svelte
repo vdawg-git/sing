@@ -1,9 +1,8 @@
-<script lang="ts" context="module">
-  // Save this state across component destruction without an extra store
-  let scrollPosition: number = 0
-</script>
-
 <script lang="ts">
+  import { fly } from "svelte/transition"
+  import { sineInOut } from "svelte/easing"
+  import { onMount } from "svelte"
+
   import { TEST_ATTRIBUTES, TEST_IDS } from "@/TestConsts"
   import {
     playedTracks,
@@ -14,24 +13,31 @@
     removeIndexFromQueue,
     pausePlayback,
   } from "@/lib/manager/player/index"
+  import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
+
+  import { playlistsStore } from "../stores/PlaylistsStore"
+
   import QueueItem from "@/lib/atoms/QueueItem.svelte"
-  import { fly } from "svelte/transition"
-  import { sineInOut } from "svelte/easing"
-  import { onMount } from "svelte"
+
+  // TODO when going to the next song multiple times, scroll to the current track
 
   let scroller: HTMLElement
 
   $: nextTracksDisplayed = $nextTracks.slice(0, 20)
 
-  onMount(() => {
-    // Scroll to last position when rendered again
-    const timeout = setTimeout(() => scrollToLastPosition(), 10) // Wait for scroller to get binded and animation finish
+  $: createContextMenuItems =
+    createAddToPlaylistAndQueueMenuItems($playlistsStore)
 
-    return () => clearTimeout(timeout) // Clears timeout on destroy
+  let currentTrackElement: HTMLElement
+
+  onMount(() => {
+    // Scroll to current queue item
+    scrollToCurrent()
   })
 
-  function scrollToLastPosition() {
-    scroller.scroll(0, scrollPosition)
+  function scrollToCurrent() {
+    // Scroll but leave some top space for the subtitle
+    scroller.scroll(0, currentTrackElement.offsetTop - 88)
   }
 
   function handleRemove(index: number) {
@@ -39,7 +45,7 @@
   }
 </script>
 
-<main
+<div
   data-testid={TEST_IDS.queueBar}
   class="
     custom_ 
@@ -66,16 +72,13 @@
     <div
       class="
           scrollbar_ 
-          mask_ mb-6 mt-0
+          mask_ mb-0 mt-0
           flex max-h-full grow flex-col
           gap-6
           overflow-y-auto
           px-4 pr-4 pt-2
         "
       bind:this={scroller}
-      on:scroll={() => {
-        scrollPosition = scroller.scrollTop
-      }}
     >
       <!---- Played Tracks --->
       <!-- Spacer -->
@@ -96,6 +99,7 @@
                 : undefined}
               testQueuePlayedIndex={index}
               testattribute={TEST_ATTRIBUTES.queuePreviousTracks}
+              {createContextMenuItems}
               on:dblclick={() => playFromQueue(queueItemData.index)}
               on:remove={() => handleRemove(queueItemData.index)}
             />
@@ -105,7 +109,7 @@
 
       <!---- Currently playing track --->
       {#if $currentTrack}
-        <div class="">
+        <div class="" bind:this={currentTrackElement}>
           <div class="mb-3 text-xs font-semibold uppercase text-grey-300">
             Currently playing
           </div>
@@ -113,6 +117,7 @@
             queueItemData={$currentTrack}
             state="PLAYING"
             testId={TEST_IDS.queueCurrentTrack}
+            {createContextMenuItems}
             on:dblclick={() => pausePlayback()}
             on:remove={() => handleRemove($currentTrack.index)}
           />
@@ -120,7 +125,7 @@
       {/if}
 
       <!---- Next Tracks --->
-      {#if $nextTracks.length !== 0}
+      {#if $nextTracks.length > 0}
         <div class="mt-4">
           <div class="mb-3 text-xs font-semibold uppercase text-grey-300">
             Next up
@@ -135,6 +140,7 @@
                 testId={index === 0 ? "queueNextTrack" : undefined}
                 testQueueNextIndex={index}
                 testattribute={TEST_ATTRIBUTES.queueNextTracks}
+                {createContextMenuItems}
                 on:dblclick={() => playFromQueue(queueItemData.index)}
                 on:remove={() => handleRemove(queueItemData.index)}
               />
@@ -143,10 +149,10 @@
         </div>
       {/if}
       <!---- Spacer element for scrollbar --->
-      <div class="min-h-[4.5rem] w-full opacity-0" />
+      <div class="min-h-playbarPadded w-full" />
     </div>
   </div>
-</main>
+</div>
 
 <style lang="postcss">
   .scrollbar_ {
@@ -169,6 +175,7 @@
 
   .custom_ {
     box-shadow: 0px 0px 24px 0px rgba(0, 0, 0, 0.5);
+    contain: layout;
   }
 
   .mask_ {

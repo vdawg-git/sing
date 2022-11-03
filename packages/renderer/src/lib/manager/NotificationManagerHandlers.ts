@@ -1,9 +1,13 @@
-import { NOTIFICATION_LABEL } from "@/Consts"
 import * as E from "fp-ts/lib/Either"
 
-import { addNotification, removeNotificationsByLabel } from "../stores/NotificationStore"
-
 import type { TypedIpcRenderer } from "@sing-preload/types/Types"
+
+import { NOTIFICATION_LABEL } from "@/Consts"
+
+import {
+  addNotification,
+  removeNotificationsByLabel,
+} from "../stores/NotificationStore"
 
 export interface INotificationHandlers {
   handleSyncSuccess: () => () => TypedIpcRenderer
@@ -17,7 +21,7 @@ export interface INotificationHandlers {
  */
 export const notificationHandlers: INotificationHandlers = {
   handleSyncSuccess() {
-    const unsubsriber = window.api.listen("syncedMusic", (_, syncResult) => {
+    const unsubsriber = window.api.on("syncedMusic", (_, syncResult) => {
       if (E.isLeft(syncResult)) {
         addNotification({
           label: `${NOTIFICATION_LABEL.syncFailure}: ${

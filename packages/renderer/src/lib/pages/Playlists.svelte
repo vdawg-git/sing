@@ -1,44 +1,67 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
-  import { player } from "@/lib/manager/player/index"
-  import { playlists } from "../manager/Playlists"
-  import NothingHereYet from "../organisms/NothingHereYet.svelte"
-  import HeroHeading from "../organisms/HeroHeading.svelte"
-  import CardList from "../organisms/CardList.svelte"
 
   import { ROUTES } from "@/Consts"
+  import { playNewSource, tracks } from "@/lib/manager/player"
+  import { backgroundImages } from "@/lib/stores/BackgroundImages"
+  import {
+    createAddToPlaylistAndQueueMenuItems,
+    createAndNavigateToPlaylist,
+  } from "@/Helper"
+
+  import { playlistsStore } from "../stores/PlaylistsStore"
+  import Button from "../atoms/Button.svelte"
+
+  import CardList from "@/lib/organisms/CardList.svelte"
+  import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
+  import NothingHereYet from "@/lib/organisms/NothingHereYet.svelte"
 
   const navigate = useNavigate()
 
-  // TODO display one album with non-album tagged tracks as the "Unknown album"
+  // TODO add "Create your first playlist" button
+
+  $: {
+    // TODO add background images from the playlists thumbs
+    backgroundImages.reset()
+  }
 </script>
 
 <HeroHeading
-  title="Your albums"
+  title="Your playlists"
   metadata={[
     {
-      label: `${$playlists.length} playlist${$playlists.length > 1 ? "s" : ""}`,
+      label: `${$playlistsStore.length} playlist${
+        $playlistsStore.length > 1 ? "s" : ""
+      }`,
     },
   ]}
 />
 
-{#if $playlists.length === 0}
+{#if $tracks.length === 0}
   <NothingHereYet />
+{:else if $playlistsStore.length === 0}
+  <Button
+    label="Create your first playlist"
+    primary={false}
+    on:click={() => createAndNavigateToPlaylist(navigate)}
+  />
 {:else}
   <CardList
-    items={$playlists.map(({ id }) => ({
-      title: id,
-      id,
+    items={$playlistsStore.map((playlist) => ({
+      title: playlist.name,
+      id: playlist.id,
+      image: playlist.thumbnailCovers,
       secondaryText: "Playlist",
+      contextMenuItems:
+        createAddToPlaylistAndQueueMenuItems($playlistsStore)(playlist),
     }))}
     on:play={({ detail: id }) =>
-      player.playFromSource({
-        id,
-        type: "playlists",
-        sort: ["trackNo", "ascending"],
+      playNewSource({
+        sourceID: id,
+        source: "playlist",
+        sortBy: ["trackNo", "ascending"],
       })}
-    on:clickedPrimary={({ detail: id }) => navigate(`/${ROUTES.albums}/${id}`)}
-    on:clickedSecondary={({ detail: id }) =>
-      navigate(`/${ROUTES.artists}/${id}`)}
+    on:clickedPrimary={({ detail: id }) =>
+      navigate(`/${ROUTES.playlists}/${id}`)}
   />
 {/if}

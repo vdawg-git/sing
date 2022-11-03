@@ -8,19 +8,22 @@
   import { fly } from "svelte/transition"
 
   import type { INotificationTypes } from "@sing-types/Types"
+
   import { TEST_ATTRIBUTES } from "@/TestConsts"
 
   export let id: symbol
   export let label: string
   export let type: INotificationTypes = "default"
-  export let duration: number = 7 // Timeout in seconds. Set to -1 to disable
+  export let duration = 7 // Timeout in seconds. Set to -1 to disable
+
+  // TODO when hovering make the timeout slider stop smoothly and not abruptly like now
 
   const usedIcon = {
     loading: IconLoading,
     check: IconCheck,
     warning: IconWarn,
     danger: IconDanger,
-    default: false,
+    default: undefined,
   }[type]
 
   const iconClass = {
@@ -86,7 +89,7 @@
 
 <div
   data-testattribute={TEST_ATTRIBUTES.notification}
-  class="z-50 flex min-w-[224px] overflow-hidden rounded bg-grey-600/60 shadow-xl shadow-grey-900 backdrop-blur-2xl"
+  class="z-50 flex w-max min-w-[224px] max-w-[calc(100vw-64px*2)] overflow-hidden rounded bg-grey-600/60 shadow-xl shadow-grey-900 backdrop-blur-2xl"
   on:mouseenter={pauseTimout}
   on:mouseleave={resumeTimeout}
   in:fly={{ duration: animationDuration, opacity: 0, x: 100 }}
@@ -96,8 +99,8 @@
     x: 100,
   }}
 >
-  <div class="flex gap-3 px-6 py-4">
-    {#if type != undefined}
+  <div class="mr-3 flex gap-3 px-6 py-4">
+    {#if usedIcon !== undefined}
       <svelte:component
         this={usedIcon}
         class={`${iconClass} -ml-2 h-6 w-6 shrink-0`}
@@ -109,11 +112,11 @@
   {#if duration !== -1}
     <!-- Timeout bar -->
     <div
-      class="absolute inset-x-0 bottom-0 h-1 rotate-180 overflow-hidden rounded"
+      class="absolute right-0 bottom-0 h-1 rotate-180 overflow-hidden rounded"
       bind:this={timeoutBar}
     >
       <div
-        class="absolute inset-x-0  bottom-0 h-1 bg-gradient-to-l from-yellow-300 to-orange-500"
+        class="absolute inset-x-0  bottom-0 h-1 bg-gradient-to-l from-white/40 to-grey-600/0"
       />
     </div>
   {/if}

@@ -6,7 +6,7 @@
   export let classes: string | undefined = undefined
   export let testid: string | undefined = undefined
   export let icon: typeof SvelteComponentDev | undefined = undefined
-  export let disabled: boolean = false
+  export let disabled = false
 
   const buttonClass = primary
     ? "bg-grey-100  text-grey-900"
@@ -22,6 +22,8 @@
         {buttonClass} {classes}"
   {disabled}
 >
-  <svelte:component this={icon} class="-ml-2 h-6 w-6" />
+  {#if icon}
+    <svelte:component this={icon} class="-ml-2 h-6 w-6" />
+  {/if}
   {label}
 </button>

@@ -1,23 +1,27 @@
 <script lang="ts">
+  import { onDestroy } from "svelte"
   import { Router, Route, createHistory } from "svelte-navigator"
+
+  import Settings from "@/lib/pages/Settings.svelte"
+
   import { ROUTES } from "./Consts"
   import { createHashSource } from "./Helper"
-  import { initNotificationHandler } from "./lib/manager/NotificationManager"
-  import { backgroundImagesStore } from "./lib/stores/BackgroundImages"
-  import { onDestroy } from "svelte"
-  import Sidebar from "./lib/organisms/Sidebar.svelte"
-  import Tracks from "./lib/pages/Tracks.svelte"
-  import Playbar from "./lib/organisms/Playbar.svelte"
-  import Settings from "@/lib/pages/Settings.svelte"
-  import NotificationsRenderer from "./lib/organisms/NotificationsRenderer.svelte"
-  import Albums from "./lib/pages/Albums.svelte"
-  import Album from "./lib/pages/Album.svelte"
-  import Artists from "./lib/pages/Artists.svelte"
-  import Artist from "./lib/pages/Artist.svelte"
-  import Searchbar from "./lib/organisms/Searchbar.svelte"
-  import BackAndForthNavigation from "./lib/molecules/BackAndForthNavigation.svelte"
   import BackgroundGallery from "./lib/atoms/BackgroundGallery.svelte"
+  import { initNotificationHandler } from "./lib/manager/NotificationManager"
   import MenuElement from "./lib/manager/menu/MenuElement.svelte"
+  import BackAndForthNavigation from "./lib/molecules/BackAndForthNavigation.svelte"
+  import NotificationsRenderer from "./lib/organisms/NotificationsRenderer.svelte"
+  import Playbar from "./lib/organisms/Playbar.svelte"
+  import Searchbar from "./lib/organisms/Searchbar.svelte"
+  import Sidebar from "./lib/organisms/Sidebar.svelte"
+  import Album from "./lib/pages/Album.svelte"
+  import Albums from "./lib/pages/Albums.svelte"
+  import Artist from "./lib/pages/Artist.svelte"
+  import Artists from "./lib/pages/Artists.svelte"
+  import Playlists from "./lib/pages/Playlists.svelte"
+  import Tracks from "./lib/pages/Tracks.svelte"
+  import { backgroundImages } from "./lib/stores/BackgroundImages"
+  import Playlist from "./lib/pages/Playlist.svelte"
 
   const hashHistory = createHistory(createHashSource())
 
@@ -94,6 +98,14 @@
             <Route path=":artistID" component={Artist} />
           </Route>
 
+          <Route path={`${ROUTES.playlists}/*`}>
+            <Route path="/">
+              <Playlists />
+            </Route>
+
+            <Route path=":playlistID" component={Playlist} />
+          </Route>
+
           <!---- Default route -->
           <Route>
             <Tracks />
@@ -102,6 +114,6 @@
       </main>
     </div>
 
-    <BackgroundGallery images={$backgroundImagesStore} />
+    <BackgroundGallery images={$backgroundImages} />
   </Router>
 </div>

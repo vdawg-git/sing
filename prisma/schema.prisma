@@ -1,7 +1,8 @@
 // Docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
 }
 
 datasource db {
@@ -10,10 +11,10 @@ datasource db {
 }
 
 model Track {
-  id        Int        @id @default(autoincrement())
+  id        Int            @id @default(autoincrement())
   title     String?
-  filepath  String     @unique
-  playlists Playlist[]
+  filepath  String         @unique
+  playlists PlaylistItem[]
 
   artistName      Artist? @relation(name: "artist", fields: [artist], references: [name])
   artist          String?
@@ -171,7 +172,7 @@ model Artist {
   tracks            Track[] @relation(name: "artist")
   albumartistTracks Track[] @relation(name: "albumartist")
   albums            Album[]
-  image             String? /// This is the filepath to the image
+  image             String? /// This is the filepath to the artist image
 }
 
 model Cover {
@@ -179,9 +180,26 @@ model Cover {
   filepath String  @unique
   album    Album?
   tracks   Track[]
+
+  playlistsThumbnail Playlist[]
 }
 
 model Playlist {
-  name   String  @id
-  tracks Track[]
+  id    Int            @id @default(autoincrement())
+  name  String         @unique
+  items PlaylistItem[]
+
+  thumbnailCovers Cover[]
+}
+
+/// A playlist contains tracks, but it can contain multiple of the same and needs to know their position inside the playlist. Thus we have another type for the playlist items.
+model PlaylistItem {
+  id    Int   @id @default(autoincrement())
+  track Track @relation(fields: [trackID], references: [id])
+  index Int
+
+  playlist Playlist @relation(fields: [playlistID], references: [id])
+
+  trackID    Int
+  playlistID Int
 }

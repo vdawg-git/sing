@@ -1,8 +1,8 @@
 <script lang="ts">
   import { TEST_ATTRIBUTES } from "@/TestConsts"
-  import type { IMenuArgumentItem } from "@/types/Types"
+  import type { IMenuItemArgument } from "@/types/Types"
 
-  export let data: IMenuArgumentItem
+  export let data: IMenuItemArgument
 </script>
 
 <button

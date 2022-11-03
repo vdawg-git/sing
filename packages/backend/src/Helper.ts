@@ -1,21 +1,32 @@
-import { isError } from "@sing-types/Typeguards"
+import {
+  copyFile,
+  mkdir,
+  readdir,
+  stat,
+  unlink,
+  writeFile,
+} from "node:fs/promises"
+import path from "node:path"
+
 import c from "ansicolor"
 import * as E from "fp-ts/lib/Either"
-import { copyFile, mkdir, readdir, stat, unlink, writeFile } from "node:fs/promises"
-import path from "node:path"
 import log from "ololog"
 import slash from "slash"
 
-import { getLeftsRights } from "../../shared/Pures"
-
+import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"
+import { isError } from "@sing-types/Typeguards"
 import type {
   IErrorFSDeletionFailed,
   IErrorFSDirectoryReadFailed,
   IErrorFSPathUnaccessible,
   IErrorFSWriteFailed,
 } from "@sing-types/Types"
+import type { IPlaylistID, ITrackID } from "@sing-types/Opaque"
+
+import { getLeftsRights } from "../../shared/Pures"
+
+import type { Prisma } from "@prisma/client"
 import type { Either } from "fp-ts/lib/Either"
-import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"
 
 export async function getFilesFromDirectory(
   directory: DirectoryPath
@@ -25,6 +36,7 @@ export async function getFilesFromDirectory(
   } catch (error) {
     return E.left({
       type: "Directory read failed",
+
       error,
       message: `Error reading out path "${directory}" \n${error}`,
     })
@@ -141,4 +153,41 @@ export async function checkAndCreateDatabase(databasePath: FilePath) {
       )
     }
   }
+}
+
+/**
+ * Create a default playlist name, like "My playlist #2".
+ * @param usedNames The names of playlists already in use.
+ * @param iteration Do not set this. This is used internally for the recursion.
+ */
+export function createDefaultPlaylistName(
+  usedNames: readonly string[],
+  iteration = 1
+): string {
+  const name = "My playlist #" + iteration
+
+  if (!usedNames.includes(name)) {
+    return name
+  }
+
+  return createDefaultPlaylistName(usedNames, iteration + 1)
+}
+
+/**
+ * Designed to be used with `Array.map`
+ * @param playlistID
+ * @param indexToStartFrom The position / index where the items should be inserted into the playlist. Defaults to `0`.
+ */
+export function createPlaylistItem(
+  playlistID: IPlaylistID,
+  indexToStartFrom = 0
+): (
+  trackID: ITrackID,
+  index: number
+) => Prisma.PlaylistItemUncheckedCreateInput {
+  return (trackID, index) => ({
+    index: indexToStartFrom + index,
+    trackID,
+    playlistID,
+  })
 }

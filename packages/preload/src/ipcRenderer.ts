@@ -1,26 +1,55 @@
-import { ipcRenderer } from "./TypedIPC"
-
+import type {
+  IUserSettings,
+  IUserSettingsKey,
+} from "@sing-main/lib/UserSettings"
+import type {
+  IFrontendEventsConsume,
+  IFrontendEventsSend,
+} from "@sing-types/IPC"
 import type {
   IAlbumFindManyArgument,
   IAlbumGetArgument,
   IArtistFindManyArgument,
   IArtistGetArgument,
+  IPlaylistFindManyArgument,
+  IPlaylistGetArgument,
+  IPlaylistRenameArgument,
+  ITrack,
   ITrackFindManyArgument,
 } from "@sing-types/Types"
+import type { IAddTracksToPlaylistArgument } from "@sing-backend/lib/Crud"
+
+import { ipcRenderer } from "./TypedIPC"
 
 import type { IMainQueryHandlers } from "./types/Types"
-
-import type {
-  IUserSettings,
-  IUserSettingsKey,
-} from "@sing-main/lib/UserSettings"
-
-import type {
-  IFrontendEventsConsume,
-  IFrontendEventsSend,
-} from "@sing-types/IPC"
-
 import type { Prisma } from "@prisma/client"
+
+export async function getPlaylists(options?: IPlaylistFindManyArgument) {
+  return ipcRenderer.invoke("getPlaylists", options)
+}
+
+export async function getPlaylist(options: IPlaylistGetArgument) {
+  return ipcRenderer.invoke("getPlaylist", options)
+}
+
+/**
+ * ? Usually we want to use the `createAndNavigateToPlaylist` function in `renderer/helper.ts` to also navigate to the newly created playlist.
+ */
+export async function createPlaylist(tracksToAdd?: readonly ITrack[]) {
+  return ipcRenderer.invoke("createPlaylist", tracksToAdd)
+}
+
+export async function renamePlaylist(options: IPlaylistRenameArgument) {
+  return ipcRenderer.invoke("renamePlaylist", options)
+}
+
+export async function deletePlaylist(id: number) {
+  return ipcRenderer.invoke("deletePlaylist", id)
+}
+
+export async function addToPlaylist(options: IAddTracksToPlaylistArgument) {
+  ipcRenderer.send("addTracksToPlaylist", options)
+}
 
 /**
  * The default sort is ["title", "ascending"] and gets used if it is not specified.
@@ -54,11 +83,14 @@ export async function sync() {
   ipcRenderer.send("syncFolders")
 }
 
-export async function setUserSettings<Key extends IUserSettingsKey>(
-  setting: Key,
+export async function setUserSettings<Key extends IUserSettingsKey>({
+  setting,
+  value,
+}: {
+  setting: Key
   value: IUserSettings[Key]
-) {
-  return ipcRenderer.send("setUserSettings", setting, value)
+}) {
+  return ipcRenderer.send("setUserSettings", { setting, value })
 }
 
 export async function openDirectory(
@@ -77,13 +109,13 @@ export async function getUserSetting(setting: IUserSettingsKey) {
  * @param listener - the listener to call when the event is emitted
  * @returns The unsubscribe function
  */
-export function listen<Key extends keyof IFrontendEventsConsume>(
+export function on<Key extends keyof IFrontendEventsConsume>(
   channel: Key,
   listener: IFrontendEventsConsume[Key]
 ) {
   ipcRenderer.on(channel, listener)
 
-  // Return the unsubscribe function, because unsubscribing doesn't work otherwise
+  // Return the unsubscribe function, because unsubscribing doesn't work otherwise.
   return () => ipcRenderer.removeListener(channel, listener)
 }
 

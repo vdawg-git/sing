@@ -1,17 +1,31 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
+  import { pipe } from "fp-ts/lib/function"
+
+  import type { ITrack } from "@sing-types/Types"
+
   import { ROUTES } from "@/Consts"
   import { displayMetadata } from "@/Helper"
   import { TEST_ATTRIBUTES } from "@/TestConsts"
+  import type {
+    IMenuItemsArgument,
+    ITrackListDisplayOptions,
+  } from "@/types/Types"
 
-  import type { ITrackListDisplayOptions } from "@/types/Types"
-  import type { ITrack } from "@sing-types/Types"
+  import { useOpenContextMenu } from "../manager/menu"
+
   import type { StrictExtract } from "ts-essentials"
 
-  export let track!: ITrack
+  export let track: ITrack
   export let displayOptions: ITrackListDisplayOptions
+  export let createContextMenuItems: (track: ITrack) => IMenuItemsArgument
 
   const navigate = useNavigate()
+
+  // TODO fix add to playlist not working on first render of the page without navigation.
+  // This is because the $playlistsStore array has not items yet and it does not refresh when it fills up.
+
+  $: contextMenuItems = createContextMenuItems(track)
 
   function navigateTo(type: StrictExtract<keyof ITrack, "album" | "artist">) {
     if (!track[type]) return
@@ -32,6 +46,7 @@
     overflow-visible
   "
   on:dblclick
+  use:useOpenContextMenu={{ menuItems: contextMenuItems }}
 >
   <!---- Cover and Title -->
   <div class="mr-6 min-w-0 flex-1 basis-44 py-2">
@@ -66,7 +81,7 @@
       data-testattribute={TEST_ATTRIBUTES.trackItemArtist}
       on:click|preventDefault={navigateTo("artist")}
       class="mr-6 flex-1 basis-32  overflow-hidden text-ellipsis whitespace-nowrap align-middle 
-        {!!track.artist
+        {track.artist
         ? 'hover:text-grey-200 active:hover:text-grey-300 disabled:hover:text-white'
         : ''}"
     >
@@ -80,7 +95,7 @@
       data-testattribute={TEST_ATTRIBUTES.trackItemAlbum}
       on:click|preventDefault={navigateTo("album")}
       class="mr-6 flex-1 basis-32 overflow-hidden  text-ellipsis whitespace-nowrap align-middle 
-        {!!track.album
+        {track.album
         ? 'transition-colors hover:text-grey-200 active:hover:text-grey-300 disabled:hover:text-white'
         : ''}
       "

@@ -1,24 +1,27 @@
 import log from "ololog"
 
+import type { DirectoryPath } from "@sing-types/Filesystem"
+import type { IAddTracksToPlaylistArgument } from "@sing-backend/lib/Crud"
+
 import { coversDirectory } from "../../main/src/Consts"
 import userSettingsStore from "../../main/src/lib/UserSettings"
+
 import { emitToBackend } from "./BackendProcess"
 
-import type { DirectoryPath } from "@sing-types/Filesystem"
 import type { IpcMainInvokeEvent } from "electron"
 import type {
   IUserSettings,
   IUserSettingsKey,
 } from "../../main/src/lib/UserSettings"
 
-const mainEventHandlers = {
+export const mainEventHandlers = {
   setUserSettings: async <Key extends IUserSettingsKey>(
     _event: IpcMainInvokeEvent,
-    setting: Key,
-    value: IUserSettings[Key]
+    { setting, value }: { setting: Key; value: IUserSettings[Key] }
   ) => {
     userSettingsStore.set(setting, value)
   },
+
   syncFolders: async () => {
     const musicDirectories = userSettingsStore.get("musicFolders") ?? []
     if (!musicDirectories?.length) {
@@ -39,6 +42,14 @@ const mainEventHandlers = {
       arguments_: [{ coversDirectory, directories: [""] as DirectoryPath[] }],
     })
   },
-} as const
 
-export default mainEventHandlers
+  addTracksToPlaylist: async (
+    _: IpcMainInvokeEvent,
+    options: IAddTracksToPlaylistArgument
+  ) => {
+    emitToBackend({
+      event: "addTracksToPlaylist",
+      arguments_: [options],
+    })
+  },
+} as const

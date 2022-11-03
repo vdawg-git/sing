@@ -1,10 +1,13 @@
 <script lang="ts">
-  import FoldersPicker from "@/lib/organisms/FoldersPicker.svelte"
-  import Button from "@/lib/atoms/Button.svelte"
   import { onMount } from "svelte"
-  import { TEST_IDS as id } from "@/TestConsts"
+
   import type { DirectoryPath } from "@sing-types/Filesystem"
-  import { backgroundImagesStore } from "../stores/BackgroundImages"
+
+  import { TEST_IDS as id } from "@/TestConsts"
+  import { backgroundImages } from "@/lib//stores/BackgroundImages"
+
+  import Button from "@/lib/atoms/Button.svelte"
+  import FoldersPicker from "@/lib/organisms/FoldersPicker.svelte"
 
   let paths: DirectoryPath[]
 
@@ -16,7 +19,7 @@
   )
 
   // Remove background images from the previous page
-  backgroundImagesStore.set(undefined)
+  backgroundImages.set(undefined)
 </script>
 
 <main class="h-max w-full p-6 pb-24">

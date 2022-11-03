@@ -1,19 +1,22 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
-  import { albums, playNewSource } from "@/lib/manager/player/index"
-  import NothingHereYet from "../organisms/NothingHereYet.svelte"
-  import HeroHeading from "../organisms/HeroHeading.svelte"
-  import CardList from "../organisms/CardList.svelte"
+  import { isPresent } from "ts-is-present"
+
+  import { removeDuplicates } from "@sing-shared/Pures"
 
   import { ROUTES } from "@/Consts"
-  import { isPresent } from "ts-is-present"
-  import { removeDuplicates } from "@sing-shared/Pures"
-  import { backgroundImagesStore } from "../stores/BackgroundImages"
+  import { albums, playNewSource } from "@/lib/manager/player"
+  import { backgroundImages } from "@/lib/stores/BackgroundImages"
+  import { displayTypeWithCount } from "@/Helper"
+
+  import CardList from "@/lib/organisms/CardList.svelte"
+  import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
+  import NothingHereYet from "@/lib/organisms/NothingHereYet.svelte"
 
   const navigate = useNavigate()
 
   $: {
-    backgroundImagesStore.set(
+    backgroundImages.set(
       $albums
         .map((album) => album.cover)
         .filter(isPresent)
@@ -27,7 +30,9 @@
 <HeroHeading
   title="Your albums"
   metadata={[
-    { label: `${$albums.length} album${$albums.length > 1 ? "s" : ""}` },
+    {
+      label: displayTypeWithCount("album", $albums.length),
+    },
   ]}
 />
 {#if $albums.length === 0}
@@ -44,7 +49,7 @@
       playNewSource({
         sourceID: id,
         source: "albums",
-        sort: ["trackNo", "ascending"],
+        sortBy: ["trackNo", "ascending"],
       })}
     on:clickedPrimary={({ detail: id }) => navigate(`/${ROUTES.albums}/${id}`)}
     on:clickedSecondary={({ detail: id }) =>

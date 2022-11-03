@@ -1,43 +1,65 @@
 import { app, dialog } from "electron"
-import hexoid from "hexoid"
 import slash from "slash"
 
-import userSettingsStore from "../../main/src/lib/UserSettings"
-import { queryBackend } from "./BackendProcess"
-
-import type { Either } from "fp-ts/lib/Either"
-import type { IpcMainInvokeEvent, OpenDialogReturnValue } from "electron"
+import type {
+  IUserSettings,
+  IUserSettingsKey,
+} from "@sing-main/lib/UserSettings"
+import type { DirectoryPath } from "@sing-types/Filesystem"
 import type {
   IAlbum,
   IAlbumFindManyArgument,
   IAlbumGetArgument,
   IArtist,
   IArtistFindManyArgument,
-  IElectronPaths,
-  IError,
+  IPlaylistFindManyArgument,
+  IPlaylistGetArgument,
+  IPlaylistRenameArgument,
+  ITrack,
   ITrackFindManyArgument,
-} from "@sing-types/Types"
-import type {
-  IUserSettings,
-  IUserSettingsKey,
-} from "@sing-main/lib/UserSettings"
-import type { Prisma } from "@prisma/client"
-import type { DirectoryPath } from "@sing-types/Filesystem"
+} from "@sing-types/DatabaseTypes"
+import type { IElectronPaths, IError } from "@sing-types/Types"
 
-const createUID = hexoid()
+import userSettingsStore from "../../main/src/lib/UserSettings"
+
+import { queryBackend } from "./BackendProcess"
+
+import type { Prisma } from "@prisma/client"
+import type { IpcMainInvokeEvent, OpenDialogReturnValue } from "electron"
+import type { Either } from "fp-ts/lib/Either"
 
 /**
- * Query the backend or the main-electron process for data
+ * Query the backend or the main-electron process for data.
+ *
+ * When querying the backend the function can be found in `queryHandlers.ts`.
  */
-const mainQueryHandlers = {
+export const mainQueryHandlers = Object.freeze({
+  getPlaylists: async (
+    _: IpcMainInvokeEvent,
+    options: IPlaylistFindManyArgument | undefined
+  ) => queryBackend({ query: "getPlaylists", arguments_: options }),
+
+  getPlaylist: async (_: IpcMainInvokeEvent, options: IPlaylistGetArgument) =>
+    queryBackend({ query: "getPlaylist", arguments_: options }),
+
+  createPlaylist: async (_: IpcMainInvokeEvent, tracks?: readonly ITrack[]) =>
+    queryBackend({ query: "createPlaylist", arguments_: tracks }),
+
+  deletePlaylist: async (_: IpcMainInvokeEvent, id: number) =>
+    queryBackend({ query: "deletePlaylist", arguments_: id }),
+
+  renamePlaylist: async (
+    _: IpcMainInvokeEvent,
+    options: IPlaylistRenameArgument
+  ) => queryBackend({ query: "renamePlaylist", arguments_: options }),
+
   getTracks: async (
     _: IpcMainInvokeEvent,
     options: ITrackFindManyArgument | undefined
   ) =>
     queryBackend({
-      event: "getTracks",
+      query: "getTracks",
       arguments_: options,
-      queryID: createUID(),
     }),
 
   getAlbums: async (
@@ -45,9 +67,8 @@ const mainQueryHandlers = {
     options: IAlbumFindManyArgument | undefined
   ) =>
     queryBackend({
-      event: "getAlbums",
+      query: "getAlbums",
       arguments_: options,
-      queryID: createUID(),
     }),
 
   getAlbum: async (
@@ -55,9 +76,8 @@ const mainQueryHandlers = {
     options: IAlbumGetArgument
   ): Promise<Either<IError, IAlbum>> =>
     queryBackend({
-      event: "getAlbum",
+      query: "getAlbum",
       arguments_: options,
-      queryID: createUID(),
     }),
 
   getArtists: async (
@@ -65,9 +85,8 @@ const mainQueryHandlers = {
     options: IArtistFindManyArgument | undefined
   ) =>
     queryBackend({
-      event: "getArtists",
+      query: "getArtists",
       arguments_: options,
-      queryID: createUID(),
     }),
 
   getArtist: async (
@@ -75,9 +94,8 @@ const mainQueryHandlers = {
     options: IAlbumGetArgument
   ): Promise<Either<IError, IArtist>> =>
     queryBackend({
-      event: "getArtist",
+      query: "getArtist",
       arguments_: options,
-      queryID: createUID(),
     }),
 
   getCovers: async (
@@ -85,9 +103,8 @@ const mainQueryHandlers = {
     options: Prisma.CoverFindManyArgs | undefined
   ) =>
     queryBackend({
-      event: "getCovers",
+      query: "getCovers",
       arguments_: options,
-      queryID: createUID(),
     }),
 
   openDirectoryPicker: async (
@@ -116,10 +133,7 @@ const mainQueryHandlers = {
 
   search: async (_: IpcMainInvokeEvent, query: string) =>
     queryBackend({
-      event: "search",
+      query: "search",
       arguments_: query,
-      queryID: createUID(),
     }),
-}
-
-export default mainQueryHandlers
+})

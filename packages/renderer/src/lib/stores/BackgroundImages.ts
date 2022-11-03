@@ -12,6 +12,12 @@ import type { FilePath } from "@sing-types/Filesystem"
 //       readonly images: FilePath
 //     }
 
-export const backgroundImagesStore = writable<
-  FilePath | FilePath[] | undefined
->()
+const { set, subscribe } = writable<FilePath | FilePath[] | undefined>()
+
+export const backgroundImages = {
+  set,
+  subscribe,
+  reset() {
+    set(undefined)
+  },
+}

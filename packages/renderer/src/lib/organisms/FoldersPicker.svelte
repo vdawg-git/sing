@@ -1,7 +1,8 @@
 <script lang="ts">
-  import FolderInput from "@/lib/molecules/FolderInput.svelte"
   import { isSubdirectory } from "@/Helper"
   import { TEST_IDS as id } from "@/TestConsts"
+
+  import FolderInput from "@/lib/molecules/FolderInput.svelte"
 
   export let paths: string[] = []
 
@@ -9,7 +10,7 @@
     if (newPaths.length <= 0) throw new Error("No folder paths providied")
 
     for (const newPath of newPaths) {
-      if (paths.indexOf(newPath) !== -1) {
+      if (paths.includes(newPath)) {
         console.error("path already exists: " + newPath)
         return
       }
@@ -25,7 +26,7 @@
     }
   }
 
-  //TODO fix if deleting last existing element
+  // TODO fix if deleting last existing element
   function handleFolderRemoved(path: string) {
     const indexOfPath = paths.indexOf(path)
     paths = paths.filter((_, index) => index !== indexOfPath)

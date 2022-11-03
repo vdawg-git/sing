@@ -1,12 +1,13 @@
 import type { FilePath } from "@sing-types/Filesystem"
 import type { ITrack } from "@sing-types/Types"
+
 import type { SvelteComponentDev } from "svelte/internal"
 import type { AsyncOrSync } from "ts-essentials"
 
 export type IPlayState = "PLAYING" | "PAUSED" | "STOPPED"
 export type IPlayLoop = "NONE" | "LOOP_QUEUE" | "LOOP_TRACK"
 
-export interface IQueueItem {
+export type IQueueItem = {
   readonly index: number
   readonly queueID: symbol
   readonly isManuallyAdded: boolean
@@ -19,41 +20,45 @@ export type IHeroMetaDataItem = AsyncOrSync<{
   readonly bold?: boolean
 }>
 
-export interface ITrackListDisplayOptions {
+export type ITrackListDisplayOptions = {
   readonly artist?: boolean
   readonly album?: boolean
   readonly cover?: boolean
 }
 
-export interface IHeroAction {
+export type IHeroAction = {
   readonly icon: typeof SvelteComponentDev | undefined
   readonly label: string
   readonly callback: (...arguments_: any[]) => void
   readonly primary?: boolean
 }
 
-export interface ICardProperties {
+/**
+ * The type of the card element used on for examples the albums and playlists pages.
+ */
+export type ICardProperties = {
   readonly title: string
-  readonly id: string
+  readonly id: string | number
   readonly secondaryText?: string
-  readonly image?: FilePath
+  readonly image?: FilePath | readonly FilePath[]
+  readonly contextMenuItems: IMenuItemsArgument
 }
 
 export type IMenuID = symbol | "main"
 
 /**
  * The data to be used to render a menu.
- * It is the converted {@link IMenuArgumentItem}[ ]
+ * It is the converted {@link IMenuItemArgument}[ ]
  */
 export type IMenu = {
   readonly id: IMenuID
   readonly title: string
-  readonly items: readonly IMenuArgumentItem[]
+  readonly items: readonly IMenuItemArgument[]
   readonly previousMenu: IMenuID | undefined // Link the previous menu and not the next, as there can be mutliple next menus.
 }
 
 /**
- * Either the X and Y coordinates or an element for Popperjs
+ * Either the X and Y coordinates or an element for Popperjs to position the menu to.
  */
 export type IMenuLocation =
   | HTMLElement
@@ -63,15 +68,9 @@ export type IMenuLocation =
     }
 
 /**
- * The data to be passed as an array to the menu constructor.
- * Similar to {@link IDropdownMeu}, but it gets converted internally, so that a nicer API can be used.
+ * A single menu item
  */
-export type IDropdownArgument = readonly (
-  | IMenuArgumentItem
-  | ISubmenuArgumentItem
-)[]
-
-export type IMenuArgumentItem = {
+export type IMenuItemArgument = {
   readonly type: "item"
   readonly onClick: () => void
   readonly label: string
@@ -80,21 +79,31 @@ export type IMenuArgumentItem = {
 }
 
 /**
- * A menu item which opens up a submenu on click.
+ * A single menu item which opens up a submenu on click.
+ * Contains the submenu.
  * @property subMenu The submenu to be displayed on click
  */
-export type ISubmenuArgumentItem = {
+export type ISubmenuItemArgument = {
   readonly type: "subMenu"
   readonly label: string
   readonly icon?: ConstructorOfATypedSvelteComponent
-  readonly subMenu: readonly (IMenuArgumentItem | ISubmenuArgumentItem)[]
+  readonly subMenu: IMenuItemsArgument
 }
 
 /**
  * The argument to open a menu with its items.
+ * @param onEvent The event to trigger the opening of the menu.
  */
 export type IOpenMenuArgument = {
-  readonly menuItems: readonly (IMenuArgumentItem | ISubmenuArgumentItem)[]
+  readonly menuItems: IMenuItemsArgument
   readonly onEvent?: keyof DocumentEventMap
   readonly testID?: string
 }
+
+/**
+ * Menu items to be passed to the menu-factory.
+ */
+export type IMenuItemsArgument = readonly (
+  | IMenuItemArgument
+  | ISubmenuItemArgument
+)[]

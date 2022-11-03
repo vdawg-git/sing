@@ -5,13 +5,21 @@ import * as RA from "fp-ts/ReadonlyArray"
 import { createHashHistory } from "history"
 import { isDefined } from "ts-is-present"
 
-import { convertFilepathToFilename, getErrorMessage } from "../../shared/Pures"
-import { addNotification } from "./lib/stores/NotificationStore"
+import type { ITrack, IError, IPlaylist, IMusicItems } from "@sing-types/Types"
 
-import type { ITrack, IError } from "@sing-types/Types"
+import { convertFilepathToFilename, getErrorMessage } from "../../shared/Pures"
+
+import { addNotification } from "./lib/stores/NotificationStore"
+import { ROUTES } from "./Consts"
+
 import type { HistorySource } from "svelte-navigator"
 import type AnyObject from "svelte-navigator/types/AnyObject"
-import type { Either } from "fp-ts/lib/Either"
+import type {
+  IMenuItemArgument,
+  IMenuItemsArgument,
+  ISubmenuItemArgument,
+} from "./types/Types"
+import type { IAddTracksToPlaylistArgument } from "../../backend/src/lib/Crud"
 
 export function titleToDisplay(track: ITrack): string {
   if (track?.title) return track.title
@@ -53,34 +61,6 @@ export function isSubdirectory(ancestor: string, child: string): boolean {
   return papaDirectories.every(
     (directory, index) => childDDirectories[index] === directory
   )
-}
-
-/**
- * Do a side-effect if the given data is right.
- * Otherwiese, if it is left, log the error and display the provided error message to the user.
- * @param onLeftErrorMessage The message to be displayed to the user when an error occurs
- * @param onRight The callback to execute when the passed data is right (has no error)
- * @param data The data as an Either or Promise<Either> which will get awaited
- */
-export async function doOrNotifyWithData<A>(
-  onLeftErrorMessage: string,
-  onRight: (argument_: A) => void,
-  data: Either<IError, A> | Promise<Either<IError, A>>
-): Promise<void> {
-  E.fold((error) => {
-    console.error(error)
-
-    const label = `${onLeftErrorMessage}\n${getErrorMessage(
-      `Error receiving data:\n`,
-      error
-    )}`
-
-    addNotification({
-      label,
-      type: "danger",
-      duration: -1,
-    })
-  }, onRight)(await data)
 }
 
 export function isOverflowingX(element: HTMLElement): boolean {
@@ -158,6 +138,34 @@ export function doTextResizeToFitElement(
 
       lastScreensize = currentScreensize
     }
+  }
+}
+
+export async function createAndNavigateToPlaylist(
+  navigate: (to: string) => void,
+  tracksToAdd?: readonly ITrack[]
+) {
+  pipe(
+    await window.api.createPlaylist(tracksToAdd),
+    E.foldW(
+      notifiyError("Failed to create playlist"),
+
+      (playlist) => {
+        navigate(`/${ROUTES.playlists}/${playlist.id}`)
+      }
+    )
+  )
+}
+
+export function notifiyError(
+  message: string
+): (error: IError | unknown) => Promise<void> {
+  return async (error) => {
+    console.error(error)
+    addNotification({
+      type: "danger",
+      label: getErrorMessage(message, error),
+    })
   }
 }
 
@@ -274,19 +282,25 @@ export function moveElementFromToIndex<T>(
 }
 
 /**
- * Create a function to be used with the `use:` element directive.
- * It stops the propagation of the click event if the click is outside.
+ * Check if the user clicked outside of the element.
+ * It creates a function to be used with the `use:` element directive.
+ *
  * @param callback The callback to run when the user clicks out of the element.
  * @param extraElements The extra elements which get treated as "inside click" elements.
+ * @param stopPropagation If the propagation of the outClick should be stopped. False by default.
  * @return The function to be used with the `use` directive
  */
 export function createOnOutClick(
   callback: (event: MouseEvent) => void,
-  extraElements?: (HTMLElement | undefined)[]
+  options?: {
+    stopPropagation?: boolean
+    extraElements?: (HTMLElement | undefined)[]
+  }
 ): (node: HTMLElement) => void {
   return (node: HTMLElement) => {
     function listener(event: MouseEvent) {
-      const extraElementsFiltered = extraElements?.filter(isDefined) || []
+      const extraElementsFiltered =
+        options?.extraElements?.filter(isDefined) || []
 
       if (
         ![...extraElementsFiltered, node].some((element) =>
@@ -295,7 +309,11 @@ export function createOnOutClick(
       ) {
         return
       }
-      event.stopPropagation()
+
+      if (options?.stopPropagation === true) {
+        event.stopPropagation()
+      }
+
       callback(event)
     }
 
@@ -307,4 +325,79 @@ export function createOnOutClick(
       },
     }
   }
+}
+
+/**
+ * Returns a string like: "2 tracks" or "1 track", depending on the count.
+ */
+export function displayTypeWithCount(type: string, count: number): string {
+  return `${count} ${addPluralS(type, count)}`
+}
+
+export function addPluralS(string: string, count: number): string {
+  if (count >= 0 && count !== 1) {
+    return string + "s"
+  }
+
+  return string
+}
+
+function createAddToPlaylistAndQueueMenuItemsBase(
+  musicToAdd: IMusicItems,
+  playlists: readonly IPlaylist[],
+  addToPlaylist: (items: IAddTracksToPlaylistArgument) => void,
+  _playNext: (tracks: readonly ITrack[]) => void,
+  _playLater: (tracks: readonly ITrack[]) => void
+): IMenuItemsArgument {
+  const playlistSubMenu: ISubmenuItemArgument = {
+    type: "subMenu",
+    label: "Add to playlist",
+    subMenu: playlists.flatMap((playlist) => {
+      // Create the add to playlist options, but do not allow adding a playlist to itself.
+      return (musicToAdd as IPlaylist)?.id === playlist.id &&
+        (musicToAdd as IPlaylist)?.name === playlist.name
+        ? []
+        : {
+            label: playlist.name,
+            onClick: () => addToPlaylist({ playlist, musicToAdd }),
+            type: "item",
+          }
+    }),
+  }
+
+  const queueSubMenu: readonly IMenuItemArgument[] = [
+    {
+      type: "item",
+      label: "Play next",
+      onClick: () =>
+        notifiyError("Queue play next is not implemented yet")(
+          "Queue play next is not implemented yet"
+        ),
+    },
+    {
+      type: "item",
+      label: "Play later",
+      onClick: () =>
+        notifiyError("Queue play later is not implemented yet")(
+          "Queue play later is not implemented yet"
+        ),
+    },
+  ]
+
+  return [...queueSubMenu, playlistSubMenu]
+}
+
+export function createAddToPlaylistAndQueueMenuItems(
+  playlists: readonly IPlaylist[]
+): (item: IMusicItems) => IMenuItemsArgument {
+  return (item) =>
+    createAddToPlaylistAndQueueMenuItemsBase(
+      item,
+      playlists,
+      window.api.addToPlaylist,
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      () => console.log("Not implemented yet"),
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      () => console.log("Not implemented yet")
+    )
 }

@@ -2,29 +2,27 @@ import { dequal } from "dequal"
 import * as E from "fp-ts/lib/Either"
 import { derived, get, writable } from "svelte/store"
 import { match } from "ts-pattern"
+import { pipe } from "fp-ts/lib/function"
 
 import type {
-  IAlbum,
-  IArtist,
   IError,
   INewPlayback,
   IPlayback,
-  ISortOptions,
   ISyncResult,
-  ITrack,
 } from "@sing-types/Types"
+import type { IAlbum, IArtist, ITrack } from "@sing-types/DatabaseTypes"
 
 import {
-  doOrNotifyWithData,
   moveElementFromToIndex,
+  notifiyError,
   sortAlphabetically,
 } from "@/Helper"
 import audioPlayer from "@/lib/manager/player/AudioPlayer"
 import type { IPlayLoop, IPlayState, IQueueItem } from "@/types/Types"
 
 import { loopState } from "./stores/LoopStateStore"
-import indexStore from "./stores/PlayIndex"
-import queueStore from "./stores/QueueStore"
+import { indexStore } from "./stores/PlayIndex"
+import { queueStore } from "./stores/QueueStore"
 
 import type { IpcRendererEvent } from "electron"
 import type { Either } from "fp-ts/lib/Either"
@@ -36,11 +34,11 @@ const playStateStore = writable<IPlayState>("STOPPED")
 const volumeStore = writable(1)
 const currentTimeStore = writable(0)
 const durationStore = writable(0)
-const tracksStore = writable<readonly ITrack[]>([])
-const albumsStore = writable<readonly IAlbum[]>([])
 const artistsStore = writable<readonly IArtist[]>([])
+const albumsStore = writable<readonly IAlbum[]>([])
+const tracksStore = writable<readonly ITrack[]>([])
 const playbackStore = writable<IPlayback>({
-  source: "tracks",
+  source: "allTracks",
   sortBy: ["title", "ascending"],
   isShuffleOn: false,
 })
@@ -61,7 +59,6 @@ export const nextTracks = derived(
   [queueStore, indexStore],
   ([$queue, $index]) => $queue.slice($index + 1)
 )
-
 export const shuffleState = derived(
   playbackStore,
   ({ isShuffleOn }) => isShuffleOn
@@ -108,7 +105,7 @@ loopState.subscribe(($newLoopState) => {
 })
 
 // Events
-window.api.listen("syncedMusic", handleSyncUpdate)
+window.api.on("syncedMusic", handleSyncUpdate)
 audioPlayer.audio.addEventListener("ended", handlePlayNext)
 audioPlayer.audio.addEventListener("volumechange", onVolumeChange)
 
@@ -162,42 +159,47 @@ export async function toggleShuffle() {
   }))
 
   // Set the new queue
-  doOrNotifyWithData(
-    "Failed to set shuffle. Could not retrieve tracks.",
-    async (tracks) => {
-      const trackID = $currentTrack.track.id
-
-      const indexAndTracks: { index: number; tracks: readonly ITrack[] } =
-        match($isShuffleOn)
-          .with(true, () => {
-            const indexToMove = tracks.findIndex(
-              (track) => track.id === trackID
-            ) as number
-
-            return {
-              index: 0,
-              tracks: moveElementFromToIndex(
-                indexToMove,
-                0,
-                tracks
-              ) as ITrack[],
-            }
-          })
-          .with(false, () => ({
-            index: tracks.findIndex((track) => track.id === trackID) as number,
-            tracks,
-          }))
-          .exhaustive()
-
-      setNewPlayback({
-        ...indexAndTracks,
-        playback: { ...$playback, isShuffleOn: $isShuffleOn },
-      })
-    },
-    getTracksFromSource({
+  pipe(
+    await getTracksFromSource({
       ...$playback,
       isShuffleOn: $isShuffleOn,
-    })
+    }),
+    E.foldW(
+      notifiyError("Failed to set shuffle. Could not retrieve tracks."),
+
+      async (tracks) => {
+        const trackID = $currentTrack.track.id
+
+        const indexAndTracks: { index: number; tracks: readonly ITrack[] } =
+          match($isShuffleOn)
+            .with(true, () => {
+              const indexToMove = tracks.findIndex(
+                (track) => track.id === trackID
+              ) as number
+
+              return {
+                index: 0,
+                tracks: moveElementFromToIndex(
+                  indexToMove,
+                  0,
+                  tracks
+                ) as ITrack[],
+              }
+            })
+            .with(false, () => ({
+              index: tracks.findIndex(
+                (track) => track.id === trackID
+              ) as number,
+              tracks,
+            }))
+            .exhaustive()
+
+        setNewPlayback({
+          ...indexAndTracks,
+          playback: { ...$playback, isShuffleOn: $isShuffleOn },
+        })
+      }
+    )
   )
 }
 
@@ -277,29 +279,32 @@ export async function playTrackAsShuffledTracks(trackToPlay: ITrack) {
   startPlayingCurrentTrack()
 
   // Now fill the queue
-  doOrNotifyWithData(
-    "Could not get tracks from the database",
-    (tracks) => {
-      const tracksToAdd = [
-        trackToPlay,
-        ...tracks.filter((track) => track.id !== trackToPlay.id),
-      ]
-
-      setNewPlayback({
-        index: 0,
-        tracks: tracksToAdd,
-        playback: {
-          source: "tracks",
-          sortBy: $playback.sortBy,
-          isShuffleOn: true,
-        },
-      })
-    },
-
+  pipe(
     await getTracksFromSource({
-      source: "tracks",
+      source: "allTracks",
+      sortBy: ["title", "ascending"],
       isShuffleOn: true,
-    })
+    }),
+    E.foldW(
+      notifiyError("Could not get tracks from the database"),
+
+      (tracks) => {
+        const tracksToAdd = [
+          trackToPlay,
+          ...tracks.filter((track) => track.id !== trackToPlay.id),
+        ]
+
+        setNewPlayback({
+          index: 0,
+          tracks: tracksToAdd,
+          playback: {
+            source: "allTracks",
+            sortBy: ["title", "ascending"],
+            isShuffleOn: true,
+          },
+        })
+      }
+    )
   )
 }
 
@@ -319,36 +324,24 @@ export async function playNewSource(newPlayback: INewPlayback, index = 0) {
     return
   }
 
-  // If the source has changed
-  // For example: User played an album and then started playing an artist
+  const newPlaybackToSet = { ...newPlayback, isShuffleOn: $isShuffleOn }
 
-  const defaultSort: ISortOptions["tracks"] = ["title", "ascending"]
+  pipe(
+    await getTracksFromSource(newPlaybackToSet),
 
-  // Keep the old shuffle state if no new one was provided
-  const newPlaybackToSet: INewPlayback = {
-    sortBy: defaultSort,
-    isShuffleOn: $isShuffleOn,
-    ...newPlayback,
-  }
+    E.foldW(
+      notifiyError("Error while trying to play selected music"),
 
-  const tracksEither = await getTracksFromSource(newPlaybackToSet)
+      (tracks) => {
+        setNewPlayback({
+          tracks,
+          index,
+          playback: newPlaybackToSet,
+        })
 
-  doOrNotifyWithData(
-    "Error while trying to play selected music",
-    (tracks) => {
-      setNewPlayback({
-        tracks,
-        index,
-        playback: {
-          sortBy: $playback.sortBy,
-          isShuffleOn: $playback.isShuffleOn,
-          ...newPlaybackToSet,
-        }, // Default sort and shuffle will get overriden if it was specified in the argument
-      })
-
-      startPlayingCurrentTrack()
-    },
-    tracksEither
+        startPlayingCurrentTrack()
+      }
+    )
   )
 }
 
@@ -358,32 +351,30 @@ async function playRandomTracksPlayback() {
   startPlayingCurrentTrack()
 }
 
-// async function setCurrentTrackByID(id: number) {
-//   const queueIndex = $queue.findIndex(({ track }) => track.id === id)
-
-//   indexStore.set(queueIndex)
-// }
-
-// Maybe better as only a new Playbacksource, which would set a new queue and index anyway
+/**
+ * Sets a new playback with random tracks, but does not start playing.
+ */
 async function goToRandomTracksPlayback() {
-  const playback = {
-    source: "tracks",
+  const playback: IPlayback = {
+    source: "allTracks",
     sortBy: ["title", "ascending"],
     isShuffleOn: true,
-  } as const
+  }
 
-  const tracksEither = await getTracksFromSource(playback)
+  pipe(
+    await getTracksFromSource(playback),
 
-  doOrNotifyWithData(
-    "Error while trying to play selected music",
-    (tracks) => {
-      setNewPlayback({
-        tracks,
-        index: 0,
-        playback,
-      })
-    },
-    tracksEither
+    E.foldW(
+      notifiyError("Error while trying to play selected music"),
+
+      (tracks) => {
+        setNewPlayback({
+          tracks,
+          index: 0,
+          playback,
+        })
+      }
+    )
   )
 }
 
@@ -414,6 +405,7 @@ function playNext() {
 
 function goToNextTrack() {
   indexStore.increment()
+  audioPlayer.setSource($currentTrack.track.filepath)
 }
 
 function handlePlayStateUpdate(newState: IPlayState) {
@@ -449,73 +441,88 @@ function startPlayingCurrentTrack() {
 }
 
 async function initialiseStores() {
-  doOrNotifyWithData(
-    "Failed to get tracks",
-    (newTracks) => {
-      if (newTracks.length === 0) return
+  indexStore.reset() // Just set it to 0
 
-      tracksStore.set(newTracks)
-      queueStore.setTracks(newTracks, 0)
-      audioPlayer.setSource(newTracks[0].filepath)
-    },
-    await window.api.getTracks()
+  pipe(
+    await window.api.getTracks(),
+
+    E.foldW(
+      notifiyError("Failed to get tracks"),
+
+      (newTracks) => {
+        if (newTracks.length === 0) return
+
+        tracksStore.set(newTracks)
+        queueStore.setTracks(newTracks, 0)
+        audioPlayer.setSource(newTracks[0].filepath)
+      }
+    )
   )
 
-  doOrNotifyWithData(
-    "Failed to get albums",
-    albumsStore.set,
-    await window.api.getAlbums()
+  pipe(
+    await window.api.getAlbums(),
+
+    E.foldW(
+      notifiyError("Failed to get albums"),
+
+      albumsStore.set
+    )
   )
 
-  doOrNotifyWithData(
-    "Failed to get artists",
-    artistsStore.set,
-    await window.api.getArtists()
-  )
+  pipe(
+    await window.api.getArtists(),
 
-  indexStore.reset()
+    E.foldW(
+      notifiyError("Failed to get artists"),
+
+      artistsStore.set
+    )
+  )
 }
 
 async function handleSyncUpdate(
   _event: IpcRendererEvent,
   syncResult: ISyncResult
 ) {
-  console.log("Sync update received")
+  console.log("Sync update received at handleSyncUpdate")
 
-  doOrNotifyWithData(
-    "Failed to update the library. Please restart the app",
-    ({ tracks, albums, artists }) => {
-      const sortedTracks = [...tracks].sort(sortAlphabetically)
+  pipe(
+    syncResult,
+    E.foldW(
+      notifiyError("Failed to update the library. Please restart the app"),
 
-      if (tracks.length === 0) {
-        console.warn("Received tracks at tracksStore -> data is not valid:", {
-          tracks,
-          albums,
-          artists,
-        })
+      ({ tracks, albums, artists }) => {
+        const sortedTracks = [...tracks].sort(sortAlphabetically)
+
+        if (tracks.length === 0) {
+          console.warn("Received tracks at tracksStore -> data is not valid:", {
+            tracks,
+            albums,
+            artists,
+          })
+        }
+
+        // Update the stores
+        tracksStore.set(sortedTracks)
+        albumsStore.set(albums)
+        artistsStore.set(artists)
+
+        const newIndex = queueStore.intersectCurrentWithNewTracks(
+          sortedTracks,
+          get(indexStore)
+        )
+
+        indexStore.set(newIndex)
       }
-
-      // Update the stores
-      tracksStore.set(sortedTracks)
-      albumsStore.set(albums)
-      artistsStore.set(artists)
-
-      const newIndex = queueStore.removeItemsFromNewTracks(
-        sortedTracks,
-        get(indexStore)
-      )
-
-      indexStore.set(newIndex)
-    },
-    syncResult
+    )
   )
 }
 
 async function getTracksFromSource(
-  playback: INewPlayback
+  playback: IPlayback
 ): Promise<Either<IError, readonly ITrack[]>> {
   return match(playback)
-    .with({ source: "artists" }, async ({ sourceID, sortBy, isShuffleOn }) =>
+    .with({ source: "artist" }, async ({ sourceID, sortBy, isShuffleOn }) =>
       extractTracks(
         await window.api.getArtist({
           where: { name: sourceID },
@@ -524,7 +531,7 @@ async function getTracksFromSource(
         })
       )
     )
-    .with({ source: "albums" }, async ({ sourceID, sortBy, isShuffleOn }) =>
+    .with({ source: "album" }, async ({ sourceID, sortBy, isShuffleOn }) =>
       extractTracks(
         await window.api.getAlbum({
           where: { name: sourceID },
@@ -533,23 +540,24 @@ async function getTracksFromSource(
         })
       )
     )
-    .with({ source: "tracks" }, ({ isShuffleOn, sortBy }) =>
+    .with({ source: "allTracks" }, ({ isShuffleOn, sortBy }) =>
       window.api.getTracks({ isShuffleOn, sortBy })
     )
-    .with({ source: "playlists" }, () => {
-      throw new Error(
-        "Error at getTracksFromSource: Playlists are not implemented yet"
+    .with({ source: "playlist" }, async ({ sourceID, sortBy, isShuffleOn }) => {
+      return extractTracks(
+        await window.api.getPlaylist({
+          where: { id: sourceID },
+          sortBy,
+          isShuffleOn,
+        })
       )
     })
     .exhaustive()
 
   function extractTracks(
-    item: Either<IError, { tracks: readonly ITrack[] }>,
-    fromIndex = 0
+    item: Either<IError, { tracks: readonly ITrack[] }>
   ): Either<IError, readonly ITrack[]> {
-    return E.map(({ tracks }: { tracks: readonly ITrack[] }) =>
-      tracks.slice(fromIndex)
-    )(item)
+    return E.map(({ tracks }: { tracks: readonly ITrack[] }) => tracks)(item)
   }
 }
 

@@ -1,17 +1,18 @@
 import { writable } from "svelte/store"
 
 import type {
-  IMenuArgumentItem,
+  IMenuItemArgument,
   IMenuLocation,
   IOpenMenuArgument,
-  ISubmenuArgumentItem,
+  ISubmenuItemArgument,
 } from "@/types/Types"
+
 import type { StrictOmit } from "ts-essentials"
 
 const { set, subscribe } = writable<
   | {
       readonly nodeOrPosition: IMenuLocation
-      readonly items: readonly (IMenuArgumentItem | ISubmenuArgumentItem)[]
+      readonly items: readonly (IMenuItemArgument | ISubmenuItemArgument)[]
       readonly testID?: string
     }
   | undefined
@@ -46,29 +47,46 @@ export function createOpenMenu({
   }
 }
 
-export function createOpenContextMenu({
-  menuItems,
-  testID,
-}: StrictOmit<IOpenMenuArgument, "onEvent">): (node: HTMLElement) => {
-  destroy: () => void
-} {
-  return (node: HTMLElement) => {
-    // @ts-ignore TS wants this to take an `Event`, but I want it to take a PointerEvent.
-    node.addEventListener("contextmenu", openContextMenu)
+export function useOpenContextMenu(
+  node: HTMLElement,
+  parameters: StrictOmit<IOpenMenuArgument, "onEvent">
+) {
+  let onContextMenu = openContextMenu(parameters)
 
-    return {
-      destroy: () => {
-        // @ts-ignore
-        node.removeEventListener("contextmenu", openContextMenu)
-      },
-    }
-  }
-  function openContextMenu({ clientX, clientY }: PointerEvent) {
-    set({ items: menuItems, nodeOrPosition: { clientX, clientY }, testID })
+  // @ts-ignore TS wants this to take an `Event`, but I want it to take a PointerEvent.
+  node.addEventListener("contextmenu", onContextMenu)
+
+  return {
+    // When the parameters change, update the event listener with the new values
+    update: (newParameters: StrictOmit<IOpenMenuArgument, "onEvent">) => {
+      // @ts-ignore
+      node.removeEventListener("contextmenu", onContextMenu)
+
+      onContextMenu = openContextMenu(newParameters)
+
+      // @ts-ignore
+      node.addEventListener("contextmenu", onContextMenu)
+    },
+
+    destroy: () => {
+      // @ts-ignore
+      node.removeEventListener("contextmenu", onContextMenu)
+    },
   }
 }
 
-export function closeMenu() {
+function openContextMenu({
+  menuItems,
+  testID,
+}: StrictOmit<IOpenMenuArgument, "onEvent">): ({
+  clientX,
+  clientY,
+}: PointerEvent) => void {
+  return ({ clientX, clientY }) =>
+    set({ items: menuItems, nodeOrPosition: { clientX, clientY }, testID })
+}
+
+export async function closeMenu() {
   set(undefined)
 }
 

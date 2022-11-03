@@ -1,14 +1,15 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte"
-  import Card from "../molecules/Card.svelte"
 
   import type { ICardProperties } from "@/types/Types"
 
+  import Card from "../molecules/Card.svelte"
+
   interface IDispatcher_ {
     // Its all the id of the album / artist
-    play: string
-    clickedPrimary: string
-    clickedSecondary: string
+    play: string | number
+    clickedPrimary: string | number
+    clickedSecondary: string | number
   }
 
   export let items: ICardProperties[]
@@ -16,7 +17,7 @@
 
   const dispatch = createEventDispatcher<IDispatcher_>()
 
-  function dispatchPlay(id: string) {
+  function dispatchPlay(id: string | number) {
     dispatch("play", id)
   }
 
@@ -24,13 +25,13 @@
 </script>
 
 <div class="flex h-full w-full flex-wrap gap-6 overflow-y-scroll">
-  {#each items as item}
+  {#each items as data}
     <Card
-      data={item}
+      {data}
       {isImageCircle}
-      on:play={() => dispatchPlay(item.id)}
-      on:clickedPrimary={() => dispatch("clickedPrimary", item.id)}
-      on:clickedSecondary={() => dispatch("clickedSecondary", item.id)}
+      on:play={() => dispatchPlay(data.id)}
+      on:clickedPrimary={() => dispatch("clickedPrimary", data.id)}
+      on:clickedSecondary={() => dispatch("clickedSecondary", data.id)}
     />
   {/each}
 

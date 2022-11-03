@@ -5,6 +5,7 @@ import type {
   IBackendQuery,
   IBackendQueryResponse,
 } from "@sing-types/IPC"
+
 import type { ICoverData } from "./Types"
 import type { IPicture } from "music-metadata"
 
@@ -36,7 +37,7 @@ export function isIPicture(toTest: unknown): toTest is IPicture {
 
 export function isBackendQuery(toTest: unknown): toTest is IBackendQuery {
   if (typeof toTest !== "object" || toTest === null) return false
-  if (typeof (toTest as IBackendQuery)?.event !== "string") return false
+  if (typeof (toTest as IBackendQuery)?.query !== "string") return false
   if (typeof (toTest as IBackendQuery)?.queryID !== "string") return false
 
   return true

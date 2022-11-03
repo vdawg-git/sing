@@ -23,7 +23,7 @@ function createMockedElectronAPI(): typeof ipcRenderer {
     setUserSettings: vi.fn(),
     openDirectory: vi.fn(openDirectory),
     getUserSetting: vi.fn(getUserSetting),
-    listen: vi.fn(),
+    on: vi.fn(),
     removeListener: vi.fn(),
     send: vi.fn(),
     resetMusic: vi.fn(),

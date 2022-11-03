@@ -1,24 +1,19 @@
 <script lang="ts">
-  import IconChevronDown from "virtual:icons/heroicons-outline/chevron-down"
-  import SearchResultItem from "../atoms/SearchResultItem.svelte"
-
-  import { match, P } from "ts-pattern"
+  import { match } from "ts-pattern"
+  import { useNavigate } from "svelte-navigator"
 
   import type {
     ISearchResultItem,
     IConvertedSearchData,
   } from "@sing-types/Types"
-  import { useNavigate } from "svelte-navigator"
-  import { convertSearchedDataToSearchItems } from "./SearchResultBlockHelper"
-  import { createEventDispatcher } from "svelte"
 
-  // type IType = $$Generic<keyof ISearchResult>
-  // type IData = $$Generic<ISearchResult[IType]>
+  import SearchResultItem from "../atoms/SearchResultItem.svelte"
+
+  import { convertSearchedDataToSearchItems } from "./SearchResultBlockHelper"
 
   export let data: IConvertedSearchData
   export let isExpanded = false
 
-  const dispatch = createEventDispatcher<{ closeSearchbar: never }>()
   const navigate = useNavigate()
 
   // Amount of search items to display in the block
@@ -31,7 +26,7 @@
       ([expanded, _]) => !expanded,
       () => 3
     )
-    .otherwise(() => Infinity)
+    .otherwise(() => Number.POSITIVE_INFINITY)
 
   $: displayedCategory = {
     artists: "Artists",
@@ -57,13 +52,7 @@
     <!---- Results -->
     <div class="flex flex-col ">
       {#each isExpanded ? displayData : displayData.slice(0, amountToDisplay) as { title, label, subtexts, image, icon, onClick }}
-        <div
-          class=""
-          on:click|stopPropagation={() => {
-            onClick()
-            dispatch("closeSearchbar")
-          }}
-        >
+        <div on:click={onClick} on:click>
           <SearchResultItem {image} {title} {label} {subtexts} {icon} />
         </div>
       {/each}

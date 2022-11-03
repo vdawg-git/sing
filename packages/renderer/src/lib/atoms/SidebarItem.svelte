@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Link } from "svelte-navigator"
+
   import type { IRoutes } from "@/Consts"
 
   export let to: IRoutes

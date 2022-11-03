@@ -1,19 +1,21 @@
-import { isBackendQueryResponse } from "@sing-types/TypeGuards"
 import c from "ansicolor"
+import hexoid from "hexoid"
 import log from "ololog"
+
+import { isBackendQueryResponse } from "@sing-types/TypeGuards"
+import type { ParametersWithoutFirst } from "@sing-types/Utilities"
 
 import { webContents } from "./TypedIPC"
 
-import type { ParametersWithoutFirst } from "@sing-types/Utilities"
 import type { TypedWebContents } from "./types/Types"
-import type { ChildProcess } from "node:child_process"
 import type {
   IQueryChannels,
   IQueryHandlers,
   IBackendEmitChannels,
-  IEventHandlersConsume,
+  IBackendEventHandlers,
   IBackendQuery,
 } from "../../../types/IPC"
+import type { ChildProcess } from "node:child_process"
 
 /**
  *
@@ -21,26 +23,29 @@ import type {
  * @returns The response from the`childProcess` as a promise.
  */
 export function createBackendEnquirer(childProcess: ChildProcess) {
+  const createUID = hexoid()
+
   return queryBackend
 
   /**
    *
-   * @param obj The arguments
    * @param timeout How many `ms` to wait for the event. If `-1` wait forever. Default is `10_000`.
-   * @returns A promise resolving with the data of the awaited event.
+   * @returns A promise resolving with the data of the awaited query.
    */
   function queryBackend<T extends IQueryChannels>(
-    query: IBackendQuery<T>,
+    query: Omit<IBackendQuery<T>, "queryID">,
     timeout = 10_000
   ): ReturnType<IQueryHandlers[T]> {
+    const queryID = createUID()
+
     const queryResponse = new Promise((resolve, reject) => {
-      // Send the query to the backend
-      childProcess.send(query)
+      // Send the query to the backend with an unqiue ID
+      childProcess.send({ ...query, queryID })
 
       // Await the corresponding answer from the backend
       childProcess.on("message", handleResponse)
 
-      // Reject the promise after the timeout has passed (if a timeout has been passed)
+      // Reject the promise after the timeout has passed
       if (timeout !== -1) {
         setTimeout(() => {
           childProcess.removeListener("message", handleResponse)
@@ -55,7 +60,7 @@ export function createBackendEnquirer(childProcess: ChildProcess) {
         if (!isBackendQueryResponse(message)) return
 
         // If it does not match the send ID then ignore it and continue waiting for the next corresponding response
-        if (message.queryID !== query.queryID) return
+        if (message.queryID !== queryID) return
 
         // Clean up itself
         childProcess.removeListener("message", handleResponse)
@@ -86,7 +91,7 @@ export function createBackendEmitter(childProcess: ChildProcess) {
     arguments_,
   }: {
     readonly event: Event
-    readonly arguments_: ParametersWithoutFirst<IEventHandlersConsume[Event]>
+    readonly arguments_: ParametersWithoutFirst<IBackendEventHandlers[Event]>
   }) {
     childProcess.send({ event, arguments_ })
   }

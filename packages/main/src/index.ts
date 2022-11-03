@@ -1,10 +1,12 @@
 /* eslint-disable unicorn/no-process-exit */
-import { restoreOrCreateWindow } from "@/mainWindow"
 import { app } from "electron"
 import debug from "electron-debug"
 import log from "ololog"
 
-import ipc from "../../preload/src/ipcMain"
+import { restoreOrCreateWindow } from "@/mainWindow"
+
+import { ipcInit } from "../../preload/src/ipcMain"
+
 import { databasePath } from "./Consts"
 import { checkDatabase } from "./Helper"
 
@@ -55,7 +57,7 @@ app
 
 // Load IPC handlers
 try {
-  ipc()
+  ipcInit()
 } catch (error) {
   log.red(error)
 }

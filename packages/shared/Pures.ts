@@ -1,29 +1,36 @@
-import { isKeyOfObject } from "@sing-types/Typeguards"
-import { curry2 } from "fp-ts-std/function"
 import { pipe } from "fp-ts/Function"
 import * as E from "fp-ts/lib/Either"
 import * as A from "fp-ts/lib/ReadonlyArray"
+import { curry2 } from "fp-ts-std/function"
+import { match, P } from "ts-pattern"
 
-import { SUPPORTED_MUSIC_FORMATS, UNSUPPORTED_MUSIC_FORMATS } from "../backend/src/lib/FileFormats"
+import type { ITrackID } from "@sing-types/Opaque"
 
-// / <reference types="vitest/importMeta" />
-import type { Either } from "fp-ts/lib/Either"
+import { isKeyOfObject } from "../../types/Typeguards"
+import {
+  SUPPORTED_MUSIC_FORMATS,
+  UNSUPPORTED_MUSIC_FORMATS,
+} from "../backend/src/lib/FileFormats"
 
+import type { FilePath } from "../../types/Filesystem"
+import type {
+  IMusicItems,
+  IPlaylistTrack,
+  ITrack,
+} from "../../types/DatabaseTypes"
 import type {
   IRawAudioMetadata,
   IRawAudioMetadataWithPicture,
   ISortOptions,
   ISortOrder,
-  ITrack,
-} from "@sing-types/Types"
-
+} from "../../types/Types"
 import type {
   KeyOfConditional,
   ArraysToString,
   FlattenObject,
   NullToUndefined,
-} from "@sing-types/Utilities"
-import type { FilePath } from "@sing-types/Filesystem"
+} from "../../types/Utilities"
+import type { Either } from "fp-ts/lib/Either"
 
 export function filterPathsByExtenstions(
   extensions: readonly string[],
@@ -167,6 +174,26 @@ export function flattenObject<Object_ extends Record<string, unknown>>(
   return result as FlattenObject<Object_>
 }
 
+/**
+ * Insert item(s) into an array.
+ * @param insertAtIndex At which index to insert
+ * @param data An array or a single item to insert
+ * @returns An array
+ */
+export function insertIntoArray<T>(
+  insertAtIndex: number,
+  data: T | T[]
+): (array: readonly T[]) => readonly T[] {
+  return (array) => {
+    const valuesBeforeInsert = array.slice(0, insertAtIndex)
+    const valuesAfterInsert = array.slice(insertAtIndex)
+
+    const dataToInsert = Array.isArray(data) ? data : [data]
+
+    return [...valuesBeforeInsert, ...dataToInsert, ...valuesAfterInsert]
+  }
+}
+
 export function capitalizeFirstLetter(string: string): string {
   return string[0].toUpperCase() + string.slice(1)
 }
@@ -222,6 +249,13 @@ export function objectsKeysInArrayToObject<
   return result
 }
 
+/**
+ *
+ * @param key The key to update
+ * @param updateFunction The function which updates the key. It receives the value of it.
+ * @param object_ The object to with the key. It returns a shallow copy of it gets returned.
+ * @returns
+ */
 export function updateKeyValue<
   T extends Record<string, unknown>,
   Key extends keyof T
@@ -250,7 +284,7 @@ export function removeDuplicates<T>(
   )
 }
 
-export function removeNulledKeys<T extends Record<string, unknown>>(
+export function removeNulledKeys<T extends Record<string | symbol, unknown>>(
   object: T
 ): NullToUndefined<T> {
   const result = Object.fromEntries(
@@ -293,7 +327,12 @@ export function hasCover(
 
 export function sortTracks([sortBy, sortOrder]:
   | ISortOptions["tracks"]
-  | ["RANDOM"]): (tracks: readonly ITrack[]) => readonly ITrack[] {
+  | ISortOptions["playlist"]
+  | ["RANDOM"]): <
+  A extends Partial<Record<keyof ITrack | keyof IPlaylistTrack, unknown>>
+>(
+  tracks: readonly A[]
+) => readonly A[] {
   return (tracks) => {
     if (sortBy === "RANDOM") {
       return shuffleArray(tracks)
@@ -312,7 +351,7 @@ export function sortTracks([sortBy, sortOrder]:
         return sortString(a[sortBy] as string, b[sortBy] as string)
       }
 
-      throw new Error("Invalid sort type")
+      throw new Error(`Invalid sort type. \na: ${a[sortBy]} \nb: ${b[sortBy]}`)
     })
 
     // The sort was done ascending, reverse it if it should be descending
@@ -321,9 +360,7 @@ export function sortTracks([sortBy, sortOrder]:
 }
 
 /**
- *
  * @param sortBy The key which values get sorted. Only numbers and strings are supported
- * @returns A function which takes in an array of objects and sorts it
  */
 export function sortByKey<T extends Record<string, unknown>>(
   [sortBy, sortOrder]:
@@ -345,7 +382,7 @@ export function sortByKey<T extends Record<string, unknown>>(
     }
 
     throw new Error(
-      `Invalid value to sort. Sortable types are string & string and number & number. Received types: \nA: "${typeof a[
+      `Invalid value to sort. Sortable types are "string & string" and "number & number". Received types: \nA: "${typeof a[
         sortBy
       ]}" with the value "${a[sortBy]}" \nand B: type "${typeof b[
         sortBy
@@ -411,10 +448,51 @@ export function filterOutFalsy<T>(
   return true
 }
 
+/**
+ *
+ * Receives a common database item, like an album, playlist etc, and returns its tracks.
+ * Also accepts arrays.
+ * @returns ITrack[]
+ */
+export function extractTracks(argument: IMusicItems): readonly ITrack[] {
+  return (
+    match(argument)
+      // Is an array of database items with tracks
+      .with(P.array({ tracks: P.any }), (data) => {
+        return data.flatMap(({ tracks }) => tracks)
+      })
+
+      // Is one item with tracks
+      .with({ tracks: P.array(P.any) }, ({ tracks }) => {
+        return tracks
+      })
+
+      // Is an array of tracks
+      .with(P.array({ title: P.string }), (tracks) => {
+        return tracks
+      })
+
+      // Is a track
+      .with({ title: P.string }, (track) => [track])
+
+      .run()
+  )
+}
+
+/**
+ * Receives a common database item, like an album, playlist etc, and returns its track IDs.
+ * Also accepts arrays.
+ * @returns ITrack[]
+ */
+export function extractTrackIDs(argument: IMusicItems): readonly ITrackID[] {
+  return extractTracks(argument).map(({ id }) => id)
+}
+
 // ?########################################################################
 // ?####################         TESTS            ##########################
 // ?########################################################################
 
+// @ts-ignore
 if (import.meta.vitest) {
   const { expect, test } = await import("vitest")
 

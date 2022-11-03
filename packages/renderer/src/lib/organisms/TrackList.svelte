@@ -1,11 +1,16 @@
 <script lang="ts">
-  import TrackItem from "../molecules/TrackItem.svelte"
   import VirtualList from "svelte-tiny-virtual-list"
   import { createEventDispatcher } from "svelte"
 
+  import type { ITrack, ISortOptions } from "@sing-types/Types"
+
   import type { ITestIDs } from "@/TestConsts"
-  import type { IPlaySource, ITrack, ISortOptions } from "@sing-types/Types"
-  import type { ITrackListDisplayOptions } from "@/types/Types"
+  import type {
+    IMenuItemsArgument,
+    ITrackListDisplayOptions,
+  } from "@/types/Types"
+
+  import TrackItem from "../molecules/TrackItem.svelte"
 
   export let tracks: readonly ITrack[]
   export let testID: ITestIDs
@@ -14,14 +19,19 @@
     album: true,
     artist: true,
   }
-  export let sort: ISortOptions["tracks"]
+  export let sort: ISortOptions["tracks"] | ISortOptions["playlist"]
+  export let createContextMenuItems: (track: ITrack) => IMenuItemsArgument
+
+  sort // Compiler dont cry for now
 
   // TODO make display options generic. Maybe using a hashmap to generate the html (having the title always rendered)
 
   // TODO if track is playing, pause on click
 
+  // TODO how to do the sorting for playlists?
+
   const dispatch = createEventDispatcher<{
-    play: IPlaySource & { index: number }
+    play: { index: number }
   }>()
 
   const usedDisplayOptions: ITrackListDisplayOptions = {
@@ -32,10 +42,10 @@
   }
 
   let listHeight: number // Gets set by the virtual list within it, buit Typescript does not know it
-  let index: number // Gets set by the virtual list within it, buit Typescript does not know it
+  // let index: number // Gets set by the virtual list within it, buit Typescript does not know it
 
   function dispatchPlay(index: number) {
-    dispatch("play", { index, sort, type: "tracks" })
+    dispatch("play", { index })
   }
 </script>
 
@@ -43,8 +53,8 @@
   <!---- Header -->
   <div
     class="
-      flex w-full py-4 text-left 
-      text-xs uppercase text-grey-300
+      flex w-full py-4 text-left text-xs
+      font-medium uppercase text-grey-300
       "
   >
     <div class="mr-6 flex flex-1 basis-44">
@@ -62,7 +72,7 @@
   <!---- List -->
   <div
     data-testid={testID}
-    class="tracksList w-full"
+    class="tracksList mb-14 w-full"
     bind:clientHeight={listHeight}
   >
     <VirtualList
@@ -76,13 +86,14 @@
         let:index
         track={tracks[index]}
         displayOptions={usedDisplayOptions}
+        {createContextMenuItems}
         on:dblclick={() => dispatchPlay(index)}
       />
     </VirtualList>
   </div>
 
   <!---- Add an empty element to allow for scrolling elements which are behind the playbar -->
-  <div class="h-24 w-full" />
+  <div class="h-playbarPadded w-full" />
 </div>
 
 <style>

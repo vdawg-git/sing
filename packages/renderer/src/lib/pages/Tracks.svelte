@@ -1,30 +1,41 @@
 <script lang="ts">
+  import { isPresent } from "ts-is-present"
+
+  import { removeDuplicates } from "@sing-shared/Pures"
+  import type { IPlaySource, ISortOptions } from "@sing-types/Types"
+
   import { playNewSource, tracks } from "@/lib/manager/player/index"
+  import type { IHeroMetaDataItem } from "@/types/Types"
+  import {
+    createAddToPlaylistAndQueueMenuItems,
+    displayTypeWithCount,
+  } from "@/Helper"
+
+  import { backgroundImages } from "../stores/BackgroundImages"
+  import { playlistsStore } from "../stores/PlaylistsStore"
+
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
   import NothingHereYet from "@/lib/organisms/NothingHereYet.svelte"
   import TrackList from "@/lib/organisms/TrackList.svelte"
-  import { isPresent } from "ts-is-present"
-  import { removeDuplicates } from "@sing-shared/Pures"
 
-  import { backgroundImagesStore } from "../stores/BackgroundImages"
+  const source: IPlaySource = "allTracks"
+  const defaultSort: ISortOptions["tracks"] = ["title", "ascending"]
 
-  import type { IHeroMetaDataItem } from "@/types/Types"
-  import type { IPlaySource } from "@sing-types/Types"
+  let metadata: IHeroMetaDataItem[] = [
+    { label: displayTypeWithCount("track", $tracks.length) },
+  ]
 
-  const sourceType: IPlaySource = "tracks"
-
-  let metadata: IHeroMetaDataItem[] = [{ label: `${$tracks.length} tracks` }]
+  $: createContextMenuItems =
+    createAddToPlaylistAndQueueMenuItems($playlistsStore)
 
   $: {
-    backgroundImagesStore.set(
+    backgroundImages.set(
       $tracks
         .map((track) => track.cover)
         .filter(isPresent)
         .filter(removeDuplicates)
     )
   }
-
-  // TODO Background images include artists and album covers
 </script>
 
 <HeroHeading title="Your tracks" {metadata} />
@@ -35,8 +46,9 @@
   <TrackList
     testID="trackItems"
     tracks={$tracks}
-    sort={["title", "ascending"]}
+    sort={defaultSort}
     on:play={({ detail }) =>
-      playNewSource({ source: sourceType }, detail.index)}
+      playNewSource({ source, sortBy: defaultSort }, detail.index)}
+    {createContextMenuItems}
   />
 {/if}

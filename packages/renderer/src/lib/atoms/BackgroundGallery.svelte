@@ -1,7 +1,8 @@
 <script lang="ts">
-  import type { FilePath } from "@sing-types/Filesystem"
   import { fade } from "svelte/transition"
   import { match, P } from "ts-pattern"
+
+  import type { FilePath } from "@sing-types/Filesystem"
 
   export let images: readonly FilePath[] | FilePath | undefined
 
@@ -14,7 +15,9 @@
   $: displayedImages = match(images)
     .with(P.nullish, () => [])
     .with(P.string, (image) => [image])
-    .with(P.array(P.any), (images) => images.slice(0, maxImages + 1))
+    .with(P.array(P.any), (imagesToDisplay) =>
+      imagesToDisplay.slice(0, maxImages + 1)
+    )
     .run()
 
   $: imageSize = match(displayedImages)
@@ -67,7 +70,7 @@
 </script>
 
 <div
-  class="absolute inset-0 -top-6  -z-40 h-96 w-screen overflow-x-hidden"
+  class="absolute inset-0 -top-6  -z-40 h-96 w-screen overflow-x-hidden [contain:strict]"
   bind:this={element}
 >
   <div

@@ -1,13 +1,14 @@
 <script lang="ts">
-  import type { IHeroAction, IHeroMetaDataItem } from "@/types/Types"
-
   import type { FilePath } from "@sing-types/Filesystem"
 
-  import Button from "@/lib/atoms/Button.svelte"
   import { doTextResizeToFitElement } from "@/Helper"
-  import BackgroundGallery from "../atoms/BackgroundGallery.svelte"
+  import type { IHeroAction, IHeroMetaDataItem } from "@/types/Types"
 
-  export let image: FilePath | undefined = undefined
+  import CoverAndPlaylistThumbnail from "../atoms/CoverAndPlaylistThumbnail.svelte"
+
+  import Button from "@/lib/atoms/Button.svelte"
+
+  export let image: FilePath | readonly FilePath[] | undefined = undefined
   export let type: "Artist" | "Album" | "Playlist" | undefined = undefined
   export let title: string
   export let metadata: readonly IHeroMetaDataItem[]
@@ -23,14 +24,16 @@
 <header class="mb-10 mt-32 flex max-w-full flex-col justify-start gap-10 ">
   <div class="flex max-w-full items-end gap-10 text-ellipsis ">
     <!-- Image / Cover -->
+
     {#if image}
       <div class="relative h-52 w-52 shrink-0">
-        <img src={image} class="h-full w-full rounded" />
+        <CoverAndPlaylistThumbnail {image} />
         <!---- Backglow / Blur -->
-        <img
-          src={image}
+        <div
           class="_backdrop absolute left-2 top-4 -z-10 h-48 w-48 rounded-lg opacity-30"
-        />
+        >
+          <CoverAndPlaylistThumbnail {image} />
+        </div>
       </div>
     {/if}
 

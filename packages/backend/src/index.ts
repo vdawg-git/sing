@@ -1,9 +1,6 @@
 import { EventEmitter } from "node:events"
-import log from "ololog"
 
-import { eventHandlers } from "./lib/OneWayHandler"
-import { queryHandlers } from "./lib/QueryHandlers"
-import { isBackendEvent, isBackendQuery } from "./types/TypeGuards"
+import log from "ololog"
 
 import type {
   IBackendQueryResponse,
@@ -12,6 +9,9 @@ import type {
   IBackendEvent,
 } from "@sing-types/IPC"
 
+import { backendEventHandlers } from "@/lib/EventHandlers"
+import { queryHandlers } from "@/lib/QueryHandlers"
+import { isBackendEvent, isBackendQuery } from "@/types/TypeGuards"
 import type { IHandlerEmitter } from "@/types/Types"
 
 log.dim("Database path provided to backend:", process.argv[2])
@@ -25,7 +25,7 @@ const handleReturnEmitter = new EventEmitter() as IHandlerEmitter
 handleReturnEmitter.on("sendToMain", sendToMain)
 
 function handleMessage(request: unknown): void {
-  log.blue(request)
+  log.blue.maxArrayLength(3).maxObjectLength(5)(request)
 
   if (isBackendQuery(request)) {
     handleQuery(request)
@@ -41,9 +41,9 @@ function handleMessage(request: unknown): void {
 }
 
 // Handle incoming queries and responses
-async function handleQuery({ queryID, event, arguments_ }: IBackendQuery) {
+async function handleQuery({ queryID, query, arguments_ }: IBackendQuery) {
   // @ts-ignore
-  const data = await queryHandlers[event](arguments_)
+  const data = await queryHandlers[query](handleReturnEmitter, arguments_)
 
   // Send back to the main process, which awaits the response with this `id`
   // Thus the response should not be forwarded / emited directly to the renderer process
@@ -54,7 +54,8 @@ async function handleQuery({ queryID, event, arguments_ }: IBackendQuery) {
 // Handle incoming request which do not need a synchronous two-way response
 function handleEvent({ event, arguments_ }: IBackendEvent): void {
   // Responses are send to main via the `handleReturnEmitter`
-  eventHandlers[event](handleReturnEmitter, ...arguments_)
+  // @ts-ignore
+  backendEventHandlers[event](handleReturnEmitter, ...arguments_)
 }
 
 function sendToMain(response: IBackendQueryResponse | IBackendEmitToFrontend) {
@@ -66,6 +67,7 @@ function sendToMain(response: IBackendQueryResponse | IBackendEmitToFrontend) {
 
     return
   }
+  log.cyan.maxArrayLength(3).maxObjectLength(5)("Event from backend:", response)
 
   process.send(response)
 }

@@ -1,11 +1,8 @@
-import { ROUTES } from "@/Consts"
-import { convertFilepathToFilename } from "@sing-shared/Pures"
 import { match, P } from "ts-pattern"
 import IconArrowRight from "virtual:icons/heroicons-outline/arrow-right"
 import IconPlay from "virtual:icons/heroicons-outline/play"
 
-import { playTrackAsShuffledTracks } from "../manager/player"
-
+import { convertFilepathToFilename } from "@sing-shared/Pures"
 import type {
   IAlbum,
   IArtist,
@@ -14,6 +11,10 @@ import type {
   ISearchResultItem,
   ITrack,
 } from "@sing-types/Types"
+
+import { ROUTES } from "@/Consts"
+
+import { playTrackAsShuffledTracks } from "../manager/player"
 
 import type {} from "@/types/Types"
 // const navigate = useNavigate()

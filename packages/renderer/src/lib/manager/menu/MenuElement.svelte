@@ -1,76 +1,98 @@
 <script lang="ts">
+  import IconArrowLeft from "virtual:icons/heroicons/arrow-left"
+  import {
+    fade,
+    fly,
+    type FlyParams,
+    type TransitionConfig,
+  } from "svelte/transition"
+  import { sineInOut } from "svelte/easing"
+
   import { createOnOutClick } from "../../../Helper"
   import MenuItem from "../../atoms/MenuItem.svelte"
+
   import { calculatePosition, createMenu } from "./MenuHelper"
+
   import { menuStore, closeMenu } from "./index"
-  import IconArrowLeft from "virtual:icons/heroicons/arrow-left"
-  import { fly } from "svelte/transition"
-  import { sineInOut } from "svelte/easing"
 
   import type { Coords } from "@floating-ui/dom"
 
   // TODO fix no shifting when nessecary after submenu opens
+  // This could probably be accomplished by enabling shifting on each sub-menu opening.
+  // And saving an array of coordinates of each submenu after shifting and if the new coordinates of the menu match one of the already saved, simpy dont shift, as a new shift will be further away from the screen edge and not closer, so iit always stays as far away as possible and needed
 
   let menuID: "main" | symbol = "main"
 
+  // How long does the menu take to resize. Update this also in the CSS down below.
+  const animationSlideDuration = 300
+  const animantionSizeDuration = 140
+
+  let menuElement: HTMLElement
+  let activeMenuElement: HTMLElement
+
+  let menuX: number
+  let menuY: number
+
   /**
-   * Used to determine if animations are enabled
+   * Is the menu just being created.
+   * Will be false after the it has been created.
+   * Used to determine if animations, for example sliding, are enabled.
+   * As it should not slide on the first level, the "main", when opened.
    */
-  let hasFinishedOpeneing = false
+  let isJustOpened = true
+
+  // In which direction should it animate. Slide in or out
+  let isGoingBack = false
 
   $: menus = createMenu($menuStore?.items ?? [], setMenuID, closeMenu)
   $: activeMenu = menus.find(({ id }) => id === menuID)
   $: itemsToShow = activeMenu?.items ?? []
 
   $: {
-    // When the menu is closed or changes, reset to the default main state
+    // When the menu is closed or another one opens, reset to the default main state
     if ($menuStore) {
       menuID = "main"
-      hasFinishedOpeneing = false
+      isJustOpened = true
     }
   }
 
-  let x: number
-  let y: number
-
   $: {
-    // (Re)- caculate the postion when the store is opened or a submenu is selected
-    if (menuElement && $menuStore) {
-      calculatePosition($menuStore.nodeOrPosition, menuElement).then(
-        handleMenuOpened
-      )
+    // (Re)- caculate the postion when the store is opened
+    if (menuElement && $menuStore && menuID) {
+      calculatePosition({
+        nodeOrPosition: $menuStore.nodeOrPosition,
+        menuElement,
+        isFlipping: menuID === "main" ? true : false,
+      }).then(handleMenuOpened)
     }
   }
 
   const onOutClick = createOnOutClick(closeMenu)
-
-  let menuElement: HTMLElement
-
-  let activeMenuElement: HTMLElement
-
-  let isGoingBack = false
 
   $: activeMenuHeight = activeMenuElement?.scrollHeight ?? 0
   $: activeMenuWidth = activeMenuElement?.scrollWidth
     ? Math.min(560, Math.max(activeMenuElement.scrollWidth, 240))
     : 240
 
-  // Make the animation when going back go to the right direction.
-  // And revert it, so the animation going forward works.
-  let introStart = () => {}
+  // This is used to invert the animation direction when going back from a submenu. It simply gets overriden.
+  // Then we make the animation go to the normal direction again when going into a submenu.
+  // eslint-disable-next-line func-style, @typescript-eslint/no-empty-function
+  let onSlideIntroStart = () => {}
 
-  $: xAnimationValue = hasFinishedOpeneing ? activeMenuWidth : 0
+  // Slide the full menu when going into a submenu, but dont animate when you just opened a menu.
+  $: animationValue = isJustOpened ? 0 : activeMenuWidth
 
   async function goBack() {
     isGoingBack = true
     menuID = activeMenu?.previousMenu ?? "main"
 
-    introStart = () => {
+    onSlideIntroStart = () => {
       isGoingBack = false
     }
   }
 
   function setMenuID(id: "main" | symbol) {
+    // Set the height of the menu to auto, so that it can animate to the new sub menu height
     if (activeMenuElement?.style) {
       activeMenuElement.style.height = "auto"
     }
@@ -78,55 +100,84 @@
   }
 
   function handleMenuOpened(coordinates: Coords) {
-    // Set it to open state after a short delay so that it wont animate the position when opening.
-    hasFinishedOpeneing = false
     setXY(coordinates)
 
     setTimeout(() => {
-      hasFinishedOpeneing = true
-    }, 100)
+      isJustOpened = false
+    }, animantionSizeDuration)
   }
 
   function setXY(coordinates: Coords) {
-    x = coordinates.x
-    y = coordinates.y
+    menuX = coordinates.x
+    menuY = coordinates.y
+  }
+
+  function conditionalFly(
+    node: HTMLElement,
+    options: FlyParams & { in: boolean }
+  ): TransitionConfig {
+    // For whatever reason the node gets nulled if the duration is too short. Even with a normal fly animation, it just gets nulled. This fixes it.
+    // Furthermore, the `options.in` gets used to hide the old transititioning element, visually disabling the animation.
+    // Hopefully there will be a better way to do this in the future or even now.
+    if (isJustOpened)
+      return {
+        duration: animationSlideDuration + 200,
+        css: () => `display: none; opacity: ${options.in ? 1 : 0};`,
+      }
+
+    return fly(node, options)
   }
 </script>
 
 {#if activeMenu !== undefined && activeMenu?.items.length !== 0}
+  <!-- Menu reference element. 
+  This one does not animate and thus delivers accurate values to the calculatePosition function. 
+  --->
+  <div
+    bind:this={menuElement}
+    class="fixed"
+    style="
+      left: {menuX}px ;top: {menuY}px; 
+      height: {activeMenuHeight}px; width: {activeMenuWidth}px;"
+  />
+
+  <!-- The displayed menu -->
   <div
     data-testID={$menuStore?.testID}
-    class="_transition absolute  z-50 h-[256px] min-w-[15rem] overflow-hidden rounded-lg border border-grey-400/50 bg-grey-600 shadow-2xl"
+    class=" _main fixed z-50 h-[256px] max-h-[400px] min-w-[15rem] overflow-hidden rounded-lg border border-grey-400/50 bg-grey-600 shadow-2xl"
     style="
-      left: {x}px ;top: {y}px; 
-      height: {activeMenuHeight}px; width: {activeMenuWidth}px;
-      transition-duration: 140ms;
-      transition-property: {hasFinishedOpeneing
-      ? 'width, height, left, top'
-      : 'none'};"
+        left: {menuX}px;
+        top: {menuY}px; 
+        height: {activeMenuHeight}px; 
+        width: {activeMenuWidth}px;
+        transition-duration: 400ms;
+        transition-property: {isJustOpened
+      ? 'none'
+      : 'width, height, left, top'};"
+    in:fade={{ duration: 120 }}
+    out:fade={{ duration: 150 }}
     use:onOutClick
-    bind:this={menuElement}
   >
     <!---- Menu Content -->
     {#key activeMenu}
       <div
         class="absolute top-0 left-0 flex w-max min-w-[240px] flex-col"
-        in:fly|local={{
-          x: xAnimationValue * (isGoingBack ? -1 : 1),
-          duration: 290,
-          opacity: -0.5,
+        in:conditionalFly|local={{
+          x: animationValue * (isGoingBack ? -1 : 1),
+          duration: animationSlideDuration,
           easing: sineInOut,
+          in: true,
         }}
-        out:fly|local={{
-          x: xAnimationValue * (isGoingBack ? 1 : -1),
-          duration: 290,
-          opacity: -0.5,
+        out:conditionalFly|local={{
+          x: animationValue * (isGoingBack ? 1 : -1),
+          duration: animationSlideDuration,
           easing: sineInOut,
+          in: false,
         }}
         bind:this={activeMenuElement}
-        on:introstart={introStart}
+        on:introstart={onSlideIntroStart}
       >
-        <!---- Menu title + back button-->
+        <!---- Menu title + back button -->
         {#if activeMenu.id !== "main"}
           <div
             class="flex items-center gap-3 py-3 pl-2 pr-6 text-lg font-medium"
@@ -144,13 +195,24 @@
         {/if}
 
         <!---- Menu items -->
-        {#each itemsToShow as item}
-          <MenuItem data={item} />
-        {/each}
+        <div
+          class="flex max-h-[400px] flex-col overflow-y-auto overflow-x-hidden "
+        >
+          {#each itemsToShow as item}
+            <MenuItem data={item} />
+          {/each}
+        </div>
       </div>
     {/key}
   </div>
+{:else}
+  <div class="fixed" />
 {/if}
 
 <style>
+  ._main {
+    transition-property: left, top, width, height;
+    transition-duration: 140ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
 </style>

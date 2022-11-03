@@ -1,6 +1,7 @@
+const path = require("node:path")
+
 const colors = require("tailwindcss/colors")
 // eslint-disable-next-line unicorn/prefer-node-protocol
-const path = require("path")
 
 module.exports = {
   content: [
@@ -59,6 +60,14 @@ module.exports = {
       },
       fontSize: {
         xs2: ["10px", "12px"],
+      },
+      height: {
+        playbar: "72px",
+        playbarPadded: "94px",
+      },
+      minHeight: {
+        playbar: "72px",
+        playbarPadded: "94px",
       },
     },
   },

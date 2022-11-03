@@ -18,6 +18,8 @@ const defaultRules = {
   "unicorn/no-array-callback-reference": "off",
   "import/no-default-export": "error",
   "svelte/valid-compile": "off",
+  "unicorn/no-useless-undefined": "off",
+  "unicorn/prefer-top-level-await": "off",
   "unicorn/prevent-abbreviations": [
     "error",
     {
@@ -30,7 +32,7 @@ const defaultRules = {
     {
       argsIgnorePattern: "^_",
       destructuredArrayIgnorePattern: "^_",
-      varsIgnorePattern: "^_$",
+      varsIgnorePattern: "^_+$",
     },
   ],
   "spaced-comment": ["error", "always", { markers: ["/", "?", "!"] }],
@@ -54,12 +56,10 @@ const defaultRules = {
         "type",
       ],
       pathGroups: [
-        { pattern: "@/**", group: "sibling", position: "before" },
-        { pattern: "@sing*/**", group: "parent", position: "before" },
+        { pattern: "@/**/*.svelte", group: "parent", position: "after" },
+        { pattern: "@/**", group: "parent", position: "before" },
+        { pattern: "@sing*/**", group: "external", position: "after" },
       ],
-      alphabetize: {
-        order: "asc",
-      },
     },
   ],
 }

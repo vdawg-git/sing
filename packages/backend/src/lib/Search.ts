@@ -1,37 +1,33 @@
 /* eslint-disable unicorn/prefer-top-level-await */
-import { convertFilepathToFilename } from "@sing-shared/Pures"
 import * as E from "fp-ts/lib/Either"
 import { map as mapArray } from "fp-ts/lib/ReadonlyArray"
 import Fuse from "fuse.js"
 import log from "ololog"
 import { match } from "ts-pattern"
 
-import { getAlbums, getArtists, getTracks } from "./Crud"
-
+import { convertFilepathToFilename } from "@sing-shared/Pures"
 import type {
-  IAlbum,
-  IArtist,
   IError,
   ISearchResult,
-  ITrack,
   ISearchedData,
   ISearchedTrack,
   ISearchedArtist,
   ISearchedAlbum,
 } from "@sing-types/Types"
+import type { IAlbum, IArtist, ITrack } from "@sing-types/DatabaseTypes"
 
-import type { IToSearchData } from "@/types/Types"
+import type { IHandlerEmitter, IToSearchData } from "@/types/Types"
+
+import { getAlbums, getArtists, getTracks } from "./Crud"
 
 // TODO add release date to album, so that the user can search for albums by it
 
 // TODO use combined keys as the ID for the album (name + artist / albumartist)
 
-// TODO make it possible to play tracks from the search results. Current idea is to play it randomly from "My Tracks" as this does not require an index and a sort order
-
 const searchList = createSearchList()
 
 /**
- * The search options for tje Fuse.js, ultimately used by the {@link search} function
+ * The search options for Fuse.js, ultimately used by the {@link search} function
  */
 const options: Fuse.IFuseOptions<IToSearchData> = {
   includeScore: true,
@@ -49,7 +45,10 @@ const options: Fuse.IFuseOptions<IToSearchData> = {
   ],
 }
 
-export async function search(query: string): Promise<ISearchResult> {
+export async function search(
+  _: IHandlerEmitter | undefined,
+  query: string
+): Promise<ISearchResult> {
   const results: readonly ISearchedData[] = await getSearchResults(
     searchList,
     query
@@ -73,7 +72,7 @@ export async function search(query: string): Promise<ISearchResult> {
     .flatMap((item) => (item.type === "track" ? item : []))
     .sort(sortByScore)
 
-  // Return result, but exclude keys with an empty array
+  // Return result, but exclude keys with who have no results
   return {
     ...(topMatches.length > 0 && { topMatches }),
     ...(artists.length > 0 && { artists }),

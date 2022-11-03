@@ -28,4 +28,4 @@ function createIndexStore() {
   }
 }
 
-export default createIndexStore()
+export const indexStore = createIndexStore()

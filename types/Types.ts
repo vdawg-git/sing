@@ -1,70 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type { app } from "electron"
-import type * as mm from "music-metadata"
-import type { CamelCase, ReadonlyDeep, SetOptional } from "type-fest"
-import type { Either } from "fp-ts/lib/Either"
-import type {
-  Prisma,
-  Track,
-  Album,
-  Artist,
-  Cover,
-  Playlist,
-} from "@prisma/client"
-import type { DeepReadonlyNullToUndefined, OnlyKeysOf } from "./Utilities"
 import type { FilePath } from "./Filesystem"
+import type {
+  ITrack,
+  IAlbum,
+  IPlaylist,
+  IArtist,
+  IPlaylistTrack,
+} from "./DatabaseTypes"
+import type { Prisma } from "@prisma/client"
+import type { app } from "electron"
+import type { Either } from "fp-ts/lib/Either"
+import type * as mm from "music-metadata"
 import type { StrictExclude, StrictExtract } from "ts-essentials"
+import type { CamelCase, ReadonlyDeep, SetOptional } from "type-fest"
 import type { SvelteComponentDev } from "svelte/internal"
-
-export type ITrack = DeepReadonlyNullToUndefined<Track> & {
-  readonly filepath: FilePath
-  readonly cover?: FilePath
-}
-
-export type IAlbum = DeepReadonlyNullToUndefined<Album> &
-  OnlyKeysOf<
-    Prisma.AlbumGetPayload<{
-      include: { tracks: true }
-    }>,
-    {
-      cover?: FilePath
-      tracks: readonly ITrack[]
-    }
-  >
-
-export type IArtist = DeepReadonlyNullToUndefined<Artist> &
-  OnlyKeysOf<
-    Prisma.ArtistGetPayload<{
-      include: { albums: true; tracks: true }
-    }>,
-    {
-      readonly tracks: readonly ITrack[]
-      readonly albums: readonly IAlbum[]
-      readonly image?: FilePath
-    }
-  >
-
-export type IArtistWithAlbumsAndTracks = IArtist &
-  OnlyKeysOf<
-    Prisma.ArtistGetPayload<{
-      include: { tracks: true; albums: true }
-    }>,
-    {
-      readonly albums: readonly IAlbum[]
-      readonly tracks: readonly ITrack[]
-    }
-  >
-
-export type IDBModels = IArtist | IAlbum | ITrack
-
-export type ICover = DeepReadonlyNullToUndefined<Cover> &
-  OnlyKeysOf<
-    Cover,
-    {
-      readonly filepath: FilePath
-    }
-  >
 
 export type ISyncResult = Either<
   IError,
@@ -74,8 +24,6 @@ export type ISyncResult = Either<
     readonly albums: readonly IAlbum[]
   }
 >
-
-export type IPlaylist = Playlist
 
 export type IElectronPaths = Parameters<typeof app.getPath>[0]
 
@@ -110,12 +58,25 @@ export type INotificationTypes =
 export type IErrorTypes =
   | "Array is empty"
   | "Directory read failed"
-  | "Failed to add track to database"
-  | "Failed to get from database"
-  | "Failed to remove unused albums from the database"
-  | "Failed to remove unused artists from the database"
-  | "Failed to remove unused covers from the database"
-  | "Failed to remove unused tracks from the database"
+  | "Failed adding items to playlist"
+  | "Failed adding track to database"
+  | "Failed creating playlist at database"
+  | "Failed deleting playlist at database"
+  | "Failed getting album from database"
+  | "Failed getting albums from database"
+  | "Failed getting cover from database"
+  | "Failed getting covers from database"
+  | "Failed getting artist from database"
+  | "Failed getting artists from database"
+  | "Failed getting playlist from database"
+  | "Failed getting playlists from database"
+  | "Failed getting tracks from database"
+  | "Failed removing unused albums from the database"
+  | "Failed removing unused artists from the database"
+  | "Failed removing unused covers from the database"
+  | "Failed removing unused tracks from the database"
+  | "Failed renaming playlist at database"
+  | "Failed updating playlist"
   | "File deletion failed"
   | "File metadata parsing failed"
   | "File write failed"
@@ -150,14 +111,41 @@ export interface IErrorMMDParsingError extends IError {
   readonly type: "File metadata parsing failed"
 }
 
-export type IPlaySource = `${CamelCase<
-  StrictExtract<Prisma.ModelName, "Artist" | "Album" | "Track" | "Playlist">
->}s`
+/**
+ * The possible sources which can be used as a playback
+ */
+export type IPlaySource =
+  | CamelCase<StrictExtract<Prisma.ModelName, "Artist" | "Album" | "Playlist">>
+  | `all${StrictExtract<Prisma.ModelName, "Track">}s`
 
 export type ISortOrder = "ascending" | "descending"
 
-type makeSortOptions<T extends Record<IPlaySource, string>> = {
-  readonly [key in IPlaySource]: readonly [T[key], ISortOrder]
+/**
+ * The sort options for the different pages.
+ * Like albums can be sorted by name (in the future also by release data) and tracks can be sorted by a much bigger variety of options
+ */
+export type ISortOptions = makeSortOptions<SortableMusicItems>
+
+/**
+ * Which items can be sorted and how should they be able to be sorted.
+ * Does not only include items meant for playback, but also just for display purposes.
+ *
+ * Like for example how can "artists" be sorted (currently there is no way to play back all artists)
+ *
+ * This is used by {@link ISortOptions}.
+ */
+type SortableMusicItems = {
+  album: ITrackSortKeys
+  albums: StrictExtract<keyof IAlbum, "name">
+  artist: ITrackSortKeys
+  artists: StrictExtract<keyof IArtist, "name">
+  playlist: IPlaylistTrackSortKeys
+  playlists: StrictExtract<keyof IPlaylist, "name">
+  tracks: ITrackSortKeys
+}
+
+type makeSortOptions<T extends Record<string, string>> = {
+  readonly [key in keyof T]: readonly [T[key], ISortOrder]
 }
 
 /**
@@ -168,54 +156,56 @@ export type ITrackSortKeys = StrictExtract<
   "album" | "artist" | "duration" | "title" | "trackNo"
 >
 
-// TODO makes albums sortable by release date
 /**
- * The sort options for the different pages.
- * Like albums can be sorted by name (in the future also by release data) and tracks can be sorted a much bigger variety of options
+ * The keys available to sort tracks in a playlist.
  */
-export type ISortOptions = makeSortOptions<{
-  albums: StrictExtract<keyof IAlbum, "name">
-  tracks: ITrackSortKeys
-  artists: StrictExtract<keyof IArtist, "name">
-  playlists: StrictExtract<keyof IPlaylist, "name">
-}>
+export type IPlaylistTrackSortKeys =
+  | ITrackSortKeys
+  | StrictExtract<keyof IPlaylistTrack, "manualOrderIndex">
 
-/**
- * The new playback generated from the renderer by user interaction.
- * If the type is "tracks", the sourceID is not needed
- */
-export type IPlayback =
+// TODO makes albums sortable by release date. Low priority though
+
+export type IPlayback = validatePlayback<
   | {
-      readonly [Source in IPlaySource as Source extends StrictExtract<
-        IPlaySource,
-        "tracks"
-      >
-        ? never
-        : Source]: {
-        readonly source: Source
-
-        // The queue only has tracks to be sorted
-        readonly sortBy: ISortOptions["tracks"]
-
-        // The ID of the source to be played. For example, an album id. If the source is all tracks, which would be type {type: "tracks"}, then this field is not needed as the type already induces this.
-        // So in this case, typing something like "ALL_TRACKS" to clarify the source.
-        readonly sourceID: string
-
-        readonly isShuffleOn: boolean
-      }
-    }[StrictExclude<IPlaySource, "tracks">]
-  | {
-      readonly source: StrictExtract<IPlaySource, "tracks">
+      readonly source: StrictExtract<IPlaySource, "album">
+      // The queue only has tracks to be sorted
       readonly sortBy: ISortOptions["tracks"]
+
+      // The ID of the source to be played. For example, an album id.
+      readonly sourceID: string
+
       readonly isShuffleOn: boolean
     }
+  | {
+      readonly source: StrictExtract<IPlaySource, "allTracks">
+      readonly sortBy: ISortOptions["tracks"]
+      readonly isShuffleOn: boolean
 
-/**
- * When creating a new playback the sortBy field can be optional and will fall back to the default.
- * If is `isShuffleOn` is defined then the `shuffleState` will be set to the given value.
- * This data structure will be send to the backend to query tracks for the playback.
- */
-export type INewPlayback = SetOptional<IPlayback, "sortBy" | "isShuffleOn">
+      // Does not need an ID, as it is just all tracks
+    }
+  | {
+      readonly source: StrictExtract<IPlaySource, "playlist">
+      readonly sortBy: ISortOptions["playlist"]
+      readonly sourceID: number
+      readonly isShuffleOn: boolean
+    }
+  | {
+      readonly source: StrictExtract<IPlaySource, "artist">
+      readonly sortBy: ISortOptions["artist"]
+      readonly sourceID: string
+      readonly isShuffleOn: boolean
+    }
+>
+
+export type INewPlayback = SetOptional<IPlayback, "isShuffleOn">
+
+// const _: INewPlayback = "" as unknown as INewPlayback
+
+// if (_.source === "playlist") {
+//   _.sortBy
+// }
+
+type validatePlayback<T extends { source: IPlaySource }> = T
 
 /**
  * The search results from the backend to the renderer.
@@ -266,59 +256,4 @@ export type IConvertedSearchData = Readonly<
     }[keyof ISearchResult],
     undefined
   >
->
-
-/**
- * Custom prisma findUnique argument. Used instead of the default one
- */
-export type IArtistGetArgument =
-  MakeCustomPrismaUniqueFind<Prisma.ArtistFindUniqueArgs>
-
-/**
- * Custom prisma findUnique argument. Used instead of the default one
- */
-export type IAlbumGetArgument =
-  MakeCustomPrismaUniqueFind<Prisma.AlbumFindUniqueArgs>
-
-type MakeCustomPrismaUniqueFind<T extends { where: unknown }> =
-  | Pick<T, "where"> & {
-      readonly sortBy?: ISortOptions["tracks"]
-      readonly isShuffleOn?: boolean
-    }
-
-/**
- * Custom prisma findMany argument. Used instead of the default one
- */
-export type IArtistFindManyArgument = MakeCustomPrismaFindMany<
-  Prisma.ArtistFindManyArgs,
-  ISortOptions["artists"]
->
-
-/**
- * Custom prisma findMany argument. Used instead of the default one
- */
-export type IAlbumFindManyArgument = MakeCustomPrismaFindMany<
-  Prisma.AlbumFindManyArgs,
-  ISortOptions["albums"]
->
-
-/**
- * Custom prisma findMany argument. Used instead of the default one
- */
-export type ITrackFindManyArgument = MakeCustomPrismaFindMany<
-  Prisma.AlbumFindManyArgs,
-  ISortOptions["tracks"]
->
-
-type MakeCustomPrismaFindMany<
-  T extends {
-    where?: unknown
-    orderBy?: Record<string, unknown> | Record<string, unknown>[]
-  },
-  Sort extends ISortOptions[keyof ISortOptions]
-> = Partial<
-  Pick<T, "where"> & {
-    sortBy: Sort
-    isShuffleOn: boolean
-  }
 >

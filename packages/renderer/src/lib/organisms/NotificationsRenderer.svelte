@@ -1,11 +1,12 @@
 <script lang="ts">
-  /***/
+  import { flip } from "svelte/animate"
 
-  import notificationStore, {
+  import {
+    notificationStore,
     removeNotificationByID,
   } from "@/lib/stores/NotificationStore"
+
   import Notification from "@/lib/molecules/Notification.svelte"
-  import { flip } from "svelte/animate"
 
   function handleClose({ detail: id }: CustomEvent) {
     removeNotificationByID(id)
@@ -17,7 +18,7 @@
 This renders the notifications from the `NotificationManager.ts`
 -->
 
-<div class="absolute inset-x-16 bottom-24 z-50 flex flex-col gap-4">
+<div class="absolute right-16 bottom-24 z-50 flex flex-col gap-4">
   {#each $notificationStore as { label, type, duration, id } (id)}
     <div animate:flip={{ duration: 150 }}>
       <Notification {label} {type} {duration} {id} on:close={handleClose} />

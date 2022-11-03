@@ -1,11 +1,16 @@
 <script lang="ts">
   type IState = "PLAYING" | "HAS_PLAYED" | "DEFAULT"
 
-  import type { IQueueItem } from "@/types/Types"
   import { createEventDispatcher } from "svelte"
   import IconClose from "virtual:icons/heroicons-outline/x"
+
+  import type { ITrack } from "@sing-types/DatabaseTypes"
+
+  import type { IMenuItemsArgument, IQueueItem } from "@/types/Types"
   import { TEST_IDS, TEST_ATTRIBUTES } from "@/TestConsts"
   import { displayMetadata } from "@/Helper"
+
+  import { useOpenContextMenu } from "../manager/menu"
 
   type ITestIDs =
     | typeof TEST_IDS.queueCurrentTrack
@@ -19,6 +24,7 @@
   export let testattribute: string | undefined = undefined
   export let testQueuePlayedIndex: number | undefined = undefined
   export let testQueueNextIndex: number | undefined = undefined
+  export let createContextMenuItems: (track: ITrack) => IMenuItemsArgument
 
   // set up test ids for the artist and title meta based on the item index positon
   $: [testTitleID, testArtistID] = (() => {
@@ -40,7 +46,10 @@
     }
   })()
 
+  let track: ITrack
   $: track = queueItemData.track
+
+  $: contextMenuItems = createContextMenuItems(track)
 
   const dispatch = createEventDispatcher()
 
@@ -61,6 +70,7 @@
   data-testQueueNextIndex={testQueueNextIndex}
   data-testQueuePlayedIndex={testQueuePlayedIndex}
   on:dblclick
+  use:useOpenContextMenu={{ menuItems: contextMenuItems }}
 >
   <div class="flex grow gap-3">
     <!---- Cover  -->

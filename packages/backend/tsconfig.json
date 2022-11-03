@@ -9,6 +9,7 @@
     "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
     "types": ["node", "vitest/importMeta"],
+    "typeRoots": ["../../types/Global.d.ts"],
 
     "baseUrl": ".",
     "paths": {
@@ -24,6 +25,7 @@
   "include": [
     "**/*.ts",
     "src/**/*.ts",
+    "../../types/Global.d.ts",
     "../../types/**/*.d.ts",
     "../../types/Track.ts",
     "../preload/src/Crud.ts",

@@ -1,9 +1,12 @@
 <script lang="ts">
   import IconSearch from "virtual:icons/heroicons-outline/search"
-  import SearchResultBlock from "@/lib/molecules/SearchResultBlock.svelte"
   import IconX from "virtual:icons/heroicons-outline/x"
 
   import type { ISearchResult } from "@sing-types/Types"
+
+  import { createOnOutClick } from "@/Helper"
+
+  import SearchResultBlock from "@/lib/molecules/SearchResultBlock.svelte"
 
   let searchInputElement: HTMLInputElement
   let isFocused = false
@@ -20,19 +23,24 @@
   $: hasMatches =
     searchResult !== undefined && Object.keys(searchResult).length > 0
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let resultsAsTuples: [keyof ISearchResult, any][]
   $: resultsAsTuples = Object.entries(searchResult ?? {}) as [
     keyof ISearchResult,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     any
   ][]
 
   $: {
     if (searchInput !== undefined) {
+      // eslint-disable-next-line unicorn/prefer-top-level-await
       window.api.search(searchInput).then((response) => {
         searchResult = response
       })
     }
   }
+
+  const handleOutClick = createOnOutClick(close, { stopPropagation: false })
 
   function handleFocused() {
     isFocused = true
@@ -44,24 +52,24 @@
     searchInput = undefined
   }
 
-  function handleClick() {
+  function handleInputClick() {
     searchInputElement.focus()
   }
 </script>
 
 <div
-  class="
-    custom_ flex max-h-[calc(100vh-120px)] cursor-text flex-col overflow-x-hidden
-    border border-grey-400/50 shadow-xl backdrop-blur-md  
-    {isFocused ? 'bg-grey-800/80' : 'bg-grey-700/40 hover:bg-grey-800/50'} 
-  "
-  style="border-radius: {isFocused ? '12px' : '48px'};
-         width: {isFocused ? 'calc(100% - 48px)' : '256px'};
-         "
-  on:click={handleClick}
+  class="custom_ flex max-h-[calc(100vh-120px)] flex-col overflow-x-hidden
+    border border-grey-400/50 shadow-xl backdrop-blur-xl 
+    {isFocused ? 'bg-grey-800/80' : 'bg-grey-700/40 hover:bg-grey-800/50'}"
+  style="border-radius: {isFocused ? '8px' : '48px'};
+         width: {isFocused ? 'calc(100% - 48px)' : '256px'};"
+  use:handleOutClick
 >
   <!--- Input -->
-  <div class="group flex items-center gap-3 px-3  py-2.5">
+  <div
+    class="group flex cursor-text items-center gap-3  px-3 py-2.5"
+    on:click={handleInputClick}
+  >
     <div class="shrink-0 grow-0">
       <IconSearch class="h-5 w-5 text-white" />
     </div>
@@ -84,11 +92,17 @@
 
   <!---- Results -->
   {#if isFocused && isActive && hasResponse}
-    <div class="mask_ max-h-full overflow-y-auto overflow-x-hidden pt-3">
+    <div
+      class="mask_ flex max-h-full flex-col overflow-y-auto overflow-x-hidden pt-3"
+    >
       {#if hasMatches && searchResult !== undefined}
         <div class="flex flex-col gap-3">
           {#each resultsAsTuples as data}
-            <SearchResultBlock {data} on:closeSearchbar={close} />
+            <SearchResultBlock
+              {data}
+              on:closeSearchbar={close}
+              on:click={close}
+            />
           {/each}
           <!---- Spacer element -->
           <div class="h-6 w-6" />

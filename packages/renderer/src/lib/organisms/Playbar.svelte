@@ -8,12 +8,6 @@
   import IconPlay from "virtual:icons/heroicons-outline/play"
   import IconQueue from "virtual:icons/heroicons-outline/view-list"
 
-  import {
-    loopState,
-    setNextLoopState,
-  } from "../manager/player/stores/LoopStateStore"
-  import Seekbar from "../molecules/Seekbar.svelte"
-
   import { displayMetadata } from "@/Helper"
   import { TEST_IDS } from "@/TestConsts"
   import {
@@ -29,10 +23,15 @@
     handlePlayNext,
     shuffleState,
     toggleShuffle,
-  } from "@/lib/manager/player/index"
-  import VolumeControl from "@/lib/molecules/VolumeControl.svelte"
+  } from "@/lib/manager/player"
+  import {
+    loopState,
+    setNextLoopState,
+  } from "@/lib/manager/player/stores/LoopStateStore"
 
-  import QueueBar from "./QueueBar.svelte"
+  import Seekbar from "@/lib/molecules/Seekbar.svelte"
+  import VolumeControl from "@/lib/molecules/VolumeControl.svelte"
+  import QueueBar from "@/lib/organisms/QueueBar.svelte"
 
   $: track = $currentTrack?.track
 
@@ -101,15 +100,17 @@
     <!---- Meta -->
     {#if track}
       <div class="mt-1 max-w-full overflow-hidden">
+        <!-- Title -->
         <div
           class="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-lg"
           data-testid={TEST_IDS.playbarTitle}
         >
           {displayMetadata("title", track)}
         </div>
+        <!-- Artist name -->
         <div class="flex max-w-full gap-3">
           <div
-            class="shrink-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-grey-300"
+            class="shrink-1 overflow-hidden text-ellipsis whitespace-nowrap text-xs font-medium tracking-wide text-grey-300"
             data-testid={TEST_IDS.playbarArtist}
           >
             {displayMetadata("artist", track)}
@@ -129,7 +130,7 @@
         data-testid={TEST_IDS.playbarModeIcon}
         class="button 
           {$shuffleState ? 'button-active' : 'button-inactive'}
-        "
+          "
         disabled={!track}
         on:click={toggleShuffle}
       >
@@ -225,7 +226,7 @@
 
   .button {
     cursor: pointer;
-    transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    transition: color 120ms cubic-bezier(0.4, 0, 0.2, 1),
       transform 120ms cubic-bezier(0.4, 0, 0.2, 1);
     /* @apply transition-transform active:scale-95; */
 

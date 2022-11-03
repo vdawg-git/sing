@@ -1,26 +1,34 @@
 <script lang="ts">
   import { either } from "fp-ts"
-  import IconPlay from "virtual:icons/heroicons-outline/play"
-  import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
   import { useParams } from "svelte-navigator"
+  import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
+  import IconPlay from "virtual:icons/heroicons-outline/play"
+
+  import type { IAlbum, IError, ISortOptions, ITrack } from "@sing-types/Types"
 
   import { addNotification } from "@/lib/stores/NotificationStore"
-  import { playNewSource } from "../manager/player"
-  import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
-  import TrackList from "@/lib/organisms/TrackList.svelte"
-
-  import type { Either } from "fp-ts/lib/Either"
-  import type { IAlbum, IError, ISortOptions, ITrack } from "@sing-types/Types"
   import type {
     IHeroAction,
     IHeroMetaDataItem,
     ITrackListDisplayOptions,
   } from "@/types/Types"
-  import { backgroundImagesStore } from "../stores/BackgroundImages"
+  import {
+    createAddToPlaylistAndQueueMenuItems,
+    displayTypeWithCount,
+  } from "@/Helper"
+
+  import { playNewSource } from "../manager/player"
+  import { backgroundImages } from "../stores/BackgroundImages"
+  import { playlistsStore } from "../stores/PlaylistsStore"
+
+  import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
+  import TrackList from "@/lib/organisms/TrackList.svelte"
+
+  import type { Either } from "fp-ts/lib/Either"
 
   export let albumID: string
 
-  const params = useParams<{ albumID: string }>()
+  const parameters = useParams<{ albumID: string }>()
 
   // TODO fix the sorting.
   const defaultSort: ISortOptions["tracks"] = ["trackNo", "ascending"]
@@ -28,9 +36,9 @@
   let album: IAlbum | undefined
 
   // Update the page when the album is changed on navigation
-  params.subscribe(async ({ albumID }) => {
-    album = await getAlbum(albumID)
-    backgroundImagesStore.set(album?.cover)
+  parameters.subscribe(async ({ albumID: newAlbumID }) => {
+    album = await getAlbum(newAlbumID)
+    backgroundImages.set(album?.cover)
   })
 
   let tracks: readonly ITrack[] = []
@@ -39,7 +47,7 @@
   let metadata: IHeroMetaDataItem[]
   $: metadata = [
     {
-      label: `${tracks.length} track${tracks.length > 1 ? "s" : ""}`,
+      label: displayTypeWithCount("track", tracks.length),
     },
   ]
 
@@ -71,14 +79,17 @@
     },
   ]
 
+  $: createContextMenuItems =
+    createAddToPlaylistAndQueueMenuItems($playlistsStore)
+
   const displayOptions: ITrackListDisplayOptions = {
     cover: false,
     album: false,
   }
 
-  async function getAlbum(albumID: string) {
+  async function getAlbum(id: string): Promise<IAlbum | undefined> {
     const albumEither: Either<IError, IAlbum> = await window.api.getAlbum({
-      where: { name: albumID },
+      where: { name: id },
       sortBy: ["trackNo", "ascending"],
       isShuffleOn: false,
     })
@@ -115,5 +126,6 @@
         detail.index
       )}
     sort={defaultSort}
+    {createContextMenuItems}
   />
 {/if}

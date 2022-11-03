@@ -1,6 +1,7 @@
-import { BrowserWindow } from "electron"
 import { join } from "node:path"
 import { URL } from "node:url"
+
+import { BrowserWindow } from "electron"
 
 async function createWindow() {
   const browserWindow = new BrowserWindow({
@@ -11,7 +12,7 @@ async function createWindow() {
       webviewTag: false, // The webview tag is not recommended. Consider alternatives like iframe or Electron's BrowserView. https://www.electronjs.org/docs/latest/api/webview-tag#warning
       preload: join(__dirname, "../../preload/dist/index.cjs"),
       contextIsolation: true,
-      webSecurity: !import.meta.env.DEV,
+      webSecurity: false,
     },
   })
   browserWindow.removeMenu()

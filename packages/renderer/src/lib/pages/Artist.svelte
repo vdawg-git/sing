@@ -1,14 +1,8 @@
 <script lang="ts">
-  import IconPlay from "virtual:icons/heroicons-outline/play"
-  import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
-  import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
-  import CardList from "../organisms/CardList.svelte"
-
   import { either } from "fp-ts"
   import { useNavigate, useParams } from "svelte-navigator"
-  import { playNewSource } from "../manager/player"
-  import { addNotification } from "@/lib/stores/NotificationStore"
-  import { ROUTES } from "@/Consts"
+  import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
+  import IconPlay from "virtual:icons/heroicons-outline/play"
 
   import type {
     IArtistWithAlbumsAndTracks,
@@ -16,25 +10,34 @@
     INewPlayback,
   } from "@sing-types/Types"
 
+  import { ROUTES } from "@/Consts"
+  import { addNotification } from "@/lib/stores/NotificationStore"
   import type { IHeroAction } from "@/types/Types"
+  import { displayTypeWithCount } from "@/Helper"
+
+  import { playNewSource } from "../manager/player"
+  import CardList from "../organisms/CardList.svelte"
+  import { backgroundImages } from "../stores/BackgroundImages"
+
+  import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
+
   import type { Either } from "fp-ts/lib/Either"
-  import { backgroundImagesStore } from "../stores/BackgroundImages"
 
   export let artistID: string
 
   // TODO display tracks with unknown album
 
   const navigate = useNavigate()
-  const params = useParams<{ artistID: string }>()
+  const parameters = useParams<{ artistID: string }>()
 
   let artist: IArtistWithAlbumsAndTracks | undefined = undefined
 
   $: console.log(artist)
 
-  params.subscribe(async ({ artistID }) => {
-    artist = await getArtist(artistID)
+  parameters.subscribe(async ({ artistID: newArtistID }) => {
+    artist = await getArtist(newArtistID)
 
-    backgroundImagesStore.set(artist?.image)
+    backgroundImages.set(artist?.image)
   })
 
   const source: INewPlayback = {
@@ -88,9 +91,7 @@
     title={artistID}
     metadata={[
       {
-        label: `${artist.tracks.length} track${
-          artist.tracks.length > 1 ? "s" : ""
-        }`,
+        label: displayTypeWithCount("track", artist.tracks.length),
       },
     ]}
     type="Artist"

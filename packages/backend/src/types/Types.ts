@@ -1,4 +1,3 @@
-import type { Prisma } from "@prisma/client"
 import type { FilePath } from "@sing-types/Filesystem"
 import type {
   IBackendQueryResponse,
@@ -9,9 +8,11 @@ import type {
   IArtist,
   ICover,
   IPlaylist,
+  IPlaylistItem,
   ITrack,
-} from "@sing-types/Types"
+} from "@sing-types/DatabaseTypes"
 
+import type { Prisma } from "@prisma/client"
 import type { EventEmitter } from "node:events"
 
 export interface ICoverData {
@@ -33,22 +34,35 @@ export interface IHandlerEmitter extends EventEmitter {
 
 export type ISendToMainKey = "sendToMain"
 
+/**
+ * The uppercase version the Prisma schema names
+ */
 type ITableNames = Uppercase<Prisma.ModelName>
+
+/**
+ * Check that the types keys are correct.
+ */
 type _ValidateDatabaseQueryCheckerInput<
-  T extends Record<ITableNames, IArtist | IAlbum | ITrack | ICover | IPlaylist>
+  T extends Record<
+    ITableNames,
+    IArtist | IAlbum | ITrack | ICover | IPlaylist | IPlaylistItem
+  >
 > = T
 
-// If this errors, check the validate type above
+/**
+ * If this errors check {@link _ValidateDatabaseQueryCheckerInput}
+ */
 type _DatabaseCheckerInput = _ValidateDatabaseQueryCheckerInput<{
   ALBUM: IAlbum
   ARTIST: IArtist
   TRACK: ITrack
   COVER: ICover
   PLAYLIST: IPlaylist
+  PLAYLISTITEM: IPlaylistItem
 }>
 
 /**
- * The possible db keys for a SQL query
+ * The possible database keys for a SQL query.
  */
 export type ISQLDatabaseItemString =
   | {

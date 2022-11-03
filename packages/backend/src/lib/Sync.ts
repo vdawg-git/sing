@@ -1,3 +1,7 @@
+import * as E from "fp-ts/lib/Either"
+import log from "ololog"
+import slash from "slash"
+
 import { NOTIFICATION_LABEL } from "@sing-renderer/Consts"
 import {
   getLeftsRights,
@@ -8,13 +12,18 @@ import {
   hasCover,
   removeDuplicates,
 } from "@sing-shared/Pures"
-import * as E from "fp-ts/lib/Either"
-import log from "ololog"
-import slash from "slash"
+import type {
+  IErrorArrayIsEmpty,
+  IErrorInvalidArguments,
+} from "@sing-types/Types"
+import type { DirectoryPath } from "@sing-types/Filesystem"
+
+import type { IHandlerEmitter } from "@/types/Types"
 
 import { deleteFromDirectoryInverted, getFilesFromDirectory } from "../Helper"
+
 import {
-  addTrackToDB,
+  addTrackToDatabase,
   deleteEmptyAlbums,
   deleteEmptyArtists,
   deleteTracksInverted,
@@ -22,14 +31,12 @@ import {
   getAlbums,
   getArtists,
 } from "./Crud"
-import { convertMetadata, getCover, getRawMetaDataFromFilepath, saveCover } from "./Metadata"
-
-import type {
-  IErrorArrayIsEmpty,
-  IErrorInvalidArguments,
-} from "@sing-types/Types"
-import type { IHandlerEmitter } from "@/types/Types"
-import type { DirectoryPath } from "@sing-types/Filesystem"
+import {
+  convertMetadata,
+  getCover,
+  getRawMetaDataFromFilepath,
+  saveCover,
+} from "./Metadata"
 
 // TODO use album artist tag for albums and if not present determine best on most occuring seperated artist substring?
 
@@ -146,7 +153,7 @@ export async function syncMusic(
   for (const track of metaData) {
     // It should await each operation to make it non-async
     // eslint-disable-next-line no-await-in-loop
-    const result = await addTrackToDB(track)
+    const result = await addTrackToDatabase(track)
     if (E.isLeft(result)) failedDBTracks.push(result.left)
     else {
       addedDBTracks.push(result.right)
@@ -193,12 +200,12 @@ export async function syncMusic(
   const artists = E.getOrElseW(() => {
     emitError(toMainEmitter, "Failed to get artists")
     return []
-  })(await getArtists())
+  })(await getArtists(toMainEmitter))
 
   const albums = E.getOrElseW(() => {
     emitError(toMainEmitter, "Failed to get artists")
     return []
-  })(await getAlbums())
+  })(await getAlbums(toMainEmitter))
 
   // Emit added tracks and errors as right values
   toMainEmitter.emit("sendToMain", {

@@ -1,7 +1,8 @@
 <script lang="ts">
   import type { FilePath } from "@sing-types/Filesystem"
-  import type { SvelteComponentDev } from "svelte/internal"
   import type { ISearchItemSubtext } from "@sing-types/Types"
+
+  import type { SvelteComponentDev } from "svelte/internal"
 
   export let image: FilePath | undefined
   export let isImageCircle = false
@@ -11,7 +12,6 @@
   export let icon: typeof SvelteComponentDev
 
   // TODO fix navigatin from artist page to artist page: Currently not updating albums
-  // TODO Fix title resizing in layout
 </script>
 
 <button
@@ -55,7 +55,7 @@
 
         <!---- Subtexts -->
         <div class="subtexts_">
-          {#each subtexts as { label, onClick }, index}
+          {#each subtexts as { label: subtextLabel, onClick }, index}
             <div
               class="
                 flex- min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium tracking-wide text-grey-200
@@ -64,7 +64,7 @@
             "
               on:click={onClick}
             >
-              {label}
+              {subtextLabel}
             </div>
             {#if index !== subtexts.length - 1}
               <div class="text-sm font-bold text-grey-300">-</div>

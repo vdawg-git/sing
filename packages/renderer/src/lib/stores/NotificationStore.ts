@@ -4,7 +4,7 @@ import type { INotificationBase, INotification } from "@sing-types/Types"
 
 const { subscribe, update } = writable<INotificationBase[]>([])
 
-window.api.listen("createNotification", (_event, notification) => {
+window.api.on("createNotification", (_event, notification) => {
   update(($store) => [
     ...$store,
     {
@@ -39,6 +39,6 @@ export function removeNotificationsByLabel(labelToDelete: string): void {
   update(($store) => $store.filter(({ label }) => label !== labelToDelete))
 }
 
-export default {
+export const notificationStore = {
   subscribe,
 }

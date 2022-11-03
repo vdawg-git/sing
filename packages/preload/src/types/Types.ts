@@ -2,9 +2,9 @@ import type {
   IFrontendEventsConsume,
   IFrontendEventsSend,
 } from "../../../../types/IPC"
-
 import type { ParametersWithoutFirst } from "../../../../types/Utilities"
-
+import type { mainEventHandlers } from "../MainEventHandlers"
+import type { mainQueryHandlers } from "../MainQueryHandlers"
 import type {
   IpcMain,
   IpcMainEvent,
@@ -12,9 +12,6 @@ import type {
   IpcRenderer,
   WebContents,
 } from "electron"
-
-import type mainQueryHandlers from "../MainQueryHandlers"
-import type mainEventHandlers from "../MainEventHandlers"
 
 export type IMainQueryHandlers = {
   [Handler in keyof typeof mainQueryHandlers]: (
