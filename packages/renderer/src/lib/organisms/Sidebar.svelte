@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { useNavigate } from "svelte-navigator"
+  import { useLocation, useNavigate } from "svelte-navigator"
   import Logo from "virtual:icons/custom/drool"
   import IconSettings from "virtual:icons/heroicons-outline/cog"
   import IconDotsVr from "virtual:icons/heroicons-outline/dots-vertical"
@@ -8,32 +8,42 @@
   import IconRefresh from "virtual:icons/heroicons-outline/refresh"
   import IconAlbum from "virtual:icons/ri/album-line"
   import IconPlaylist from "virtual:icons/tabler/playlist"
-  // import IconPlaylist from "virtual:icons/tabler/playlist"
-  // import IconGenre from "virtual:icons/mdi/guitar-pick-outline"
-
-  import SidebarItem from "../atoms/SidebarItem.svelte"
-  import { createOpenMenu } from "../manager/menu"
 
   import { ROUTES, type IRoutes } from "@/Consts"
   import { TEST_IDS as id } from "@/TestConsts"
   import type { IOpenMenuArgument } from "@/types/Types"
 
+  import { createOpenMenu } from "../manager/menu"
+  import SidebarItem from "../atoms/SidebarItem.svelte"
+  import { playlistsStore } from "../stores/PlaylistsStore"
+  import MenuSeperator from "../manager/menu/MenuSeperator.svelte"
+
   import type { SvelteComponentDev } from "svelte/internal"
 
   const navigate = useNavigate()
 
-  const menuItems: {
-    name: string
-    icon: typeof SvelteComponentDev
+  const location = useLocation()
+  $: currentRoute = $location.pathname.slice(1)
+
+  type ISidebarItem = {
+    label: string
     to: IRoutes
-  }[] = [
-    { name: "Playlists", icon: IconPlaylist, to: "playlists" },
-    { name: "Tracks", icon: IconMusic, to: "tracks" },
-    { name: "Albums", icon: IconAlbum, to: "albums" },
-    { name: "Artists", icon: IconArtists, to: "artists" },
+    icon?: typeof SvelteComponentDev
+  }
+
+  const topItems: readonly ISidebarItem[] = [
+    { label: "Playlists", icon: IconPlaylist, to: "playlists" },
+    { label: "Tracks", icon: IconMusic, to: "tracks" },
+    { label: "Albums", icon: IconAlbum, to: "albums" },
+    { label: "Artists", icon: IconArtists, to: "artists" },
   ]
 
-  // Temporary for testing purposes
+  let playlistItems: readonly ISidebarItem[]
+  $: playlistItems = $playlistsStore.map((playlist) => ({
+    label: playlist.name,
+    to: `${ROUTES.playlists}/${playlist.id}`,
+  }))
+
   const settingsDropdownItems: IOpenMenuArgument = {
     menuItems: [
       {
@@ -51,7 +61,12 @@
     ],
   } as const
 
+  // TODO Fix menu not opening
   const openSettingsMenu = createOpenMenu(settingsDropdownItems)
+
+  // TODO Idea: Minimize sidebar, extend it when hovering over playlists
+
+  // TODO make playlist sortable by dragging them
 </script>
 
 <nav
@@ -59,10 +74,10 @@
   class="
     custom_style z-30 h-screen w-[15.5rem]  flex-shrink-0
     flex-grow-0 rounded-3xl border border-grey-400/50 bg-grey-800/50
-    p-6 backdrop-blur-sm
+    p-6 backdrop-blur
     "
 >
-  <div class="mb-10 flex justify-between">
+  <div class="mb-4 flex justify-between">
     <Logo class="h-6 w-6  text-white/50" />
     <!---- Settings dropdown -->
     <button
@@ -73,17 +88,23 @@
     </button>
   </div>
 
-  <!---- Sidebar items -->
-  {#each menuItems as item}
-    <SidebarItem to={item.to}>
-      <svelte:component
-        this={item.icon}
-        slot="icon"
-        class="mr-3 h-6 w-6 text-grey-200"
-      />
-      <div slot="label">{item.name}</div>
-    </SidebarItem>
+  <!---- Top Sidebar items -->
+  {#each topItems as { label, icon, to }}
+    <SidebarItem
+      {to}
+      {label}
+      {icon}
+      isActive={to === currentRoute || (to === "tracks" && currentRoute === "")}
+    />
   {/each}
+
+  {#if $playlistsStore.length > 0}
+    <MenuSeperator marginX={12} />
+    <!---- Playlist items -->
+    {#each playlistItems as { to, label }}
+      <SidebarItem {to} {label} isActive={to === currentRoute} />
+    {/each}
+  {/if}
 </nav>
 
 <style>

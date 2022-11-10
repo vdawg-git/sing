@@ -12,7 +12,7 @@
 >
   <div
     class="
-      flex cursor-pointer items-center justify-start gap-3 py-3 px-4 text-left align-middle hover:bg-grey-700
+      flex h-12 cursor-pointer items-center justify-start gap-3 px-4 text-left align-middle hover:bg-grey-700
       active:bg-grey-800
       "
   >

@@ -4,19 +4,22 @@
   import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
   import IconPlay from "virtual:icons/heroicons-outline/play"
   import { onDestroy } from "svelte"
+  import { isDefined } from "ts-is-present"
 
   import type {
     IPlaylistTrack,
     IPlaylistWithTracks,
-    ISortOptions,
-  } from "@sing-types/Types"
+  } from "@sing-types/DatabaseTypes"
+  import type { ISortOptions } from "@sing-types/Types"
+  import { displayTypeWithCount, removeDuplicates } from "@sing-shared/Pures"
+  import type { IPlaylistID } from "@sing-types/Opaque"
 
-  import type { IHeroAction, IHeroMetaDataItem } from "@/types/Types"
-  import {
-    createAddToPlaylistAndQueueMenuItems,
-    displayTypeWithCount,
-    notifiyError,
-  } from "@/Helper"
+  import type {
+    ICreateMenuOutOfTrack,
+    IHeroAction,
+    IHeroMetaDataItem,
+  } from "@/types/Types"
+  import { createAddToPlaylistAndQueueMenuItems, notifiyError } from "@/Helper"
 
   import { playNewSource } from "../manager/player"
   import { backgroundImages } from "../stores/BackgroundImages"
@@ -45,9 +48,9 @@
 
   // Update the playlist when its content changes
   $: unsubscribeUpdate = window.api.on("playlistUpdated", (_, id) => {
-    if (id !== playlist?.id) return () => ({})
+    if (id !== playlist?.id) return
 
-    return getAndSetPlaylist(id)
+    getAndSetPlaylist(id)
   })
 
   onDestroy(() => {
@@ -93,8 +96,21 @@
     },
   ]
 
-  $: createContextMenuItems =
-    createAddToPlaylistAndQueueMenuItems($playlistsStore)
+  let createContextMenuItems: ICreateMenuOutOfTrack
+  $: createContextMenuItems = (item) => [
+    ...createAddToPlaylistAndQueueMenuItems($playlistsStore)(item),
+    { type: "spacer" },
+    {
+      type: "item",
+      label: "Remove from playlist",
+      onClick: () => {
+        window.api.removeTracksFromPlaylist({
+          id: playlist?.id as IPlaylistID,
+          trackIDs: Array.isArray(item.id) ? item.id : [item.id],
+        })
+      },
+    },
+  ]
 
   async function getAndSetPlaylist(id: number) {
     window.api.getPlaylist({ where: { id } }).then(
@@ -104,12 +120,12 @@
           return undefined
         },
         (newPlaylist) => {
-          // backgroundImages.set(
-          //   newPlaylist?.items
-          //     .map(({trackID}) => trackID)
-          //     .filter(isDefined)
-          //     .filter(removeDuplicates)
-          // )
+          backgroundImages.set(
+            newPlaylist.tracks
+              .map(({ cover }) => cover)
+              .filter(isDefined)
+              .filter(removeDuplicates)
+          )
 
           playlist = newPlaylist
         }
@@ -122,7 +138,7 @@
   <HeroHeading
     title={playlist.name}
     {metadata}
-    image={playlist.thumbnailCovers}
+    image={playlist.thumbnailCovers?.map(({ filepath }) => filepath)}
     type="Playlist"
     {actions}
   />

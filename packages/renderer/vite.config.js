@@ -1,8 +1,9 @@
 /* eslint-env node */
-import { svelte } from "@sveltejs/vite-plugin-svelte"
 import { promises as fs } from "node:fs"
 import { builtinModules } from "node:module"
 import path from "node:path"
+
+import { svelte } from "@sveltejs/vite-plugin-svelte"
 import Icons from "unplugin-icons/vite"
 
 import { chrome } from "../../.electron-vendors.cache.json"
@@ -19,6 +20,10 @@ const config = {
   resolve: {
     alias: {
       "@": `${path.join(PACKAGE_ROOT, "src")}/`,
+      "@sing-player-manager": `${path.join(
+        PACKAGE_ROOT,
+        "/lib/manager/player/index.ts"
+      )}`,
       "@tests": `${path.join(PACKAGE_ROOT, "tests")}/`,
       "@sing-types": `${path.join(PACKAGE_ROOT, "..", "..", "types")}/`,
       "@sing-main": `${path.join(PACKAGE_ROOT, "..", "main", "src")}/`,
@@ -67,4 +72,5 @@ const config = {
   },
 }
 
+// eslint-disable-next-line import/no-default-export
 export default config

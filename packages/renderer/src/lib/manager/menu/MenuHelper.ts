@@ -7,6 +7,7 @@ import {
 } from "@floating-ui/dom"
 import IconArrowRight from "virtual:icons/heroicons/arrow-right"
 import { isDefined } from "ts-is-present"
+import { match, P } from "ts-pattern"
 
 import type {
   IMenu,
@@ -14,11 +15,15 @@ import type {
   IMenuID,
   IMenuLocation,
   ISubmenuItemArgument,
+  IMenuItemsArgument,
+  IMenuSpacer,
 } from "@/types/Types"
 
 // TODO UX Improvment: When the menu / contetx menu is activated, highlight or show that corresponding trigger.
 // This could be achieved by passing a "onMenuActivated" and a "onMenuClosed" callback, which could then set the state.
 // For example, when right clicking a track, the track should be highlighted, when the user clicks away, it gets set to the default state
+
+// TODO if a submenu has not items, do not display it.
 
 /**
  *
@@ -29,15 +34,15 @@ import type {
  * @returns The menus.
  */
 export function createMenu(
-  items: readonly (IMenuItemArgument | ISubmenuItemArgument)[],
+  items: IMenuItemsArgument,
   setMenuID: (id: symbol | "main") => void,
   closeMenu: () => void,
   previousMenu?: IMenuID,
   id: IMenuID = "main",
   title = "main"
 ): readonly IMenu[] {
-  // If no items are submenus, just return them as a menu
-  if (items.every(isIMenuArgument)) {
+  // If no items are submenus, just return the items as a menu
+  if (items.every(isMenuArgument)) {
     return [
       {
         id,
@@ -50,25 +55,36 @@ export function createMenu(
 
   const raw: readonly (
     | IMenuItemArgument
+    | IMenuSpacer
     | { transformedSubMenuItem: IMenuItemArgument; menus: readonly IMenu[] }
-  )[] = items.map((item) =>
-    item.type === "item"
-      ? item
-      : getItemAndMenusOfSubItem(item, id, setMenuID, closeMenu)
-  )
+  )[] = items.flatMap((item) => {
+    if (item.type === "item" || item.type === "spacer") return item
+
+    // Transform submenus or remove them them if they are empty.
+    if (item.subMenu.length === 0) return []
+    return getItemAndMenusOfSubItem(item, id, setMenuID, closeMenu)
+  })
 
   const subMenus: readonly IMenu[] = raw
-    .flatMap((item) => (isIMenuArgument(item) ? [] : item))
+    .flatMap((item) => ("transformedSubMenuItem" in item ? item : []))
     .flatMap(({ menus }) => menus)
+
+  console.log({ raw })
+  console.log({ subMenus })
 
   const thisMenu: IMenu = {
     id,
     title,
     previousMenu,
     items: raw.map((item) =>
-      isIMenuArgument(item)
-        ? addCloseMenuOnClick(closeMenu)(item)
-        : item.transformedSubMenuItem
+      match(item)
+        .with({ type: "item" }, addCloseMenuOnClick(closeMenu))
+        .with(
+          { transformedSubMenuItem: P.select() },
+          (subMenuParentItem) => subMenuParentItem
+        )
+        .with({ type: "spacer" }, (spacer) => spacer)
+        .exhaustive()
     ),
   }
 
@@ -157,10 +173,17 @@ export async function calculatePosition(options: {
   })
 }
 
-function isIMenuArgument(argument_: unknown): argument_ is IMenuItemArgument {
-  return (argument_ as unknown as IMenuItemArgument)?.type === "item"
+/**
+ * Is this a regular menu item? Returns false if it is an item to a submenu.
+ */
+function isMenuArgument(argument_: unknown): argument_ is IMenuItemArgument {
+  return (argument_ as IMenuItemArgument)?.type === "item"
 }
 
+/**
+ *
+ * @param closeMenu The function to call when clicking the menu item. It should close the menu.
+ */
 function addCloseMenuOnClick(
   closeMenu: () => void
 ): (item: IMenuItemArgument) => IMenuItemArgument {

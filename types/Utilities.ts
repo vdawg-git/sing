@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { ITrackID } from "./Opaque"
+
+import type { ReadonlyNonEmptyArray } from "fp-ts/lib/ReadonlyNonEmptyArray"
 import type { ReadonlyDeep, Exact, Merge } from "type-fest"
 
 export type AllowedIndexes<
@@ -132,3 +135,9 @@ export type KeysToTuple<T extends Record<string, unknown>> = {
 export type KeyOfConditional<Base, Condition> = {
   [Key in keyof Base]: Base[Key] extends Condition ? Key : never
 }[keyof Base]
+
+/**
+ * Take a type and create a union type with its array counterpart.
+ * The array is readonly.
+ */
+export type SingleOrNonEmptyArray<T> = T | ReadonlyNonEmptyArray<T>

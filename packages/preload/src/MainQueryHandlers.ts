@@ -12,10 +12,10 @@ import type {
   IAlbumGetArgument,
   IArtist,
   IArtistFindManyArgument,
+  IPlaylistCreateArgument,
   IPlaylistFindManyArgument,
   IPlaylistGetArgument,
   IPlaylistRenameArgument,
-  ITrack,
   ITrackFindManyArgument,
 } from "@sing-types/DatabaseTypes"
 import type { IElectronPaths, IError } from "@sing-types/Types"
@@ -42,8 +42,10 @@ export const mainQueryHandlers = Object.freeze({
   getPlaylist: async (_: IpcMainInvokeEvent, options: IPlaylistGetArgument) =>
     queryBackend({ query: "getPlaylist", arguments_: options }),
 
-  createPlaylist: async (_: IpcMainInvokeEvent, tracks?: readonly ITrack[]) =>
-    queryBackend({ query: "createPlaylist", arguments_: tracks }),
+  createPlaylist: async (
+    _: IpcMainInvokeEvent,
+    options?: IPlaylistCreateArgument
+  ) => queryBackend({ query: "createPlaylist", arguments_: options }),
 
   deletePlaylist: async (_: IpcMainInvokeEvent, id: number) =>
     queryBackend({ query: "deletePlaylist", arguments_: id }),

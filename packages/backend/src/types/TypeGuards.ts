@@ -57,7 +57,6 @@ export function isBackendMessageToForward(
   if (typeof data !== "object" || data === null) return false
   if ((data as IBackendEmitToFrontend)?.forwardToRenderer !== true) return false
   if ((data as IBackendEmitToFrontend)?.event === undefined) return false
-  if (!(("data" as keyof IBackendEmitToFrontend) in data)) return false
 
   return true
 }

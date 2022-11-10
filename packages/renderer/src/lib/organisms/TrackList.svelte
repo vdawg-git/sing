@@ -2,13 +2,12 @@
   import VirtualList from "svelte-tiny-virtual-list"
   import { createEventDispatcher } from "svelte"
 
-  import type { ITrack, ISortOptions } from "@sing-types/Types"
+  import type { ITrack } from "@sing-types/DatabaseTypes"
+  import type { ISortOptions } from "@sing-types/Types"
 
   import type { ITestIDs } from "@/TestConsts"
-  import type {
-    IMenuItemsArgument,
-    ITrackListDisplayOptions,
-  } from "@/types/Types"
+  import type { ITrackListDisplayOptions } from "@/types/Types"
+  import type { ICreateMenuOutOfMusic } from "@/Helper"
 
   import TrackItem from "../molecules/TrackItem.svelte"
 
@@ -20,7 +19,7 @@
     artist: true,
   }
   export let sort: ISortOptions["tracks"] | ISortOptions["playlist"]
-  export let createContextMenuItems: (track: ITrack) => IMenuItemsArgument
+  export let createContextMenuItems: ICreateMenuOutOfMusic
 
   sort // Compiler dont cry for now
 

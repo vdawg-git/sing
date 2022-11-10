@@ -6,9 +6,9 @@
 
   import type { ITrack } from "@sing-types/DatabaseTypes"
 
-  import type { IMenuItemsArgument, IQueueItem } from "@/types/Types"
+  import type { IQueueItem } from "@/types/Types"
   import { TEST_IDS, TEST_ATTRIBUTES } from "@/TestConsts"
-  import { displayMetadata } from "@/Helper"
+  import { displayMetadata, type ICreateMenuOutOfMusic } from "@/Helper"
 
   import { useOpenContextMenu } from "../manager/menu"
 
@@ -24,32 +24,40 @@
   export let testattribute: string | undefined = undefined
   export let testQueuePlayedIndex: number | undefined = undefined
   export let testQueueNextIndex: number | undefined = undefined
-  export let createContextMenuItems: (track: ITrack) => IMenuItemsArgument
+  export let createContextMenuItems: ICreateMenuOutOfMusic
 
   // set up test ids for the artist and title meta based on the item index positon
   $: [testTitleID, testArtistID] = (() => {
     switch (testId) {
-      case TEST_IDS.queueCurrentTrack:
+      case TEST_IDS.queueCurrentTrack: {
         return [
           TEST_IDS.queueCurrentTrackTitle,
           TEST_IDS.queueCurrentTrackArtist,
         ]
-      case TEST_IDS.queuePreviousTrack:
+      }
+      case TEST_IDS.queuePreviousTrack: {
         return [
           TEST_IDS.queuePreviousTrackTitle,
           TEST_IDS.queuePreviousTrackArtist,
         ]
-      case TEST_IDS.queueNextTrack:
+      }
+      case TEST_IDS.queueNextTrack: {
         return [TEST_IDS.queueNextTrackTitle, TEST_IDS.queueNextTrackArtist]
-      default:
+      }
+      default: {
         return [undefined, undefined]
+      }
     }
   })()
 
   let track: ITrack
   $: track = queueItemData.track
 
-  $: contextMenuItems = createContextMenuItems(track)
+  $: contextMenuItems = createContextMenuItems({
+    type: "track",
+    name: displayMetadata("title", track),
+    id: track.id,
+  })
 
   const dispatch = createEventDispatcher()
 

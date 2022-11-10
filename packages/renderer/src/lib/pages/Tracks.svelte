@@ -1,15 +1,12 @@
 <script lang="ts">
   import { isPresent } from "ts-is-present"
 
-  import { removeDuplicates } from "@sing-shared/Pures"
+  import { displayTypeWithCount, removeDuplicates } from "@sing-shared/Pures"
   import type { IPlaySource, ISortOptions } from "@sing-types/Types"
 
   import { playNewSource, tracks } from "@/lib/manager/player/index"
   import type { IHeroMetaDataItem } from "@/types/Types"
-  import {
-    createAddToPlaylistAndQueueMenuItems,
-    displayTypeWithCount,
-  } from "@/Helper"
+  import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
 
   import { backgroundImages } from "../stores/BackgroundImages"
   import { playlistsStore } from "../stores/PlaylistsStore"

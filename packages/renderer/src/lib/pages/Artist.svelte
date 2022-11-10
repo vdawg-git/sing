@@ -4,16 +4,13 @@
   import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
   import IconPlay from "virtual:icons/heroicons-outline/play"
 
-  import type {
-    IArtistWithAlbumsAndTracks,
-    IError,
-    INewPlayback,
-  } from "@sing-types/Types"
+  import type { IError, INewPlayback } from "@sing-types/Types"
+  import type { IArtistWithAlbumsAndTracks } from "@sing-types/DatabaseTypes"
+  import { displayTypeWithCount } from "@sing-shared/Pures"
 
   import { ROUTES } from "@/Consts"
   import { addNotification } from "@/lib/stores/NotificationStore"
   import type { IHeroAction } from "@/types/Types"
-  import { displayTypeWithCount } from "@/Helper"
 
   import { playNewSource } from "../manager/player"
   import CardList from "../organisms/CardList.svelte"
@@ -32,8 +29,6 @@
 
   let artist: IArtistWithAlbumsAndTracks | undefined = undefined
 
-  $: console.log(artist)
-
   parameters.subscribe(async ({ artistID: newArtistID }) => {
     artist = await getArtist(newArtistID)
 
@@ -41,7 +36,7 @@
   })
 
   const source: INewPlayback = {
-    source: "artists" as const,
+    source: "artist" as const,
     sourceID: artistID,
     sortBy: ["album", "ascending"],
   }
@@ -107,8 +102,9 @@
     }))}
     on:play={({ detail: id }) =>
       playNewSource({
-        source: "albums",
+        source: "album",
         sourceID: id,
+        sortBy: ["trackNo", "ascending"],
       })}
     on:clickedPrimary={({ detail: id }) => navigate(`/${ROUTES.albums}/${id}`)}
   />

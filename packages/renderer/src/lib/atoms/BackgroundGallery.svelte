@@ -10,7 +10,9 @@
 
   let element: HTMLElement | undefined
 
-  // TODO If only one image, get its dimensions and tiled it mirrored if it is too small to fill the view
+  // TODO If only one image, get its dimensions and tiled it mirrored if it is too small to fill the view, and have one centered in the middle
+
+  // TODO Fix images not taking up available space when adding / removing tracks from a playlist and/or resizing the window
 
   $: displayedImages = match(images)
     .with(P.nullish, () => [])
@@ -105,6 +107,6 @@
 
   <!---- Overlay gradient  -->
   <div
-    class="absolute top-0 h-full w-full bg-gradient-to-t from-grey-900 to-grey-900/40"
+    class="absolute top-0 h-full w-full bg-gradient-to-t from-grey-900 to-grey-900/20"
   />
 </div>

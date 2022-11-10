@@ -27,6 +27,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
+      "@sing-player-manager": ["./src/lib/manager/player/index.ts"],
       "@tests/*": ["./tests/*"],
       "@sing-main/*": ["../main/src/*"],
       "@sing-preload/*": ["../preload/src/*"],

@@ -28,7 +28,7 @@
   $: createContextMenuItems =
     createAddToPlaylistAndQueueMenuItems($playlistsStore)
 
-  let currentTrackElement: HTMLElement
+  let currentTrackElement: HTMLElement | undefined
 
   onMount(() => {
     // Scroll to current queue item
@@ -37,7 +37,9 @@
 
   function scrollToCurrent() {
     // Scroll but leave some top space for the subtitle
-    scroller.scroll(0, currentTrackElement.offsetTop - 88)
+    if (currentTrackElement) {
+      scroller.scroll(0, currentTrackElement.offsetTop - 88)
+    }
   }
 
   function handleRemove(index: number) {
@@ -80,9 +82,10 @@
         "
       bind:this={scroller}
     >
-      <!---- Played Tracks --->
       <!-- Spacer -->
-      <div class="h-2" />
+      <div class="min-h-[12px] w-1 " />
+
+      <!---- Tracks --->
 
       <!-- Played -->
       {#if $playedTracks.length > 0}

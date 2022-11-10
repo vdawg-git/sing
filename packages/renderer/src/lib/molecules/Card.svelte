@@ -15,6 +15,8 @@
 
   const dispatch = createEventDispatcher<IDispatcher>()
 
+  // TODO make secondary text not having hover when there is no action for it.
+
   export let data: ICardProperties
   export let isImageCircle = false
 

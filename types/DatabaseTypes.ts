@@ -7,6 +7,7 @@ import type {
   DeepReadonlyNullToUndefined,
   OnlyKeysOf,
   Override,
+  SingleOrNonEmptyArray,
 } from "./Utilities"
 import type {
   Prisma,
@@ -18,6 +19,7 @@ import type {
   PlaylistItem,
 } from "@prisma/client"
 import type { Opaque } from "type-fest"
+import type { CamelCase, StrictExtract } from "ts-essentials"
 
 export type IPlaylist = DeepReadonlyNullToUndefined<Playlist> &
   OnlyKeysOf<
@@ -25,7 +27,7 @@ export type IPlaylist = DeepReadonlyNullToUndefined<Playlist> &
       include: { thumbnailCovers: true }
     }>,
     {
-      thumbnailCovers?: FilePath[]
+      thumbnailCovers?: ICover[]
       id: IPlaylistID
     }
   >
@@ -124,8 +126,6 @@ export type IArtistWithAlbumsAndTracks = IArtist &
     }
   >
 
-export type IDBModels = IArtist | IAlbum | ITrack
-
 export type ICover = DeepReadonlyNullToUndefined<Cover> &
   OnlyKeysOf<
     Cover,
@@ -182,7 +182,7 @@ export type IAlbumFindManyArgument = MakeCustomPrismaFindMany<
  * Custom prisma findMany argument. Used instead of the default one
  */
 export type ITrackFindManyArgument = MakeCustomPrismaFindMany<
-  Prisma.AlbumFindManyArgs,
+  Prisma.TrackFindManyArgs,
   ISortOptions["tracks"]
 >
 
@@ -227,3 +227,61 @@ export type IMusicItems =
   | readonly IAlbum[]
   | readonly IArtist[]
   | readonly IPlaylist[]
+
+/**
+ * Used when you want a more specifiv version of IMusicIDsUnion
+ */
+export type IMusicIDs = {
+  playlist: {
+    readonly type: "playlist"
+  } & OnlyKeysOf<
+    Prisma.PlaylistWhereUniqueInput,
+    {
+      id: SingleOrNonEmptyArray<IPlaylistID>
+    }
+  >
+  album: {
+    readonly type: "album"
+  } & _PickAndMakeArrayUnion<Prisma.AlbumWhereUniqueInput, "name">
+  artist: {
+    readonly type: "artist"
+  } & _PickAndMakeArrayUnion<Prisma.ArtistWhereUniqueInput, "name">
+  track: {
+    readonly type: "track"
+  } & OnlyKeysOf<
+    Prisma.TrackWhereUniqueInput,
+    {
+      id: SingleOrNonEmptyArray<ITrackID>
+    }
+  >
+}
+
+export type IMusicIDsUnion = validateMusicIDTypes<IMusicIDs[keyof IMusicIDs]>
+
+/**
+ * Currently used for adding music to playlists.
+ */
+export type IPlaylistCreateArgument = IMusicIDsUnion & { readonly name: string }
+
+export type IRemoveTracksFromPlaylistArgument = {
+  id: IPlaylistID
+  trackIDs: readonly ITrackID[]
+}
+
+type validateMusicIDTypes<
+  T extends {
+    type: CamelCase<
+      StrictExtract<Prisma.ModelName, "Artist" | "Album" | "Playlist" | "Track">
+    >
+  }
+> = T
+
+/**
+ * Extract the ID and make it required.
+ *
+ * Do not provide a union type as the second argument.
+ */
+type _PickAndMakeArrayUnion<
+  T extends Record<string, unknown>,
+  A extends keyof T
+> = { readonly [Key in A]-?: SingleOrNonEmptyArray<Exclude<T[A], undefined>> }

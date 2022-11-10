@@ -333,6 +333,12 @@ export async function playNewSource(newPlayback: INewPlayback, index = 0) {
       notifiyError("Error while trying to play selected music"),
 
       (tracks) => {
+        if (tracks.length === 0) {
+          notifiyError("No tracks to play back")("")
+
+          return
+        }
+
         setNewPlayback({
           tracks,
           index,
@@ -543,15 +549,15 @@ async function getTracksFromSource(
     .with({ source: "allTracks" }, ({ isShuffleOn, sortBy }) =>
       window.api.getTracks({ isShuffleOn, sortBy })
     )
-    .with({ source: "playlist" }, async ({ sourceID, sortBy, isShuffleOn }) => {
-      return extractTracks(
+    .with({ source: "playlist" }, async ({ sourceID, sortBy, isShuffleOn }) =>
+      extractTracks(
         await window.api.getPlaylist({
           where: { id: sourceID },
           sortBy,
           isShuffleOn,
         })
       )
-    })
+    )
     .exhaustive()
 
   function extractTracks(

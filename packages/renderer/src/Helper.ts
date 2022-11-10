@@ -5,7 +5,12 @@ import * as RA from "fp-ts/ReadonlyArray"
 import { createHashHistory } from "history"
 import { isDefined } from "ts-is-present"
 
-import type { ITrack, IError, IPlaylist, IMusicItems } from "@sing-types/Types"
+import type {
+  ITrack,
+  IPlaylist,
+  IPlaylistCreateArgument,
+} from "@sing-types/DatabaseTypes"
+import type { IError } from "@sing-types/Types"
 
 import { convertFilepathToFilename, getErrorMessage } from "../../shared/Pures"
 
@@ -15,8 +20,10 @@ import { ROUTES } from "./Consts"
 import type { HistorySource } from "svelte-navigator"
 import type AnyObject from "svelte-navigator/types/AnyObject"
 import type {
+  ICreateMenuOutOfMusic,
   IMenuItemArgument,
   IMenuItemsArgument,
+  IMenuSpacer,
   ISubmenuItemArgument,
 } from "./types/Types"
 import type { IAddTracksToPlaylistArgument } from "../../backend/src/lib/Crud"
@@ -29,12 +36,15 @@ export function titleToDisplay(track: ITrack): string {
 
 export function displayMetadata(type: keyof ITrack, track: ITrack): string {
   switch (type) {
-    case "title":
+    case "title": {
       return titleToDisplay(track)
-    case "duration":
+    }
+    case "duration": {
       return secondsToDuration(track.duration)
-    default:
+    }
+    default: {
       return track[type] ? String(track[type]) : "Unknown"
+    }
   }
 }
 
@@ -143,10 +153,10 @@ export function doTextResizeToFitElement(
 
 export async function createAndNavigateToPlaylist(
   navigate: (to: string) => void,
-  tracksToAdd?: readonly ITrack[]
+  options?: IPlaylistCreateArgument
 ) {
   pipe(
-    await window.api.createPlaylist(tracksToAdd),
+    await window.api.createPlaylist(options),
     E.foldW(
       notifiyError("Failed to create playlist"),
 
@@ -327,45 +337,44 @@ export function createOnOutClick(
   }
 }
 
-/**
- * Returns a string like: "2 tracks" or "1 track", depending on the count.
- */
-export function displayTypeWithCount(type: string, count: number): string {
-  return `${count} ${addPluralS(type, count)}`
-}
-
-export function addPluralS(string: string, count: number): string {
-  if (count >= 0 && count !== 1) {
-    return string + "s"
-  }
-
-  return string
-}
-
 function createAddToPlaylistAndQueueMenuItemsBase(
-  musicToAdd: IMusicItems,
+  musicToAdd: IPlaylistCreateArgument,
   playlists: readonly IPlaylist[],
   addToPlaylist: (items: IAddTracksToPlaylistArgument) => void,
   _playNext: (tracks: readonly ITrack[]) => void,
   _playLater: (tracks: readonly ITrack[]) => void
 ): IMenuItemsArgument {
+  // TODO Add "add to new playlist" action
+
+  const addToNewPlaylist: IMenuItemArgument = {
+    label: "Create playlist",
+    async onClick() {
+      window.api.createPlaylist(musicToAdd)
+    },
+    type: "item",
+  }
+
   const playlistSubMenu: ISubmenuItemArgument = {
     type: "subMenu",
     label: "Add to playlist",
-    subMenu: playlists.flatMap((playlist) => {
-      // Create the add to playlist options, but do not allow adding a playlist to itself.
-      return (musicToAdd as IPlaylist)?.id === playlist.id &&
-        (musicToAdd as IPlaylist)?.name === playlist.name
-        ? []
-        : {
-            label: playlist.name,
-            onClick: () => addToPlaylist({ playlist, musicToAdd }),
-            type: "item",
-          }
-    }),
+    subMenu: [
+      { type: "spacer" },
+      addToNewPlaylist,
+      { type: "spacer" },
+      ...playlists.flatMap((playlist) =>
+        // Create the add to playlist options, but do not allow adding a playlist to itself.
+        musicToAdd.type === "playlist" && musicToAdd.id === playlist.id
+          ? []
+          : ({
+              label: playlist.name,
+              onClick: () => addToPlaylist({ playlist, musicToAdd }),
+              type: "item",
+            } as const)
+      ),
+    ],
   }
 
-  const queueSubMenu: readonly IMenuItemArgument[] = [
+  const queueSubMenu: readonly (IMenuItemArgument | IMenuSpacer)[] = [
     {
       type: "item",
       label: "Play next",
@@ -389,15 +398,13 @@ function createAddToPlaylistAndQueueMenuItemsBase(
 
 export function createAddToPlaylistAndQueueMenuItems(
   playlists: readonly IPlaylist[]
-): (item: IMusicItems) => IMenuItemsArgument {
+): ICreateMenuOutOfMusic {
   return (item) =>
     createAddToPlaylistAndQueueMenuItemsBase(
       item,
       playlists,
       window.api.addToPlaylist,
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      () => console.log("Not implemented yet"),
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      () => console.log("Not implemented yet")
+      () => console.error("Not implemented yet"),
+      () => console.error("Not implemented yet")
     )
 }

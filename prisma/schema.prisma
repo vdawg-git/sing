@@ -156,6 +156,8 @@ model Track {
   trackGain        Float?
   trackPeakLevel   Float?
   albumGain        Float?
+
+  type String @default("track") /// #DO NOT SET THIS. This is is used to provide a discriminating union for typescript.
 }
 
 model Album {
@@ -164,7 +166,9 @@ model Album {
   artist      String?
   tracks      Track[] @relation(name: "album")
   coverPath   Cover?  @relation(fields: [cover], references: [filepath])
-  cover       String? @unique
+  cover       String? @unique /// TODO dont make this unique as this can become problematic
+
+  type String @default("album") /// #DO NOT SET THIS. This is is used to provide a discriminating union for typescript.
 }
 
 model Artist {
@@ -173,6 +177,8 @@ model Artist {
   albumartistTracks Track[] @relation(name: "albumartist")
   albums            Album[]
   image             String? /// This is the filepath to the artist image
+
+  type String @default("artist") /// #DO NOT SET THIS. This is is used to provide a discriminating union for typescript.
 }
 
 model Cover {
@@ -182,6 +188,8 @@ model Cover {
   tracks   Track[]
 
   playlistsThumbnail Playlist[]
+
+  type String @default("cover") /// #DO NOT SET THIS. This is is used to provide a discriminating union for typescript.
 }
 
 model Playlist {
@@ -190,6 +198,8 @@ model Playlist {
   items PlaylistItem[]
 
   thumbnailCovers Cover[]
+
+  type String @default("playlist") /// #DO NOT SET THIS. This is is used to provide a discriminating union for typescript.
 }
 
 /// A playlist contains tracks, but it can contain multiple of the same and needs to know their position inside the playlist. Thus we have another type for the playlist items.
@@ -198,8 +208,10 @@ model PlaylistItem {
   track Track @relation(fields: [trackID], references: [id])
   index Int
 
-  playlist Playlist @relation(fields: [playlistID], references: [id])
+  playlist Playlist @relation(fields: [playlistID], references: [id], onDelete: Cascade)
 
   trackID    Int
   playlistID Int
+
+  type String @default("playlistItem") /// #DO NOT SET THIS. This is is used to provide a discriminating union for typescript.
 }

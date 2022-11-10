@@ -11,12 +11,13 @@ import type {
   IAlbumGetArgument,
   IArtistFindManyArgument,
   IArtistGetArgument,
+  IPlaylistCreateArgument,
   IPlaylistFindManyArgument,
   IPlaylistGetArgument,
   IPlaylistRenameArgument,
-  ITrack,
+  IRemoveTracksFromPlaylistArgument,
   ITrackFindManyArgument,
-} from "@sing-types/Types"
+} from "@sing-types/DatabaseTypes"
 import type { IAddTracksToPlaylistArgument } from "@sing-backend/lib/Crud"
 
 import { ipcRenderer } from "./TypedIPC"
@@ -33,10 +34,10 @@ export async function getPlaylist(options: IPlaylistGetArgument) {
 }
 
 /**
- * ? Usually we want to use the `createAndNavigateToPlaylist` function in `renderer/helper.ts` to also navigate to the newly created playlist.
+ *  Usually we want to use the `createAndNavigateToPlaylist` function in `renderer/helper.ts` to also navigate to the newly created playlist.
  */
-export async function createPlaylist(tracksToAdd?: readonly ITrack[]) {
-  return ipcRenderer.invoke("createPlaylist", tracksToAdd)
+export async function createPlaylist(options?: IPlaylistCreateArgument) {
+  return ipcRenderer.invoke("createPlaylist", options)
 }
 
 export async function renamePlaylist(options: IPlaylistRenameArgument) {
@@ -49,6 +50,12 @@ export async function deletePlaylist(id: number) {
 
 export async function addToPlaylist(options: IAddTracksToPlaylistArgument) {
   ipcRenderer.send("addTracksToPlaylist", options)
+}
+
+export async function removeTracksFromPlaylist(
+  options: IRemoveTracksFromPlaylistArgument
+) {
+  ipcRenderer.send("removeTracksFromPlaylist", options)
 }
 
 /**

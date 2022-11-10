@@ -2,12 +2,14 @@
   import { useNavigate } from "svelte-navigator"
   import { isPresent } from "ts-is-present"
 
-  import { removeDuplicates } from "@sing-shared/Pures"
+  import { displayTypeWithCount, removeDuplicates } from "@sing-shared/Pures"
 
   import { ROUTES } from "@/Consts"
   import { albums, playNewSource } from "@/lib/manager/player"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
-  import { displayTypeWithCount } from "@/Helper"
+  import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
+
+  import { playlistsStore } from "../stores/PlaylistsStore"
 
   import CardList from "@/lib/organisms/CardList.svelte"
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
@@ -44,11 +46,15 @@
       id: album.name,
       image: album.cover,
       secondaryText: album.artist,
+      contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)({
+        type: "album",
+        name: album.name,
+      }),
     }))}
     on:play={({ detail: id }) =>
       playNewSource({
         sourceID: id,
-        source: "albums",
+        source: "album",
         sortBy: ["trackNo", "ascending"],
       })}
     on:clickedPrimary={({ detail: id }) => navigate(`/${ROUTES.albums}/${id}`)}

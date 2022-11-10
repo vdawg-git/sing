@@ -1,5 +1,9 @@
 import type { FilePath } from "@sing-types/Filesystem"
-import type { ITrack } from "@sing-types/Types"
+import type {
+  IMusicIDs,
+  IPlaylistCreateArgument,
+  ITrack,
+} from "@sing-types/DatabaseTypes"
 
 import type { SvelteComponentDev } from "svelte/internal"
 import type { AsyncOrSync } from "ts-essentials"
@@ -53,7 +57,7 @@ export type IMenuID = symbol | "main"
 export type IMenu = {
   readonly id: IMenuID
   readonly title: string
-  readonly items: readonly IMenuItemArgument[]
+  readonly items: readonly (IMenuItemArgument | IMenuSpacer)[]
   readonly previousMenu: IMenuID | undefined // Link the previous menu and not the next, as there can be mutliple next menus.
 }
 
@@ -76,6 +80,10 @@ export type IMenuItemArgument = {
   readonly label: string
   readonly leadingIcon?: ConstructorOfATypedSvelteComponent
   readonly trailingIcon?: ConstructorOfATypedSvelteComponent
+}
+
+export type IMenuSpacer = {
+  type: "spacer"
 }
 
 /**
@@ -106,4 +114,13 @@ export type IOpenMenuArgument = {
 export type IMenuItemsArgument = readonly (
   | IMenuItemArgument
   | ISubmenuItemArgument
+  | IMenuSpacer
 )[]
+
+export type ICreateMenuOutOfMusic = (
+  item: IPlaylistCreateArgument
+) => IMenuItemsArgument
+
+export type ICreateMenuOutOfTrack = (
+  item: IMusicIDs["track"] & { readonly name: string }
+) => IMenuItemsArgument

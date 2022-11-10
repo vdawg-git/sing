@@ -2,6 +2,7 @@
   import { fade } from "svelte/transition"
   import { createEventDispatcher, onDestroy } from "svelte"
   import IconX from "virtual:icons/heroicons-outline/x"
+
   import { TEST_ATTRIBUTES } from "@/TestConsts"
 
   onDestroy(async () => {
@@ -26,8 +27,8 @@
   <div
     data-testattribute={TEST_ATTRIBUTES.modalContent}
     class="
-            shadow-black/50 z-50 w-[30rem]  rounded-2xl bg-grey-600/50 p-8 shadow-2xl backdrop-blur-lg
-	          {$$props.class}
+            shadow-black/50 z-50 w-[30rem]  rounded-2xl bg-grey-600 p-8 shadow-2xl
+	          {$$props.class} border border-grey-300/50
             "
   >
     <button

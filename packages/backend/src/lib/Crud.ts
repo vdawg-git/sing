@@ -4,10 +4,12 @@ import { pipe } from "fp-ts/lib/function"
 import { omit } from "fp-ts-std/Struct"
 import log from "ololog"
 import { match, P } from "ts-pattern"
+import { isDefined } from "ts-is-present"
 
 import {
-  extractTrackIDs,
+  createSQLArray,
   insertIntoArray,
+  removeDuplicates,
   removeNulledKeys,
   sortByKey,
   sortTracks,
@@ -29,11 +31,13 @@ import type {
   IPlaylistFindManyArgument,
   IPlaylistRenameArgument,
   IPlaylistWithItems,
-  IMusicItems,
   IPlaylistItem,
   IPlaylistGetArgument,
   IPlaylistWithTracks,
   IPlaylistTrack,
+  IPlaylistCreateArgument,
+  IMusicIDsUnion,
+  IRemoveTracksFromPlaylistArgument,
 } from "@sing-types/DatabaseTypes"
 import type { IError, ISortOptions, IErrorTypes } from "@sing-types/Types"
 import type { IPlaylistID, ITrackID } from "@sing-types/Opaque"
@@ -52,22 +56,52 @@ const prisma = createPrismaClient()
 // TODO Update changed covers correctly (now they are getting deleted for whatever reason when they change)
 
 export async function getPlaylists(
-  _: IHandlerEmitter,
+  _: IHandlerEmitter | undefined,
   options?: IPlaylistFindManyArgument
 ): Promise<Either<IError, readonly IPlaylist[]>> {
   const prismaOptions: Prisma.PlaylistFindManyArgs = {
     where: options?.where,
-    include: { thumbnailCovers: true },
+    include: {
+      thumbnailCovers: true,
+    },
   }
 
   const defaultSort: ISortOptions["playlists"] = ["name", "ascending"]
 
+  return (
+    prisma.playlist
+      .findMany(prismaOptions)
+      .then(RA.map(removeNulledKeys))
+      .then((playlists) => sortByKey(options?.sortBy ?? defaultSort, playlists))
+
+      // ! Add tracks support
+      .then((playlists) => E.right(playlists as IPlaylist[]))
+      .catch(createError("Failed to get playlists from database"))
+  )
+}
+
+/**
+ * Not used in the front-end. Just used internally by the back-end.
+ */
+async function getTracksFromPlaylists(
+  options?: IPlaylistFindManyArgument
+): Promise<Either<IError, readonly ITrack[]>> {
+  const prismaOptions: Prisma.PlaylistFindManyArgs = {
+    where: options?.where,
+    include: {
+      thumbnailCovers: true,
+      items: { include: { track: true } },
+    },
+  }
+
   return prisma.playlist
     .findMany(prismaOptions)
     .then(RA.map(removeNulledKeys))
-    .then((playlists) => sortByKey(options?.sortBy ?? defaultSort, playlists))
-    .then((playlists) => E.right(playlists as IPlaylist[]))
-    .catch(createError("Failed getting playlists from database"))
+    .then((playlists) => playlists as IPlaylistWithItems[])
+    .then(RA.map(({ items }) => items.map(({ track }) => track)))
+    .then(RA.flatten)
+    .then((tracks) => E.right(tracks as readonly ITrack[]))
+    .catch(createError("Failed to get playlists from database"))
 }
 
 export async function getPlaylist(
@@ -89,14 +123,14 @@ export async function getPlaylist(
         where: {
           id: where.id,
         },
-        include: { items: { include: { track: true } } },
+        include: { thumbnailCovers: true, items: { include: { track: true } } },
       })
       .then((playlist) => playlist as unknown as IPlaylistWithItems)
       // Convert the item[] to ( ITrack & {playlistIndex: number} )[]
       .then((playlist) => {
         const tracks: readonly IPlaylistTrack[] = playlist.items.map(
           (item) => ({
-            ...item.track,
+            ...(item.track as ITrack),
             manualOrderIndex: item.index,
           })
         )
@@ -106,14 +140,14 @@ export async function getPlaylist(
         updateKeyValue("tracks", sortTracks(usedSort), playlist)
       )
       .then(removeNulledKeys)
-      .then((playlist) => E.right(playlist))
-      .catch(createError("Failed getting playlist from database"))
+      .then((playlist) => E.right(playlist as IPlaylistWithTracks))
+      .catch(createError("Failed to get playlist from database"))
   )
 }
 
 /**
  * Used internally and not exposed to the front-end.
- * This gets the playlist with its database items, which are not tracks, but wrapper of tracks.
+ * This gets the playlist with its database items, which are not tracks, but wrapper of tracks and their index within the playlist.
  */
 async function getPlaylistWithItems(
   _: IHandlerEmitter | undefined,
@@ -128,40 +162,99 @@ async function getPlaylistWithItems(
     })
     .then((playlist) => playlist as unknown as IPlaylistWithItems)
     .then(removeNulledKeys)
-    .then(E.right)
-    .catch(createError("Failed getting playlist from database"))
+    .then((playlist) => E.right(playlist as IPlaylistWithItems))
+    .catch(createError("Failed to get playlist from database"))
 }
 
 export async function createPlaylist(
   emitter: IHandlerEmitter,
-  tracks?: readonly ITrack[]
+  options?: IPlaylistCreateArgument
 ): Promise<Either<IError, IPlaylist>> {
-  try {
-    const usedNames = await prisma.playlist
-      .findMany({ select: { name: true } })
-      .then(RA.map(({ name }) => name))
+  const playlistData: Either<IError, Prisma.PlaylistCreateArgs["data"]> =
+    await match(options)
+      .with(P.nullish, async () => {
+        const usedNames = await getPlaylistNames()
 
-    const rawPlaylist = await prisma.playlist.create({
-      data: {
-        name: createDefaultPlaylistName(usedNames),
-        ...(!!tracks && { tracks }),
-      },
-    })
+        if (E.isLeft(usedNames)) return usedNames
 
-    log({ rawPlaylist })
+        return E.right({ name: createDefaultPlaylistName(usedNames.right) })
+      })
+      .with(P.instanceOf(Object), async (toAdd) => {
+        const tracksToAdd = await extractTracks(toAdd)
 
+        if (E.isLeft(tracksToAdd)) return tracksToAdd
+
+        const itemsToCreate = tracksToAdd.right.map(({ id }, index) => ({
+          trackID: id,
+          index,
+        }))
+
+        const covers: Prisma.CoverWhereUniqueInput[] = tracksToAdd.right
+          .map(({ cover }) => cover)
+          .filter(isDefined)
+          .filter(removeDuplicates)
+          .slice(0, 4)
+          .map((filepath) => ({ filepath }))
+
+        const data: Prisma.PlaylistCreateArgs["data"] = {
+          name: toAdd.name,
+          items: { create: itemsToCreate },
+          ...(covers.length > 0 && { thumbnailCovers: { connect: covers } }),
+        }
+
+        return E.right(data)
+      })
+      .exhaustive()
+
+  if (E.isLeft(playlistData)) {
     emitter.emit("sendToMain", {
-      event: "playlistsUpdated",
+      event: "createNotification",
+      data: { label: "Failed to create playlist", type: "danger" },
       forwardToRenderer: true,
-      data: undefined,
     })
-
-    return pipe(rawPlaylist, removeNulledKeys, (playlist) =>
-      E.right(playlist as IPlaylist)
-    )
-  } catch (error) {
-    return createError("Failed creating playlist at database")(error)
+    log.red.error(playlistData)
+    return playlistData
   }
+
+  return prisma.playlist
+    .create({
+      data: playlistData.right,
+    })
+    .then((newPlaylist) => {
+      emitter.emit("sendToMain", {
+        event: "playlistsUpdated",
+        forwardToRenderer: true,
+        data: undefined,
+      })
+
+      // If the playlist was created by a context menu action on a music item, which would mean the user was not automatically forwarded to the playlist, create a succes notification.
+      // Currently options are not set through context menu creation
+      if (options) {
+        // TODO on click on the notification forward to the playlist
+        emitter.emit("sendToMain", {
+          event: "createNotification",
+          forwardToRenderer: true,
+          data: {
+            label: `Created playlists ${options.name}.`,
+            type: "default",
+          },
+        })
+      }
+
+      return pipe(newPlaylist, removeNulledKeys, (playlist) =>
+        E.right(playlist as IPlaylist)
+      )
+    })
+    .catch((error) => {
+      emitter.emit("sendToMain", {
+        event: "createNotification",
+        data: { label: "Failed to create playlist", type: "danger" },
+        forwardToRenderer: true,
+      })
+      log.red.error(error)
+
+      return createError("Failed to create playlist at database")(error)
+    })
 }
 
 export async function renamePlaylist(
@@ -182,7 +275,7 @@ export async function renamePlaylist(
 
     return E.right(newName)
   } catch (error) {
-    return createError("Failed renaming playlist at database")(error)
+    return createError("Failed to rename playlist at database")(error)
   }
 }
 
@@ -192,8 +285,10 @@ export async function deletePlaylist(
 ): Promise<Either<IError, number>> {
   // TODO let the renderer know that the playlist amount has changed. Probably need to implement some async events for that to work
 
+  log({ id })
+
   try {
-    prisma.playlist.delete({ where: { id } })
+    const deletedPlaylist = await prisma.playlist.delete({ where: { id } })
 
     emitter.emit("sendToMain", {
       event: "playlistsUpdated",
@@ -201,15 +296,32 @@ export async function deletePlaylist(
       data: undefined,
     })
 
+    emitter.emit("sendToMain", {
+      event: "createNotification",
+      data: {
+        label: `Deleted playlist ${deletedPlaylist.name}`,
+        type: "check",
+      },
+      forwardToRenderer: true,
+    })
+
     return E.right(id)
   } catch (error) {
-    return createError("Failed deleting playlist at database")(error)
+    emitter.emit("sendToMain", {
+      event: "createNotification",
+      data: {
+        label: `Failed to delete playlist.`,
+        type: "warning",
+      },
+      forwardToRenderer: true,
+    })
+    return createError("Failed to delete playlist at database")(error)
   }
 }
 
 export type IAddTracksToPlaylistArgument = {
   readonly playlist: IPlaylist
-  readonly musicToAdd: IMusicItems
+  readonly musicToAdd: IMusicIDsUnion
   readonly insertAt?: number
 }
 
@@ -222,12 +334,29 @@ export async function addTracksToPlaylist(
   toMainEmitter: IHandlerEmitter,
   { musicToAdd, playlist, insertAt }: IAddTracksToPlaylistArgument
 ): Promise<void> {
-  const trackIDs = extractTrackIDs(musicToAdd)
+  const trackIDs = pipe(
+    await extractTracks(musicToAdd),
+    E.map(RA.map(({ id }) => id))
+  )
+
+  if (E.isLeft(trackIDs)) {
+    log.red.error(trackIDs.left)
+
+    toMainEmitter.emit("sendToMain", {
+      forwardToRenderer: true,
+      event: "createNotification",
+      data: {
+        label: "Failed to update playlist. Could not get tracks from database.",
+        type: "danger",
+      },
+    })
+    return
+  }
 
   const resultEither = await match(insertAt)
-    .with(P.nullish, () => appendTracksToPlaylist(playlist)(trackIDs))
+    .with(P.nullish, () => appendTracksToPlaylist(playlist)(trackIDs.right))
     .with(P.number, (insertIndex) =>
-      insertTracksIntoPlaylist(playlist, insertIndex)(trackIDs)
+      insertTracksIntoPlaylist(playlist, insertIndex)(trackIDs.right)
     )
     .exhaustive()
 
@@ -246,7 +375,7 @@ export async function addTracksToPlaylist(
         event: "createNotification",
         // TODO make this nice and meaningful
         data: {
-          label: `Added ${musicToAdd} to ${playlist.name}`,
+          label: `Added ${musicToAdd.type} to playlist ${playlist.name}`,
           type: "check",
         },
       })
@@ -258,6 +387,39 @@ export async function addTracksToPlaylist(
       })
     }
   )(resultEither)
+}
+
+export async function removeTracksFromPlaylist(
+  mainEmitter: IHandlerEmitter,
+  { id, trackIDs }: IRemoveTracksFromPlaylistArgument
+): Promise<void> {
+  prisma.playlist
+    .update({
+      where: { id },
+      data: {
+        items: {
+          deleteMany: trackIDs.map((trackID) => ({ trackID: trackID })),
+        },
+      },
+    })
+    .then(() => {
+      mainEmitter.emit("sendToMain", {
+        event: "playlistUpdated",
+        data: id,
+        forwardToRenderer: true,
+      })
+    })
+    .catch((error) => {
+      log.error.red(error)
+      mainEmitter.emit("sendToMain", {
+        forwardToRenderer: true,
+        event: "createNotification",
+        data: {
+          label: "Failed to delete track" + (trackIDs.length > 1 ? "s" : ""),
+          type: "danger",
+        },
+      })
+    })
 }
 
 export async function getArtists(
@@ -286,8 +448,8 @@ export async function getArtists(
     .then(RA.map(removeNulledKeys))
     .then(RA.map(addArtistImage))
     .then((artists) => sortByKey(options?.sortBy ?? defaultSort, artists))
-    .then(E.right)
-    .catch(createError("Failed getting artists from database"))
+    .then((artists) => E.right(artists as readonly IArtist[]))
+    .catch(createError("Failed to get artists from database"))
 }
 
 /**
@@ -322,7 +484,7 @@ export async function getArtist(
     .then(removeNulledKeys)
     .then(addArtistImage)
     .then(E.right)
-    .catch(createError("Failed getting tracks from database"))
+    .catch(createError("Failed to get tracks from database"))
 }
 
 export async function getAlbums(
@@ -341,7 +503,7 @@ export async function getAlbums(
     .then(RA.map(removeNulledKeys))
     .then((albums) => sortByKey(options?.sortBy ?? defaultSort, albums))
     .then((albums) => E.right(albums as unknown as IAlbum[]))
-    .catch(createError("Failed getting albums from database"))
+    .catch(createError("Failed to get albums from database"))
 }
 
 export async function getAlbum(
@@ -365,7 +527,7 @@ export async function getAlbum(
     .then((album) => updateKeyValue("tracks", sortTracks(sort), album))
     .then(removeNulledKeys)
     .then((album) => E.right(album as IAlbum))
-    .catch(createError("Failed getting album from database"))
+    .catch(createError("Failed to get album from database"))
 }
 
 export async function getTracks(
@@ -385,7 +547,7 @@ export async function getTracks(
     .then(RA.map(removeNulledKeys))
     .then((tracks) => sortTracks(usedSort)(tracks as readonly ITrack[]))
     .then(E.right)
-    .catch(createError("Failed getting tracks from database"))
+    .catch(createError("Failed to get tracks from database"))
 }
 
 export async function getCovers(
@@ -396,7 +558,7 @@ export async function getCovers(
     .findMany(options)
     .then(RA.map(removeNulledKeys))
     .then((covers) => E.right(covers as ICover[]))
-    .catch(createError("Failed getting covers from database"))
+    .catch(createError("Failed to get covers from database"))
 }
 
 export async function addTrackToDatabase(
@@ -412,68 +574,65 @@ export async function addTrackToDatabase(
     })
     .then(removeNulledKeys)
     .then((addedTrack) => E.right(addedTrack as ITrack))
-    .catch(createError("Failed adding track to database"))
+    .catch(createError("Failed to add track to database"))
 }
 
 export async function deleteTracksInverted(
   filepaths: readonly FilePath[]
 ): Promise<Either<IError, number>> {
-  const pathsString = filepaths
-    .map((path) => path.replace(/'/g, "''")) // Prevent the query from breaking if a value contains single quote(s)
-    .map((path) => `'${path}'`)
-    .join(",")
+  const pathsString = createSQLArray(filepaths)
 
   const query = `DELETE FROM 
-                  ${SQL.TRACK} 
+                  ${SQL.Track} 
                  WHERE 
                   ${SQL.filepath} NOT IN (${pathsString})`
 
   return prisma
     .$executeRawUnsafe(query)
     .then((deleteAmount) => E.right(deleteAmount))
-    .catch(createError("Failed removing unused tracks from the database"))
+    .catch(createError("Failed to remove unused tracks from the database"))
 }
 
 export async function deleteEmptyAlbums(): Promise<Either<IError, number>> {
   const query = `
     DELETE FROM
-      ${SQL.ALBUM}
+      ${SQL.Album}
     WHERE
       ${SQL.name} in (
         SELECT
-          ${SQL["ALBUM.name"]}
+          ${SQL["Album.name"]}
         FROM
-          ${SQL.ALBUM}
-          LEFT JOIN ${SQL.TRACK} ON ${SQL["ALBUM.name"]} = ${SQL["TRACK.album"]}
+          ${SQL.Album}
+          LEFT JOIN ${SQL.Track} ON ${SQL["Album.name"]} = ${SQL["Track.album"]}
         WHERE
-          ${SQL["TRACK.title"]} IS NULL
+          ${SQL["Track.title"]} IS NULL
       )`
 
   return prisma
     .$executeRawUnsafe(query)
     .then((deleteAmount) => E.right(deleteAmount))
-    .catch(createError("Failed removing unused albums from the database"))
+    .catch(createError("Failed to remove unused albums from the database"))
 }
 
 export async function deleteEmptyArtists(): Promise<Either<IError, number>> {
   const query = `
     DELETE FROM
-      ${SQL.ARTIST}
+      ${SQL.Artist}
     WHERE
       ${SQL.name} in (
         SELECT
-          ${SQL["ARTIST.name"]}
+          ${SQL["Artist.name"]}
         FROM
-          ${SQL.ARTIST}
-          LEFT JOIN ${SQL.TRACK} ON ${SQL["ARTIST.name"]} = ${SQL["TRACK.artist"]}
+          ${SQL.Artist}
+          LEFT JOIN ${SQL.Track} ON ${SQL["Artist.name"]} = ${SQL["Track.artist"]}
         WHERE
-          ${SQL["TRACK.title"]} IS NULL
+          ${SQL["Track.title"]} IS NULL
       )`
 
   return prisma
     .$executeRawUnsafe(query)
     .then((deleteAmount) => E.right(deleteAmount))
-    .catch(createError("Failed removing unused artists from the database"))
+    .catch(createError("Failed to remove unused artists from the database"))
 }
 
 export async function deleteUnusedCoversInDatabase(): Promise<
@@ -481,22 +640,22 @@ export async function deleteUnusedCoversInDatabase(): Promise<
 > {
   const query = `
     DELETE FROM
-      ${SQL.COVER}
+      ${SQL.Cover}
     WHERE
       ${SQL.filepath} in (
         SELECT
-          ${SQL["COVER.filepath"]}
+          ${SQL["Cover.filepath"]}
         FROM
-          ${SQL.COVER}
-          LEFT JOIN ${SQL.TRACK} ON ${SQL["COVER.filepath"]} = ${SQL["TRACK.cover"]}
+          ${SQL.Cover}
+          LEFT JOIN ${SQL.Track} ON ${SQL["Cover.filepath"]} = ${SQL["Track.cover"]}
         WHERE
-          ${SQL["TRACK.cover"]} IS NULL
+          ${SQL["Track.cover"]} IS NULL
       )`
 
   return prisma
     .$executeRawUnsafe(query)
     .then((deleteAmount) => E.right(deleteAmount))
-    .catch(createError("Failed removing unused covers from the database"))
+    .catch(createError("Failed to remove unused covers from the database"))
 }
 
 function createError(
@@ -576,7 +735,7 @@ function insertTracksIntoPlaylist(
         prisma.playlist
           .update({ where: { id }, data: { items: { create: newItems } } })
           .then((playlist) => E.right(playlist as IPlaylist))
-          .catch(createError("Failed updating playlist"))
+          .catch(createError("Failed to update playlist"))
     )
   }
 }
@@ -606,5 +765,135 @@ async function addPlaylistItemsToDatabase(
   return prisma
     .$transaction(itemsToAdd)
     .then((createdItems) => E.right(createdItems as IPlaylistItem[]))
-    .catch(createError("Failed adding items to playlist"))
+    .catch(createError("Failed to add items to playlist"))
+}
+
+async function getPlaylistNames(): Promise<Either<IError, readonly string[]>> {
+  return prisma.playlist
+    .findMany({ select: { name: true } })
+    .then(RA.map(({ name }) => name))
+    .then(E.right)
+    .catch(createError("Failed to get playlist names"))
+}
+
+async function extractTracks(
+  item: IMusicIDsUnion
+): Promise<Either<IError, readonly ITrack[]>> {
+  return match(item)
+    .with({ type: "artist" }, ({ name: artistNames }) => {
+      if (Array.isArray(artistNames)) {
+        return getTracksByArtistIDs(artistNames)
+      }
+
+      return getArtist(undefined, { where: { name: artistNames } }).then(
+        E.map(({ tracks }) => tracks)
+      )
+    })
+
+    .with({ type: "album" }, async ({ name: albumNames }) => {
+      if (Array.isArray(albumNames)) {
+        return getTracksByAlbumIDs(albumNames)
+      }
+
+      return getAlbum(undefined, { where: { name: albumNames } }).then(
+        E.map(({ tracks }) => tracks)
+      )
+    })
+
+    .with({ type: "track" }, ({ id: IDs }) => {
+      if (Array.isArray(IDs)) return getTracksByIDs(IDs)
+
+      return getTracks(undefined, {
+        where: { id: IDs },
+      })
+    })
+
+    .with({ type: "playlist" }, ({ id: IDs }) => {
+      if (Array.isArray(IDs)) {
+        return getTracksByPlaylistIDs(IDs)
+      }
+
+      return getTracksFromPlaylists({
+        where: { id: { in: Array.isArray(IDs) ? [...IDs] : IDs } },
+      })
+    })
+
+    .exhaustive()
+}
+
+async function getTracksByAlbumIDs(
+  IDs: readonly string[]
+): Promise<Either<IError, readonly ITrack[]>> {
+  const IDsToInsert = createSQLArray(IDs)
+
+  return prisma.$queryRaw`
+    SELECT
+      *
+    FROM
+      ${SQL.Track}
+    WHERE
+      ${SQL["Track.album"]} IN (${IDsToInsert})`
+
+    .then((tracks) => tracks as readonly ITrack[])
+    .then(RA.map(removeNulledKeys))
+    .then(E.right)
+    .catch(createError("Failed to get tracks from albums"))
+}
+
+async function getTracksByArtistIDs(
+  IDs: readonly string[]
+): Promise<Either<IError, readonly ITrack[]>> {
+  const IDsToInsert = createSQLArray(IDs)
+
+  return prisma.$queryRaw`
+    SELECT
+      *
+    FROM
+      ${SQL.Track}
+    WHERE
+      ${SQL["Track.artist"]} IN (${IDsToInsert})`
+
+    .then((tracks) => tracks as readonly ITrack[])
+    .then(RA.map(removeNulledKeys))
+    .then(E.right)
+    .catch(createError("Failed to get tracks from artists"))
+}
+
+async function getTracksByPlaylistIDs(
+  IDs: readonly IPlaylistID[]
+): Promise<Either<IError, readonly ITrack[]>> {
+  const IDsToInsert = createSQLArray(IDs)
+
+  return prisma.$queryRaw`
+    SELECT
+      ${SQL["Track.*"]}
+    FROM
+      ${SQL.PlaylistItem}
+      JOIN ${SQL.Track} ON ${SQL["Track.id"]} = ${SQL["PlaylistItem.trackID"]}
+    WHERE
+      ${SQL["PlaylistItem.playlistID"]} IN (${IDsToInsert});`
+
+    .then((tracks) => tracks as readonly ITrack[])
+    .then(RA.map(removeNulledKeys))
+    .then((tracks) => E.right(tracks as readonly ITrack[]))
+    .catch(createError("Failed to get tracks from playlists"))
+}
+
+async function getTracksByIDs(
+  IDs: readonly ITrackID[]
+): Promise<Either<IError, readonly ITrack[]>> {
+  const IDsToInsert = createSQLArray(IDs)
+
+  return prisma.$queryRaw`
+    SELECT
+      *
+    FROM
+      ${SQL.Track}
+    WHERE
+      ${SQL["Track.id"]} IN (${IDsToInsert});`
+
+    .then((tracks) => tracks as readonly ITrack[])
+    .then(RA.map(removeNulledKeys))
+    .then((tracks) => E.right(tracks as readonly ITrack[]))
+    .catch(createError("Failed to get tracks from playlists"))
 }

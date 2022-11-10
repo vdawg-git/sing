@@ -4,7 +4,9 @@
   import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
   import IconPlay from "virtual:icons/heroicons-outline/play"
 
-  import type { IAlbum, IError, ISortOptions, ITrack } from "@sing-types/Types"
+  import type { IError, ISortOptions } from "@sing-types/Types"
+  import type { IAlbum, ITrack } from "@sing-types/DatabaseTypes"
+  import { displayTypeWithCount } from "@sing-shared/Pures"
 
   import { addNotification } from "@/lib/stores/NotificationStore"
   import type {
@@ -12,10 +14,7 @@
     IHeroMetaDataItem,
     ITrackListDisplayOptions,
   } from "@/types/Types"
-  import {
-    createAddToPlaylistAndQueueMenuItems,
-    displayTypeWithCount,
-  } from "@/Helper"
+  import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
 
   import { playNewSource } from "../manager/player"
   import { backgroundImages } from "../stores/BackgroundImages"
@@ -58,7 +57,7 @@
       icon: IconPlay,
       callback: () =>
         playNewSource({
-          source: "albums",
+          source: "album",
           sourceID: albumID,
           sortBy: defaultSort,
           isShuffleOn: false,
@@ -70,7 +69,7 @@
       icon: IconShuffle,
       callback: () =>
         playNewSource({
-          source: "albums",
+          source: "album",
           sourceID: albumID,
           sortBy: defaultSort,
           isShuffleOn: true,
@@ -119,7 +118,7 @@
     on:play={({ detail }) =>
       playNewSource(
         {
-          source: "albums",
+          source: "album",
           sourceID: albumID,
           sortBy: defaultSort,
         },

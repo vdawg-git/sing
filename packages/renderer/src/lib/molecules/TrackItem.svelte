@@ -1,16 +1,12 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
-  import { pipe } from "fp-ts/lib/function"
 
-  import type { ITrack } from "@sing-types/Types"
+  import type { ITrack } from "@sing-types/DatabaseTypes"
 
   import { ROUTES } from "@/Consts"
-  import { displayMetadata } from "@/Helper"
+  import { displayMetadata, type ICreateMenuOutOfMusic } from "@/Helper"
   import { TEST_ATTRIBUTES } from "@/TestConsts"
-  import type {
-    IMenuItemsArgument,
-    ITrackListDisplayOptions,
-  } from "@/types/Types"
+  import type { ITrackListDisplayOptions } from "@/types/Types"
 
   import { useOpenContextMenu } from "../manager/menu"
 
@@ -18,14 +14,15 @@
 
   export let track: ITrack
   export let displayOptions: ITrackListDisplayOptions
-  export let createContextMenuItems: (track: ITrack) => IMenuItemsArgument
+  export let createContextMenuItems: ICreateMenuOutOfMusic
 
   const navigate = useNavigate()
 
-  // TODO fix add to playlist not working on first render of the page without navigation.
-  // This is because the $playlistsStore array has not items yet and it does not refresh when it fills up.
-
-  $: contextMenuItems = createContextMenuItems(track)
+  $: contextMenuItems = createContextMenuItems({
+    type: "track",
+    id: track.id,
+    name: displayMetadata("title", track),
+  })
 
   function navigateTo(type: StrictExtract<keyof ITrack, "album" | "artist">) {
     if (!track[type]) return

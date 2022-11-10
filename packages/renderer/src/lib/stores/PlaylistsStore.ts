@@ -2,7 +2,7 @@ import { readable } from "svelte/store"
 import { pipe } from "fp-ts/lib/function"
 import * as E from "fp-ts/lib/Either"
 
-import type { IPlaylist } from "@sing-types/Types"
+import type { IPlaylist } from "@sing-types/DatabaseTypes"
 
 import { notifiyError } from "@/Helper"
 
@@ -22,7 +22,7 @@ export const playlistsStore = readable<readonly IPlaylist[]>([], (set) => {
 })
 
 async function updatePlaylists(
-  setFunction: (playlists: readonly IPlaylist[]) => void
+  setPlaylists: (playlists: readonly IPlaylist[]) => void
 ): Promise<void> {
   pipe(
     await window.api.getPlaylists(),
@@ -30,7 +30,7 @@ async function updatePlaylists(
     E.foldW(
       notifiyError("Could not retrieved updated playlists"),
 
-      setFunction
+      setPlaylists
     )
   )
 }

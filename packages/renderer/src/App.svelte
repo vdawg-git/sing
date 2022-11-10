@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy } from "svelte"
+  import { onDestroy, onMount } from "svelte"
   import { Router, Route, createHistory } from "svelte-navigator"
 
   import Settings from "@/lib/pages/Settings.svelte"

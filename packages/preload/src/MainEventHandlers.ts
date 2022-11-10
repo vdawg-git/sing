@@ -2,6 +2,7 @@ import log from "ololog"
 
 import type { DirectoryPath } from "@sing-types/Filesystem"
 import type { IAddTracksToPlaylistArgument } from "@sing-backend/lib/Crud"
+import type { IRemoveTracksFromPlaylistArgument } from "@sing-types/DatabaseTypes"
 
 import { coversDirectory } from "../../main/src/Consts"
 import userSettingsStore from "../../main/src/lib/UserSettings"
@@ -49,6 +50,16 @@ export const mainEventHandlers = {
   ) => {
     emitToBackend({
       event: "addTracksToPlaylist",
+      arguments_: [options],
+    })
+  },
+
+  removeTracksFromPlaylist: async (
+    _: IpcMainInvokeEvent,
+    options: IRemoveTracksFromPlaylistArgument
+  ) => {
+    emitToBackend({
+      event: "removeTracksFromPlaylist",
       arguments_: [options],
     })
   },

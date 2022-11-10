@@ -41,7 +41,11 @@ function handleMessage(request: unknown): void {
 }
 
 // Handle incoming queries and responses
-async function handleQuery({ queryID, query, arguments_ }: IBackendQuery) {
+async function handleQuery({
+  queryID,
+  query,
+  arguments_,
+}: IBackendQuery): Promise<void> {
   // @ts-ignore
   const data = await queryHandlers[query](handleReturnEmitter, arguments_)
 

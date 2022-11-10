@@ -4,17 +4,18 @@ import type { ISQLDatabaseItemString } from "@/types/Types"
  * Making the SQL strings typesafer
  */
 export const SQL_STRINGS: { [item in ISQLDatabaseItemString]?: item } = {
-  "ALBUM.name": "ALBUM.name",
-  "ARTIST.name": "ARTIST.name",
-  "COVER.filepath": "COVER.filepath",
-  "TRACK.album": "TRACK.album",
-  "TRACK.cover": "TRACK.cover",
-  "TRACK.title": "TRACK.title",
-  "TRACK.artist": "TRACK.artist",
-  ALBUM: "ALBUM",
-  ARTIST: "ARTIST",
-  COVER: "COVER",
-  TRACK: "TRACK",
+  "Album.name": "Album.name",
+  "Artist.name": "Artist.name",
+  "Cover.filepath": "Cover.filepath",
+  "Track.album": "Track.album",
+  "Track.cover": "Track.cover",
+  "Track.title": "Track.title",
+  "Track.artist": "Track.artist",
+  "Track.*": "Track.*",
+  Album: "Album",
+  Artist: "Artist",
+  Cover: "Cover",
+  Track: "Track",
   filepath: "filepath",
   name: "name",
-} as const
+}

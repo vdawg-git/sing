@@ -298,7 +298,11 @@ export function getErrorMessage(
   defaultMessage: string,
   error: unknown
 ): string {
-  if (typeof error === "string") return error
+  if (typeof error === "string") {
+    if (error.length === 0) return defaultMessage
+
+    return error
+  }
   if (typeof error !== "object" || error === null) return defaultMessage
 
   if (isKeyOfObject(error, "message") && typeof error.message === "string") {
@@ -419,13 +423,6 @@ export function sortString(a2: string, b2: string): 0 | -1 | 1 {
 }
 
 /**
- * To be used with Array.filter
- */
-export function isDefined<T>(input: T | undefined | null): input is T {
-  return input !== undefined && input !== null
-}
-
-/**
  * To be used with `Array.reduce`
  * @param total
  * @param toAdd
@@ -458,19 +455,15 @@ export function extractTracks(argument: IMusicItems): readonly ITrack[] {
   return (
     match(argument)
       // Is an array of database items with tracks
-      .with(P.array({ tracks: P.any }), (data) => {
-        return data.flatMap(({ tracks }) => tracks)
-      })
+      .with(P.array({ tracks: P.any }), (data) =>
+        data.flatMap(({ tracks }) => tracks)
+      )
 
       // Is one item with tracks
-      .with({ tracks: P.array(P.any) }, ({ tracks }) => {
-        return tracks
-      })
+      .with({ tracks: P.array(P.any) }, ({ tracks }) => tracks)
 
       // Is an array of tracks
-      .with(P.array({ title: P.string }), (tracks) => {
-        return tracks
-      })
+      .with(P.array({ title: P.string }), (tracks) => tracks)
 
       // Is a track
       .with({ title: P.string }, (track) => [track])
@@ -486,6 +479,37 @@ export function extractTracks(argument: IMusicItems): readonly ITrack[] {
  */
 export function extractTrackIDs(argument: IMusicItems): readonly ITrackID[] {
   return extractTracks(argument).map(({ id }) => id)
+}
+
+/**
+ * @example const a = ["a", "b", "'c'"]
+ * const b = createSQLArray(a) //=>
+ *    " 'a' , 'b' , ''c'' "
+ * @param array An array of strings to join for a SQL query.
+ */
+export function createSQLArray(array: readonly (string | number)[]): string {
+  return (
+    array
+      // Prevent the query from breaking if a value contains single quote(s)
+      .map((path) => String(path).replace(/'/g, "''"))
+      .map((path) => `'${path}'`)
+      .join(",")
+  )
+}
+
+/**
+ * Returns a string like: "2 types" or "1 type", depending on the count.
+ */
+export function displayTypeWithCount(type: string, count: number): string {
+  return `${count} ${addPluralS(type, count)}`
+}
+
+export function addPluralS(string: string, count: number): string {
+  if (count >= 0 && count !== 1) {
+    return string + "s"
+  }
+
+  return string
 }
 
 // ?########################################################################

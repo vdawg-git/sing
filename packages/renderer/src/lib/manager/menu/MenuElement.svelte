@@ -12,6 +12,7 @@
   import MenuItem from "../../atoms/MenuItem.svelte"
 
   import { calculatePosition, createMenu } from "./MenuHelper"
+  import MenuSeperator from "./MenuSeperator.svelte"
 
   import { menuStore, closeMenu } from "./index"
 
@@ -21,10 +22,12 @@
   // This could probably be accomplished by enabling shifting on each sub-menu opening.
   // And saving an array of coordinates of each submenu after shifting and if the new coordinates of the menu match one of the already saved, simpy dont shift, as a new shift will be further away from the screen edge and not closer, so iit always stays as far away as possible and needed
 
+  // TODO enable scroll lock while menu is opened.
+
   let menuID: "main" | symbol = "main"
 
   // How long does the menu take to resize. Update this also in the CSS down below.
-  const animationSlideDuration = 300
+  const animationSlideDuration = 320
   const animantionSizeDuration = 140
 
   let menuElement: HTMLElement
@@ -114,100 +117,111 @@
 
   function conditionalFly(
     node: HTMLElement,
-    options: FlyParams & { in: boolean }
+    options: FlyParams & { isInAnimation: boolean }
   ): TransitionConfig {
-    // For whatever reason the node gets nulled if the duration is too short. Even with a normal fly animation, it just gets nulled. This fixes it.
+    // For whatever reason the node gets nulled if the duration is too short. Even with a normal fly animation, it just gets nulled. This fixes it *mostly*.
     // Furthermore, the `options.in` gets used to hide the old transititioning element, visually disabling the animation.
-    // Hopefully there will be a better way to do this in the future or even now.
+    // Hopefully there is be a better way to do this.
+
     if (isJustOpened)
       return {
         duration: animationSlideDuration + 200,
-        css: () => `display: none; opacity: ${options.in ? 1 : 0};`,
+        css: () =>
+          `display: none; opacity: ${options.isInAnimation ? 1 : 0};  
+          ${options.isInAnimation ? "" : "pointer-events: none;"}
+          `,
       }
 
     return fly(node, options)
   }
 </script>
 
-{#if activeMenu !== undefined && activeMenu?.items.length !== 0}
-  <!-- Menu reference element. 
-  This one does not animate and thus delivers accurate values to the calculatePosition function. 
-  --->
-  <div
-    bind:this={menuElement}
-    class="fixed"
-    style="
-      left: {menuX}px ;top: {menuY}px; 
-      height: {activeMenuHeight}px; width: {activeMenuWidth}px;"
-  />
-
-  <!-- The displayed menu -->
-  <div
-    data-testID={$menuStore?.testID}
-    class=" _main fixed z-50 h-[256px] max-h-[400px] min-w-[15rem] overflow-hidden rounded-lg border border-grey-400/50 bg-grey-600 shadow-2xl"
-    style="
+{#key $menuStore}
+  {#if activeMenu !== undefined && activeMenu?.items.length !== 0}
+    <!-- The displayed menu -->
+    <!-- For some reason a fade-in prevents the unmounting of the old menu (very visible when the menu completely changes) -->
+    <div
+      data-testID={$menuStore?.testID}
+      class=" _main fixed z-50 h-[256px] max-h-[400px] min-w-[15rem] overflow-hidden rounded-lg border border-grey-400/50 bg-grey-600 shadow-2xl"
+      style="
         left: {menuX}px;
         top: {menuY}px; 
         height: {activeMenuHeight}px; 
         width: {activeMenuWidth}px;
         transition-duration: 400ms;
         transition-property: {isJustOpened
-      ? 'none'
-      : 'width, height, left, top'};"
-    in:fade={{ duration: 120 }}
-    out:fade={{ duration: 150 }}
-    use:onOutClick
-  >
-    <!---- Menu Content -->
-    {#key activeMenu}
-      <div
-        class="absolute top-0 left-0 flex w-max min-w-[240px] flex-col"
-        in:conditionalFly|local={{
-          x: animationValue * (isGoingBack ? -1 : 1),
-          duration: animationSlideDuration,
-          easing: sineInOut,
-          in: true,
-        }}
-        out:conditionalFly|local={{
-          x: animationValue * (isGoingBack ? 1 : -1),
-          duration: animationSlideDuration,
-          easing: sineInOut,
-          in: false,
-        }}
-        bind:this={activeMenuElement}
-        on:introstart={onSlideIntroStart}
-      >
-        <!---- Menu title + back button -->
-        {#if activeMenu.id !== "main"}
-          <div
-            class="flex items-center gap-3 py-3 pl-2 pr-6 text-lg font-medium"
-          >
-            <button
-              class="rounded-full p-1  hover:bg-grey-500"
-              on:click={goBack}
-            >
-              <IconArrowLeft class="h-6 w-6 text-grey-300" />
-            </button>
-            <div class="text-white">
-              {activeMenu.title}
-            </div>
-          </div>
-        {/if}
-
-        <!---- Menu items -->
+        ? 'none'
+        : 'width, height, left, top'};"
+      in:fade={{ duration: 140 }}
+      use:onOutClick
+    >
+      <!---- Menu Content -->
+      {#key activeMenu}
         <div
-          class="flex max-h-[400px] flex-col overflow-y-auto overflow-x-hidden "
+          class="absolute top-0 left-0 flex w-max min-w-[240px] flex-col"
+          in:conditionalFly|local={{
+            x: animationValue * (isGoingBack ? -1 : 1),
+            duration: animationSlideDuration,
+            easing: sineInOut,
+            isInAnimation: true,
+          }}
+          out:conditionalFly|local={{
+            x: animationValue * (isGoingBack ? 1 : -1),
+            duration: animationSlideDuration,
+            easing: sineInOut,
+            isInAnimation: false,
+          }}
+          bind:this={activeMenuElement}
+          on:introstart={onSlideIntroStart}
         >
-          {#each itemsToShow as item}
-            <MenuItem data={item} />
-          {/each}
+          <!---- Menu title + back button -->
+          {#if activeMenu.id !== "main"}
+            <div
+              class="flex items-center gap-3 py-3 pl-2 pr-6 text-lg font-medium"
+            >
+              <button
+                class="rounded-full p-1  hover:bg-grey-500"
+                on:click={goBack}
+              >
+                <IconArrowLeft class="h-6 w-6 text-grey-300" />
+              </button>
+              <div class="text-white">
+                {activeMenu.title}
+              </div>
+            </div>
+          {/if}
+
+          <!---- Menu items -->
+          <div
+            class="flex max-h-[400px] flex-col overflow-y-auto overflow-x-hidden "
+          >
+            {#each itemsToShow as item}
+              {#if item.type === "item"}
+                <MenuItem data={item} />
+              {:else if item.type === "spacer"}
+                <MenuSeperator />
+              {/if}
+            {/each}
+          </div>
         </div>
-      </div>
-    {/key}
-  </div>
-{:else}
-  <div class="fixed" />
-{/if}
+      {/key}
+    </div>
+
+    <!-- 
+    Menu reference element. 
+    This one does not animate and thus delivers accurate values to the calculatePosition function. 
+
+    Plus 4 to the height because otherwise the bottom gets cut off by this amount for some reason.
+  --->
+    <div
+      bind:this={menuElement}
+      class="fixed"
+      style="
+      left: {menuX}px ;top: {menuY}px; 
+      height: {activeMenuHeight + 4}px; width: {activeMenuWidth}px;"
+    />
+  {/if}
+{/key}
 
 <style>
   ._main {

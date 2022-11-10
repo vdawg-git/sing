@@ -35,42 +35,37 @@ export interface IHandlerEmitter extends EventEmitter {
 export type ISendToMainKey = "sendToMain"
 
 /**
- * The uppercase version the Prisma schema names
+ * The possible database keys for a SQL query.
  */
-type ITableNames = Uppercase<Prisma.ModelName>
+export type ISQLDatabaseItemString =
+  | {
+      [Key in keyof _DatabaseCheckerInput]:
+        | `${Key}.${Exclude<keyof _DatabaseCheckerInput[Key], symbol> | "*"}`
+        | Exclude<keyof _DatabaseCheckerInput[Key], symbol | number>
+    }[keyof _DatabaseCheckerInput]
+  | Prisma.ModelName
+
+/**
+ * If this errors check {@link _ValidateDatabaseQueryCheckerInput}
+ */
+type _DatabaseCheckerInput = _ValidateDatabaseQueryCheckerInput<{
+  Album: IAlbum
+  Artist: IArtist
+  Track: ITrack
+  Cover: ICover
+  Playlist: IPlaylist
+  PlaylistItem: IPlaylistItem
+}>
 
 /**
  * Check that the types keys are correct.
  */
 type _ValidateDatabaseQueryCheckerInput<
   T extends Record<
-    ITableNames,
+    Prisma.ModelName,
     IArtist | IAlbum | ITrack | ICover | IPlaylist | IPlaylistItem
   >
 > = T
-
-/**
- * If this errors check {@link _ValidateDatabaseQueryCheckerInput}
- */
-type _DatabaseCheckerInput = _ValidateDatabaseQueryCheckerInput<{
-  ALBUM: IAlbum
-  ARTIST: IArtist
-  TRACK: ITrack
-  COVER: ICover
-  PLAYLIST: IPlaylist
-  PLAYLISTITEM: IPlaylistItem
-}>
-
-/**
- * The possible database keys for a SQL query.
- */
-export type ISQLDatabaseItemString =
-  | {
-      [Key in keyof _DatabaseCheckerInput]:
-        | `${Key}.${Exclude<keyof _DatabaseCheckerInput[Key], symbol>}`
-        | Exclude<keyof _DatabaseCheckerInput[Key], symbol>
-    }[keyof _DatabaseCheckerInput]
-  | ITableNames
 
 /**
  * This is the structure of the data to get searched. The primary and secondary etc. determine the search weigth accordingly. The rest is included to get forwarded to the renderer

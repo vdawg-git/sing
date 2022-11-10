@@ -2,6 +2,7 @@ import { writable } from "svelte/store"
 
 import type {
   IMenuItemArgument,
+  IMenuItemsArgument,
   IMenuLocation,
   IOpenMenuArgument,
   ISubmenuItemArgument,
@@ -12,7 +13,7 @@ import type { StrictOmit } from "ts-essentials"
 const { set, subscribe } = writable<
   | {
       readonly nodeOrPosition: IMenuLocation
-      readonly items: readonly (IMenuItemArgument | ISubmenuItemArgument)[]
+      readonly items: IMenuItemsArgument
       readonly testID?: string
     }
   | undefined

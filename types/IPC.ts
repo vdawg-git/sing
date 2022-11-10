@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { IError, ITrack, IAlbum, IArtist, INotification } from "./Types"
+import type { IError, INotification } from "./Types"
+import type { ITrack, IAlbum, IArtist } from "./DatabaseTypes"
 import type {
   DropFirst,
   ParametersFlattened,
@@ -87,17 +88,12 @@ export type IBackendQuery<T extends IQueryChannels = IQueryChannels> = {
 
 export type IBackendEmitChannels = keyof IBackendEventHandlers
 
+// The handlers as the keys and their arguments as the values.
 export type IBackendEmitHandlers = {
-  readonly [key in IBackendEmitChannels]: {
-    readonly emitTo: IBackToFrontChannels[key]
-    readonly arguments_: ParametersWithoutFirst<IBackendEventHandlers[key]>
-  }
+  readonly [key in IBackendEmitChannels]: ParametersWithoutFirst<
+    IBackendEventHandlers[key]
+  >
 }
-
-export type IBackToFrontChannels = ValidateBackToFrontEvents<{
-  readonly syncMusic: "syncedMusic"
-  readonly addTracksToPlaylist: "playlistUpdated"
-}>
 
 export type IBackendEmitToFrontend = {
   [Key in keyof IFrontendEventsSend]: {
@@ -113,14 +109,7 @@ export type IBackendEvent<
   T extends IBackendEmitChannels = IBackendEmitChannels
 > = {
   readonly event: T
-  readonly arguments_: IBackendEmitHandlers[T]["arguments_"]
+  readonly arguments_: IBackendEmitHandlers[T]
 }
 
 export type IBackendRequest = IBackendQuery | IBackendEvent
-
-// Helper validation
-type ValidateBackToFrontEvents<
-  T extends Readonly<
-    Record<IBackendEmitChannels, keyof IFrontendEventsSend | undefined>
-  >
-> = T

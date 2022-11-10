@@ -1,6 +1,8 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
 
+  import type { IPlaylist } from "@sing-types/DatabaseTypes"
+
   import { ROUTES } from "@/Consts"
   import { playNewSource, tracks } from "@/lib/manager/player"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
@@ -8,6 +10,7 @@
     createAddToPlaylistAndQueueMenuItems,
     createAndNavigateToPlaylist,
   } from "@/Helper"
+  import type { IMenuItemsArgument } from "@/types/Types"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
   import Button from "../atoms/Button.svelte"
@@ -20,9 +23,34 @@
 
   // TODO add "Create your first playlist" button
 
+  $: items = $playlistsStore.map((playlist) => ({
+    title: playlist.name,
+    id: playlist.id,
+    image: playlist.thumbnailCovers?.map(({ filepath }) => filepath),
+    secondaryText: "Playlist",
+    contextMenuItems: createContextMenuItems(playlist),
+  }))
+
   $: {
     // TODO add background images from the playlists thumbs
     backgroundImages.reset()
+  }
+
+
+
+  function createContextMenuItems(playlist: IPlaylist): IMenuItemsArgument {
+    return [
+      ...createAddToPlaylistAndQueueMenuItems($playlistsStore)({
+        type: "playlist",
+        id: playlist.id,
+        name: `${playlist.name} copy`,
+      }),
+      {
+        label: "Remove playlist",
+        onClick: async () => window.api.deletePlaylist(playlist.id),
+        type: "item",
+      },
+    ]
   }
 </script>
 
@@ -47,14 +75,7 @@
   />
 {:else}
   <CardList
-    items={$playlistsStore.map((playlist) => ({
-      title: playlist.name,
-      id: playlist.id,
-      image: playlist.thumbnailCovers,
-      secondaryText: "Playlist",
-      contextMenuItems:
-        createAddToPlaylistAndQueueMenuItems($playlistsStore)(playlist),
-    }))}
+    {items}
     on:play={({ detail: id }) =>
       playNewSource({
         sourceID: id,

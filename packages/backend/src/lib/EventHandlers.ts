@@ -1,5 +1,5 @@
 import { syncMusic } from "./Sync"
-import { addTracksToPlaylist } from "./Crud"
+import { addTracksToPlaylist, removeTracksFromPlaylist } from "./Crud"
 
 /**
  * The functions which handle incoming events. The keys are also the event names.
@@ -8,4 +8,5 @@ import { addTracksToPlaylist } from "./Crud"
 export const backendEventHandlers = Object.freeze({
   syncMusic,
   addTracksToPlaylist,
+  removeTracksFromPlaylist,
 })
