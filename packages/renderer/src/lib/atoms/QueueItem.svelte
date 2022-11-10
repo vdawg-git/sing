@@ -6,9 +6,9 @@
 
   import type { ITrack } from "@sing-types/DatabaseTypes"
 
-  import type { IQueueItem } from "@/types/Types"
+  import type { ICreateMenuOutOfMusic, IQueueItem } from "@/types/Types"
   import { TEST_IDS, TEST_ATTRIBUTES } from "@/TestConsts"
-  import { displayMetadata, type ICreateMenuOutOfMusic } from "@/Helper"
+  import { displayMetadata } from "@/Helper"
 
   import { useOpenContextMenu } from "../manager/menu"
 

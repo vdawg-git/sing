@@ -1,9 +1,5 @@
 import type { FilePath } from "@sing-types/Filesystem"
 import type {
-  IBackendQueryResponse,
-  IBackendEmitToFrontend,
-} from "@sing-types/IPC"
-import type {
   IAlbum,
   IArtist,
   ICover,
@@ -13,23 +9,11 @@ import type {
 } from "@sing-types/DatabaseTypes"
 
 import type { Prisma } from "@prisma/client"
-import type { EventEmitter } from "node:events"
 
 export interface ICoverData {
   readonly md5: string
   readonly path: FilePath
   readonly buffer: Buffer
-}
-
-export interface IHandlerEmitter extends EventEmitter {
-  on: (
-    eventName: ISendToMainKey,
-    listener: (data: IBackendQueryResponse | IBackendEmitToFrontend) => void
-  ) => this
-  emit: (
-    eventName: ISendToMainKey,
-    data: IBackendQueryResponse | IBackendEmitToFrontend
-  ) => boolean
 }
 
 export type ISendToMainKey = "sendToMain"

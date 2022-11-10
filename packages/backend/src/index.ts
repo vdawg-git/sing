@@ -1,28 +1,31 @@
-import { EventEmitter } from "node:events"
-
 import log from "ololog"
+import mitt from "mitt"
 
 import type {
   IBackendQueryResponse,
   IBackendEmitToFrontend,
   IBackendQuery,
   IBackendEvent,
+  IBackendEmitToFrontendPayload,
 } from "@sing-types/IPC"
 
 import { backendEventHandlers } from "@/lib/EventHandlers"
 import { queryHandlers } from "@/lib/QueryHandlers"
 import { isBackendEvent, isBackendQuery } from "@/types/TypeGuards"
-import type { IHandlerEmitter } from "@/types/Types"
 
 log.dim("Database path provided to backend:", process.argv[2])
 
 // Handle incoming requests
 process.on("message", handleMessage)
-process.on("error", log.red)
+process.on("error", log.error.red)
 
-// Gets passed to the one way handlers, to forward data and notifications from the them to the main process
-const handleReturnEmitter = new EventEmitter() as IHandlerEmitter
-handleReturnEmitter.on("sendToMain", sendToMain)
+// Gets passed to the handlers to forward data and notifications from the them to the main process
+const asyncMessageHandler = mitt<IBackendEmitToFrontend>()
+
+asyncMessageHandler.on("*", (type, data) =>
+  // @ts-ignore
+  sendToMain({ forwardToRenderer: true, event: type, data })
+)
 
 function handleMessage(request: unknown): void {
   log.blue.maxArrayLength(3).maxObjectLength(5)(request)
@@ -47,7 +50,7 @@ async function handleQuery({
   arguments_,
 }: IBackendQuery): Promise<void> {
   // @ts-ignore
-  const data = await queryHandlers[query](handleReturnEmitter, arguments_)
+  const data = await queryHandlers[query](asyncMessageHandler, arguments_)
 
   // Send back to the main process, which awaits the response with this `id`
   // Thus the response should not be forwarded / emited directly to the renderer process
@@ -59,10 +62,12 @@ async function handleQuery({
 function handleEvent({ event, arguments_ }: IBackendEvent): void {
   // Responses are send to main via the `handleReturnEmitter`
   // @ts-ignore
-  backendEventHandlers[event](handleReturnEmitter, ...arguments_)
+  backendEventHandlers[event](asyncMessageHandler, ...arguments_)
 }
 
-function sendToMain(response: IBackendQueryResponse | IBackendEmitToFrontend) {
+function sendToMain(
+  response: IBackendQueryResponse | IBackendEmitToFrontendPayload
+) {
   if (!process.send) {
     log.red(
       `process.send does not seem to be available. It is:\n`,

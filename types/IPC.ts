@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Emitter } from "mitt"
 import type { IError, INotification } from "./Types"
 import type { ITrack, IAlbum, IArtist } from "./DatabaseTypes"
 import type {
@@ -96,14 +97,20 @@ export type IBackendEmitHandlers = {
 }
 
 export type IBackendEmitToFrontend = {
-  [Key in keyof IFrontendEventsSend]: {
-    readonly event: Key
-    readonly data: ParametersFlattened<IFrontendEventsSend[Key]> extends never
-      ? undefined
-      : ParametersFlattened<IFrontendEventsSend[Key]>
-    readonly forwardToRenderer: true
+  [Key in keyof IFrontendEventsSend]: ParametersFlattened<
+    IFrontendEventsSend[Key]
+  > extends never
+    ? undefined
+    : ParametersFlattened<IFrontendEventsSend[Key]>
+}
+
+export type IBackendEmitToFrontendPayload = {
+  [key in keyof IBackendEmitToFrontend]: {
+    event: key
+    data: IBackendEmitToFrontend[key]
+    forwardToRenderer: true
   }
-}[keyof IFrontendEventsSend]
+}[keyof IBackendEmitToFrontend]
 
 export type IBackendEvent<
   T extends IBackendEmitChannels = IBackendEmitChannels
@@ -113,3 +120,5 @@ export type IBackendEvent<
 }
 
 export type IBackendRequest = IBackendQuery | IBackendEvent
+
+export type IAsyncMessageHandler = Emitter<IBackendEmitToFrontend>
