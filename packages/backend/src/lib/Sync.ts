@@ -18,8 +18,6 @@ import type {
 } from "@sing-types/Types"
 import type { DirectoryPath } from "@sing-types/Filesystem"
 
-import type { IHandlerEmitter } from "@/types/Types"
-
 import { deleteFromDirectoryInverted, getFilesFromDirectory } from "../Helper"
 
 import {
@@ -38,6 +36,8 @@ import {
   saveCover,
 } from "./Metadata"
 
+import type { IBackMessagesHandler } from "./Messages"
+
 // TODO use album artist tag for albums and if not present determine best on most occuring seperated artist substring?
 
 //? The error rendering functionality is not implemented yet, so there is no need to return the errors (and make the typing more complicated)
@@ -46,7 +46,7 @@ import {
 // Get all track filepaths with the file MD5 checksum and filter the new ones to add out if they have the same MD5 checksum
 // Then upsert only the ones which already exist, for the rest use one big `createMany` statement
 export async function syncMusic(
-  toMainEmitter: IHandlerEmitter,
+  emitter: IBackMessagesHandler,
   {
     coversDirectory,
     directories,
@@ -66,11 +66,11 @@ export async function syncMusic(
 
     log.error.red(error)
 
-    toMainEmitter.emit("sendToMain", {
+    emitter.emit({
       event: "syncedMusic",
       data: E.left(error),
-      forwardToRenderer: true,
-    })
+      shouldForwardToRenderer: true,
+    } as const)
     return
   }
   if (directories.length === 0) {
@@ -82,21 +82,15 @@ export async function syncMusic(
 
     log.error.red("No directories to sync provided", error)
 
-    toMainEmitter.emit("sendToMain", {
+    emitter.emit({
       event: "syncedMusic",
       data: E.left(error),
-      forwardToRenderer: true,
+      shouldForwardToRenderer: true,
     })
     return
   }
 
-  toMainEmitter.emit("sendToMain", {
-    event: "createNotification",
-    data: {
-      label: NOTIFICATION_LABEL.syncStarted,
-    },
-    forwardToRenderer: true,
-  })
+  emitter.showNotification({ label: NOTIFICATION_LABEL.syncStarted })
 
   log("Reading out dirs")
 
@@ -198,33 +192,25 @@ export async function syncMusic(
   if (deleteCoverErrors) log.error.red("deleteCoverError:", deleteCoverErrors)
 
   const artists = E.getOrElseW(() => {
-    emitError(toMainEmitter, "Failed to get artists")
+    emitter.showAlert({ label: "Failed to get artists" })
     return []
-  })(await getArtists(toMainEmitter))
+  })(await getArtists(emitter))
 
   const albums = E.getOrElseW(() => {
-    emitError(toMainEmitter, "Failed to get artists")
+    emitter.showAlert({ label: "Failed to get artists" })
     return []
-  })(await getAlbums(toMainEmitter))
+  })(await getAlbums(emitter))
 
   // Emit added tracks and errors as right values
-  toMainEmitter.emit("sendToMain", {
-    forwardToRenderer: true,
+  emitter.emit({
     event: "syncedMusic",
     data: E.right({
       tracks: addedDBTracks,
       artists,
       albums,
     }),
+    shouldForwardToRenderer: true,
   })
 
   log("Finished syncing music")
-}
-
-function emitError(emitter: IHandlerEmitter, message: string) {
-  emitter.emit("sendToMain", {
-    event: "createNotification",
-    data: { label: message, type: "danger", duration: 5 },
-    forwardToRenderer: true,
-  })
 }

@@ -1,17 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Emitter } from "mitt"
+import type { IPlaylistID } from "./Opaque"
 import type { IError, INotification } from "./Types"
 import type { ITrack, IAlbum, IArtist } from "./DatabaseTypes"
-import type {
-  DropFirst,
-  ParametersFlattened,
-  ParametersWithoutFirst,
-} from "./Utilities"
+import type { DropFirst, ParametersWithoutFirst } from "./Utilities"
 import type { queryHandlers } from "../packages/backend/src/lib/QueryHandlers"
 import type { backendEventHandlers } from "../packages/backend/src/lib/EventHandlers"
 import type { IpcRendererEvent } from "electron"
 import type { Either } from "fp-ts/lib/Either"
-import type { Simplify } from "type-fest"
 
 export type ISyncResult = Either<
   IError,
@@ -48,15 +43,15 @@ export interface IFrontendEventsConsume {
    */
   readonly playlistUpdated: (
     event: IpcRendererEvent,
-    changedPlaylistID: number
+    playlist: IPlaylistID
   ) => void
 }
 
-export type IFrontendEventsSend = Simplify<{
-  [Key in keyof IFrontendEventsConsume]: (
-    ...arguments_: DropFirst<Parameters<IFrontendEventsConsume[Key]>>
-  ) => void
-}>
+export type IFrontendEventsSend = {
+  [Key in keyof IFrontendEventsConsume]: DropFirst<
+    Parameters<IFrontendEventsConsume[Key]>
+  >[0]
+}
 
 /**
  * The available event handlers from the backend.
@@ -69,7 +64,7 @@ export type IQueryChannels = keyof IQueryHandlers
 export type IBackendQueryResponse = {
   readonly queryID: string
   readonly data: ReturnType<IQueryHandlers[IQueryChannels]>
-  readonly forwardToRenderer: false
+  readonly shouldForwardToRenderer: false
 }
 
 /**
@@ -79,7 +74,7 @@ export type IBackendQueryResponse = {
  *
  * It gets added internally by the function `queryBackend` and is nessecary to identify the corresponding response from the backend, as the communication is asynchronous.
  *
- * ! Important: All function should only take the "emitter" and *one* argument, as I dont know how to type it otherwise.
+ * ! Important: All functions should only take the "emitter" and *one* argument, as I dont know how to type it otherwise.
  */
 export type IBackendQuery<T extends IQueryChannels = IQueryChannels> = {
   readonly query: T
@@ -97,20 +92,12 @@ export type IBackendEmitHandlers = {
 }
 
 export type IBackendEmitToFrontend = {
-  [Key in keyof IFrontendEventsSend]: ParametersFlattened<
-    IFrontendEventsSend[Key]
-  > extends never
-    ? undefined
-    : ParametersFlattened<IFrontendEventsSend[Key]>
-}
-
-export type IBackendEmitToFrontendPayload = {
-  [key in keyof IBackendEmitToFrontend]: {
+  [key in keyof IFrontendEventsSend]: {
     event: key
-    data: IBackendEmitToFrontend[key]
-    forwardToRenderer: true
+    data: IFrontendEventsSend[key]
+    shouldForwardToRenderer: true
   }
-}[keyof IBackendEmitToFrontend]
+}[keyof IFrontendEventsSend]
 
 export type IBackendEvent<
   T extends IBackendEmitChannels = IBackendEmitChannels
@@ -120,5 +107,3 @@ export type IBackendEvent<
 }
 
 export type IBackendRequest = IBackendQuery | IBackendEvent
-
-export type IAsyncMessageHandler = Emitter<IBackendEmitToFrontend>

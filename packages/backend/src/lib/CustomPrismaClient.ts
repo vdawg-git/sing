@@ -1,9 +1,9 @@
 import { PrismaClient } from "@prisma/client"
 
-export function createPrismaClient() {
+export function createPrismaClient(databasePath: string) {
   const client = new PrismaClient({
     datasources: {
-      db: { url: process.argv[2] },
+      db: { url: databasePath },
     },
   })
 

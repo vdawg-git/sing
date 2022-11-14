@@ -69,14 +69,18 @@
   // TODO make playlist sortable by dragging them
 </script>
 
+<!-- Wrapper -->
 <nav
   data-testid={id.sidebar}
   class="
-    custom_style z-30 h-screen w-[15.5rem]  flex-shrink-0
-    flex-grow-0 rounded-3xl border border-grey-400/50 bg-grey-800/50
-    p-6 backdrop-blur
+    custom_style z-30 flex h-screen  w-[208px]
+    flex-shrink-0 flex-grow-0 flex-col gap-2 rounded-3xl
+    border border-grey-400/50  bg-grey-900/60 p-4 backdrop-blur-lg
     "
 >
+  <!-- Items -->
+
+  <!-- Logo & Menu-->
   <div class="mb-4 flex justify-between">
     <Logo class="h-6 w-6  text-white/50" />
     <!---- Settings dropdown -->
@@ -98,9 +102,9 @@
     />
   {/each}
 
+  <!---- Playlist items -->
   {#if $playlistsStore.length > 0}
     <MenuSeperator marginX={12} />
-    <!---- Playlist items -->
     {#each playlistItems as { to, label }}
       <SidebarItem {to} {label} isActive={to === currentRoute} />
     {/each}

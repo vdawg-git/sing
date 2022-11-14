@@ -13,6 +13,7 @@
   import type { ISortOptions } from "@sing-types/Types"
   import { displayTypeWithCount, removeDuplicates } from "@sing-shared/Pures"
   import type { IPlaylistID } from "@sing-types/Opaque"
+  import type { TypedIpcRenderer } from "@sing-preload/types/Types"
 
   import type {
     ICreateMenuOutOfTrack,
@@ -24,6 +25,7 @@
   import { playNewSource } from "../manager/player"
   import { backgroundImages } from "../stores/BackgroundImages"
   import { playlistsStore } from "../stores/PlaylistsStore"
+  import CoverAndPlaylistThumbnail from "../atoms/CoverAndPlaylistThumbnail.svelte"
 
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
   import TrackList from "@/lib/organisms/TrackList.svelte"
@@ -40,22 +42,35 @@
 
   let playlist: IPlaylistWithTracks | undefined
 
+  $: covers = playlist?.thumbnailCovers?.map(({ filepath }) => filepath)
+
   // Update the playlist when the it is changed on navigation
-  const unsubsribeFromPlaylistChange = parameters.subscribe(
+  const unsubsribeFromURLChange = parameters.subscribe(
     // TODO Why is it calling this twice all the time
     ({ playlistID: newPlaylistID }) => getAndSetPlaylist(Number(newPlaylistID))
   )
 
   // Update the playlist when its content changes
-  $: unsubscribeUpdate = window.api.on("playlistUpdated", (_, id) => {
-    if (id !== playlist?.id) return
+  let unsubscribeFromPlaylistUpdate: () => TypedIpcRenderer
+  $: {
+    // When the playlist changes
+    if (playlist) {
+      unsubscribeFromPlaylistUpdate && unsubscribeFromPlaylistUpdate()
 
-    getAndSetPlaylist(id)
-  })
+      unsubscribeFromPlaylistUpdate = window.api.on(
+        "playlistUpdated",
+        (_, id) => {
+          if (id !== playlist?.id) return
+
+          getAndSetPlaylist(id)
+        }
+      )
+    }
+  }
 
   onDestroy(() => {
-    unsubsribeFromPlaylistChange()
-    unsubscribeUpdate()
+    unsubsribeFromURLChange()
+    unsubscribeFromPlaylistUpdate()
   })
 
   let tracks: readonly IPlaylistTrack[] | undefined = []
@@ -68,8 +83,8 @@
     },
   ]
 
-  let actions: readonly IHeroAction[]
-  $: actions = [
+  let heroButtons: readonly IHeroAction[]
+  $: heroButtons = [
     {
       label: "Play",
       icon: IconPlay,
@@ -134,13 +149,18 @@
   }
 </script>
 
+<!---------->
+<!-- HTML -->
+<!---------->
+
 {#if playlist}
   <HeroHeading
     title={playlist.name}
     {metadata}
-    image={playlist.thumbnailCovers?.map(({ filepath }) => filepath)}
+    image={covers}
     type="Playlist"
-    {actions}
+    actions={heroButtons}
+    onChangedTitle={console.log}
   />
   {#if tracks && tracks?.length > 0}
     <TrackList

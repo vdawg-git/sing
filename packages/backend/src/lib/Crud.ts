@@ -1,20 +1,11 @@
 import * as E from "fp-ts/Either"
 import * as RA from "fp-ts/lib/ReadonlyArray"
 import { pipe } from "fp-ts/lib/function"
-import { omit } from "fp-ts-std/Struct"
 import log from "ololog"
 import { match, P } from "ts-pattern"
 import { isDefined } from "ts-is-present"
+import { dequal } from "dequal"
 
-import {
-  createSQLArray,
-  insertIntoArray,
-  removeDuplicates,
-  removeNulledKeys,
-  sortByKey,
-  sortTracks,
-  updateKeyValue,
-} from "@sing-shared/Pures"
 import type { FilePath } from "@sing-types/Filesystem"
 import { isKeyOfObject } from "@sing-types/Typeguards"
 import type {
@@ -34,29 +25,48 @@ import type {
   IPlaylistItem,
   IPlaylistGetArgument,
   IPlaylistWithTracks,
-  IPlaylistTrack,
   IPlaylistCreateArgument,
   IMusicIDsUnion,
   IRemoveTracksFromPlaylistArgument,
+  IAddTracksToPlaylistArgument,
 } from "@sing-types/DatabaseTypes"
 import type { IError, ISortOptions, IErrorTypes } from "@sing-types/Types"
 import type { IPlaylistID, ITrackID } from "@sing-types/Opaque"
-import type { IAsyncMessageHandler } from "@sing-types/IPC"
 
-import { createDefaultPlaylistName, createPlaylistItem } from "@/Helper"
+import type { IBackEndMessages } from "@/types/Types"
+
+import {
+  convertItemsPlaylistToTracksPlaylist,
+  createDefaultPlaylistName,
+  createPlaylistItem,
+  getCoverUpdatePlaylist,
+  getPlaylistCoverOfTracks,
+} from "../Helper"
+import {
+  createSQLArray,
+  insertIntoArray,
+  removeDuplicates,
+  removeNulledKeys,
+  sortByKey,
+  sortTracks,
+  updateKeyValue,
+} from "../../../shared/Pures"
 
 import { SQL_STRINGS as SQL } from "./Consts"
 import { createPrismaClient } from "./CustomPrismaClient"
 
+import type { IBackMessagesHandler } from "./Messages"
 import type { PrismaPromise, PlaylistItem, Prisma } from "@prisma/client"
 import type { Either } from "fp-ts/Either"
 
-const prisma = createPrismaClient()
+log(process.argv)
+log(process.argv[2])
+const prisma = createPrismaClient(process.argv[2])
 
 // TODO Update changed covers correctly (now they are getting deleted for whatever reason when they change)
 
 export async function getPlaylists(
-  _: IAsyncMessageHandler | undefined,
+  _: IBackMessagesHandler | undefined,
   options?: IPlaylistFindManyArgument
 ): Promise<Either<IError, readonly IPlaylist[]>> {
   const prismaOptions: Prisma.PlaylistFindManyArgs = {
@@ -105,7 +115,7 @@ async function getTracksFromPlaylists(
 }
 
 export async function getPlaylist(
-  _: IAsyncMessageHandler | undefined,
+  _: IBackMessagesHandler | undefined,
   { where, sortBy, isShuffleOn }: IPlaylistGetArgument
 ): Promise<Either<IError, IPlaylistWithTracks>> {
   const defaultSort: ISortOptions["playlist"] = [
@@ -127,15 +137,7 @@ export async function getPlaylist(
       })
       .then((playlist) => playlist as unknown as IPlaylistWithItems)
       // Convert the item[] to ( ITrack & {playlistIndex: number} )[]
-      .then((playlist) => {
-        const tracks: readonly IPlaylistTrack[] = playlist.items.map(
-          (item) => ({
-            ...(item.track as ITrack),
-            manualOrderIndex: item.index,
-          })
-        )
-        return pipe({ ...playlist, tracks }, omit(["items"]))
-      })
+      .then(convertItemsPlaylistToTracksPlaylist)
       .then((playlist) =>
         updateKeyValue("tracks", sortTracks(usedSort), playlist)
       )
@@ -150,7 +152,7 @@ export async function getPlaylist(
  * This gets the playlist with its database items, which are not tracks, but wrapper of tracks and their index within the playlist.
  */
 async function getPlaylistWithItems(
-  _: IAsyncMessageHandler | undefined,
+  _: IBackMessagesHandler | undefined,
   id: IPlaylistID
 ): Promise<Either<IError, IPlaylistWithItems>> {
   return prisma.playlist
@@ -167,7 +169,7 @@ async function getPlaylistWithItems(
 }
 
 export async function createPlaylist(
-  emitter: IAsyncMessageHandler,
+  emitter: IBackMessagesHandler,
   options?: IPlaylistCreateArgument
 ): Promise<Either<IError, IPlaylist>> {
   const playlistData: Either<IError, Prisma.PlaylistCreateArgs["data"]> =
@@ -207,10 +209,7 @@ export async function createPlaylist(
       .exhaustive()
 
   if (E.isLeft(playlistData)) {
-    emitter.emit("createNotification", {
-      label: "Failed to create playlist",
-      type: "danger",
-    })
+    emitter.showAlert({ label: "Failed to create playlist" })
     log.red.error(playlistData)
     return playlistData
   }
@@ -220,15 +219,18 @@ export async function createPlaylist(
       data: playlistData.right,
     })
     .then((newPlaylist) => {
-      emitter.emit("playlistsUpdated")
+      emitter.emit({
+        event: "playlistsUpdated",
+        data: undefined,
+        shouldForwardToRenderer: true,
+      })
 
       // If the playlist was created by a context menu action on a music item, which would mean the user was not automatically forwarded to the playlist, create a succes notification.
       // Currently options are not set through context menu creation
       if (options) {
         // TODO on click on the notification forward to the playlist
-        emitter.emit("createNotification", {
+        emitter.showNotification({
           label: `Created playlists ${options.name}.`,
-          type: "default",
         })
       }
 
@@ -237,10 +239,7 @@ export async function createPlaylist(
       )
     })
     .catch((error) => {
-      emitter.emit("createNotification", {
-        label: "Failed to create playlist",
-        type: "danger",
-      })
+      emitter.showAlert({ label: "Failed to create playlist" })
       log.red.error(error)
 
       return createError("Failed to create playlist at database")(error)
@@ -248,55 +247,49 @@ export async function createPlaylist(
 }
 
 export async function renamePlaylist(
-  emitter: IAsyncMessageHandler,
+  emitter: IBackMessagesHandler,
   { id: playlistID, newName }: IPlaylistRenameArgument
 ): Promise<Either<IError, string>> {
-  try {
-    prisma.playlist.update({
+  return prisma.playlist
+    .update({
       where: { id: playlistID },
       data: { name: newName },
     })
+    .then(() => {
+      emitter.emit({
+        event: "playlistsUpdated",
+        shouldForwardToRenderer: true,
+        data: undefined,
+      })
 
-    emitter.emit("playlistsUpdated")
-
-    return E.right(newName)
-  } catch (error) {
-    return createError("Failed to rename playlist at database")(error)
-  }
+      return E.right(newName)
+    })
+    .catch(createError("Failed to rename playlist at database"))
 }
 
 export async function deletePlaylist(
-  emitter: IAsyncMessageHandler,
+  emitter: IBackMessagesHandler,
   id: number
 ): Promise<Either<IError, number>> {
-  // TODO let the renderer know that the playlist amount has changed. Probably need to implement some async events for that to work
-
-  log({ id })
-
   try {
     const deletedPlaylist = await prisma.playlist.delete({ where: { id } })
 
-    emitter.emit("playlistsUpdated")
+    emitter.emit({
+      event: "playlistsUpdated",
+      data: undefined,
+      shouldForwardToRenderer: true,
+    })
 
-    emitter.emit("createNotification", {
+    emitter.showNotification({
       label: `Deleted playlist ${deletedPlaylist.name}`,
       type: "check",
     })
 
     return E.right(id)
   } catch (error) {
-    emitter.emit("createNotification", {
-      label: `Failed to delete playlist.`,
-      type: "warning",
-    })
+    emitter.showAlert({ label: `Failed to delete playlist.` })
     return createError("Failed to delete playlist at database")(error)
   }
-}
-
-export type IAddTracksToPlaylistArgument = {
-  readonly playlist: IPlaylist
-  readonly musicToAdd: IMusicIDsUnion
-  readonly insertAt?: number
 }
 
 /**
@@ -305,7 +298,7 @@ export type IAddTracksToPlaylistArgument = {
  * The renderer then refreshes the plalyist. And as this does nopt return anything, it is treated as an event and not as a query.
  */
 export async function addTracksToPlaylist(
-  toMainEmitter: IAsyncMessageHandler,
+  toMainEmitter: IBackMessagesHandler,
   { musicToAdd, playlist, insertAt }: IAddTracksToPlaylistArgument
 ): Promise<void> {
   const trackIDs = pipe(
@@ -316,9 +309,13 @@ export async function addTracksToPlaylist(
   if (E.isLeft(trackIDs)) {
     log.red.error(trackIDs.left)
 
-    toMainEmitter.emit("createNotification", {
-      label: "Failed to update playlist. Could not get tracks from database.",
-      type: "danger",
+    toMainEmitter.emit({
+      event: "createNotification",
+      data: {
+        label: "Failed to update playlist. Could not get tracks from database.",
+        type: "danger",
+      },
+      shouldForwardToRenderer: true,
     })
     return
   }
@@ -333,25 +330,33 @@ export async function addTracksToPlaylist(
   E.foldW(
     (error) => {
       log.error.red(error)
-      toMainEmitter.emit("createNotification", {
-        label: "Failed to update playlist",
-        type: "danger",
+      toMainEmitter.emit({
+        event: "createNotification",
+        data: {
+          label: "Failed to update playlist",
+          type: "danger",
+        },
+        shouldForwardToRenderer: true,
       })
     },
     (_success) => {
-      toMainEmitter.emit("createNotification", {
+      toMainEmitter.showNotification({
         // TODO make this nice and meaningful
         label: `Added ${musicToAdd.type} to playlist ${playlist.name}`,
         type: "check",
       })
 
-      toMainEmitter.emit("playlistUpdated", playlist.id)
+      toMainEmitter.emit({
+        event: "playlistUpdatedInternal",
+        data: playlist.id,
+        shouldForwardToRenderer: false,
+      })
     }
   )(resultEither)
 }
 
 export async function removeTracksFromPlaylist(
-  mainEmitter: IAsyncMessageHandler,
+  mainEmitter: IBackMessagesHandler,
   { id, trackIDs }: IRemoveTracksFromPlaylistArgument
 ): Promise<void> {
   prisma.playlist
@@ -362,21 +367,26 @@ export async function removeTracksFromPlaylist(
           deleteMany: trackIDs.map((trackID) => ({ trackID: trackID })),
         },
       },
+      include: { thumbnailCovers: true, items: { include: { track: true } } },
     })
-    .then(() => {
-      mainEmitter.emit("playlistUpdated", id)
+    .then((playlist) => playlist as unknown as IPlaylistWithItems)
+    .then((playlist) => {
+      mainEmitter.emit({
+        event: "playlistUpdatedInternal",
+        data: playlist.id,
+        shouldForwardToRenderer: false,
+      })
     })
     .catch((error) => {
       log.error.red(error)
-      mainEmitter.emit("createNotification", {
+      mainEmitter.showAlert({
         label: "Failed to delete track" + (trackIDs.length > 1 ? "s" : ""),
-        type: "danger",
       })
     })
 }
 
 export async function getArtists(
-  _?: IAsyncMessageHandler,
+  _?: IBackMessagesHandler,
   options?: IArtistFindManyArgument
 ): Promise<Either<IError, readonly IArtist[]>> {
   const prismaOptions: Prisma.ArtistFindManyArgs = {
@@ -409,7 +419,7 @@ export async function getArtists(
  * The handler emitter is injected by the backend at `index.ts`. If we need to call this function not from the, passing undefined as the emitter is fine.
  */
 export async function getArtist(
-  _: IAsyncMessageHandler | undefined,
+  _: IBackMessagesHandler | undefined,
   { where, sortBy, isShuffleOn }: IArtistGetArgument
 ): Promise<Either<IError, IArtist>> {
   const include: Prisma.ArtistInclude = {
@@ -441,7 +451,7 @@ export async function getArtist(
 }
 
 export async function getAlbums(
-  _?: IAsyncMessageHandler,
+  _?: IBackMessagesHandler,
   options?: IAlbumFindManyArgument
 ): Promise<Either<IError, readonly IAlbum[]>> {
   const prismaOptions: Prisma.AlbumFindManyArgs = {
@@ -460,7 +470,7 @@ export async function getAlbums(
 }
 
 export async function getAlbum(
-  _: IAsyncMessageHandler | undefined,
+  _: IBackMessagesHandler | undefined,
   { where, isShuffleOn, sortBy }: IAlbumGetArgument
 ): Promise<Either<IError, IAlbum>> {
   const include: Prisma.AlbumInclude = {
@@ -484,7 +494,7 @@ export async function getAlbum(
 }
 
 export async function getTracks(
-  _?: IAsyncMessageHandler,
+  _?: IBackMessagesHandler,
   options?: ITrackFindManyArgument
 ): Promise<Either<IError, readonly ITrack[]>> {
   const prismaOptions: Prisma.TrackFindManyArgs = { where: options?.where }
@@ -504,7 +514,7 @@ export async function getTracks(
 }
 
 export async function getCovers(
-  _?: IAsyncMessageHandler,
+  _?: IBackMessagesHandler,
   options?: Prisma.CoverFindManyArgs
 ): Promise<Either<IError, readonly ICover[]>> {
   return prisma.cover
@@ -647,7 +657,9 @@ function addArtistImage<T extends { albums: readonly { cover?: string }[] }>(
 function insertTracksIntoPlaylist(
   { id }: IPlaylist,
   insertionIndex: number
-): (trackIDs: readonly ITrackID[]) => Promise<Either<IError, IPlaylist>> {
+): (
+  trackIDs: readonly ITrackID[]
+) => Promise<Either<IError, IPlaylistWithItems>> {
   return async (trackIDs) => {
     const currentItems: Either<
       IError,
@@ -686,8 +698,14 @@ function insertTracksIntoPlaylist(
       // Add to the database
       (newItems) =>
         prisma.playlist
-          .update({ where: { id }, data: { items: { create: newItems } } })
-          .then((playlist) => E.right(playlist as IPlaylist))
+          .update({
+            where: { id },
+            data: { items: { create: newItems } },
+            include: { items: { include: { track: true } } },
+          })
+          .then((playlist) =>
+            E.right(playlist as unknown as IPlaylistWithItems)
+          )
           .catch(createError("Failed to update playlist"))
     )
   }
@@ -699,8 +717,8 @@ function appendTracksToPlaylist({
   trackIDs: readonly ITrackID[]
 ) => Promise<Either<IError, readonly IPlaylistItem[]>> {
   return async (trackIDs: readonly ITrackID[]) => {
-    const currentLastIndex = await prisma.playlist.count({
-      where: { id },
+    const currentLastIndex = await prisma.playlistItem.count({
+      where: { playlistID: id },
     })
 
     const itemsToAppend = trackIDs.map(createPlaylistItem(id, currentLastIndex))
@@ -713,7 +731,9 @@ async function addPlaylistItemsToDatabase(
   items: readonly Prisma.PlaylistItemUncheckedCreateInput[]
 ): Promise<Either<IError, readonly IPlaylistItem[]>> {
   const itemsToAdd: Prisma.Prisma__PlaylistItemClient<PlaylistItem, never>[] =
-    items.map((data) => prisma.playlistItem.create({ data }))
+    items.map((data) =>
+      prisma.playlistItem.create({ data, include: { track: true } })
+    )
 
   return prisma
     .$transaction(itemsToAdd)
@@ -849,4 +869,46 @@ async function getTracksByIDs(
     .then(RA.map(removeNulledKeys))
     .then((tracks) => E.right(tracks as readonly ITrack[]))
     .catch(createError("Failed to get tracks from playlists"))
+}
+
+export async function updatePlaylistCover(
+  messageHandler: IBackMessagesHandler,
+  { data: playlistID }: IBackEndMessages["playlistUpdatedInternal"]
+): Promise<void> {
+  const playlist = await getPlaylist(undefined, {
+    where: { id: playlistID },
+  })
+
+  if (E.isLeft(playlist)) {
+    log.error.red(`Failed retrieving playlist afer update: ID: ${playlistID}`)
+    return
+  }
+
+  // Cover was added manually and does not need to be updated from the tracks
+  if (playlist.right.thumbnailCovers?.at(0)?.isManuallyAdded) return
+
+  const oldThumbnail = playlist.right.thumbnailCovers?.map(
+    ({ filepath }) => filepath
+  )
+  const newThumbnails = getPlaylistCoverOfTracks(playlist.right.tracks)
+
+  // Covers are the same, no need to update
+  if (dequal(oldThumbnail, newThumbnails)) return
+
+  // Covers are different, update
+  const thumbnailCovers = getCoverUpdatePlaylist(oldThumbnail, newThumbnails)
+
+  prisma.playlist
+    .update({
+      where: { id: playlistID },
+      data: { thumbnailCovers },
+    })
+    .then(({ id }) =>
+      messageHandler.emit({
+        event: "playlistUpdated",
+        data: id as IPlaylistID,
+        shouldForwardToRenderer: true,
+      })
+    )
+    .catch(log.error.red)
 }

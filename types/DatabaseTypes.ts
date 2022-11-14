@@ -16,7 +16,6 @@ import type {
   Artist,
   Cover,
   Playlist,
-  PlaylistItem,
 } from "@prisma/client"
 import type { Opaque } from "type-fest"
 import type { CamelCase, StrictExtract } from "ts-essentials"
@@ -27,8 +26,8 @@ export type IPlaylist = DeepReadonlyNullToUndefined<Playlist> &
       include: { thumbnailCovers: true }
     }>,
     {
-      thumbnailCovers?: ICover[]
-      id: IPlaylistID
+      readonly thumbnailCovers?: readonly ICover[]
+      readonly id: IPlaylistID
     }
   >
 
@@ -42,12 +41,12 @@ export type IPlaylist = DeepReadonlyNullToUndefined<Playlist> &
 export type IPlaylistWithItems = DeepReadonlyNullToUndefined<Playlist> &
   OnlyKeysOf<
     Prisma.PlaylistGetPayload<{
-      include: { thumbnailCovers: true; items: true }
+      include: { thumbnailCovers: true; items: { include: { track: true } } }
     }>,
     {
-      thumbnailCovers?: FilePath[]
-      items: readonly IPlaylistItemWithTrack[]
-      id: IPlaylistID
+      readonly thumbnailCovers?: readonly ICover[]
+      readonly items: readonly IPlaylistItem[]
+      readonly id: IPlaylistID
     }
   >
 
@@ -63,23 +62,13 @@ export type IPlaylistWithTracks = IPlaylist & {
  */
 export type IPlaylistTrack = ITrack & { readonly manualOrderIndex: number }
 
-export type IPlaylistItem = DeepReadonlyNullToUndefined<
-  Override<
-    PlaylistItem,
-    {
-      id: Opaque<number, "IPlaylistItemID">
-    }
-  >
->
-
-export type IPlaylistItemWithTrack = DeepReadonlyNullToUndefined<
-  Override<
-    Prisma.PlaylistItemGetPayload<{ include: { track: true } }>,
-    {
-      id: Opaque<number, "IPlaylistItemID">
-      track: ITrack
-    }
-  >
+export type IPlaylistItem = Override<
+  DeepReadonlyNullToUndefined<
+    Prisma.PlaylistItemGetPayload<{ include: { track: true } }>
+  >,
+  {
+    id: Opaque<number, "IPlaylistItemID">
+  }
 >
 
 export type ITrack = Override<
@@ -262,6 +251,12 @@ export type IMusicIDsUnion = validateMusicIDTypes<IMusicIDs[keyof IMusicIDs]>
  * Currently used for adding music to playlists.
  */
 export type IPlaylistCreateArgument = IMusicIDsUnion & { readonly name: string }
+
+export type IAddTracksToPlaylistArgument = {
+  readonly playlist: IPlaylist
+  readonly musicToAdd: IMusicIDsUnion
+  readonly insertAt?: number
+}
 
 export type IRemoveTracksFromPlaylistArgument = {
   id: IPlaylistID

@@ -50,22 +50,22 @@
     <div class="flex w-full">
       <Sidebar />
 
-      <div
-        class="fixed top-10 right-6 z-20 flex w-[calc(100vw-304px)] justify-between gap-6"
-      >
-        <BackAndForthNavigation />
-        <Searchbar />
-      </div>
-
       <main
         class="
           relative flex h-screen
           max-h-screen w-full
           content-start items-start
           justify-center  overflow-x-visible overflow-y-scroll  p-6
-          sm:px-2 md:px-6 lg:px-10
+          sm:px-2 md:px-4 lg:px-8
           "
       >
+        <div
+          class="fixed top-10 right-6 z-20 flex w-[calc(100vw-256px)] justify-between gap-6"
+        >
+          <BackAndForthNavigation />
+          <Searchbar />
+        </div>
+
         <!---- Pages -->
 
         <div

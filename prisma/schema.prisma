@@ -187,9 +187,11 @@ model Cover {
   album    Album?
   tracks   Track[]
 
+  isManuallyAdded Boolean @default(false) /// If this image is added by the user to the app and not by music data (for example, it got added as a playlist image)
+
   playlistsThumbnail Playlist[]
 
-  type String @default("cover") /// #DO NOT SET THIS. This is is used to provide a discriminating union for typescript.
+  type String @default("cover") /// ###DO NOT SET THIS. This is is used to provide a discriminating union for typescript.
 }
 
 model Playlist {

@@ -1,8 +1,10 @@
 import log from "ololog"
 
 import type { DirectoryPath } from "@sing-types/Filesystem"
-import type { IAddTracksToPlaylistArgument } from "@sing-backend/lib/Crud"
-import type { IRemoveTracksFromPlaylistArgument } from "@sing-types/DatabaseTypes"
+import type {
+  IRemoveTracksFromPlaylistArgument,
+  IAddTracksToPlaylistArgument,
+} from "@sing-types/DatabaseTypes"
 
 import { coversDirectory } from "../../main/src/Consts"
 import userSettingsStore from "../../main/src/lib/UserSettings"

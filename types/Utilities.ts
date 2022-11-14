@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { ITrackID } from "./Opaque"
-
 import type { ReadonlyNonEmptyArray } from "fp-ts/lib/ReadonlyNonEmptyArray"
 import type { ReadonlyDeep, Exact, Merge } from "type-fest"
 
@@ -141,3 +139,8 @@ export type KeyOfConditional<Base, Condition> = {
  * The array is readonly.
  */
 export type SingleOrNonEmptyArray<T> = T | ReadonlyNonEmptyArray<T>
+
+export type EventHandler<
+  T extends Event | MouseEvent = Event,
+  A extends Element = HTMLElement
+> = (event: T & { currentTarget: EventTarget & A }) => void

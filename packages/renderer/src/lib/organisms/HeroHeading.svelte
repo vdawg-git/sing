@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { FilePath } from "@sing-types/Filesystem"
+  import type { EventHandler } from "@sing-types/Utilities"
 
   import { doTextResizeToFitElement } from "@/Helper"
   import type { IHeroAction, IHeroMetaDataItem } from "@/types/Types"
@@ -8,13 +9,21 @@
 
   import Button from "@/lib/atoms/Button.svelte"
 
+  /**
+   * The cover(s) to display
+   */
   export let image: FilePath | readonly FilePath[] | undefined = undefined
   export let type: "Artist" | "Album" | "Playlist" | undefined = undefined
   export let title: string
   export let metadata: readonly IHeroMetaDataItem[]
   export let actions: readonly IHeroAction[] | undefined = undefined
-  export let onClickCover: (() => void) | undefined = undefined
-  export let onClickTitle: (() => void) | undefined = undefined
+  export let onClickCover:
+    | EventHandler<MouseEvent, HTMLDivElement>
+    | undefined = undefined
+  /**
+   * This makes the title editable and calls this function when edited.
+   */
+  export let onChangedTitle: EventHandler | undefined = undefined
 
   // TODO disable focus indicator for now
 
@@ -27,13 +36,21 @@
   <div class="flex max-w-full items-end gap-10 text-ellipsis ">
     <!-- Image / Cover -->
     {#if Array.isArray(image) ? image.length > 0 : image}
-      <div class="relative h-52 w-52 shrink-0" on:click={onClickCover}>
-        <CoverAndPlaylistThumbnail {image} />
+      <div
+        class="relative h-52 w-52 shrink-0 "
+        on:click={onClickCover}
+        class:cursor-pointer={onClickCover}
+      >
+        <slot name="cover">
+          <CoverAndPlaylistThumbnail {image} />
+        </slot>
         <!---- Backglow / Blur -->
         <div
           class="_backdrop absolute left-2 top-4 -z-10 h-48 w-48 rounded-lg opacity-30"
         >
-          <CoverAndPlaylistThumbnail {image} />
+          <slot name="cover">
+            <CoverAndPlaylistThumbnail {image} />
+          </slot>
         </div>
       </div>
     {/if}
@@ -47,9 +64,9 @@
       <!---- Title -->
       {#key title}
         <h1
-          class="block h-max overflow-x-hidden  text-ellipsis whitespace-nowrap leading-normal"
-          use:doTextResizeToFitElement={{ minSize: 40, maxSize: 120, step: 8 }}
-          on:click={onClickTitle}
+          class="scroll block h-max  overflow-x-hidden overflow-y-clip text-ellipsis whitespace-nowrap pb-4 leading-none"
+          use:doTextResizeToFitElement={{ minSize: 32, maxSize: 120, step: 8 }}
+          class:cursor-pointer={!!onChangedTitle}
         >
           {title}
         </h1>

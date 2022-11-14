@@ -1,33 +1,47 @@
 import log from "ololog"
-import mitt from "mitt"
+import { match } from "ts-pattern"
 
 import type {
   IBackendQueryResponse,
   IBackendEmitToFrontend,
   IBackendQuery,
   IBackendEvent,
-  IBackendEmitToFrontendPayload,
 } from "@sing-types/IPC"
 
 import { backendEventHandlers } from "@/lib/EventHandlers"
 import { queryHandlers } from "@/lib/QueryHandlers"
 import { isBackendEvent, isBackendQuery } from "@/types/TypeGuards"
 
+import { backendMessages } from "./lib/Messages"
+import { updatePlaylistCover } from "./lib/Crud"
+
 log.dim("Database path provided to backend:", process.argv[2])
 
 // Handle incoming requests
-process.on("message", handleMessage)
+process.on("message", handleMessageFromMain)
 process.on("error", log.error.red)
 
-// Gets passed to the handlers to forward data and notifications from the them to the main process
-const asyncMessageHandler = mitt<IBackendEmitToFrontend>()
+// Handle internal events
+backendMessages.on("*", (_, message) => {
+  match(message)
+    .with({ shouldForwardToRenderer: true }, sendToMain)
+    .with({ event: "playlistUpdatedInternal" }, (data) =>
+      sendToMain({
+        ...data,
+        event: "playlistUpdated",
+        shouldForwardToRenderer: true,
+      })
+    )
+    .otherwise((data) =>
+      log.error.red("Backend Index: Unhandled message received:", data)
+    )
+})
 
-asyncMessageHandler.on("*", (type, data) =>
-  // @ts-ignore
-  sendToMain({ forwardToRenderer: true, event: type, data })
+backendMessages.on("playlistUpdatedInternal", (id) =>
+  updatePlaylistCover(backendMessages, id)
 )
 
-function handleMessage(request: unknown): void {
+function handleMessageFromMain(request: unknown): void {
   log.blue.maxArrayLength(3).maxObjectLength(5)(request)
 
   if (isBackendQuery(request)) {
@@ -49,25 +63,23 @@ async function handleQuery({
   query,
   arguments_,
 }: IBackendQuery): Promise<void> {
-  // @ts-ignore
-  const data = await queryHandlers[query](asyncMessageHandler, arguments_)
+  // @ts-expect-error
+  const data = await queryHandlers[query](backendMessages, arguments_)
 
   // Send back to the main process, which awaits the response with this `id`
   // Thus the response should not be forwarded / emited directly to the renderer process
-  // @ts-ignore
-  sendToMain({ queryID, data, forwardToRenderer: false })
+  // @ts-expect-error
+  sendToMain({ queryID, data, shouldForwardToRenderer: false })
 }
 
 // Handle incoming request which do not need a synchronous two-way response
 function handleEvent({ event, arguments_ }: IBackendEvent): void {
   // Responses are send to main via the `handleReturnEmitter`
-  // @ts-ignore
-  backendEventHandlers[event](asyncMessageHandler, ...arguments_)
+  // @ts-expect-error
+  backendEventHandlers[event](backendMessages, ...arguments_)
 }
 
-function sendToMain(
-  response: IBackendQueryResponse | IBackendEmitToFrontendPayload
-) {
+function sendToMain(response: IBackendQueryResponse | IBackendEmitToFrontend) {
   if (!process.send) {
     log.red(
       `process.send does not seem to be available. It is:\n`,

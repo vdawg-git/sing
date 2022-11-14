@@ -1,5 +1,6 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
+
   import NavButton from "../atoms/NavButton.svelte"
 
   const navigate = useNavigate()

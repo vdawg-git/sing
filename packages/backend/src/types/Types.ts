@@ -7,6 +7,8 @@ import type {
   IPlaylistItem,
   ITrack,
 } from "@sing-types/DatabaseTypes"
+import type { IFrontendEventsSend } from "@sing-types/IPC"
+import type { IPlaylistID } from "@sing-types/Opaque"
 
 import type { Prisma } from "@prisma/client"
 
@@ -73,4 +75,26 @@ type IToSearchTrack = {
   readonly primary: string
   readonly secondary?: string
   readonly tertiary?: string
+}
+
+/**
+ * Currently there are no internal backend events, but I wanted to implement some and now it is easy to support them
+ */
+export type IBackEndMessages = TransfromToEmitterData<
+  IFrontendEventsSend,
+  true
+> &
+  TransfromToEmitterData<IInternalEvents, false>
+
+export type IInternalEvents = { playlistUpdatedInternal: IPlaylistID }
+
+type TransfromToEmitterData<
+  T extends Record<string, unknown>,
+  ShouldForwardToRenderer extends boolean
+> = {
+  [Key in keyof T]: {
+    readonly event: Key
+    readonly data: T[Key]
+    readonly shouldForwardToRenderer: ShouldForwardToRenderer
+  }
 }

@@ -17,8 +17,8 @@ import type {
   IPlaylistRenameArgument,
   IRemoveTracksFromPlaylistArgument,
   ITrackFindManyArgument,
+  IAddTracksToPlaylistArgument,
 } from "@sing-types/DatabaseTypes"
-import type { IAddTracksToPlaylistArgument } from "@sing-backend/lib/Crud"
 
 import { ipcRenderer } from "./TypedIPC"
 

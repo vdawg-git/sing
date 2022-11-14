@@ -12,6 +12,9 @@ import c from "ansicolor"
 import * as E from "fp-ts/lib/Either"
 import log from "ololog"
 import slash from "slash"
+import { pipe } from "fp-ts/lib/function"
+import { omit } from "fp-ts-std/Struct"
+import { isDefined } from "ts-is-present"
 
 import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"
 import { isError } from "@sing-types/Typeguards"
@@ -22,8 +25,14 @@ import type {
   IErrorFSWriteFailed,
 } from "@sing-types/Types"
 import type { IPlaylistID, ITrackID } from "@sing-types/Opaque"
+import type {
+  IPlaylistTrack,
+  IPlaylistWithItems,
+  IPlaylistWithTracks,
+  ITrack,
+} from "@sing-types/DatabaseTypes"
 
-import { getLeftsRights } from "../../shared/Pures"
+import { getLeftsRights, removeDuplicates } from "../../shared/Pures"
 
 import type { Prisma } from "@prisma/client"
 import type { Either } from "fp-ts/lib/Either"
@@ -190,4 +199,43 @@ export function createPlaylistItem(
     trackID,
     playlistID,
   })
+}
+
+export function convertItemsPlaylistToTracksPlaylist(
+  playlist: IPlaylistWithItems
+): IPlaylistWithTracks {
+  const tracks: readonly IPlaylistTrack[] = playlist.items.map((item) => ({
+    ...(item.track as ITrack),
+    manualOrderIndex: item.index,
+  }))
+
+  return pipe({ ...playlist, tracks }, omit(["items"]))
+}
+
+export function getPlaylistCoverOfTracks(
+  tracks: readonly ITrack[]
+): readonly FilePath[] | undefined {
+  return tracks
+    .map(({ cover }) => cover)
+    .filter(isDefined)
+    .filter(removeDuplicates)
+    .slice(0, 4)
+}
+
+export function getCoverUpdatePlaylist(
+  oldCovers: readonly FilePath[] | undefined,
+  newCovers: readonly FilePath[] | undefined
+): {
+  connect: Prisma.CoverWhereUniqueInput[] | undefined
+  disconnect: Prisma.CoverWhereUniqueInput[] | undefined
+} {
+  const disconnect = oldCovers
+    ?.filter((cover) => !newCovers?.includes(cover))
+    .map((filepath) => ({ filepath }))
+
+  const connect = newCovers
+    ?.filter((cover) => !oldCovers?.includes(cover))
+    .map((filepath) => ({ filepath }))
+
+  return { disconnect, connect }
 }
