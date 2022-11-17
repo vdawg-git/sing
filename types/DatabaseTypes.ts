@@ -204,7 +204,12 @@ type MakeCustomPrismaFindMany<
 
 export type IPlaylistRenameArgument = {
   id: IPlaylistID
-  newName: string
+  name: string
+}
+
+export type IPlaylistEditDescriptionArgument = {
+  id: IPlaylistID
+  description: string | undefined
 }
 
 export type IMusicItems =

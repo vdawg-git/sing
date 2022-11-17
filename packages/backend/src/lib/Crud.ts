@@ -29,6 +29,7 @@ import type {
   IMusicIDsUnion,
   IRemoveTracksFromPlaylistArgument,
   IAddTracksToPlaylistArgument,
+  IPlaylistEditDescriptionArgument,
 } from "@sing-types/DatabaseTypes"
 import type { IError, ISortOptions, IErrorTypes } from "@sing-types/Types"
 import type { IPlaylistID, ITrackID } from "@sing-types/Opaque"
@@ -248,12 +249,12 @@ export async function createPlaylist(
 
 export async function renamePlaylist(
   emitter: IBackMessagesHandler,
-  { id: playlistID, newName }: IPlaylistRenameArgument
+  { id, name }: IPlaylistRenameArgument
 ): Promise<Either<IError, string>> {
   return prisma.playlist
     .update({
-      where: { id: playlistID },
-      data: { name: newName },
+      where: { id },
+      data: { name },
     })
     .then(() => {
       emitter.emit({
@@ -261,10 +262,36 @@ export async function renamePlaylist(
         shouldForwardToRenderer: true,
         data: undefined,
       })
+      emitter.emit({
+        event: "playlistUpdated",
+        shouldForwardToRenderer: true,
+        data: id,
+      })
 
-      return E.right(newName)
+      return E.right(name)
     })
     .catch(createError("Failed to rename playlist at database"))
+}
+
+export async function editPlaylistDescription(
+  emitter: IBackMessagesHandler,
+  { id, description }: IPlaylistEditDescriptionArgument
+): Promise<Either<IError, string | undefined>> {
+  return prisma.playlist
+    .update({
+      where: { id },
+      data: { description },
+    })
+    .then(() => {
+      emitter.emit({
+        event: "playlistUpdated",
+        shouldForwardToRenderer: true,
+        data: id,
+      })
+
+      return E.right(description)
+    })
+    .catch(createError("Failed to edit playlist description"))
 }
 
 export async function deletePlaylist(
@@ -288,6 +315,7 @@ export async function deletePlaylist(
     return E.right(id)
   } catch (error) {
     emitter.showAlert({ label: `Failed to delete playlist.` })
+
     return createError("Failed to delete playlist at database")(error)
   }
 }
@@ -896,6 +924,7 @@ export async function updatePlaylistCover(
   if (dequal(oldThumbnail, newThumbnails)) return
 
   // Covers are different, update
+  
   const thumbnailCovers = getCoverUpdatePlaylist(oldThumbnail, newThumbnails)
 
   prisma.playlist
@@ -903,12 +932,19 @@ export async function updatePlaylistCover(
       where: { id: playlistID },
       data: { thumbnailCovers },
     })
-    .then(({ id }) =>
+    .then(({ id }) => {
       messageHandler.emit({
         event: "playlistUpdated",
         data: id as IPlaylistID,
         shouldForwardToRenderer: true,
       })
-    )
+
+      // The cover changed and this also needs to be reflected in the "All playlists" view
+      messageHandler.emit({
+        event: "playlistsUpdated",
+        data: undefined,
+        shouldForwardToRenderer: true,
+      })
+    })
     .catch(log.error.red)
 }

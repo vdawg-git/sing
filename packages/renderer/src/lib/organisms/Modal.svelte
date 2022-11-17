@@ -5,6 +5,8 @@
 
   import { TEST_ATTRIBUTES } from "@/TestConsts"
 
+  export let width: string | undefined = undefined
+
   const dispatch = createEventDispatcher()
 
   function handleRemove() {
@@ -25,9 +27,10 @@
   <div
     data-testattribute={TEST_ATTRIBUTES.modalContent}
     class="
-      shadow-black/50 z-50 w-[30rem]  rounded-2xl bg-grey-600 p-4 shadow-2xl
-      {$$props.class} border border-grey-300/50
+      shadow-black/50 z-50 rounded-2xl bg-grey-600 p-4 shadow-2xl
+      {$$props.class} relative border border-grey-300/50
       "
+    style:width
   >
     <!-- Content -->
     <slot><span class="text-red-500">Nothing provided</span></slot>
@@ -38,7 +41,7 @@
       on:click={handleRemove}
       data-testattribute={TEST_ATTRIBUTES.modalCloseButton}
       ><IconX
-        class="h-5 w-5 text-grey-400 transition-colors hover:text-grey-100"
+        class="h-5 w-5 text-grey-100 transition-colors hover:text-grey-200"
       /></button
     >
   </div>

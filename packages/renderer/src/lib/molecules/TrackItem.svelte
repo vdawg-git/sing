@@ -78,9 +78,7 @@
       data-testattribute={TEST_ATTRIBUTES.trackItemArtist}
       on:click|preventDefault={navigateTo("artist")}
       class="mr-6 flex-1 basis-32  overflow-hidden text-ellipsis whitespace-nowrap align-middle 
-        {track.artist
-        ? 'hover:text-grey-200 active:hover:text-grey-300 disabled:hover:text-white'
-        : ''}"
+        {track.artist ? 'hover:underline disabled:hover:text-white' : ''}"
     >
       {displayMetadata("artist", track)}
     </a>
@@ -93,7 +91,7 @@
       on:click|preventDefault={navigateTo("album")}
       class="mr-6 flex-1 basis-32 overflow-hidden  text-ellipsis whitespace-nowrap align-middle 
         {track.album
-        ? 'transition-colors hover:text-grey-200 active:hover:text-grey-300 disabled:hover:text-white'
+        ? 'transition-colors hover:underline disabled:hover:text-white'
         : ''}
       "
     >

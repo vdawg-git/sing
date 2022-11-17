@@ -9,6 +9,7 @@ import type {
   ITrack,
   IPlaylist,
   IPlaylistCreateArgument,
+  IAddTracksToPlaylistArgument,
 } from "@sing-types/DatabaseTypes"
 import type { IError } from "@sing-types/Types"
 
@@ -26,7 +27,6 @@ import type {
   IMenuSpacer,
   ISubmenuItemArgument,
 } from "./types/Types"
-import type { IAddTracksToPlaylistArgument } from "../../backend/src/lib/Crud"
 
 export function titleToDisplay(track: ITrack): string {
   if (track?.title) return track.title

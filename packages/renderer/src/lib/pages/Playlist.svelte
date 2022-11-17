@@ -25,7 +25,7 @@
   import { playNewSource } from "../manager/player"
   import { backgroundImages } from "../stores/BackgroundImages"
   import { playlistsStore } from "../stores/PlaylistsStore"
-  import CoverAndPlaylistThumbnail from "../atoms/CoverAndPlaylistThumbnail.svelte"
+  import EditPlaylistModal from "../organisms/EditPlaylistModal.svelte"
 
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
   import TrackList from "@/lib/organisms/TrackList.svelte"
@@ -41,6 +41,7 @@
   ]
 
   let playlist: IPlaylistWithTracks | undefined
+  let isShowingEditModal = false
 
   $: covers = playlist?.thumbnailCovers?.map(({ filepath }) => filepath)
 
@@ -147,6 +148,10 @@
       )
     )
   }
+
+  async function toggleModal() {
+    isShowingEditModal = !isShowingEditModal
+  }
 </script>
 
 <!---------->
@@ -160,8 +165,11 @@
     image={covers}
     type="Playlist"
     actions={heroButtons}
-    onChangedTitle={console.log}
+    description={playlist.description}
+    handleClickTitle={toggleModal}
+    handleClickDescription={toggleModal}
   />
+
   {#if tracks && tracks?.length > 0}
     <TrackList
       testID="trackItems"
@@ -181,4 +189,8 @@
   {:else}
     No tracks
   {/if}
+{/if}
+
+{#if isShowingEditModal && playlist}
+  <EditPlaylistModal {playlist} on:hide={toggleModal} />
 {/if}

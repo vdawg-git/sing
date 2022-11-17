@@ -142,5 +142,10 @@ export type SingleOrNonEmptyArray<T> = T | ReadonlyNonEmptyArray<T>
 
 export type EventHandler<
   T extends Event | MouseEvent = Event,
-  A extends Element = HTMLElement
-> = (event: T & { currentTarget: EventTarget & A }) => void
+  A extends Element = Element
+> = (event: DOMEvent<T, A>) => void
+
+export type DOMEvent<
+  T extends Event | MouseEvent = Event,
+  A extends Element = Element
+> = T & { currentTarget: (EventTarget & A) | null }

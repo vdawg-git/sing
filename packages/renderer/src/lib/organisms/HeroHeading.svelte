@@ -17,13 +17,15 @@
   export let title: string
   export let metadata: readonly IHeroMetaDataItem[]
   export let actions: readonly IHeroAction[] | undefined = undefined
-  export let onClickCover:
+  export let description: string | undefined = undefined
+  export let handleClickCover:
     | EventHandler<MouseEvent, HTMLDivElement>
     | undefined = undefined
   /**
    * This makes the title editable and calls this function when edited.
    */
-  export let onChangedTitle: EventHandler | undefined = undefined
+  export let handleClickTitle: EventHandler | undefined = undefined
+  export let handleClickDescription: EventHandler | undefined = undefined
 
   // TODO disable focus indicator for now
 
@@ -38,8 +40,8 @@
     {#if Array.isArray(image) ? image.length > 0 : image}
       <div
         class="relative h-52 w-52 shrink-0 "
-        on:click={onClickCover}
-        class:cursor-pointer={onClickCover}
+        on:click={handleClickCover}
+        class:cursor-pointer={handleClickCover}
       >
         <slot name="cover">
           <CoverAndPlaylistThumbnail {image} />
@@ -66,11 +68,25 @@
         <h1
           class="scroll block h-max  overflow-x-hidden overflow-y-clip text-ellipsis whitespace-nowrap pb-4 leading-none"
           use:doTextResizeToFitElement={{ minSize: 32, maxSize: 120, step: 8 }}
-          class:cursor-pointer={!!onChangedTitle}
+          class:cursor-pointer={!!handleClickTitle}
+          on:click={handleClickTitle}
         >
           {title}
         </h1>
       {/key}
+
+      <!-- Description -->
+      {#if description}
+        <div
+          class="break-words text-base text-grey-200 {handleClickDescription !==
+          undefined
+            ? 'cursor-pointer'
+            : 'cursor-auto'}"
+          on:click={handleClickDescription}
+        >
+          {description}
+        </div>
+      {/if}
 
       <!-- Metadata -->
       <div class="flex gap-2">

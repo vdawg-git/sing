@@ -1,13 +1,14 @@
 <script lang="ts">
-  import VirtualList from "svelte-tiny-virtual-list"
   import { createEventDispatcher } from "svelte"
 
   import type { ITrack } from "@sing-types/DatabaseTypes"
   import type { ISortOptions } from "@sing-types/Types"
 
   import type { ITestIDs } from "@/TestConsts"
-  import type { ITrackListDisplayOptions } from "@/types/Types"
-  import type { ICreateMenuOutOfMusic } from "@/Helper"
+  import type {
+    ITrackListDisplayOptions,
+    ICreateMenuOutOfMusic,
+  } from "@/types/Types"
 
   import TrackItem from "../molecules/TrackItem.svelte"
 
@@ -71,24 +72,17 @@
   <!---- List -->
   <div
     data-testid={testID}
-    class="tracksList mb-14 w-full"
+    class="tracksList z-0 mb-14 w-full"
     bind:clientHeight={listHeight}
   >
-    <VirtualList
-      width="100%"
-      height={listHeight}
-      itemCount={tracks.length}
-      itemSize={64}
-    >
+    {#each tracks as track, index}
       <TrackItem
-        slot="item"
-        let:index
-        track={tracks[index]}
+        {track}
         displayOptions={usedDisplayOptions}
         {createContextMenuItems}
         on:dblclick={() => dispatchPlay(index)}
       />
-    </VirtualList>
+    {/each}
   </div>
 
   <!---- Add an empty element to allow for scrolling elements which are behind the playbar -->

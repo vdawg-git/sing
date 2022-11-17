@@ -10,6 +10,7 @@ import {
   getPlaylists,
   getTracks,
   renamePlaylist,
+  editPlaylistDescription,
 } from "./Crud"
 import { search } from "./Search"
 
@@ -20,6 +21,7 @@ import { search } from "./Search"
 export const queryHandlers = Object.freeze({
   createPlaylist,
   deletePlaylist,
+  editPlaylistDescription,
   getAlbum,
   getAlbums,
   getArtist,

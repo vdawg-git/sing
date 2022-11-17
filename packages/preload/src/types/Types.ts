@@ -92,7 +92,7 @@ export interface TypedIpcRenderer extends IpcRenderer {
   sendTo<Key extends keyof IFrontendEventsSend>(
     webContentsId: number,
     channel: Key,
-    ...arguments_: Parameters<IFrontendEventsSend[Key]>
+    ...arguments_: [IFrontendEventsSend[Key]]
   ): void
   sendToHost<Key extends keyof IMainEventHandlers>(
     channel: Key,
@@ -107,7 +107,7 @@ export interface TypedIpcRenderer extends IpcRenderer {
 export interface TypedWebContents extends WebContents {
   send<Key extends keyof IFrontendEventsSend>(
     channel: Key,
-    ...arguments_: Parameters<IFrontendEventsSend[Key]>
+    ...arguments_: [IFrontendEventsSend[Key]]
   ): void
 
   getAllWebContents(): TypedWebContents[]

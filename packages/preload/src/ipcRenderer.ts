@@ -18,6 +18,7 @@ import type {
   IRemoveTracksFromPlaylistArgument,
   ITrackFindManyArgument,
   IAddTracksToPlaylistArgument,
+  IPlaylistEditDescriptionArgument,
 } from "@sing-types/DatabaseTypes"
 
 import { ipcRenderer } from "./TypedIPC"
@@ -42,6 +43,12 @@ export async function createPlaylist(options?: IPlaylistCreateArgument) {
 
 export async function renamePlaylist(options: IPlaylistRenameArgument) {
   return ipcRenderer.invoke("renamePlaylist", options)
+}
+
+export async function editPlaylistDescription(
+  options: IPlaylistEditDescriptionArgument
+) {
+  return ipcRenderer.invoke("editPlaylistDescription", options)
 }
 
 export async function deletePlaylist(id: number) {
@@ -100,10 +107,16 @@ export async function setUserSettings<Key extends IUserSettingsKey>({
   return ipcRenderer.send("setUserSettings", { setting, value })
 }
 
-export async function openDirectory(
+export async function selectDirectory(
   ...arguments_: Parameters<IMainQueryHandlers["openDirectoryPicker"]>
 ) {
   return ipcRenderer.invoke("openDirectoryPicker", arguments_[0], arguments_[1])
+}
+
+export async function selectImage(
+  options: Parameters<IMainQueryHandlers["openImagePicker"]>[0]
+) {
+  return ipcRenderer.invoke("openImagePicker", options)
 }
 
 export async function getUserSetting(setting: IUserSettingsKey) {

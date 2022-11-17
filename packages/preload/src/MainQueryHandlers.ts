@@ -5,7 +5,7 @@ import type {
   IUserSettings,
   IUserSettingsKey,
 } from "@sing-main/lib/UserSettings"
-import type { DirectoryPath } from "@sing-types/Filesystem"
+import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"
 import type {
   IAlbum,
   IAlbumFindManyArgument,
@@ -13,6 +13,7 @@ import type {
   IArtist,
   IArtistFindManyArgument,
   IPlaylistCreateArgument,
+  IPlaylistEditDescriptionArgument,
   IPlaylistFindManyArgument,
   IPlaylistGetArgument,
   IPlaylistRenameArgument,
@@ -54,6 +55,11 @@ export const mainQueryHandlers = Object.freeze({
     _: IpcMainInvokeEvent,
     options: IPlaylistRenameArgument
   ) => queryBackend({ query: "renamePlaylist", arguments_: options }),
+
+  editPlaylistDescription: async (
+    _: IpcMainInvokeEvent,
+    options: IPlaylistEditDescriptionArgument
+  ) => queryBackend({ query: "editPlaylistDescription", arguments_: options }),
 
   getTracks: async (
     _: IpcMainInvokeEvent,
@@ -126,6 +132,25 @@ export const mainQueryHandlers = Object.freeze({
     ) as DirectoryPath[]
 
     return { filePaths: unixedPaths, canceled }
+  },
+
+  openImagePicker: async (
+    _: IpcMainInvokeEvent,
+    options: Required<Pick<Electron.OpenDialogOptions, "message" | "title">> &
+      Pick<Electron.OpenDialogOptions, "buttonLabel">
+  ): Promise<{ filePath: FilePath; canceled: boolean }> => {
+    const dialogOptions: Electron.OpenDialogOptions = {
+      ...options,
+      properties: ["openFile"],
+      filters: [{ extensions: ["png", "webp", "jpg", "gif"], name: "Images" }],
+      defaultPath: app.getPath("pictures"),
+    }
+
+    const { filePaths, canceled } = await dialog.showOpenDialog(dialogOptions)
+
+    const unixedPath = slash(filePaths[0]) as FilePath // Convert to UNIX path
+
+    return { filePath: unixedPath, canceled }
   },
 
   getUserSettings: async <Key extends IUserSettingsKey>(
