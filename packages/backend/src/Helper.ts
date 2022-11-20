@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto"
 import {
   copyFile,
   mkdir,
@@ -5,6 +6,7 @@ import {
   stat,
   unlink,
   writeFile,
+  readFile,
 } from "node:fs/promises"
 import path from "node:path"
 
@@ -17,12 +19,14 @@ import { omit } from "fp-ts-std/Struct"
 import { isDefined } from "ts-is-present"
 
 import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"
-import { isError } from "@sing-types/Typeguards"
+import { isError, isKeyOfObject } from "@sing-types/Typeguards"
 import type {
+  IError,
   IErrorFSDeletionFailed,
   IErrorFSDirectoryReadFailed,
   IErrorFSPathUnaccessible,
   IErrorFSWriteFailed,
+  IErrorTypes,
 } from "@sing-types/Types"
 import type { IPlaylistID, ITrackID } from "@sing-types/Opaque"
 import type {
@@ -34,6 +38,7 @@ import type {
 
 import { getLeftsRights, removeDuplicates } from "../../shared/Pures"
 
+import type { ICoverData } from "./types/Types"
 import type { Prisma } from "@prisma/client"
 import type { Either } from "fp-ts/lib/Either"
 
@@ -67,6 +72,11 @@ export async function getFilesFromDirectory(
   }
 }
 
+/**
+ * Check if a file exists and is accessible
+ * @param pathToCheck
+ * @returns An Either, the right: If the path exists and if it is accessible. The left: The error
+ */
 export async function checkPathAccessible<T extends FilePath>(
   pathToCheck: T
 ): Promise<Either<IErrorFSPathUnaccessible, T>> {
@@ -77,16 +87,16 @@ export async function checkPathAccessible<T extends FilePath>(
 
 export async function writeFileToDisc<T extends FilePath>(
   content: string | Buffer,
-  filepath: T
+  toSaveLocation: T
 ): Promise<Either<IErrorFSWriteFailed, T>> {
-  return mkdir(path.dirname(filepath), { recursive: true })
-    .then(() => writeFile(filepath, content))
-    .then(() => E.right(filepath))
+  return mkdir(path.dirname(toSaveLocation), { recursive: true })
+    .then(() => writeFile(toSaveLocation, content))
+    .then(() => E.right(toSaveLocation))
     .catch((error) => {
       console.error(c.red(error))
       const catchedError: IErrorFSWriteFailed = {
         type: "File write failed",
-        message: `Error creating writing file:\t"${filepath}"`,
+        message: `Error writing file at:\t"${toSaveLocation}"`,
         error,
       }
 
@@ -222,7 +232,13 @@ export function getPlaylistCoverOfTracks(
     .slice(0, 4)
 }
 
-export function getCoverUpdatePlaylist(
+/**
+ *
+ * @param oldCovers
+ * @param newCovers
+ * @returns The covers to disconnect and to connect for the update
+ */
+export function getCoverUpdateDataPlaylist(
   oldCovers: readonly FilePath[] | undefined,
   newCovers: readonly FilePath[] | undefined
 ): {
@@ -238,4 +254,53 @@ export function getCoverUpdatePlaylist(
     .map((filepath) => ({ filepath }))
 
   return { disconnect, connect }
+}
+
+export async function readOutImage(
+  filepath: FilePath
+): Promise<Either<IError, ICoverData>> {
+  return readFile(filepath)
+    .then((buffer) =>
+      E.right({
+        path: filepath,
+        buffer,
+        md5: createMD5(buffer),
+      })
+    )
+    .catch(createError("Failed to read out image"))
+}
+
+export function createCoverPath(
+  coverFolderPath: DirectoryPath,
+  md5: string,
+  extension: string
+): FilePath {
+  return (coverFolderPath + md5 + extension) as FilePath
+}
+
+export function createMD5(buffer: Buffer): string {
+  return createHash("md5").update(buffer).digest("hex")
+}
+
+export function createError(
+  type: IErrorTypes
+): (error: unknown) => Either<IError, never> {
+  return (error) => {
+    console.group("Error")
+    log.error.red(type, error)
+    if ((error as { message: string })?.message) {
+      log.error.red(type, (error as { message: string })?.message)
+    }
+    console.groupEnd()
+
+    if (typeof error !== "object" || error === null)
+      return E.left({ type, error })
+
+    if (!isKeyOfObject(error, "message")) return E.left({ type, error })
+
+    return E.left({
+      type,
+      error: { ...error, message: error.message },
+    })
+  }
 }

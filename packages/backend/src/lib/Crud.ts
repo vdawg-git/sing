@@ -7,7 +7,6 @@ import { isDefined } from "ts-is-present"
 import { dequal } from "dequal"
 
 import type { FilePath } from "@sing-types/Filesystem"
-import { isKeyOfObject } from "@sing-types/Typeguards"
 import type {
   IAlbum,
   ITrack,
@@ -30,21 +29,28 @@ import type {
   IRemoveTracksFromPlaylistArgument,
   IAddTracksToPlaylistArgument,
   IPlaylistEditDescriptionArgument,
+  IPlaylistUpdateCoverArgumentConsume,
 } from "@sing-types/DatabaseTypes"
-import type { IError, ISortOptions, IErrorTypes } from "@sing-types/Types"
+import type { IError, ISortOptions } from "@sing-types/Types"
 import type { IPlaylistID, ITrackID } from "@sing-types/Opaque"
 
-import type { IBackEndMessages } from "@/types/Types"
+import type { IBackEndMessages, IPlaylistSetCoverArgument } from "@/types/Types"
 
 import {
+  checkPathAccessible,
   convertItemsPlaylistToTracksPlaylist,
+  createCoverPath,
   createDefaultPlaylistName,
+  createError,
   createPlaylistItem,
-  getCoverUpdatePlaylist,
+  getCoverUpdateDataPlaylist,
   getPlaylistCoverOfTracks,
+  readOutImage,
+  writeFileToDisc,
 } from "../Helper"
 import {
   createSQLArray,
+  getExtension,
   insertIntoArray,
   removeDuplicates,
   removeNulledKeys,
@@ -56,9 +62,9 @@ import {
 import { SQL_STRINGS as SQL } from "./Consts"
 import { createPrismaClient } from "./CustomPrismaClient"
 
+import type { Either } from "fp-ts/Either"
 import type { IBackMessagesHandler } from "./Messages"
 import type { PrismaPromise, PlaylistItem, Prisma } from "@prisma/client"
-import type { Either } from "fp-ts/Either"
 
 log(process.argv)
 log(process.argv[2])
@@ -247,6 +253,153 @@ export async function createPlaylist(
     })
 }
 
+/**
+ * Set the playlist image. Currently only supports setting one image or removing it.
+ * @returns The filepath of the image file
+ */
+export async function updatePlaylistImage(
+  emitter: IBackMessagesHandler,
+  options: IPlaylistUpdateCoverArgumentConsume
+): Promise<Either<IError, IPlaylistID>> {
+  // If a filepath to an image is provided, save it, otherwise the image should be removed from the playlist
+  // Deleting it here is not nessarcy, as it will be deleted with the cleanUp after a sync process
+  const result = await match(options)
+    .with({ filepath: undefined, id: P.select() }, removePlaylistCover)
+    .with({ filepath: P.string }, setPlaylistCover)
+    .exhaustive()
+
+  // Do not notificy the renderer to update the playlist, just return the error
+  if (E.isLeft(result)) return result
+
+  // Notifify the renderer to update the playlist and return the playlist id
+  emitter.emit({
+    event: "playlistUpdatedInternal",
+    data: options.id,
+    shouldForwardToRenderer: false,
+  })
+
+  emitter.emit({
+    event: "playlistsUpdated",
+    data: undefined,
+    shouldForwardToRenderer: true,
+  })
+  return E.right(options.id)
+}
+
+async function setPlaylistCover({
+  coversDirectory,
+  filepath,
+  id,
+}: IPlaylistSetCoverArgument): Promise<Either<IError, FilePath>> {
+  const imageData = await readOutImage(filepath)
+
+  if (E.isLeft(imageData)) return imageData
+
+  const { md5, path: imagePath, buffer } = imageData.right
+  const imageExtension = getExtension(imagePath)
+
+  if (imageExtension === undefined)
+    return createError("Image name is missing an extension")(
+      `Provided filepath: ${filepath} - lacks an extension.`
+    )
+
+  const pathToSaveTo = createCoverPath(coversDirectory, md5, imageExtension)
+
+  // If the cover is already saved to the disk, then skip saving it again
+  if (E.isLeft(await checkPathAccessible(pathToSaveTo))) {
+    const pictureOperation = await writeFileToDisc(buffer, pathToSaveTo)
+
+    if (E.isLeft(pictureOperation)) return pictureOperation
+  }
+
+  return prisma
+    .$transaction([
+      prisma.playlist.update({
+        where: { id },
+        data: { thumbnailCovers: { set: [] } },
+      }),
+      prisma.playlist.update({
+        where: { id },
+        data: {
+          thumbnailCovers: {
+            connectOrCreate: {
+              where: { filepath: pathToSaveTo },
+              create: { filepath: pathToSaveTo, md5, isManuallyAdded: true },
+            },
+          },
+        },
+      }),
+    ])
+    .then(() => E.right(filepath))
+    .catch(createError("Failed to set playlist image"))
+}
+
+async function removePlaylistCover(
+  id: IPlaylistID
+): Promise<Either<IError, IPlaylistID>> {
+  return prisma.playlist
+    .update({ where: { id }, data: { thumbnailCovers: { set: [] } } })
+    .then(() => E.right(id))
+    .catch(createError("Failed to remove cover from playlist"))
+}
+
+/**
+ * After the contents of a playlist change, the thumbnail with the multiple covers needs to be updated.
+ * This is different from {@link updatePlaylistImage}, which is a query handler, but this handles an internal event.
+ */
+export async function updatePlaylistCoverAfterTracksUpdate(
+  messageHandler: IBackMessagesHandler,
+  { data: playlistID }: IBackEndMessages["playlistUpdatedInternal"]
+): Promise<void> {
+  const playlist = await getPlaylist(undefined, {
+    where: { id: playlistID },
+  })
+
+  if (E.isLeft(playlist)) {
+    log.error.red(`Failed retrieving playlist afer update: ID: ${playlistID}`)
+    return
+  }
+
+  // Cover was added manually and does not need to be updated from the tracks
+  if (playlist.right.thumbnailCovers?.at(0)?.isManuallyAdded) return
+
+  const oldThumbnail = playlist.right.thumbnailCovers?.map(
+    ({ filepath }) => filepath
+  )
+  const newThumbnails = getPlaylistCoverOfTracks(playlist.right.tracks)
+
+  // Covers are the same, no need to update
+  if (dequal(oldThumbnail, newThumbnails)) return
+
+  // Covers are different, update
+
+  const thumbnailCovers = getCoverUpdateDataPlaylist(
+    oldThumbnail,
+    newThumbnails
+  )
+
+  prisma.playlist
+    .update({
+      where: { id: playlistID },
+      data: { thumbnailCovers },
+    })
+    .then(({ id }) => {
+      messageHandler.emit({
+        event: "playlistUpdated",
+        data: id as IPlaylistID,
+        shouldForwardToRenderer: true,
+      })
+
+      // The cover changed and this also needs to be reflected in the "All playlists" view
+      messageHandler.emit({
+        event: "playlistsUpdated",
+        data: undefined,
+        shouldForwardToRenderer: true,
+      })
+    })
+    .catch(log.error.red)
+}
+
 export async function renamePlaylist(
   emitter: IBackMessagesHandler,
   { id, name }: IPlaylistRenameArgument
@@ -263,8 +416,8 @@ export async function renamePlaylist(
         data: undefined,
       })
       emitter.emit({
-        event: "playlistUpdated",
-        shouldForwardToRenderer: true,
+        event: "playlistUpdatedInternal",
+        shouldForwardToRenderer: false,
         data: id,
       })
 
@@ -284,8 +437,8 @@ export async function editPlaylistDescription(
     })
     .then(() => {
       emitter.emit({
-        event: "playlistUpdated",
-        shouldForwardToRenderer: true,
+        event: "playlistUpdatedInternal",
+        shouldForwardToRenderer: false,
         data: id,
       })
 
@@ -649,27 +802,6 @@ export async function deleteUnusedCoversInDatabase(): Promise<
     .catch(createError("Failed to remove unused covers from the database"))
 }
 
-function createError(
-  type: IErrorTypes
-): (error: unknown) => Either<IError, never> {
-  return (error) => {
-    if (typeof error !== "object" || error === null)
-      return E.left({ type, error })
-
-    if (!isKeyOfObject(error, "message")) return E.left({ type, error })
-
-    console.group("Error")
-    log.error.red(type, error)
-    log.error.red(type, error?.message)
-    console.groupEnd()
-
-    return E.left({
-      type,
-      error: { ...error, message: error.message },
-    })
-  }
-}
-
 function addArtistImage<T extends { albums: readonly { cover?: string }[] }>(
   artist: T
 ): T {
@@ -897,54 +1029,4 @@ async function getTracksByIDs(
     .then(RA.map(removeNulledKeys))
     .then((tracks) => E.right(tracks as readonly ITrack[]))
     .catch(createError("Failed to get tracks from playlists"))
-}
-
-export async function updatePlaylistCover(
-  messageHandler: IBackMessagesHandler,
-  { data: playlistID }: IBackEndMessages["playlistUpdatedInternal"]
-): Promise<void> {
-  const playlist = await getPlaylist(undefined, {
-    where: { id: playlistID },
-  })
-
-  if (E.isLeft(playlist)) {
-    log.error.red(`Failed retrieving playlist afer update: ID: ${playlistID}`)
-    return
-  }
-
-  // Cover was added manually and does not need to be updated from the tracks
-  if (playlist.right.thumbnailCovers?.at(0)?.isManuallyAdded) return
-
-  const oldThumbnail = playlist.right.thumbnailCovers?.map(
-    ({ filepath }) => filepath
-  )
-  const newThumbnails = getPlaylistCoverOfTracks(playlist.right.tracks)
-
-  // Covers are the same, no need to update
-  if (dequal(oldThumbnail, newThumbnails)) return
-
-  // Covers are different, update
-  
-  const thumbnailCovers = getCoverUpdatePlaylist(oldThumbnail, newThumbnails)
-
-  prisma.playlist
-    .update({
-      where: { id: playlistID },
-      data: { thumbnailCovers },
-    })
-    .then(({ id }) => {
-      messageHandler.emit({
-        event: "playlistUpdated",
-        data: id as IPlaylistID,
-        shouldForwardToRenderer: true,
-      })
-
-      // The cover changed and this also needs to be reflected in the "All playlists" view
-      messageHandler.emit({
-        event: "playlistsUpdated",
-        data: undefined,
-        shouldForwardToRenderer: true,
-      })
-    })
-    .catch(log.error.red)
 }

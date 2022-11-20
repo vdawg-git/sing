@@ -11,6 +11,7 @@ import {
   getTracks,
   renamePlaylist,
   editPlaylistDescription,
+  updatePlaylistImage,
 } from "./Crud"
 import { search } from "./Search"
 
@@ -32,4 +33,5 @@ export const queryHandlers = Object.freeze({
   getTracks,
   renamePlaylist,
   search,
+  updatePlaylistImage,
 } as const)

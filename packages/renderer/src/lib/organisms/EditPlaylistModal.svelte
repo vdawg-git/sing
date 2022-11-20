@@ -1,26 +1,34 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte"
+  import { dequal } from "dequal"
+  import { tick, type SvelteComponentDev } from "svelte/internal"
 
   import type { IPlaylist } from "@sing-types/DatabaseTypes"
+  import type { FilePath } from "@sing-types/Filesystem"
 
   import { notifiyError } from "@/Helper"
 
   import Button from "../atoms/Button.svelte"
-  import CoverAndPlaylistThumbnail from "../atoms/CoverAndPlaylistThumbnail.svelte"
   import TextInput from "../atoms/TextInput.svelte"
+  import CoverPicker from "../molecules/CoverPicker.svelte"
 
   import Modal from "./Modal.svelte"
 
   export let playlist: IPlaylist
 
+  const coverPickerWindowTitle = `Select image`
+  const coverPickerWindowMessage = `Select image for ${playlist.name}`
+  const coverPickerWindowButton = `Set ${playlist.name} image`
   const dispatch = createEventDispatcher<{ hide: never }>()
 
   $: id = playlist.id
 
   let name = playlist.name
   let description = playlist.description
+  let image: FilePath | readonly FilePath[] | undefined =
+    playlist.thumbnailCovers?.map(({ filepath }) => filepath)
 
-  $: console.log(description)
+  let coverPickerElement: SvelteComponentDev
 
   function save() {
     if (name !== playlist.name) {
@@ -35,20 +43,45 @@
         .catch(notifiyError("Failed to edit description"))
     }
 
+    if (
+      !dequal(
+        Array.isArray(image) ? image : [image],
+        playlist.thumbnailCovers?.map(({ filepath }) => filepath)
+      ) &&
+      (typeof image === "string" || image === undefined)
+    ) {
+      window.api.updatePlaylistCover({ id, filepath: image })
+    }
+
     dispatch("hide")
+  }
+
+  export async function pickImage() {
+    window.api
+      .selectImage({
+        title: coverPickerWindowTitle,
+        message: coverPickerWindowMessage,
+      })
+      .then(({ canceled, filePath }) => {
+        if (canceled) return
+        image = filePath
+      })
   }
 </script>
 
 <Modal on:hide>
   <div class="flex flex-col gap-6">
-    <div class=" text-lg">Edit details</div>
+    <div class=" text-lg" on:click={pickImage}>Edit details</div>
 
     <div class="flex gap-6">
       <div class="h-[200px] w-[200px]">
-        <CoverAndPlaylistThumbnail
-          image={playlist.thumbnailCovers?.map(({ filepath }) => filepath)}
+        <CoverPicker
+          bind:image
+          bind:this={coverPickerElement}
+          title={coverPickerWindowTitle}
+          message={coverPickerWindowMessage}
+          buttonLabel={coverPickerWindowButton}
         />
-        
       </div>
 
       <div class="flex h-[200px] flex-col gap-4">

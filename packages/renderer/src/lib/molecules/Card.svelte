@@ -76,7 +76,8 @@
       </div>
       {#if data.secondaryText}
         <a
-          class="max-w-max cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold tracking-wider text-grey-200 transition-colors hover:text-grey-300"
+          class="max-w-max  overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold tracking-wider text-grey-200 
+          {handleClickSecondary ? 'cursor-pointer hover:underline' : ''}"
           on:click={handleClickSecondary}
         >
           {data.secondaryText}

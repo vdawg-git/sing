@@ -69,11 +69,13 @@
   function isScreenUltrawide() {
     return document.body.getBoundingClientRect().width > 2400
   }
+
+  $: console.log({ displayedImages })
 </script>
 
 {#key displayedImages}
   <div
-    class="absolute inset-0 -top-6 -z-40 h-96 w-screen overflow-hidden [contain:strict]"
+    class="absolute inset-0 -top-6 -z-40 h-96 w-screen overflow-hidden bg-grey-400 [contain:strict]"
     bind:this={element}
     transition:fade={{ duration: 250 }}
   >
@@ -85,8 +87,9 @@
         <div class="absolute inset-0 flex h-full w-full flex-wrap opacity-50">
           {#each displayedImages as image}
             <div
+              data-x={image}
               style="
-                background-image: url(file://{image});
+                background-image: url('file://{image}');
                 min-width: {imageSize};
                 "
               class="aspect-square bg-cover"
@@ -95,7 +98,7 @@
         </div>
       {:else}
         <div
-          style="background-image: url(file://{displayedImages[0]});"
+          style="background-image: url('file://{displayedImages[0]}');"
           class="absolute inset-0 h-full w-full bg-repeat opacity-40"
         />
       {/if}

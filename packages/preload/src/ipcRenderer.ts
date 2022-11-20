@@ -19,6 +19,7 @@ import type {
   ITrackFindManyArgument,
   IAddTracksToPlaylistArgument,
   IPlaylistEditDescriptionArgument,
+  IPlaylistUpdateCoverArgumentSend,
 } from "@sing-types/DatabaseTypes"
 
 import { ipcRenderer } from "./TypedIPC"
@@ -144,9 +145,15 @@ export function resetMusic(): void {
 }
 
 export function getListeners(event: keyof IFrontendEventsSend) {
-  ipcRenderer.listeners(event)
+  return ipcRenderer.listeners(event)
 }
 
 export async function search(query: string) {
   return ipcRenderer.invoke("search", query)
+}
+
+export async function updatePlaylistCover(
+  options: IPlaylistUpdateCoverArgumentSend
+) {
+  return ipcRenderer.invoke("updatePlaylistCover", options)
 }

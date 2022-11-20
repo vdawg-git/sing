@@ -2,7 +2,7 @@
 
 import type { ISortOptions } from "./Types"
 import type { IPlaylistID, ITrackID } from "./Opaque"
-import type { FilePath } from "./Filesystem"
+import type { DirectoryPath, FilePath } from "./Filesystem"
 import type {
   DeepReadonlyNullToUndefined,
   OnlyKeysOf,
@@ -18,7 +18,7 @@ import type {
   Playlist,
 } from "@prisma/client"
 import type { Opaque } from "type-fest"
-import type { CamelCase, StrictExtract } from "ts-essentials"
+import type { CamelCase, StrictExtract, StrictOmit } from "ts-essentials"
 
 export type IPlaylist = DeepReadonlyNullToUndefined<Playlist> &
   OnlyKeysOf<
@@ -203,13 +203,47 @@ type MakeCustomPrismaFindMany<
 >
 
 export type IPlaylistRenameArgument = {
-  id: IPlaylistID
-  name: string
+  readonly id: IPlaylistID
+  /**
+   * The new name of the playlist.
+   */
+  readonly name: string
 }
 
+/**
+ * If image is undefined, it should remove the manually added image.
+ * This interface is used by the backend which needs to know where to save the image to. (The cover user data location.)
+ * This location gets passed to the backend by the main process, which gets the image and the ID from the renderer.
+ */
+export type IPlaylistUpdateCoverArgumentConsume = {
+  /**
+   * The ID of the playlist to update.
+   */
+  readonly id: IPlaylistID
+  /**
+   * The filepath to the image to set. `Undefined` means it will be removed if it exists.
+   */
+  readonly filepath: FilePath | undefined
+  /**
+   * The path to the cover user data directory.
+   */
+  readonly coversDirectory: DirectoryPath
+}
+
+/**
+ * Same as {@link IPlaylistUpdateCoverArgumentConsume}, but used by the renderer, which does not know where to save the image to. (The cover user data location.)
+ */
+export type IPlaylistUpdateCoverArgumentSend = StrictOmit<
+  IPlaylistUpdateCoverArgumentConsume,
+  "coversDirectory"
+>
+
 export type IPlaylistEditDescriptionArgument = {
-  id: IPlaylistID
-  description: string | undefined
+  readonly id: IPlaylistID
+  /**
+   * The description to set. If `undefined`, the description will be removed.
+   */
+  readonly description: string | undefined
 }
 
 export type IMusicItems =

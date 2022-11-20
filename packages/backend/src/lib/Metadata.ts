@@ -1,5 +1,3 @@
-import { createHash } from "node:crypto"
-
 import { curry2 } from "fp-ts-std/function"
 import { pipe } from "fp-ts/Function"
 import * as E from "fp-ts/lib/Either"
@@ -19,7 +17,12 @@ import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"
 
 import type { ICoverData } from "@/types/Types"
 
-import { checkPathAccessible, writeFileToDisc } from "../Helper"
+import {
+  checkPathAccessible,
+  createCoverPath,
+  createMD5,
+  writeFileToDisc,
+} from "../Helper"
 
 import type { StrictExtract, StrictOmit } from "ts-essentials"
 import type { IPicture } from "music-metadata"
@@ -86,9 +89,9 @@ export async function getCoverNotCurried(
 ): Promise<ICoverData> {
   const coverData = selectCover(pictures as IPicture[]) as IPicture // cast it since the function argument ensures that a cover exists
 
-  const md5 = createHash("md5").update(coverData.data).digest("hex")
+  const md5 = createMD5(coverData.data)
   const extension = `.${coverData.format.split("/").at(-1)}`
-  const path = (coverFolderPath + md5 + extension) as FilePath
+  const path = createCoverPath(coverFolderPath, md5, extension)
 
   return { md5, path, buffer: coverData.data }
 }

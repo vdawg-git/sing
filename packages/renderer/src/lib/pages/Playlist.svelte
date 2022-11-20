@@ -22,10 +22,11 @@
   } from "@/types/Types"
   import { createAddToPlaylistAndQueueMenuItems, notifiyError } from "@/Helper"
 
-  import { playNewSource } from "../manager/player"
+  import { playNewSource } from "../manager/Player"
   import { backgroundImages } from "../stores/BackgroundImages"
   import { playlistsStore } from "../stores/PlaylistsStore"
   import EditPlaylistModal from "../organisms/EditPlaylistModal.svelte"
+  import CoverPicker from "../molecules/CoverPicker.svelte"
 
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
   import TrackList from "@/lib/organisms/TrackList.svelte"
@@ -128,6 +129,8 @@
     },
   ]
 
+  let pickImage: () => Promise<void>
+
   async function getAndSetPlaylist(id: number) {
     window.api.getPlaylist({ where: { id } }).then(
       E.fold(
@@ -168,7 +171,15 @@
     description={playlist.description}
     handleClickTitle={toggleModal}
     handleClickDescription={toggleModal}
-  />
+    ><CoverPicker
+      slot="cover"
+      image={covers}
+      handleOnClick={async () => {
+        await toggleModal()
+        await pickImage()
+      }}
+    />
+  </HeroHeading>
 
   {#if tracks && tracks?.length > 0}
     <TrackList
@@ -192,5 +203,5 @@
 {/if}
 
 {#if isShowingEditModal && playlist}
-  <EditPlaylistModal {playlist} on:hide={toggleModal} />
+  <EditPlaylistModal {playlist} on:hide={toggleModal} bind:pickImage />
 {/if}

@@ -5,10 +5,12 @@ import type {
   ICover,
   IPlaylist,
   IPlaylistItem,
+  IPlaylistUpdateCoverArgumentConsume,
   ITrack,
 } from "@sing-types/DatabaseTypes"
 import type { IFrontendEventsSend } from "@sing-types/IPC"
 import type { IPlaylistID } from "@sing-types/Opaque"
+import type { Override } from "@sing-types/Utilities"
 
 import type { Prisma } from "@prisma/client"
 
@@ -98,3 +100,11 @@ type TransfromToEmitterData<
     readonly shouldForwardToRenderer: ShouldForwardToRenderer
   }
 }
+
+/**
+ * This is different from `IPlaylistUpdateCoverArgument` as this is only used by the backend and is not responsible for removing the cover.
+ */
+export type IPlaylistSetCoverArgument = Override<
+  IPlaylistUpdateCoverArgumentConsume,
+  { filepath: FilePath }
+>

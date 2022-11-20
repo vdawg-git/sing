@@ -38,11 +38,14 @@
   {:else if imageToDisplay.length === 4}
     <div class="_grid ">
       {#each imageToDisplay as singleImage}
-        <img src={singleImage} />
+        <img src={`file://${singleImage}`} class="object-cover" />
       {/each}
     </div>
   {:else}
-    <img src={imageToDisplay[0]} class="h-full w-full" />
+    <img
+      src={`file://${imageToDisplay[0]}`}
+      class="h-full w-full object-cover"
+    />
   {/if}
 </div>
 

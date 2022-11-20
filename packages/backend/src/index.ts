@@ -13,7 +13,7 @@ import { queryHandlers } from "@/lib/QueryHandlers"
 import { isBackendEvent, isBackendQuery } from "@/types/TypeGuards"
 
 import { backendMessages } from "./lib/Messages"
-import { updatePlaylistCover } from "./lib/Crud"
+import { updatePlaylistCoverAfterTracksUpdate } from "./lib/Crud"
 
 log.dim("Database path provided to backend:", process.argv[2])
 
@@ -38,7 +38,7 @@ backendMessages.on("*", (_, message) => {
 })
 
 backendMessages.on("playlistUpdatedInternal", (id) =>
-  updatePlaylistCover(backendMessages, id)
+  updatePlaylistCoverAfterTracksUpdate(backendMessages, id)
 )
 
 function handleMessageFromMain(request: unknown): void {

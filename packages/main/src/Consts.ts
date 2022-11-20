@@ -1,5 +1,6 @@
-import { app } from "electron"
 import path from "node:path"
+
+import { app } from "electron"
 import slash from "slash"
 
 import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"

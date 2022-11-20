@@ -11,6 +11,10 @@
   import { displayMetadata } from "@/Helper"
   import { TEST_IDS } from "@/TestConsts"
   import {
+    loopState,
+    setNextLoopState,
+  } from "@/lib/manager/player/stores/LoopStateStore"
+  import {
     currentTrack,
     playState,
     currentTime,
@@ -23,11 +27,7 @@
     handlePlayNext,
     shuffleState,
     toggleShuffle,
-  } from "@/lib/manager/player"
-  import {
-    loopState,
-    setNextLoopState,
-  } from "@/lib/manager/player/stores/LoopStateStore"
+  } from "@/lib/manager/Player"
 
   import Seekbar from "@/lib/molecules/Seekbar.svelte"
   import VolumeControl from "@/lib/molecules/VolumeControl.svelte"

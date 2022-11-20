@@ -1,5 +1,6 @@
 import { app, dialog } from "electron"
 import slash from "slash"
+import { match } from "ts-pattern"
 
 import type {
   IUserSettings,
@@ -17,10 +18,12 @@ import type {
   IPlaylistFindManyArgument,
   IPlaylistGetArgument,
   IPlaylistRenameArgument,
+  IPlaylistUpdateCoverArgumentSend,
   ITrackFindManyArgument,
 } from "@sing-types/DatabaseTypes"
 import type { IElectronPaths, IError } from "@sing-types/Types"
 
+import { coversDirectory } from "../../main/src/Consts"
 import userSettingsStore from "../../main/src/lib/UserSettings"
 
 import { queryBackend } from "./BackendProcess"
@@ -138,7 +141,10 @@ export const mainQueryHandlers = Object.freeze({
     _: IpcMainInvokeEvent,
     options: Required<Pick<Electron.OpenDialogOptions, "message" | "title">> &
       Pick<Electron.OpenDialogOptions, "buttonLabel">
-  ): Promise<{ filePath: FilePath; canceled: boolean }> => {
+  ): Promise<
+    | { filePath: FilePath; canceled: false }
+    | { filePath: undefined; canceled: true }
+  > => {
     const dialogOptions: Electron.OpenDialogOptions = {
       ...options,
       properties: ["openFile"],
@@ -148,9 +154,17 @@ export const mainQueryHandlers = Object.freeze({
 
     const { filePaths, canceled } = await dialog.showOpenDialog(dialogOptions)
 
-    const unixedPath = slash(filePaths[0]) as FilePath // Convert to UNIX path
-
-    return { filePath: unixedPath, canceled }
+    return match(canceled)
+      .with(true, () => ({ filePath: undefined, canceled: true } as const))
+      .with(
+        false,
+        () =>
+          ({
+            filePath: slash(filePaths[0]) as FilePath,
+            canceled: false,
+          } as const)
+      )
+      .exhaustive()
   },
 
   getUserSettings: async <Key extends IUserSettingsKey>(
@@ -163,4 +177,14 @@ export const mainQueryHandlers = Object.freeze({
       query: "search",
       arguments_: query,
     }),
+
+  async updatePlaylistCover(
+    _: IpcMainInvokeEvent,
+    options: IPlaylistUpdateCoverArgumentSend
+  ) {
+    return queryBackend({
+      query: "updatePlaylistImage",
+      arguments_: { ...options, coversDirectory },
+    })
+  },
 })

@@ -140,7 +140,7 @@ export async function syncMusic(
   log("Updating database")
 
   // Add tracks to the database
-  // Use a sync loop for Prisma as it might otherwise throw a timeOutException if it is done in async
+  // Use a sync loop for Prisma as it might otherwise throw a timeOutException if it is done asynchronously
   // https://github.com/prisma/prisma/issues/10306
   const addedDBTracks = []
   const failedDBTracks = []
@@ -174,6 +174,8 @@ export async function syncMusic(
     log.error.red("deleteAlbumsResult:", deleteAlbumsResult.left)
   if (E.isLeft(deleteCoversResult))
     log.error.red("deleteCoversResult:", deleteCoversResult.left)
+
+  // TODO update cover cleanup to respect manually added playlist covers
 
   // Remove unused covers
   const deleteCoversFilesystemResult = await deleteFromDirectoryInverted(
