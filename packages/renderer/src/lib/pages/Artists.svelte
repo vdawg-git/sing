@@ -5,8 +5,11 @@
   import { removeDuplicates } from "@sing-shared/Pures"
 
   import { ROUTES } from "@/Consts"
-  import { artists, playNewSource } from "@/lib/manager/player/index"
+  import { artists, playNewSource } from "@/lib/manager/Player"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
+  import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
+
+  import { playlistsStore } from "../stores/PlaylistsStore"
 
   import CardList from "@/lib/organisms/CardList.svelte"
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
@@ -49,12 +52,15 @@
         id: artist.name,
         image: artist.albums.find((album) => album.cover !== undefined)?.cover,
         secondaryText: "Artist",
+        contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)(
+          { type: "artist", name: artist.name }
+        ),
       }))}
       isImageCircle={true}
       on:play={({ detail: id }) =>
         playNewSource({
           sourceID: id,
-          source: "artists",
+          source: "artist",
           sortBy: ["album", "ascending"],
         })}
       on:clickedPrimary={navigateToArtist}

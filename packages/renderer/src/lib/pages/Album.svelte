@@ -16,7 +16,7 @@
   } from "@/types/Types"
   import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
 
-  import { playNewSource } from "../manager/player"
+  import { playNewSource } from "../manager/Player"
   import { backgroundImages } from "../stores/BackgroundImages"
   import { playlistsStore } from "../stores/PlaylistsStore"
 

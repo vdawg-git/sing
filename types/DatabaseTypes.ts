@@ -287,9 +287,9 @@ export type IMusicIDs = {
 export type IMusicIDsUnion = validateMusicIDTypes<IMusicIDs[keyof IMusicIDs]>
 
 /**
- * Currently used for adding music to playlists.
+ * The name property is used to set the name of the created playlist.
  */
-export type IPlaylistCreateArgument = IMusicIDsUnion & { readonly name: string }
+export type IPlaylistCreateArgument = IMusicIDsUnion & Pick<IPlaylist, "name">
 
 export type IAddTracksToPlaylistArgument = {
   readonly playlist: IPlaylist

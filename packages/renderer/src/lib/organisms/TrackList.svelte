@@ -7,7 +7,7 @@
   import type { ITestIDs } from "@/TestConsts"
   import type {
     ITrackListDisplayOptions,
-    ICreateMenuOutOfMusic,
+    ICreateMenuOutOfTrack,
   } from "@/types/Types"
 
   import TrackItem from "../molecules/TrackItem.svelte"
@@ -20,7 +20,7 @@
     artist: true,
   }
   export let sort: ISortOptions["tracks"] | ISortOptions["playlist"]
-  export let createContextMenuItems: ICreateMenuOutOfMusic
+  export let createContextMenuItems: ICreateMenuOutOfTrack
 
   sort // Compiler dont cry for now
 

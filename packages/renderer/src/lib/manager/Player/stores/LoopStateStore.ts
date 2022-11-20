@@ -16,4 +16,4 @@ export function setNextLoopState() {
   })
 }
 
-export const loopState = derived(index, ($index) => states[$index])
+export const loopStateStore = derived(index, ($index) => states[$index])

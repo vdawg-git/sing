@@ -17,10 +17,10 @@ import {
   notifiyError,
   sortAlphabetically,
 } from "@/Helper"
-import audioPlayer from "@/lib/manager/player/AudioPlayer"
+import audioPlayer from "@/lib/manager/Player/AudioPlayer"
 import type { IPlayLoop, IPlayState, IQueueItem } from "@/types/Types"
 
-import { loopState } from "./stores/LoopStateStore"
+import { loopStateStore } from "./stores/LoopStateStore"
 import { indexStore } from "./stores/PlayIndex"
 import { queueStore } from "./stores/QueueStore"
 
@@ -100,7 +100,7 @@ shuffleState.subscribe(async ($newShuffleState) => {
   $isShuffleOn = $newShuffleState
 })
 
-loopState.subscribe(($newLoopState) => {
+loopStateStore.subscribe(($newLoopState) => {
   $loopState = $newLoopState
 })
 
@@ -581,4 +581,7 @@ export const albums = { subscribe: albumsStore.subscribe }
 export const artists = { subscribe: artistsStore.subscribe }
 export const queue = { subscribe: queueStore.subscribe }
 
-export { setNextLoopState } from "./stores/LoopStateStore"
+export {
+  setNextLoopState,
+  loopStateStore as loopState,
+} from "./stores/LoopStateStore"

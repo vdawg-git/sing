@@ -8,13 +8,11 @@
   import IconPlay from "virtual:icons/heroicons-outline/play"
   import IconQueue from "virtual:icons/heroicons-outline/view-list"
 
-  import { displayMetadata } from "@/Helper"
+  import { displayTrackMetadata } from "@/Helper"
   import { TEST_IDS } from "@/TestConsts"
   import {
     loopState,
     setNextLoopState,
-  } from "@/lib/manager/player/stores/LoopStateStore"
-  import {
     currentTrack,
     playState,
     currentTime,
@@ -105,7 +103,7 @@
           class="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-lg"
           data-testid={TEST_IDS.playbarTitle}
         >
-          {displayMetadata("title", track)}
+          {displayTrackMetadata("title", track)}
         </div>
         <!-- Artist name -->
         <div class="flex max-w-full gap-3">
@@ -113,7 +111,7 @@
             class="shrink-1 overflow-hidden text-ellipsis whitespace-nowrap text-xs font-medium tracking-wide text-grey-300"
             data-testid={TEST_IDS.playbarArtist}
           >
-            {displayMetadata("artist", track)}
+            {displayTrackMetadata("artist", track)}
           </div>
         </div>
       </div>

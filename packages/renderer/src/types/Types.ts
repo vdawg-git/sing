@@ -1,6 +1,7 @@
 import type { FilePath } from "@sing-types/Filesystem"
 import type {
   IMusicIDs,
+  IPlaylist,
   IPlaylistCreateArgument,
   ITrack,
 } from "@sing-types/DatabaseTypes"
@@ -117,10 +118,17 @@ export type IMenuItemsArgument = readonly (
   | IMenuSpacer
 )[]
 
+/**
+ * Used to create context menu items for music items, like albums and tracks.
+ */
 export type ICreateMenuOutOfMusic = (
   item: IPlaylistCreateArgument
 ) => IMenuItemsArgument
 
+/**
+ * Same as {@link ICreateMenuOutOfMusic}, but narrowed only for tracks.
+ * The `name` property is used like in {@link ICreateMenuOutOfMusic} to automatically infer the name of a created playlist, as the menu items also allow creating a new playlist.
+ */
 export type ICreateMenuOutOfTrack = (
-  item: IMusicIDs["track"] & { readonly name: string }
+  item: IMusicIDs["track"] & Pick<IPlaylist, "name">
 ) => IMenuItemsArgument

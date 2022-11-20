@@ -34,7 +34,10 @@ export function titleToDisplay(track: ITrack): string {
   return convertFilepathToFilename(track.filepath)
 }
 
-export function displayMetadata(type: keyof ITrack, track: ITrack): string {
+export function displayTrackMetadata(
+  type: keyof ITrack,
+  track: ITrack
+): string {
   switch (type) {
     case "title": {
       return titleToDisplay(track)

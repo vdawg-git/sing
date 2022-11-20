@@ -4,9 +4,12 @@
   import type { ITrack } from "@sing-types/DatabaseTypes"
 
   import { ROUTES } from "@/Consts"
-  import { displayMetadata, type ICreateMenuOutOfMusic } from "@/Helper"
+  import { displayTrackMetadata } from "@/Helper"
   import { TEST_ATTRIBUTES } from "@/TestConsts"
-  import type { ITrackListDisplayOptions } from "@/types/Types"
+  import type {
+    ICreateMenuOutOfTrack,
+    ITrackListDisplayOptions,
+  } from "@/types/Types"
 
   import { useOpenContextMenu } from "../manager/menu"
 
@@ -14,14 +17,14 @@
 
   export let track: ITrack
   export let displayOptions: ITrackListDisplayOptions
-  export let createContextMenuItems: ICreateMenuOutOfMusic
+  export let createContextMenuItems: ICreateMenuOutOfTrack
 
   const navigate = useNavigate()
 
   $: contextMenuItems = createContextMenuItems({
     type: "track",
     id: track.id,
-    name: displayMetadata("title", track),
+    name: displayTrackMetadata("title", track),
   })
 
   function navigateTo(type: StrictExtract<keyof ITrack, "album" | "artist">) {
@@ -67,7 +70,7 @@
         data-testattribute={TEST_ATTRIBUTES.trackItemTitle}
         class=" min-w-0  flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
       >
-        {displayMetadata("title", track)}
+        {displayTrackMetadata("title", track)}
       </div>
     </div>
   </div>
@@ -80,7 +83,7 @@
       class="mr-6 flex-1 basis-32  overflow-hidden text-ellipsis whitespace-nowrap align-middle 
         {track.artist ? 'hover:underline disabled:hover:text-white' : ''}"
     >
-      {displayMetadata("artist", track)}
+      {displayTrackMetadata("artist", track)}
     </a>
   {/if}
 
@@ -95,7 +98,7 @@
         : ''}
       "
     >
-      {displayMetadata("album", track)}
+      {displayTrackMetadata("album", track)}
     </a>
   {/if}
 
@@ -104,7 +107,7 @@
     data-testattribute={TEST_ATTRIBUTES.trackItemDuration}
     class="flex-1 grow-0 basis-12 overflow-hidden text-ellipsis whitespace-nowrap text-right align-middle"
   >
-    {displayMetadata("duration", track)}
+    {displayTrackMetadata("duration", track)}
   </div>
 
   <!---- Hover bg -->

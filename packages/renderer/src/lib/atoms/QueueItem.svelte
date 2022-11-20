@@ -8,7 +8,7 @@
 
   import type { ICreateMenuOutOfMusic, IQueueItem } from "@/types/Types"
   import { TEST_IDS, TEST_ATTRIBUTES } from "@/TestConsts"
-  import { displayMetadata } from "@/Helper"
+  import { displayTrackMetadata } from "@/Helper"
 
   import { useOpenContextMenu } from "../manager/menu"
 
@@ -55,7 +55,7 @@
 
   $: contextMenuItems = createContextMenuItems({
     type: "track",
-    name: displayMetadata("title", track),
+    name: displayTrackMetadata("title", track),
     id: track.id,
   })
 
@@ -85,7 +85,7 @@
     {#if track?.cover}
       <img
         src={"file://" + track.cover}
-        alt={displayMetadata("title", track) + " cover"}
+        alt={displayTrackMetadata("title", track) + " cover"}
         class="h-12 w-12 rounded"
         class:opacity-70={state === "HAS_PLAYED"}
         data-testattribute={TEST_ATTRIBUTES.queueItemCover}
@@ -101,14 +101,14 @@
         data-testid={testTitleID}
         data-testattribute={TEST_ATTRIBUTES.queueItemTitle}
       >
-        {displayMetadata("title", track)}
+        {displayTrackMetadata("title", track)}
       </span>
       <span
         class="-mt-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-grey-300"
         data-testid={testArtistID}
         data-testattribute={TEST_ATTRIBUTES.queueItemArtist}
       >
-        {displayMetadata("artist", track)}
+        {displayTrackMetadata("artist", track)}
       </span>
     </div>
   </div>

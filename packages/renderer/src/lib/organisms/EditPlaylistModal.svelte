@@ -1,7 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte"
   import { dequal } from "dequal"
-  import { tick, type SvelteComponentDev } from "svelte/internal"
 
   import type { IPlaylist } from "@sing-types/DatabaseTypes"
   import type { FilePath } from "@sing-types/Filesystem"
@@ -13,6 +12,8 @@
   import CoverPicker from "../molecules/CoverPicker.svelte"
 
   import Modal from "./Modal.svelte"
+
+  import type { SvelteComponentDev } from "svelte/internal"
 
   export let playlist: IPlaylist
 

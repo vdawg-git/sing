@@ -5,7 +5,7 @@
   import { displayTypeWithCount, removeDuplicates } from "@sing-shared/Pures"
 
   import { ROUTES } from "@/Consts"
-  import { albums, playNewSource } from "@/lib/manager/player"
+  import { albums, playNewSource } from "@/lib/manager/Player"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
   import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
 
