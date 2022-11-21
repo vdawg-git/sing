@@ -11,7 +11,8 @@
 
   import { ROUTES, type IRoutes } from "@/Consts"
   import { TEST_IDS as id } from "@/TestConsts"
-  import type { IOpenMenuArgument } from "@/types/Types"
+  import type { IMenuItemsArgument, IOpenMenuArgument } from "@/types/Types"
+  import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
 
   import { createOpenMenu } from "../manager/menu"
   import SidebarItem from "../atoms/SidebarItem.svelte"
@@ -29,6 +30,7 @@
     label: string
     to: IRoutes
     icon?: typeof SvelteComponentDev
+    contextMenuItems?: IMenuItemsArgument
   }
 
   const topItems: readonly ISidebarItem[] = [
@@ -42,7 +44,14 @@
   $: playlistItems = $playlistsStore.map((playlist) => ({
     label: playlist.name,
     to: `${ROUTES.playlists}/${playlist.id}`,
+    contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)({
+      type: "playlist",
+      id: playlist.id,
+      name: playlist.name,
+    }),
   }))
+
+  $: console.log({ playlistItems })
 
   const settingsDropdownItems: IOpenMenuArgument = {
     menuItems: [
@@ -105,8 +114,13 @@
   <!---- Playlist items -->
   {#if $playlistsStore.length > 0}
     <MenuSeperator marginX={12} />
-    {#each playlistItems as { to, label }}
-      <SidebarItem {to} {label} isActive={to === currentRoute} />
+    {#each playlistItems as { to, label, contextMenuItems }}
+      <SidebarItem
+        {to}
+        {label}
+        isActive={to === currentRoute}
+        {contextMenuItems}
+      />
     {/each}
   {/if}
 </nav>

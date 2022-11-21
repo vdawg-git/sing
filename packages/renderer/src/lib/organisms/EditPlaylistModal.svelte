@@ -17,6 +17,8 @@
 
   export let playlist: IPlaylist
 
+  // TODO on "Enter" -> "Save"
+
   const coverPickerWindowTitle = `Select image`
   const coverPickerWindowMessage = `Select image for ${playlist.name}`
   const coverPickerWindowButton = `Set ${playlist.name} image`

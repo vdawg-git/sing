@@ -121,7 +121,7 @@
   <!---------------------------------->
   <!----    Playback controls       -->
   <!---------------------------------->
-  <div class="flex min-w-[20rem] max-w-[62.5rem]  flex-col items-center">
+  <div class="flex max-w-[62.5rem]  flex-col items-center">
     <div class="mb-1 flex items-center gap-6 text-white ">
       <!---- Shuffle Button -->
       <button

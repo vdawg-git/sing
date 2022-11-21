@@ -69,8 +69,6 @@
   function isScreenUltrawide() {
     return document.body.getBoundingClientRect().width > 2400
   }
-
-  $: console.log({ displayedImages })
 </script>
 
 {#key displayedImages}
@@ -80,7 +78,7 @@
     transition:fade={{ duration: 250 }}
   >
     <div
-      class="relative -z-50 -ml-5 h-[calc(100%-3px)] overflow-y-hidden"
+      class="relative -z-50 -ml-16 h-[calc(100%-3px)] overflow-y-hidden"
       style="width: calc(100vw + 730px);"
     >
       {#if displayedImages.length > 1}
