@@ -16,7 +16,9 @@
 
   const navigate = useNavigate()
 
-  const openContextMenu = contextMenuItems ? useOpenContextMenu : () => {}
+  const openContextMenu = contextMenuItems
+    ? useOpenContextMenu
+    : () => undefined
 </script>
 
 <button
