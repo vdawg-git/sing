@@ -1,11 +1,15 @@
 import { get, writable } from "svelte/store"
 
-import type { ITrack } from "@sing-types/Types"
+import type { ITrack } from "@sing-types/DatabaseTypes"
 
-import type { IQueueItem } from "@/types/Types"
+import type { IAutoQueueItem } from "@/types/Types"
 
-function createQueueStore() {
-  const { subscribe, set, update } = writable<IQueueItem[]>([])
+/**
+ * The queue which gets filled up automatically.
+ * For example, a user plays an album and the queue fills up with tracks from that album.
+ */
+function createAutoQueueStore() {
+  const { subscribe, set, update } = writable<readonly IAutoQueueItem[]>([])
 
   return {
     removeIndex,
@@ -14,20 +18,31 @@ function createQueueStore() {
     setTracks,
     subscribe,
     update,
-    addToNext,
   }
 
-  // ! TODO doimplement this
-  function addToNext(playIndex: number, tracks: ITrack | readonly ITrack[]) {
-    update(($items) => {
-      const playedTracks = $items.slice(0, playIndex)
-      const nextTracks = $items.slice(playIndex)
-    })
-  }
+  // TODO make the queue store generic and create a normal queue and a "manuallyAddedQueue".
+  // When after a track ends the "manuallyAddedQueue" is not empty, start playing from "manuallyAddedQueue".
+  // Does this count as a playback? Does it change the state?
+
+  // What to do when switching playback?
+  // Check if the "manuallyAddedQueue" has items, if yes ask to keep it or to delete it.
+
+  // What to do when auto switching tracks?
+  // Check if the "manuallyAddedQueue" has items, if yes, set it to the current queue track and play from there.
+  // But if the current track is already from the manuallyAddedQueue then delete it from the manuallyAddedQueue and play the next inside the manuallyAddedQueue.
+
+  // How to compute the currrent track?
+  // This is decided on how the index is calculated.. More to come
+
+  // The playback functions are generic and get passed the current queue store ("default" and "manuallyAddedQueue") and does the
+  // index incrementing.
+
+  // How to delete items from manuallyAddedQueue?
+  // Delete item by ID and delete all items previous to an ID.
 
   /**
-   * Removes all items from the queue, which are not included in the new ones.
-   * This is used to remove deleted tracks from the queue after a sync update.
+   * Removes all items from the queue, which are not included in the new items.
+   * This is used to remove tracks which got deleted after a sync update from the queue.
    * @param newTrackItems The available track items
    * @param currentIndex The current index of the playback
    * @returns The new index to set.
@@ -59,34 +74,10 @@ function createQueueStore() {
    *
    * @param tracks The tracks to add as IQueueItems
    * @param queueIndex The current play index. Used internally to determine which manually added tracks are already played and thus should be removed.
-   * @param keepManuallyAddedTracks Wether to keep manually added tracks or not. Defaults to `true`.
    */
-  function setTracks(
-    tracks: readonly ITrack[],
-    queueIndex: number,
-    keepManuallyAddedTracks = true
-  ): void {
-    update(($queue) => {
-      const [newCurrent, ...newQueueItems]: readonly IQueueItem[] = tracks.map(
-        _convertTrackToQueueItem(0)
-      )
-
-      return [
-        newCurrent,
-        ...(keepManuallyAddedTracks
-          ? _getUnplayedManuallyAddedTracks($queue, queueIndex)
-          : []),
-        ...newQueueItems,
-      ]
-    })
+  function setTracks(tracks: readonly ITrack[]): void {
+    set(tracks.map(_convertTrackToQueueItem(0)))
   }
-}
-
-function _getUnplayedManuallyAddedTracks(
-  queue: IQueueItem[],
-  queueIndex: number
-) {
-  return queue.slice(queueIndex).filter((item) => item.isManuallyAdded)
 }
 
 /**
@@ -94,19 +85,19 @@ function _getUnplayedManuallyAddedTracks(
  */
 function _convertTrackToQueueItem(
   continueFromIndex: number
-): (track: ITrack, index: number) => IQueueItem {
+): (track: ITrack, index: number) => IAutoQueueItem {
   return (track, index) => ({
     index: continueFromIndex + index,
     queueID: Symbol(`${track?.title} queueID`),
     track,
-    isManuallyAdded: false,
+    isManuallyAdded: true,
   })
 }
 
 function _remapIndexes(
-  queueItems: readonly IQueueItem[],
+  queueItems: readonly IAutoQueueItem[],
   indexToStart = 0
-): IQueueItem[] {
+): readonly IAutoQueueItem[] {
   return [...queueItems].map((item, index) => {
     const newIndex = indexToStart + index
 
@@ -119,16 +110,16 @@ function _remapIndexes(
 }
 
 function _removeIndex(
-  queueItems: readonly IQueueItem[],
+  queueItems: readonly IAutoQueueItem[],
   indexes: readonly number[] | number
-): IQueueItem[] {
+): readonly IAutoQueueItem[] {
   const cleaned = remove(queueItems, indexes)
 
   return _remapIndexes(cleaned)
 }
 
 function remove(
-  queueItems: readonly IQueueItem[],
+  queueItems: readonly IAutoQueueItem[],
   indexes: number | readonly number[]
 ) {
   if (typeof indexes === "number") {
@@ -141,10 +132,10 @@ function remove(
 }
 
 function _intersectWithItems(
-  queueItems: readonly IQueueItem[],
+  queueItems: readonly IAutoQueueItem[],
   newTrackItems: readonly ITrack[],
   currentIndex: number
-) {
+): { newQueue: readonly IAutoQueueItem[]; newIndex: number } {
   const trackIDs = new Set(newTrackItems.map((track) => track.id))
 
   const deletedIndexes: number[] = []
@@ -169,4 +160,4 @@ function _intersectWithItems(
   return { newIndex, newQueue }
 }
 
-export const queueStore = createQueueStore()
+export const autoQueueStore = createAutoQueueStore()

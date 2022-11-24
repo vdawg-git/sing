@@ -12,11 +12,19 @@ import type { AsyncOrSync } from "ts-essentials"
 export type IPlayState = "PLAYING" | "PAUSED" | "STOPPED"
 export type IPlayLoop = "NONE" | "LOOP_QUEUE" | "LOOP_TRACK"
 
-export type IQueueItem = {
+export interface IQueueItem {
   readonly index: number
   readonly queueID: symbol
   readonly isManuallyAdded: boolean
   readonly track: ITrack
+}
+
+export interface IAutoQueueItem extends IQueueItem {
+  isManuallyAdded: true
+}
+
+export interface IManualQueueItem extends IQueueItem {
+  isManuallyAdded: false
 }
 
 export type IHeroMetaDataItem = AsyncOrSync<{
