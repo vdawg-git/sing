@@ -66,7 +66,6 @@ import type { Either } from "fp-ts/Either"
 import type { IBackMessagesHandler } from "./Messages"
 import type { PrismaPromise, PlaylistItem, Prisma } from "@prisma/client"
 
-log(process.argv)
 log(process.argv[2])
 const prisma = createPrismaClient(process.argv[2])
 
@@ -189,7 +188,7 @@ export async function createPlaylist(
         return E.right({ name: createDefaultPlaylistName(usedNames.right) })
       })
       .with(P.instanceOf(Object), async (toAdd) => {
-        const tracksToAdd = await extractTracks(toAdd)
+        const tracksToAdd = await getTracksFromMusic(toAdd)
 
         if (E.isLeft(tracksToAdd)) return tracksToAdd
 
@@ -483,7 +482,7 @@ export async function addTracksToPlaylist(
   { musicToAdd, playlist, insertAt }: IAddTracksToPlaylistArgument
 ): Promise<void> {
   const trackIDs = pipe(
-    await extractTracks(musicToAdd),
+    await getTracksFromMusic(musicToAdd),
     E.map(RA.map(({ id }) => id))
   )
 
@@ -909,7 +908,12 @@ async function getPlaylistNames(): Promise<Either<IError, readonly string[]>> {
     .catch(createError("Failed to get playlist names"))
 }
 
-async function extractTracks(
+/**
+ * Query by a music item, for example an album, and receive the tracks from it.
+ * @param item A type which can contain tracks to retrieve, like an album or playlist.
+ * @returns The tracks from the item
+ */
+export async function getTracksFromMusic(
   item: IMusicIDsUnion
 ): Promise<Either<IError, readonly ITrack[]>> {
   return match(item)

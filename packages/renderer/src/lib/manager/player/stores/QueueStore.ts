@@ -2,14 +2,14 @@ import { get, writable } from "svelte/store"
 
 import type { ITrack } from "@sing-types/DatabaseTypes"
 
-import type { IAutoQueueItem } from "@/types/Types"
+import type { IQueueItem } from "@/types/Types"
 
 /**
  * The queue which gets filled up automatically.
  * For example, a user plays an album and the queue fills up with tracks from that album.
  */
 function createAutoQueueStore() {
-  const { subscribe, set, update } = writable<readonly IAutoQueueItem[]>([])
+  const { subscribe, set, update } = writable<readonly IQueueItem[]>([])
 
   return {
     removeIndex,
@@ -85,7 +85,7 @@ function createAutoQueueStore() {
  */
 function _convertTrackToQueueItem(
   continueFromIndex: number
-): (track: ITrack, index: number) => IAutoQueueItem {
+): (track: ITrack, index: number) => IQueueItem {
   return (track, index) => ({
     index: continueFromIndex + index,
     queueID: Symbol(`${track?.title} queueID`),
@@ -95,9 +95,9 @@ function _convertTrackToQueueItem(
 }
 
 function _remapIndexes(
-  queueItems: readonly IAutoQueueItem[],
+  queueItems: readonly IQueueItem[],
   indexToStart = 0
-): readonly IAutoQueueItem[] {
+): readonly IQueueItem[] {
   return [...queueItems].map((item, index) => {
     const newIndex = indexToStart + index
 
@@ -110,16 +110,16 @@ function _remapIndexes(
 }
 
 function _removeIndex(
-  queueItems: readonly IAutoQueueItem[],
+  queueItems: readonly IQueueItem[],
   indexes: readonly number[] | number
-): readonly IAutoQueueItem[] {
+): readonly IQueueItem[] {
   const cleaned = remove(queueItems, indexes)
 
   return _remapIndexes(cleaned)
 }
 
 function remove(
-  queueItems: readonly IAutoQueueItem[],
+  queueItems: readonly IQueueItem[],
   indexes: number | readonly number[]
 ) {
   if (typeof indexes === "number") {
@@ -132,10 +132,10 @@ function remove(
 }
 
 function _intersectWithItems(
-  queueItems: readonly IAutoQueueItem[],
+  queueItems: readonly IQueueItem[],
   newTrackItems: readonly ITrack[],
   currentIndex: number
-): { newQueue: readonly IAutoQueueItem[]; newIndex: number } {
+): { newQueue: readonly IQueueItem[]; newIndex: number } {
   const trackIDs = new Set(newTrackItems.map((track) => track.id))
 
   const deletedIndexes: number[] = []

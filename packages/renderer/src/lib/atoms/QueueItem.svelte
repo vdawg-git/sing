@@ -6,7 +6,7 @@
 
   import type { ITrack } from "@sing-types/DatabaseTypes"
 
-  import type { ICreateMenuOutOfMusic, IQueueItem } from "@/types/Types"
+  import type { ICreateMenuOutOfMusic } from "@/types/Types"
   import { TEST_IDS, TEST_ATTRIBUTES } from "@/TestConsts"
   import { displayTrackMetadata } from "@/Helper"
 
@@ -18,7 +18,7 @@
     | typeof TEST_IDS.queueNextTrack
     | undefined
 
-  export let queueItemData: IQueueItem
+  export let track: ITrack
   export let state: IState = "DEFAULT"
   export let testId: ITestIDs = undefined
   export let testattribute: string | undefined = undefined
@@ -49,9 +49,6 @@
       }
     }
   })()
-
-  let track: ITrack
-  $: track = queueItemData.track
 
   $: contextMenuItems = createContextMenuItems({
     type: "track",

@@ -1,6 +1,6 @@
 import { dequal } from "dequal"
 import * as E from "fp-ts/lib/Either"
-import { derived, get, writable } from "svelte/store"
+import { derived, get, writable, type Readable } from "svelte/store"
 import { match } from "ts-pattern"
 import { pipe } from "fp-ts/lib/function"
 
@@ -18,21 +18,15 @@ import {
   sortAlphabetically,
 } from "@/Helper"
 import audioPlayer from "@/lib/manager/Player/AudioPlayer"
-import type {
-  IAutoQueueItem,
-  IPlayLoop,
-  IPlayState,
-  IQueueItem,
-} from "@/types/Types"
+import type { IPlayLoop, IPlayState, IQueueItem } from "@/types/Types"
 
 import { loopStateStore } from "./stores/LoopStateStore"
 import { indexStore } from "./stores/PlayIndex"
 import { autoQueueStore } from "./stores/QueueStore"
+import { manuallQueueStore } from "./stores/ManualQueueStore"
 
 import type { IpcRendererEvent } from "electron"
 import type { Either } from "fp-ts/lib/Either"
-
-// TODO Add genre to the db, too
 
 // Create stores / state
 const playStateStore = writable<IPlayState>("STOPPED")
@@ -52,9 +46,10 @@ const playbackStore = writable<IPlayback>({
 await initialiseStores()
 
 // Now it makes sense to create and use the derived stores, as the base stores are initialised
-export const currentTrack = derived(
+export const currentTrack: Readable<ITrack> = derived(
   [autoQueueStore, indexStore],
-  ([$queue, $index]) => $queue[$index]
+  ([$queue, $index]) =>
+    isPlayingFromManuellQueue ? $manuellQueue[0] : $queue[$index].track
 )
 export const playedTracks = derived(
   [autoQueueStore, indexStore],
@@ -69,15 +64,18 @@ export const shuffleState = derived(
   ({ isShuffleOn }) => isShuffleOn
 )
 
+let isPlayingFromManuellQueue = false
+
 // Bind the values of the stores localy.
 let $playState: IPlayState = "STOPPED"
-let $autoQueue: readonly IAutoQueueItem[] = []
+let $autoQueue: readonly IQueueItem[] = []
 let $currentIndex = -1
-let $currentTrack: IQueueItem
+let $currentTrack: ITrack
 let $playback: IPlayback
 let seekAnimationID: number
 let $isShuffleOn: boolean
 let $loopState: IPlayLoop
+let $manuellQueue: readonly ITrack[]
 
 autoQueueStore.subscribe(($newQueue) => {
   $autoQueue = $newQueue
@@ -101,12 +99,16 @@ playbackStore.subscribe(($newPlayback) => {
 /**
  * Shuffle or unshuffle the current queue when the shuffle state changes
  */
-shuffleState.subscribe(async ($newShuffleState) => {
+shuffleState.subscribe(($newShuffleState) => {
   $isShuffleOn = $newShuffleState
 })
 
 loopStateStore.subscribe(($newLoopState) => {
   $loopState = $newLoopState
+})
+
+manuallQueueStore.subscribe(($newManuellQueue) => {
+  $manuellQueue = $newManuellQueue
 })
 
 // Events
@@ -115,7 +117,12 @@ audioPlayer.audio.addEventListener("ended", handlePlayNext)
 audioPlayer.audio.addEventListener("volumechange", onVolumeChange)
 
 export function handlePlayNext() {
-  // I want to find a way to make this nicer
+  // TODO Make this nicer
+
+  // If the manuell queue played, remove the played song
+  if (isPlayingFromManuellQueue) {
+    manuallQueueStore.removeFirst()
+  }
 
   // If the current track is set to loop, loop it
   if ($loopState === "LOOP_TRACK") {
@@ -128,14 +135,31 @@ export function handlePlayNext() {
     return
   }
 
+  // If there is a track in the manuell queue, play it
+  if ($manuellQueue.length > 0) {
+    isPlayingFromManuellQueue = true
+
+    if ($playState === "PLAYING") {
+      startPlayingCurrentTrack()
+    } else {
+      manuallQueueStore.removeFirst()
+    }
+
+    return
+  } else {
+    isPlayingFromManuellQueue = false
+  }
+
   // If the queue reached its end
   if ($currentIndex === $autoQueue.length - 1) {
+    // Loop the playback if set
     if ($loopState === "LOOP_QUEUE") {
       indexStore.reset()
 
       if ($playState === "PLAYING") {
         startPlayingCurrentTrack()
       }
+      // Start a new playback state
     } else if ($playState === "PLAYING") {
       playRandomTracksPlayback()
     } else {
@@ -145,7 +169,7 @@ export function handlePlayNext() {
     return
   }
 
-  // If it did not reach its end and it is not looping. simply go to the next track
+  // If it did not reach its end and it is not looping. Simply go to the next track
   if ($playState === "PLAYING") {
     playNext()
   } else {
@@ -173,7 +197,7 @@ export async function toggleShuffle() {
       notifiyError("Failed to set shuffle. Could not retrieve tracks."),
 
       async (tracks) => {
-        const trackID = $currentTrack.track.id
+        const trackID = $currentTrack.id
 
         const indexAndTracks: { index: number; tracks: readonly ITrack[] } =
           match($isShuffleOn)
@@ -213,7 +237,7 @@ export function setVolume(newVolume: number) {
 }
 
 export function seekTo(percentage: number) {
-  const newCurrentTime = ($currentTrack.track.duration || 0) * percentage
+  const newCurrentTime = ($currentTrack.duration || 0) * percentage
   audioPlayer.audio.currentTime = newCurrentTime
 
   currentTimeStore.set(newCurrentTime)
@@ -232,9 +256,9 @@ function playPrevious() {
   })
 
   if ($playState === "STOPPED" || $playState === "PAUSED")
-    audioPlayer.setSource($currentTrack.track.filepath)
+    audioPlayer.setSource($currentTrack.filepath)
   else {
-    audioPlayer.play($currentTrack.track.filepath)
+    audioPlayer.play($currentTrack.filepath)
   }
 }
 
@@ -416,14 +440,14 @@ function playNext() {
 
 function goToNextTrack() {
   indexStore.increment()
-  audioPlayer.setSource($currentTrack.track.filepath)
+  audioPlayer.setSource($currentTrack.filepath)
 }
 
 function handlePlayStateUpdate(newState: IPlayState) {
   $playState = newState
 
   if (newState === "PLAYING") {
-    durationStore.set($currentTrack.track?.duration || 0)
+    durationStore.set($currentTrack?.duration || 0)
     startIntervalUpdateTime()
   } else {
     cancelIntervalUpdateTime()
@@ -448,7 +472,7 @@ function cancelIntervalUpdateTime() {
 
 function startPlayingCurrentTrack() {
   playStateStore.set("PLAYING")
-  audioPlayer.play($currentTrack.track.filepath)
+  audioPlayer.play($currentTrack.filepath)
 }
 
 async function initialiseStores() {
@@ -585,6 +609,7 @@ export const tracks = { subscribe: tracksStore.subscribe }
 export const albums = { subscribe: albumsStore.subscribe }
 export const artists = { subscribe: artistsStore.subscribe }
 export const queue = { subscribe: autoQueueStore.subscribe }
+export const manuellyQueue = { subscribe: manuallQueueStore.subscribe }
 
 export {
   setNextLoopState,

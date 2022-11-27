@@ -433,19 +433,6 @@ export function sumUpNumber(total: number, toAdd: number): number {
 }
 
 /**
- * Designed to be used with `Array.filter()`, but also on its own
- * @param item To item to be checked
- * @returns True if the item is truthy, false otherwise
- */
-export function filterOutFalsy<T>(
-  item: T | undefined | false | "" | null | 0
-): item is T {
-  if (item === undefined) return false
-
-  return true
-}
-
-/**
  *
  * Receives a common database item, like an album, playlist etc, and returns its tracks.
  * Also accepts arrays.

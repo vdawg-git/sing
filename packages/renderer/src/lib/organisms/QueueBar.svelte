@@ -12,7 +12,7 @@
     playFromQueue,
     removeIndexFromQueue,
     pausePlayback,
-  } from "@/lib/manager/player/index"
+  } from "@/lib/manager/Player"
   import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
@@ -95,7 +95,7 @@
         >
           {#each $playedTracks as queueItemData, index (queueItemData.queueID)}
             <QueueItem
-              {queueItemData}
+              track={queueItemData.track}
               state="HAS_PLAYED"
               testId={index === $playIndex - 1
                 ? TEST_IDS.queuePreviousTrack
@@ -117,12 +117,12 @@
             Currently playing
           </div>
           <QueueItem
-            queueItemData={$currentTrack}
+            track={$currentTrack}
             state="PLAYING"
             testId={TEST_IDS.queueCurrentTrack}
             {createContextMenuItems}
             on:dblclick={() => pausePlayback()}
-            on:remove={() => handleRemove($currentTrack.index)}
+            on:remove={() => handleRemove($playIndex)}
           />
         </div>
       {/if}
@@ -139,7 +139,7 @@
           >
             {#each nextTracksDisplayed as queueItemData, index (queueItemData.queueID)}
               <QueueItem
-                {queueItemData}
+                track={queueItemData.track}
                 testId={index === 0 ? "queueNextTrack" : undefined}
                 testQueueNextIndex={index}
                 testattribute={TEST_ATTRIBUTES.queueNextTracks}

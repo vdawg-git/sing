@@ -13,6 +13,7 @@ import type {
   IAlbumGetArgument,
   IArtist,
   IArtistFindManyArgument,
+  IMusicIDsUnion,
   IPlaylistCreateArgument,
   IPlaylistEditDescriptionArgument,
   IPlaylistFindManyArgument,
@@ -115,6 +116,12 @@ export const mainQueryHandlers = Object.freeze({
   ) =>
     queryBackend({
       query: "getCovers",
+      arguments_: options,
+    }),
+
+  getTrackFromMusic: async (_: IpcMainInvokeEvent, options: IMusicIDsUnion) =>
+    queryBackend({
+      query: "getTracksFromMusic",
       arguments_: options,
     }),
 

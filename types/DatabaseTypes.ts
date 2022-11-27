@@ -257,7 +257,7 @@ export type IMusicItems =
   | readonly IPlaylist[]
 
 /**
- * Used when you want a more specifiv version of IMusicIDsUnion
+ * Used this when you want a more specific version of IMusicIDsUnion by indexing this.
  */
 export type IMusicIDs = {
   playlist: {
