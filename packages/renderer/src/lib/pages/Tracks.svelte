@@ -2,9 +2,8 @@
   import { isPresent } from "ts-is-present"
 
   import { displayTypeWithCount, removeDuplicates } from "@sing-shared/Pures"
-  import type { IPlaySource, ISortOptions } from "@sing-types/Types"
 
-  import type { IHeroMetaDataItem } from "@/types/Types"
+
   import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
   import { playNewSource, tracks } from "@/lib/manager/player"
 
@@ -14,6 +13,9 @@
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
   import NothingHereYet from "@/lib/organisms/NothingHereYet.svelte"
   import TrackList from "@/lib/organisms/TrackList.svelte"
+
+  import type { IHeroMetaDataItem } from "@/types/Types"
+  import type { IPlaySource, ISortOptions } from "@sing-types/Types"
 
   const source: IPlaySource = "allTracks"
   const defaultSort: ISortOptions["tracks"] = ["title", "ascending"]

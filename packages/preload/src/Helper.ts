@@ -3,10 +3,10 @@ import hexoid from "hexoid"
 import log from "ololog"
 
 import { isBackendQueryResponse } from "@sing-types/TypeGuards"
-import type { ParametersWithoutFirst } from "@sing-types/Utilities"
 
 import { webContents } from "./TypedIPC"
 
+import type { ParametersWithoutFirst } from "@sing-types/Utilities"
 import type { TypedWebContents } from "./types/Types"
 import type {
   IQueryChannels,

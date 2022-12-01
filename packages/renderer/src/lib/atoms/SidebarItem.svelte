@@ -1,11 +1,10 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
 
-  import type { IRoutes } from "@/Consts"
-  import type { IMenuItemsArgument } from "@/types/Types"
-
   import { useOpenContextMenu } from "../manager/menu"
 
+  import type { IRoutes } from "@/Consts"
+  import type { IMenuItemsArgument } from "@/types/Types"
   import type { SvelteComponentDev } from "svelte/internal"
 
   export let to: IRoutes

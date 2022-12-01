@@ -2,6 +2,7 @@ import path from "node:path"
 
 import { NOTIFICATION_LABEL } from "../../packages/renderer/src/Consts"
 import { TEST_ATTRIBUTES, TEST_IDS as id } from "../../packages/renderer/src/TestConsts"
+
 import createSettingsBasePage from "./SettingsBasePage"
 
 /* eslint-disable unicorn/prefer-dom-node-text-content */

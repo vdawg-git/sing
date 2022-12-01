@@ -1,10 +1,11 @@
+import { beforeEach, describe, expect, it, vi } from "vitest"
+
 import queueStore, {
   _convertTracksToQueueItem,
   _remapIndexes,
   _removeIndex,
   _removeItemsFromNewTracks,
 } from "@/lib/stores/QueueStore"
-import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import queueItemFactory from "./factories/queueItemFactory"
 import trackFactory from "./factories/trackFactory"

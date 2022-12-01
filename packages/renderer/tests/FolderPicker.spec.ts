@@ -1,8 +1,9 @@
 /* eslint-disable no-await-in-loop */
-import { TEST_ATTRIBUTES, TEST_IDS as id } from "@/TestConsts"
 import { fireEvent, render } from "@testing-library/svelte"
 import { tick } from "svelte"
 import { expect, it } from "vitest"
+
+import { TEST_ATTRIBUTES, TEST_IDS as id } from "@/TestConsts"
 
 import MockedApi from "./MockElectronApi"
 

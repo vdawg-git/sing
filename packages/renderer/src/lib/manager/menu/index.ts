@@ -5,7 +5,6 @@ import type {
   IMenuLocation,
   IOpenMenuArgument,
 } from "@/types/Types"
-
 import type { StrictOmit } from "ts-essentials"
 
 const { set, subscribe } = writable<

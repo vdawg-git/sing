@@ -1,7 +1,8 @@
-import { TEST_ATTRIBUTES } from "@/TestConsts"
 import { fireEvent, render } from "@testing-library/svelte"
 import { tick } from "svelte"
 import { expect, it } from "vitest"
+
+import { TEST_ATTRIBUTES } from "@/TestConsts"
 
 import MockedApi from "./MockElectronApi"
 

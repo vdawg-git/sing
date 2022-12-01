@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { FilePath } from "@sing-types/Filesystem"
   import type { ISearchItemSubtext } from "@sing-types/Types"
-
   import type { SvelteComponentDev } from "svelte/internal"
 
   export let image: FilePath | undefined

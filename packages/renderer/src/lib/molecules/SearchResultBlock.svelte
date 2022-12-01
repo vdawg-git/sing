@@ -2,14 +2,15 @@
   import { match } from "ts-pattern"
   import { useNavigate } from "svelte-navigator"
 
-  import type {
-    ISearchResultItem,
-    IConvertedSearchData,
-  } from "@sing-types/Types"
 
   import SearchResultItem from "../atoms/SearchResultItem.svelte"
 
   import { convertSearchedDataToSearchItems } from "./SearchResultBlockHelper"
+
+  import type {
+    ISearchResultItem,
+    IConvertedSearchData,
+  } from "@sing-types/Types"
 
   export let data: IConvertedSearchData
   export let isExpanded = false

@@ -6,6 +6,7 @@ import { beforeEach, expect, it, vi } from "vitest"
 
 import mockedPlayer from "../src/lib/manager/__mocks__/AudioPlayer"
 import { TEST_IDS as id } from "../src/TestConsts"
+
 import mockElectronApi from "./MockElectronApi"
 
 import type { SvelteComponentDev } from "svelte/internal"

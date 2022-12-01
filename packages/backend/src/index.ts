@@ -1,12 +1,6 @@
 import log from "ololog"
 import { match } from "ts-pattern"
 
-import type {
-  IBackendQueryResponse,
-  IBackendEmitToFrontend,
-  IBackendQuery,
-  IBackendEvent,
-} from "@sing-types/IPC"
 
 import { backendEventHandlers } from "@/lib/EventHandlers"
 import { queryHandlers } from "@/lib/QueryHandlers"
@@ -14,6 +8,13 @@ import { isBackendEvent, isBackendQuery } from "@/types/TypeGuards"
 
 import { backendMessages } from "./lib/Messages"
 import { updatePlaylistCoverAfterTracksUpdate } from "./lib/Crud"
+
+import type {
+  IBackendQueryResponse,
+  IBackendEmitToFrontend,
+  IBackendQuery,
+  IBackendEvent,
+} from "@sing-types/IPC"
 
 log.dim("Database path provided to backend:", process.argv[2])
 

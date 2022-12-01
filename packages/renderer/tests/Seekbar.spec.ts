@@ -1,10 +1,12 @@
 import "./setupBasicMocks"
 
-import { TEST_IDS as id } from "@/TestConsts"
 import { render } from "@testing-library/svelte"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import { TEST_IDS as id } from "@/TestConsts"
+
 import { convertDisplayTimeToSeconds } from "../../../tests/Helper"
+
 import mockElectronApi from "./MockElectronApi"
 
 import type { SvelteComponentDev } from "svelte/internal"

@@ -1,10 +1,12 @@
-import { checkPathAccessible } from "@sing-backend/Helper"
-import { isError } from "@sing-types/Typeguards"
-import { dialog } from "electron"
-import * as E from "fp-ts/lib/Either"
 import { copyFile } from "node:fs/promises"
 import path from "node:path"
+
+import { dialog } from "electron"
+import * as E from "fp-ts/lib/Either"
 import log from "ololog"
+
+import { isError } from "@sing-types/Typeguards"
+import { checkPathAccessible } from "@sing-backend/Helper"
 
 import type { FilePath } from "@sing-types/Filesystem"
 

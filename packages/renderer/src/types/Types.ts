@@ -5,7 +5,6 @@ import type {
   IPlaylistCreateArgument,
   ITrack,
 } from "@sing-types/DatabaseTypes"
-
 import type { SvelteComponentDev } from "svelte/internal"
 import type { AsyncOrSync } from "ts-essentials"
 

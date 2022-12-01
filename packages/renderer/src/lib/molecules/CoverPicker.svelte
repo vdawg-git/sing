@@ -1,9 +1,10 @@
 <script lang="ts">
   import IconPen from "virtual:icons/heroicons/pencil"
 
+  import CoverAndPlaylistThumbnail from "../atoms/CoverAndPlaylistThumbnail.svelte"
+
   import type { FilePath } from "@sing-types/Filesystem"
 
-  import CoverAndPlaylistThumbnail from "../atoms/CoverAndPlaylistThumbnail.svelte"
 
   export let image: FilePath | readonly FilePath[] | undefined = undefined
   export let title = "Choose image"

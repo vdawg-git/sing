@@ -1,7 +1,6 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
 
-  import type { IPlaylist } from "@sing-types/DatabaseTypes"
 
   import { ROUTES } from "@/Consts"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
@@ -9,7 +8,6 @@
     createAddToPlaylistAndQueueMenuItems,
     createAndNavigateToPlaylist,
   } from "@/Helper"
-  import type { IMenuItemsArgument } from "@/types/Types"
   import { playNewSource, tracks } from "@/lib/manager/player"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
@@ -18,6 +16,9 @@
   import CardList from "@/lib/organisms/CardList.svelte"
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
   import NothingHereYet from "@/lib/organisms/NothingHereYet.svelte"
+
+  import type { IMenuItemsArgument } from "@/types/Types"
+  import type { IPlaylist } from "@sing-types/DatabaseTypes"
 
   const navigate = useNavigate()
 

@@ -2,10 +2,11 @@
   import { createEventDispatcher } from "svelte"
   import IconPlay from "virtual:icons/heroicons-solid/play"
 
-  import type { ICardProperties } from "@/types/Types"
 
   import CoverAndPlaylistThumbnail from "../atoms/CoverAndPlaylistThumbnail.svelte"
   import { useOpenContextMenu } from "../manager/menu"
+
+  import type { ICardProperties } from "@/types/Types"
 
   interface IDispatcher {
     clickedPrimary: never

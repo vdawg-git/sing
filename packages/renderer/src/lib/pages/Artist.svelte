@@ -4,13 +4,10 @@
   import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
   import IconPlay from "virtual:icons/heroicons-outline/play"
 
-  import type { IError, INewPlayback } from "@sing-types/Types"
-  import type { IArtistWithAlbumsAndTracks } from "@sing-types/DatabaseTypes"
   import { displayTypeWithCount } from "@sing-shared/Pures"
 
   import { ROUTES } from "@/Consts"
   import { addNotification } from "@/lib/stores/NotificationStore"
-  import type { IHeroAction } from "@/types/Types"
   import { playNewSource } from "@/lib/manager/player"
 
   import CardList from "../organisms/CardList.svelte"
@@ -18,6 +15,9 @@
 
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
 
+  import type { IHeroAction } from "@/types/Types"
+  import type { IArtistWithAlbumsAndTracks } from "@sing-types/DatabaseTypes"
+  import type { IError, INewPlayback } from "@sing-types/Types"
   import type { Either } from "fp-ts/lib/Either"
 
 

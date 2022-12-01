@@ -4,20 +4,11 @@ import { derived, get, writable, type Readable } from "svelte/store"
 import { match } from "ts-pattern"
 import { pipe } from "fp-ts/lib/function"
 
-import type {
-  IError,
-  INewPlayback,
-  IPlayback,
-  ISyncResult,
-} from "@sing-types/Types"
-import type { IAlbum, IArtist, ITrack } from "@sing-types/DatabaseTypes"
-
 import {
   moveElementFromToIndex,
   notifiyError,
   sortAlphabetically,
 } from "@/Helper"
-import type { IPlayLoop, IPlayState, IQueueItem } from "@/types/Types"
 
 import audioPlayer from "./AudioPlayer"
 import { loopStateStore } from "./stores/LoopStateStore"
@@ -25,6 +16,14 @@ import { indexStore } from "./stores/PlayIndex"
 import { autoQueueStore } from "./stores/QueueStore"
 import { manualQueueStore } from "./stores/ManualQueueStore"
 
+import type { IPlayLoop, IPlayState, IQueueItem } from "@/types/Types"
+import type { IAlbum, IArtist, ITrack } from "@sing-types/DatabaseTypes"
+import type {
+  IError,
+  INewPlayback,
+  IPlayback,
+  ISyncResult,
+} from "@sing-types/Types"
 import type { IpcRendererEvent } from "electron"
 import type { Either } from "fp-ts/lib/Either"
 

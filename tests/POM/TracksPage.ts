@@ -1,6 +1,7 @@
 /* eslint-disable unicorn/prefer-dom-node-text-content */
 import { TEST_ATTRIBUTES, TEST_IDS } from "../../packages/renderer/src/TestConsts"
 import { removeDuplicates } from "../../packages/shared/Pures"
+
 import createBasePage from "./BasePage"
 
 import type { ElectronApplication } from "playwright"

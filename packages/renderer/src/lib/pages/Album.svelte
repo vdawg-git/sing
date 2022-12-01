@@ -4,16 +4,9 @@
   import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
   import IconPlay from "virtual:icons/heroicons-outline/play"
 
-  import type { IError, ISortOptions } from "@sing-types/Types"
-  import type { IAlbum, ITrack } from "@sing-types/DatabaseTypes"
   import { displayTypeWithCount } from "@sing-shared/Pures"
 
   import { addNotification } from "@/lib/stores/NotificationStore"
-  import type {
-    IHeroAction,
-    IHeroMetaDataItem,
-    ITrackListDisplayOptions,
-  } from "@/types/Types"
   import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
   import { playNewSource } from "@/lib/manager/player"
 
@@ -23,6 +16,13 @@
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
   import TrackList from "@/lib/organisms/TrackList.svelte"
 
+  import type {
+    IHeroAction,
+    IHeroMetaDataItem,
+    ITrackListDisplayOptions,
+  } from "@/types/Types"
+  import type { IAlbum, ITrack } from "@sing-types/DatabaseTypes"
+  import type { IError, ISortOptions } from "@sing-types/Types"
   import type { Either } from "fp-ts/lib/Either"
 
 

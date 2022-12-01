@@ -6,6 +6,9 @@ import log from "ololog"
 import { match } from "ts-pattern"
 
 import { convertFilepathToFilename } from "@sing-shared/Pures"
+
+import { getAlbums, getArtists, getTracks } from "./Crud"
+
 import type {
   IError,
   ISearchResult,
@@ -15,10 +18,7 @@ import type {
   ISearchedAlbum,
 } from "@sing-types/Types"
 import type { IAlbum, IArtist, ITrack } from "@sing-types/DatabaseTypes"
-
-import type { IHandlerEmitter, IToSearchData } from "@/types/Types"
-
-import { getAlbums, getArtists, getTracks } from "./Crud"
+import type { IBackEndMessages, IToSearchData } from "@/types/Types"
 
 // TODO add release date to album, so that the user can search for albums by it
 
@@ -46,7 +46,7 @@ const options: Fuse.IFuseOptions<IToSearchData> = {
 }
 
 export async function search(
-  _: IHandlerEmitter | undefined,
+  _: IBackEndMessages | undefined,
   query: string
 ): Promise<ISearchResult> {
   const results: readonly ISearchedData[] = await getSearchResults(
@@ -211,7 +211,8 @@ function getTopMatches(
 ): readonly ISearchedData[] {
   const topMatchesMinLength = 3
 
-  const topMatches = [...data.slice(0, topMatchesMinLength)]
+  const topMatches = data
+    .slice(0, topMatchesMinLength)
     .filter(({ score }) => score < 0.09)
     .sort(sortByScore)
 

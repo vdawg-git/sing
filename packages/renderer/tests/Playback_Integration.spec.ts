@@ -1,8 +1,10 @@
-import { TEST_IDS as id } from "@/TestConsts"
 import { cleanup, fireEvent, render, screen } from "@testing-library/svelte"
 import { beforeEach, describe, expect, vi } from "vitest"
 
+import { TEST_IDS as id } from "@/TestConsts"
+
 import mockedPlayer from "../src/lib/manager/__mocks__/AudioPlayer"
+
 import mockElectronApi, { mockedApiTracksResponse } from "./MockElectronApi"
 
 import type { SvelteComponentDev } from "svelte/internal"

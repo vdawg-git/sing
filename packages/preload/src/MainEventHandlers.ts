@@ -1,16 +1,16 @@
 import log from "ololog"
 
-import type { DirectoryPath } from "@sing-types/Filesystem"
-import type {
-  IRemoveTracksFromPlaylistArgument,
-  IAddTracksToPlaylistArgument,
-} from "@sing-types/DatabaseTypes"
 
 import { coversDirectory } from "../../main/src/Consts"
 import userSettingsStore from "../../main/src/lib/UserSettings"
 
 import { emitToBackend } from "./BackendProcess"
 
+import type {
+  IRemoveTracksFromPlaylistArgument,
+  IAddTracksToPlaylistArgument,
+} from "@sing-types/DatabaseTypes"
+import type { DirectoryPath } from "@sing-types/Filesystem"
 import type { IpcMainInvokeEvent } from "electron"
 import type {
   IUserSettings,

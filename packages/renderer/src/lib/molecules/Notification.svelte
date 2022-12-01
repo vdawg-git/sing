@@ -7,9 +7,10 @@
   import { createEventDispatcher, onMount } from "svelte"
   import { fly } from "svelte/transition"
 
+  import { TEST_ATTRIBUTES } from "@/TestConsts"
+
   import type { INotificationTypes } from "@sing-types/Types"
 
-  import { TEST_ATTRIBUTES } from "@/TestConsts"
 
   export let id: symbol
   export let label: string

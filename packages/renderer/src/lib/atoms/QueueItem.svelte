@@ -4,13 +4,14 @@
   import { createEventDispatcher } from "svelte"
   import IconClose from "virtual:icons/heroicons-outline/x"
 
-  import type { ITrack } from "@sing-types/DatabaseTypes"
 
-  import type { ICreateMenuOutOfMusic } from "@/types/Types"
   import { TEST_IDS, TEST_ATTRIBUTES } from "@/TestConsts"
   import { displayTrackMetadata } from "@/Helper"
 
   import { useOpenContextMenu } from "../manager/menu"
+
+  import type { ICreateMenuOutOfMusic } from "@/types/Types"
+  import type { ITrack } from "@sing-types/DatabaseTypes"
 
   type ITestIDs =
     | typeof TEST_IDS.queueCurrentTrack

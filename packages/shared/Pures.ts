@@ -4,7 +4,6 @@ import * as A from "fp-ts/lib/ReadonlyArray"
 import { curry2 } from "fp-ts-std/function"
 import { match, P } from "ts-pattern"
 
-import type { ITrackID } from "@sing-types/Opaque"
 
 import { isKeyOfObject } from "../../types/Typeguards"
 import {
@@ -12,6 +11,7 @@ import {
   UNSUPPORTED_MUSIC_FORMATS,
 } from "../backend/src/lib/FileFormats"
 
+import type { ITrackID } from "@sing-types/Opaque"
 import type { FilePath } from "../../types/Filesystem"
 import type {
   IMusicItems,

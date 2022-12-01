@@ -1,8 +1,9 @@
 import "./setupBasicMocks"
 
-import { TEST_IDS as id } from "@/TestConsts"
 import { fireEvent, render } from "@testing-library/svelte"
 import { beforeEach, expect, it, vi } from "vitest"
+
+import { TEST_IDS as id } from "@/TestConsts"
 
 import type { SvelteComponentDev } from "svelte/internal"
 

@@ -2,8 +2,6 @@
   import { createEventDispatcher } from "svelte"
   import { dequal } from "dequal"
 
-  import type { IPlaylist } from "@sing-types/DatabaseTypes"
-  import type { FilePath } from "@sing-types/Filesystem"
 
   import { notifiyError } from "@/Helper"
 
@@ -13,6 +11,8 @@
 
   import Modal from "./Modal.svelte"
 
+  import type { FilePath } from "@sing-types/Filesystem"
+  import type { IPlaylist } from "@sing-types/DatabaseTypes"
   import type { SvelteComponentDev } from "svelte/internal"
 
   export let playlist: IPlaylist

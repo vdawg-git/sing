@@ -2,9 +2,10 @@ import { readable } from "svelte/store"
 import { pipe } from "fp-ts/lib/function"
 import * as E from "fp-ts/lib/Either"
 
+import { notifiyError } from "@/Helper"
+
 import type { IPlaylist } from "@sing-types/DatabaseTypes"
 
-import { notifiyError } from "@/Helper"
 
 export const playlistsStore = readable<readonly IPlaylist[]>([], (set) => {
   window.api

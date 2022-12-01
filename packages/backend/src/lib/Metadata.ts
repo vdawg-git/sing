@@ -8,14 +8,6 @@ import {
   removeKeys,
   stringifyArraysInObject,
 } from "@sing-shared/Pures"
-import type {
-  IError,
-  IErrorMMDParsingError,
-  IRawAudioMetadata,
-} from "@sing-types/Types"
-import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"
-
-import type { ICoverData } from "@/types/Types"
 
 import {
   checkPathAccessible,
@@ -24,6 +16,13 @@ import {
   writeFileToDisc,
 } from "../Helper"
 
+import type {
+  IError,
+  IErrorMMDParsingError,
+  IRawAudioMetadata,
+} from "@sing-types/Types"
+import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"
+import type { ICoverData } from "@/types/Types"
 import type { StrictExtract, StrictOmit } from "ts-essentials"
 import type { IPicture } from "music-metadata"
 import type { Prisma } from "@prisma/client"

@@ -7,7 +7,7 @@ import {
   removeKeys,
   removeNulledKeys,
 } from "@sing-shared/Pures"
-import type { ITrack } from "@sing-types/Types"
+
 
 import { getFilesFromDirectory } from "@/Helper"
 import { resetMockedPrisma } from "@/lib/__mocks__/CustomPrismaClient"
@@ -28,6 +28,7 @@ import {
 } from "./Helper/Consts"
 import createMockedEmitter from "./helper/MockedEmitter"
 
+import type { ITrack } from "@sing-types/Types"
 import type { Either } from "fp-ts/lib/Either"
 
 vi.mock("fs/promises")

@@ -18,8 +18,11 @@ import { pipe } from "fp-ts/lib/function"
 import { omit } from "fp-ts-std/Struct"
 import { isDefined } from "ts-is-present"
 
-import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"
 import { isError, isKeyOfObject } from "@sing-types/Typeguards"
+
+import { getLeftsRights, removeDuplicates } from "../../shared/Pures"
+
+import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"
 import type {
   IError,
   IErrorFSDeletionFailed,
@@ -35,9 +38,6 @@ import type {
   IPlaylistWithTracks,
   ITrack,
 } from "@sing-types/DatabaseTypes"
-
-import { getLeftsRights, removeDuplicates } from "../../shared/Pures"
-
 import type { ICoverData } from "./types/Types"
 import type { Prisma } from "@prisma/client"
 import type { Either } from "fp-ts/lib/Either"

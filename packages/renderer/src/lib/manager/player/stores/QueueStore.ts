@@ -1,7 +1,6 @@
 import { get, writable } from "svelte/store"
 
 import type { ITrack } from "@sing-types/DatabaseTypes"
-
 import type { IQueueItem } from "@/types/Types"
 
 /**

@@ -1,9 +1,10 @@
 <script lang="ts">
   import IconVolume from "virtual:icons/heroicons-outline/volume-up"
   import IconVolumeMuted from "virtual:icons/heroicons-outline/volume-off"
-  import { TEST_IDS as testID } from "@/TestConsts"
   import { spring } from "svelte/motion"
   import { fade } from "svelte/transition"
+
+  import { TEST_IDS as testID } from "@/TestConsts"
 
   export let disabled = false
   export let value = 1

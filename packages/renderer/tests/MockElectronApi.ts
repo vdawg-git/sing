@@ -41,12 +41,14 @@ async function openDirectory(
 
 async function getUserSetting(setting: IUserSettingsKey) {
   switch (setting) {
-    case "musicFolders":
+    case "musicFolders": {
       return ["C:/mockedElectronApi0/", "C:/mockedElectronApi1/"]
+    }
 
-    default:
+    default: {
       throw new Error(
         "could not find requested userSetting in mocked getUserSetting"
       )
+    }
   }
 }

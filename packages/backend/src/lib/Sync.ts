@@ -12,11 +12,7 @@ import {
   hasCover,
   removeDuplicates,
 } from "@sing-shared/Pures"
-import type {
-  IErrorArrayIsEmpty,
-  IErrorInvalidArguments,
-} from "@sing-types/Types"
-import type { DirectoryPath } from "@sing-types/Filesystem"
+
 
 import { deleteFromDirectoryInverted, getFilesFromDirectory } from "../Helper"
 
@@ -36,6 +32,11 @@ import {
   saveCover,
 } from "./Metadata"
 
+import type { DirectoryPath } from "@sing-types/Filesystem"
+import type {
+  IErrorArrayIsEmpty,
+  IErrorInvalidArguments,
+} from "@sing-types/Types"
 import type { IBackMessagesHandler } from "./Messages"
 
 // TODO use album artist tag for albums and if not present determine best on most occuring seperated artist substring?

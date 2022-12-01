@@ -1,13 +1,14 @@
 <script lang="ts">
   import { onMount } from "svelte"
 
-  import type { DirectoryPath } from "@sing-types/Filesystem"
 
   import { TEST_IDS as id } from "@/TestConsts"
   import { backgroundImages } from "@/lib//stores/BackgroundImages"
 
   import Button from "@/lib/atoms/Button.svelte"
   import FoldersPicker from "@/lib/organisms/FoldersPicker.svelte"
+
+  import type { DirectoryPath } from "@sing-types/Filesystem"
 
   let paths: DirectoryPath[]
 

@@ -11,7 +11,6 @@
 
   import { ROUTES, type IRoutes } from "@/Consts"
   import { TEST_IDS as id } from "@/TestConsts"
-  import type { IMenuItemsArgument, IOpenMenuArgument } from "@/types/Types"
   import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
 
   import { createOpenMenu } from "../manager/menu"
@@ -19,6 +18,7 @@
   import { playlistsStore } from "../stores/PlaylistsStore"
   import MenuSeperator from "../manager/menu/MenuSeperator.svelte"
 
+  import type { IMenuItemsArgument, IOpenMenuArgument } from "@/types/Types"
   import type { SvelteComponentDev } from "svelte/internal"
 
   const navigate = useNavigate()

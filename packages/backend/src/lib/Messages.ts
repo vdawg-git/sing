@@ -1,7 +1,6 @@
 import mitt from "mitt"
 
 import type { IBackEndMessages } from "@/types/Types"
-
 import type { StrictOmit } from "ts-essentials"
 
 // Gets passed to the handlers to forward data and notifications from the them to the main process

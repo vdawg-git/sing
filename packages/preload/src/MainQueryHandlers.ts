@@ -2,6 +2,11 @@ import { app, dialog } from "electron"
 import slash from "slash"
 import { match } from "ts-pattern"
 
+import { coversDirectory } from "../../main/src/Consts"
+import userSettingsStore from "../../main/src/lib/UserSettings"
+
+import { queryBackend } from "./BackendProcess"
+
 import type {
   IUserSettings,
   IUserSettingsKey,
@@ -23,12 +28,6 @@ import type {
   ITrackFindManyArgument,
 } from "@sing-types/DatabaseTypes"
 import type { IElectronPaths, IError } from "@sing-types/Types"
-
-import { coversDirectory } from "../../main/src/Consts"
-import userSettingsStore from "../../main/src/lib/UserSettings"
-
-import { queryBackend } from "./BackendProcess"
-
 import type { Prisma } from "@prisma/client"
 import type { IpcMainInvokeEvent, OpenDialogReturnValue } from "electron"
 import type { Either } from "fp-ts/lib/Either"

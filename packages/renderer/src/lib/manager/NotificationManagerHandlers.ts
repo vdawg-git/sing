@@ -1,6 +1,5 @@
 import * as E from "fp-ts/lib/Either"
 
-import type { TypedIpcRenderer } from "@sing-preload/types/Types"
 
 import { NOTIFICATION_LABEL } from "@/Consts"
 
@@ -8,6 +7,8 @@ import {
   addNotification,
   removeNotificationsByLabel,
 } from "../stores/NotificationStore"
+
+import type { TypedIpcRenderer } from "@sing-preload/types/Types"
 
 export interface INotificationHandlers {
   handleSyncSuccess: () => () => TypedIpcRenderer

@@ -1,3 +1,5 @@
+import { ipcRenderer } from "./TypedIPC"
+
 import type {
   IUserSettings,
   IUserSettingsKey,
@@ -22,9 +24,6 @@ import type {
   IPlaylistUpdateCoverArgumentSend,
   IMusicIDsUnion,
 } from "@sing-types/DatabaseTypes"
-
-import { ipcRenderer } from "./TypedIPC"
-
 import type { IMainQueryHandlers } from "./types/Types"
 import type { Prisma } from "@prisma/client"
 

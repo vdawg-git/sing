@@ -1,7 +1,8 @@
 const { writeFile } = require("node:fs/promises")
 const { execSync } = require("node:child_process")
-const electron = require("node:electron")
 const path = require("node:path")
+
+const electron = require("node:electron")
 
 /**
  * Returns versions of electron vendors

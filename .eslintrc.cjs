@@ -64,6 +64,7 @@ const defaultRules = {
           position: "after",
         },
       ],
+      pathGroupsExcludedImportTypes: ["type"],
     },
   ],
   "import/prefer-default-export": "off",

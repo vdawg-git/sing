@@ -1,16 +1,16 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte"
 
+  import TrackItem from "../molecules/TrackItem.svelte"
+
   import type { ITrack } from "@sing-types/DatabaseTypes"
   import type { ISortOptions } from "@sing-types/Types"
-
   import type { ITestIDs } from "@/TestConsts"
   import type {
     ITrackListDisplayOptions,
     ICreateMenuOutOfTrack,
   } from "@/types/Types"
 
-  import TrackItem from "../molecules/TrackItem.svelte"
 
   export let tracks: readonly ITrack[]
   export let testID: ITestIDs

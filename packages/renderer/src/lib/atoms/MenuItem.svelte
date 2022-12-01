@@ -1,5 +1,6 @@
 <script lang="ts">
   import { TEST_ATTRIBUTES } from "@/TestConsts"
+
   import type { IMenuItemArgument } from "@/types/Types"
 
   export let data: IMenuItemArgument

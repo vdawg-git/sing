@@ -6,20 +6,9 @@
   import { onDestroy } from "svelte"
   import { isDefined } from "ts-is-present"
 
-  import type {
-    IPlaylistTrack,
-    IPlaylistWithTracks,
-  } from "@sing-types/DatabaseTypes"
-  import type { ISortOptions } from "@sing-types/Types"
   import { displayTypeWithCount, removeDuplicates } from "@sing-shared/Pures"
-  import type { IPlaylistID } from "@sing-types/Opaque"
-  import type { TypedIpcRenderer } from "@sing-preload/types/Types"
 
-  import type {
-    ICreateMenuOutOfTrack,
-    IHeroAction,
-    IHeroMetaDataItem,
-  } from "@/types/Types"
+
   import { createAddToPlaylistAndQueueMenuItems, notifiyError } from "@/Helper"
   import { playNewSource } from "@/lib/manager/player"
 
@@ -30,6 +19,19 @@
 
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
   import TrackList from "@/lib/organisms/TrackList.svelte"
+
+  import type {
+    ICreateMenuOutOfTrack,
+    IHeroAction,
+    IHeroMetaDataItem,
+  } from "@/types/Types"
+  import type { TypedIpcRenderer } from "@sing-preload/types/Types"
+  import type { IPlaylistID } from "@sing-types/Opaque"
+  import type { ISortOptions } from "@sing-types/Types"
+  import type {
+    IPlaylistTrack,
+    IPlaylistWithTracks,
+  } from "@sing-types/DatabaseTypes"
 
 
   export let playlistID: string

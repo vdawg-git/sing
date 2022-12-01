@@ -2,11 +2,12 @@
   import IconSearch from "virtual:icons/heroicons-outline/search"
   import IconX from "virtual:icons/heroicons-outline/x"
 
-  import type { ISearchResult } from "@sing-types/Types"
 
   import { createOnOutClick } from "@/Helper"
 
   import SearchResultBlock from "@/lib/molecules/SearchResultBlock.svelte"
+
+  import type { ISearchResult } from "@sing-types/Types"
 
   let searchInputElement: HTMLInputElement
   let isFocused = false

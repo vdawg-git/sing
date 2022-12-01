@@ -19,12 +19,12 @@ export function addNotification(
   position: "top" | "bottom" = "top"
 ): void {
   const toAdd: INotificationBase =
-    notification.id !== undefined
-      ? (notification as INotificationBase)
-      : {
+    notification.id === undefined
+      ? {
           ...notification,
           id: Symbol(notification.label),
         }
+      : (notification as INotificationBase)
 
   update(($store) =>
     position === "top" ? [toAdd, ...$store] : [...$store, toAdd]

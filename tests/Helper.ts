@@ -1,5 +1,5 @@
 import path from "node:path"
-import log from "ololog"
+
 import { _electron as electron } from "playwright"
 
 import type { ElectronApplication } from "playwright"

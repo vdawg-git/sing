@@ -1,6 +1,7 @@
 <script lang="ts">
-  import MenuItem from "@/lib/atoms/MenuItem.svelte"
   import IconRefresh from "virtual:icons/heroicons-outline/refresh"
+
+  import MenuItem from "@/lib/atoms/MenuItem.svelte"
 </script>
 
 <MenuItem>

@@ -5,7 +5,6 @@ import type {
   IBackendQuery,
   IBackendQueryResponse,
 } from "@sing-types/IPC"
-
 import type { ICoverData } from "./Types"
 import type { IPicture } from "music-metadata"
 

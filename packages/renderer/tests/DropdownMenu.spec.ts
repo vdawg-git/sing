@@ -1,7 +1,9 @@
-import Menu from "@/lib/molecules/DropdownMenu.svelte"
-import { TEST_ATTRIBUTES, TEST_IDS as id } from "@/TestConsts"
 import { fireEvent, render } from "@testing-library/svelte"
 import { expect, it } from "vitest"
+
+import { TEST_ATTRIBUTES, TEST_IDS as id } from "@/TestConsts"
+
+import Menu from "@/lib/molecules/DropdownMenu.svelte"
 
 import MenuItems from "./helpers/MenuItemsTestComponent.svelte"
 

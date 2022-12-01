@@ -5,13 +5,6 @@ import * as RA from "fp-ts/ReadonlyArray"
 import { createHashHistory } from "history"
 import { isDefined } from "ts-is-present"
 
-import type {
-  ITrack,
-  IPlaylist,
-  IPlaylistCreateArgument,
-  IMusicIDsUnion,
-} from "@sing-types/DatabaseTypes"
-import type { IError } from "@sing-types/Types"
 
 import {
   addTracksToManualQueueBeginning,
@@ -23,6 +16,13 @@ import { convertFilepathToFilename, getErrorMessage } from "../../shared/Pures"
 import { addNotification } from "./lib/stores/NotificationStore"
 import { ROUTES } from "./Consts"
 
+import type { IError } from "@sing-types/Types"
+import type {
+  ITrack,
+  IPlaylist,
+  IPlaylistCreateArgument,
+  IMusicIDsUnion,
+} from "@sing-types/DatabaseTypes"
 import type { HistorySource } from "svelte-navigator"
 import type AnyObject from "svelte-navigator/types/AnyObject"
 import type {

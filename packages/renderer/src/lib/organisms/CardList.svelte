@@ -1,9 +1,10 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte"
 
+  import Card from "../molecules/Card.svelte"
+
   import type { ICardProperties } from "@/types/Types"
 
-  import Card from "../molecules/Card.svelte"
 
   interface IDispatcher_ {
     // Its all the id of the album / artist

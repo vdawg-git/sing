@@ -1,5 +1,6 @@
-import { Factory } from "fishery"
 import { createHash } from "node:crypto"
+
+import { Factory } from "fishery"
 
 import { coversDirectory, musicFolder } from "../helper/Consts"
 

@@ -6,6 +6,32 @@ import log from "ololog"
 import { isDefined } from "ts-is-present"
 import { match, P } from "ts-pattern"
 
+import {
+  createSQLArray,
+  getExtension,
+  insertIntoArray,
+  removeDuplicates,
+  removeNulledKeys,
+  sortByKey,
+  sortTracks,
+  updateKeyValue,
+} from "../../../shared/Pures"
+import {
+  checkPathAccessible,
+  convertItemsPlaylistToTracksPlaylist,
+  createCoverPath,
+  createDefaultPlaylistName,
+  createError,
+  createPlaylistItem,
+  getCoverUpdateDataPlaylist,
+  getPlaylistCoverOfTracks,
+  readOutImage,
+  writeFileToDisc,
+} from "../Helper"
+
+import { SQL_STRINGS as SQL } from "./Consts"
+import { createPrismaClient } from "./CustomPrismaClient"
+
 import type {
   IAddTracksToPlaylistArgument,
   IAlbum,
@@ -33,35 +59,7 @@ import type {
 import type { FilePath } from "@sing-types/Filesystem"
 import type { IPlaylistID, ITrackID } from "@sing-types/Opaque"
 import type { IError, ISortOptions } from "@sing-types/Types"
-
 import type { IBackEndMessages, IPlaylistSetCoverArgument } from "@/types/Types"
-
-import {
-  createSQLArray,
-  getExtension,
-  insertIntoArray,
-  removeDuplicates,
-  removeNulledKeys,
-  sortByKey,
-  sortTracks,
-  updateKeyValue,
-} from "../../../shared/Pures"
-import {
-  checkPathAccessible,
-  convertItemsPlaylistToTracksPlaylist,
-  createCoverPath,
-  createDefaultPlaylistName,
-  createError,
-  createPlaylistItem,
-  getCoverUpdateDataPlaylist,
-  getPlaylistCoverOfTracks,
-  readOutImage,
-  writeFileToDisc,
-} from "../Helper"
-
-import { SQL_STRINGS as SQL } from "./Consts"
-import { createPrismaClient } from "./CustomPrismaClient"
-
 import type { PlaylistItem, Prisma, PrismaPromise } from "@prisma/client"
 import type { Either } from "fp-ts/Either"
 import type { IBackMessagesHandler } from "./Messages"

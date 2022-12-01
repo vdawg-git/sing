@@ -1,18 +1,18 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
 
-  import type { ITrack } from "@sing-types/DatabaseTypes"
 
   import { ROUTES } from "@/Consts"
   import { displayTrackMetadata } from "@/Helper"
   import { TEST_ATTRIBUTES } from "@/TestConsts"
+
+  import { useOpenContextMenu } from "../manager/menu"
+
   import type {
     ICreateMenuOutOfTrack,
     ITrackListDisplayOptions,
   } from "@/types/Types"
-
-  import { useOpenContextMenu } from "../manager/menu"
-
+  import type { ITrack } from "@sing-types/DatabaseTypes"
   import type { StrictExtract } from "ts-essentials"
 
   export let track: ITrack

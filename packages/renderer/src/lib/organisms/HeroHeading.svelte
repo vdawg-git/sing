@@ -1,13 +1,15 @@
 <script lang="ts">
-  import type { FilePath } from "@sing-types/Filesystem"
-  import type { EventHandler } from "@sing-types/Utilities"
-
   import { doTextResizeToFitElement } from "@/Helper"
-  import type { IHeroAction, IHeroMetaDataItem } from "@/types/Types"
 
   import CoverAndPlaylistThumbnail from "../atoms/CoverAndPlaylistThumbnail.svelte"
 
   import Button from "@/lib/atoms/Button.svelte"
+
+  import type { FilePath } from "@sing-types/Filesystem"
+  import type { EventHandler } from "@sing-types/Utilities"
+  import type { IHeroAction, IHeroMetaDataItem } from "@/types/Types"
+
+
 
   /**
    * The cover(s) to display
@@ -75,10 +77,10 @@
       <!-- Description -->
       {#if description}
         <div
-          class="break-words text-base text-grey-200 {handleClickDescription !==
+          class="break-words text-base text-grey-200 {handleClickDescription ===
           undefined
-            ? 'cursor-pointer'
-            : 'cursor-auto'}"
+            ? 'cursor-auto'
+            : 'cursor-pointer'}"
           on:click={handleClickDescription}
         >
           {description}

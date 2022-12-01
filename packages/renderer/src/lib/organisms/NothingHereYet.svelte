@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { ROUTES } from "@/Consts"
   import { Link } from "svelte-navigator"
 
   // TODO make this nicer and add drag and drop support to add folders / music
+  import { ROUTES } from "@/Consts"
 </script>
 
 <Link to={`/${ROUTES.settingsLibrary}`}>

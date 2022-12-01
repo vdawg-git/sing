@@ -2,6 +2,7 @@ import slash from "slash"
 
 import { TEST_ATTRIBUTES, TEST_IDS } from "../../packages/renderer/src/TestConsts"
 import { convertDisplayTimeToSeconds } from "../Helper"
+
 import { reduceTitlesToFolders } from "./Helper"
 import createLibrarySettingsPage from "./LibrarySettingsPage"
 import createTracksPage from "./TracksPage"
@@ -133,14 +134,17 @@ export default async function createBasePage(electronApp: ElectronApplication) {
 
     switch (location) {
       case "settings/library":
-      case "settings/general":
+      case "settings/general": {
         return createLibrarySettingsPage(electronApp)
+      }
 
-      case "tracks":
+      case "tracks": {
         return createTracksPage(electronApp)
+      }
 
-      default:
+      default: {
         throw new Error("Invalid location // Not implemented")
+      }
     }
   }
 
