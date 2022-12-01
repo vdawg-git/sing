@@ -119,7 +119,7 @@ export const mainQueryHandlers = Object.freeze({
       arguments_: options,
     }),
 
-  getTrackFromMusic: async (_: IpcMainInvokeEvent, options: IMusicIDsUnion) =>
+  getTracksFromMusic: async (_: IpcMainInvokeEvent, options: IMusicIDsUnion) =>
     queryBackend({
       query: "getTracksFromMusic",
       arguments_: options,

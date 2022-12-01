@@ -1,41 +1,51 @@
-import * as E from "fp-ts/Either"
-import * as RA from "fp-ts/lib/ReadonlyArray"
-import { pipe } from "fp-ts/lib/function"
-import log from "ololog"
-import { match, P } from "ts-pattern"
-import { isDefined } from "ts-is-present"
 import { dequal } from "dequal"
+import * as E from "fp-ts/Either"
+import { pipe } from "fp-ts/lib/function"
+import * as RA from "fp-ts/lib/ReadonlyArray"
+import log from "ololog"
+import { isDefined } from "ts-is-present"
+import { match, P } from "ts-pattern"
 
-import type { FilePath } from "@sing-types/Filesystem"
 import type {
-  IAlbum,
-  ITrack,
-  ICover,
-  IArtist,
-  IArtistGetArgument,
-  IArtistFindManyArgument,
-  IAlbumGetArgument,
-  IAlbumFindManyArgument,
-  ITrackFindManyArgument,
-  IPlaylist,
-  IPlaylistFindManyArgument,
-  IPlaylistRenameArgument,
-  IPlaylistWithItems,
-  IPlaylistItem,
-  IPlaylistGetArgument,
-  IPlaylistWithTracks,
-  IPlaylistCreateArgument,
-  IMusicIDsUnion,
-  IRemoveTracksFromPlaylistArgument,
   IAddTracksToPlaylistArgument,
+  IAlbum,
+  IAlbumFindManyArgument,
+  IAlbumGetArgument,
+  IArtist,
+  IArtistFindManyArgument,
+  IArtistGetArgument,
+  ICover,
+  IMusicIDsUnion,
+  IPlaylist,
+  IPlaylistCreateArgument,
   IPlaylistEditDescriptionArgument,
+  IPlaylistFindManyArgument,
+  IPlaylistGetArgument,
+  IPlaylistItem,
+  IPlaylistRenameArgument,
   IPlaylistUpdateCoverArgumentConsume,
+  IPlaylistWithItems,
+  IPlaylistWithTracks,
+  IRemoveTracksFromPlaylistArgument,
+  ITrack,
+  ITrackFindManyArgument,
 } from "@sing-types/DatabaseTypes"
-import type { IError, ISortOptions } from "@sing-types/Types"
+import type { FilePath } from "@sing-types/Filesystem"
 import type { IPlaylistID, ITrackID } from "@sing-types/Opaque"
+import type { IError, ISortOptions } from "@sing-types/Types"
 
 import type { IBackEndMessages, IPlaylistSetCoverArgument } from "@/types/Types"
 
+import {
+  createSQLArray,
+  getExtension,
+  insertIntoArray,
+  removeDuplicates,
+  removeNulledKeys,
+  sortByKey,
+  sortTracks,
+  updateKeyValue,
+} from "../../../shared/Pures"
 import {
   checkPathAccessible,
   convertItemsPlaylistToTracksPlaylist,
@@ -48,23 +58,13 @@ import {
   readOutImage,
   writeFileToDisc,
 } from "../Helper"
-import {
-  createSQLArray,
-  getExtension,
-  insertIntoArray,
-  removeDuplicates,
-  removeNulledKeys,
-  sortByKey,
-  sortTracks,
-  updateKeyValue,
-} from "../../../shared/Pures"
 
 import { SQL_STRINGS as SQL } from "./Consts"
 import { createPrismaClient } from "./CustomPrismaClient"
 
+import type { PlaylistItem, Prisma, PrismaPromise } from "@prisma/client"
 import type { Either } from "fp-ts/Either"
 import type { IBackMessagesHandler } from "./Messages"
-import type { PrismaPromise, PlaylistItem, Prisma } from "@prisma/client"
 
 log(process.argv[2])
 const prisma = createPrismaClient(process.argv[2])
@@ -188,7 +188,7 @@ export async function createPlaylist(
         return E.right({ name: createDefaultPlaylistName(usedNames.right) })
       })
       .with(P.instanceOf(Object), async (toAdd) => {
-        const tracksToAdd = await getTracksFromMusic(toAdd)
+        const tracksToAdd = await getTracksFromMusic(undefined, toAdd)
 
         if (E.isLeft(tracksToAdd)) return tracksToAdd
 
@@ -482,7 +482,7 @@ export async function addTracksToPlaylist(
   { musicToAdd, playlist, insertAt }: IAddTracksToPlaylistArgument
 ): Promise<void> {
   const trackIDs = pipe(
-    await getTracksFromMusic(musicToAdd),
+    await getTracksFromMusic(undefined, musicToAdd),
     E.map(RA.map(({ id }) => id))
   )
 
@@ -914,6 +914,7 @@ async function getPlaylistNames(): Promise<Either<IError, readonly string[]>> {
  * @returns The tracks from the item
  */
 export async function getTracksFromMusic(
+  _: IBackMessagesHandler | undefined,
   item: IMusicIDsUnion
 ): Promise<Either<IError, readonly ITrack[]>> {
   return match(item)

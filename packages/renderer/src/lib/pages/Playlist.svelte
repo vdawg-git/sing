@@ -21,8 +21,8 @@
     IHeroMetaDataItem,
   } from "@/types/Types"
   import { createAddToPlaylistAndQueueMenuItems, notifiyError } from "@/Helper"
+  import { playNewSource } from "@/lib/manager/player"
 
-  import { playNewSource } from "../manager/Player"
   import { backgroundImages } from "../stores/BackgroundImages"
   import { playlistsStore } from "../stores/PlaylistsStore"
   import EditPlaylistModal from "../organisms/EditPlaylistModal.svelte"
@@ -30,6 +30,7 @@
 
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
   import TrackList from "@/lib/organisms/TrackList.svelte"
+
 
   export let playlistID: string
 

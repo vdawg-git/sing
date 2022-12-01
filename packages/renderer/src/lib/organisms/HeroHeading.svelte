@@ -21,9 +21,6 @@
   export let handleClickCover:
     | EventHandler<MouseEvent, HTMLDivElement>
     | undefined = undefined
-  /**
-   * This makes the title editable and calls this function when edited.
-   */
   export let handleClickTitle: EventHandler | undefined = undefined
   export let handleClickDescription: EventHandler | undefined = undefined
 
@@ -66,9 +63,9 @@
       <!---- Title -->
       {#key title}
         <h1
-          class="scroll block h-max  overflow-x-hidden overflow-y-clip text-ellipsis whitespace-nowrap pb-4 leading-none"
+          class="scroll block h-max  overflow-x-hidden overflow-y-clip text-ellipsis whitespace-nowrap pb-4 leading-none 
+          {!!handleClickTitle && 'cursor-pointer hover:text-grey-200'}"
           use:doTextResizeToFitElement={{ minSize: 32, maxSize: 120, step: 8 }}
-          class:cursor-pointer={!!handleClickTitle}
           on:click={handleClickTitle}
         >
           {title}

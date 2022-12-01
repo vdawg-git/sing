@@ -22,16 +22,15 @@
     handleClickedPrevious,
     pausePlayback,
     resumePlayback,
-    handlePlayNext,
+    handleClickedNext,
     shuffleState,
     toggleShuffle,
-  } from "@/lib/manager/Player"
+  } from "@/lib/manager/player"
 
   import Seekbar from "@/lib/molecules/Seekbar.svelte"
   import VolumeControl from "@/lib/molecules/VolumeControl.svelte"
   import QueueBar from "@/lib/organisms/QueueBar.svelte"
 
-  $: track = $currentTrack?.track
 
   let showQueue = false
 
@@ -68,7 +67,7 @@
     <div class="w-[40%]">
       <Seekbar
         currentTime={$currentTime}
-        duration={track?.duration}
+        duration={$currentTrack?.duration}
         on:seek={(event) => handleSeek(event)}
       />
     </div>
@@ -80,11 +79,11 @@
   >
     <!---- Cover -->
     <div class="relative h-14 w-14 shrink-0 bg-grey-600">
-      {#if track?.cover}
+      {#if $currentTrack?.cover}
         <img
           class="absolute inset-0 rounded-sm"
-          alt={track?.title || "Title" + " " + " cover"}
-          src={"file://" + track?.cover}
+          alt={$currentTrack?.title || "Title" + " " + " cover"}
+          src={"file://" + $currentTrack?.cover}
           data-testid={TEST_IDS.playbarCover}
         />
       {:else}
@@ -96,14 +95,14 @@
     </div>
 
     <!---- Meta -->
-    {#if track}
+    {#if $currentTrack}
       <div class="mt-1 max-w-full overflow-hidden">
         <!-- Title -->
         <div
           class="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-lg"
           data-testid={TEST_IDS.playbarTitle}
         >
-          {displayTrackMetadata("title", track)}
+          {displayTrackMetadata("title", $currentTrack)}
         </div>
         <!-- Artist name -->
         <div class="flex max-w-full gap-3">
@@ -111,7 +110,7 @@
             class="shrink-1 overflow-hidden text-ellipsis whitespace-nowrap text-xs font-medium tracking-wide text-grey-300"
             data-testid={TEST_IDS.playbarArtist}
           >
-            {displayTrackMetadata("artist", track)}
+            {displayTrackMetadata("artist", $currentTrack)}
           </div>
         </div>
       </div>
@@ -129,7 +128,7 @@
         class="button 
           {$shuffleState ? 'button-active' : 'button-inactive'}
           "
-        disabled={!track}
+        disabled={!$currentTrack}
         on:click={toggleShuffle}
       >
         <IconShuffle class="h-5 w-5" />
@@ -169,9 +168,9 @@
 
       <!---- Forward button-->
       <button
-        on:click={() => handlePlayNext()}
+        on:click={() => handleClickedNext()}
         data-testid={TEST_IDS.playbarNextButton}
-        disabled={!track}
+        disabled={!$currentTrack}
         class="button button-active"
       >
         <IconNext class="h-8 w-8 " stroke-width="0" />
@@ -183,7 +182,7 @@
         class="button {$loopState === 'NONE'
           ? 'button-inactive'
           : 'button-active'}"
-        disabled={!track}
+        disabled={!$currentTrack}
         on:click={setNextLoopState}
       >
         {#if $loopState === "LOOP_TRACK"}

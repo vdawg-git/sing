@@ -11,14 +11,15 @@
   import { ROUTES } from "@/Consts"
   import { addNotification } from "@/lib/stores/NotificationStore"
   import type { IHeroAction } from "@/types/Types"
+  import { playNewSource } from "@/lib/manager/player"
 
-  import { playNewSource } from "../manager/player"
   import CardList from "../organisms/CardList.svelte"
   import { backgroundImages } from "../stores/BackgroundImages"
 
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
 
   import type { Either } from "fp-ts/lib/Either"
+
 
   export let artistID: string
 

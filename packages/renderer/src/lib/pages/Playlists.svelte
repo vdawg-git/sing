@@ -4,13 +4,13 @@
   import type { IPlaylist } from "@sing-types/DatabaseTypes"
 
   import { ROUTES } from "@/Consts"
-  import { playNewSource, tracks } from "@/lib/manager/player"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
   import {
     createAddToPlaylistAndQueueMenuItems,
     createAndNavigateToPlaylist,
   } from "@/Helper"
   import type { IMenuItemsArgument } from "@/types/Types"
+  import { playNewSource, tracks } from "@/lib/manager/player"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
   import Button from "../atoms/Button.svelte"
@@ -35,8 +35,6 @@
     // TODO add background images from the playlists thumbs
     backgroundImages.reset()
   }
-
-
 
   function createContextMenuItems(playlist: IPlaylist): IMenuItemsArgument {
     return [

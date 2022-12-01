@@ -14,7 +14,7 @@ function createAutoQueueStore() {
   return {
     removeIndex,
     intersectCurrentWithNewTracks,
-    reset,
+    clear,
     setTracks,
     subscribe,
     update,
@@ -66,7 +66,7 @@ function createAutoQueueStore() {
     update(($queue) => _removeIndex($queue, index))
   }
 
-  function reset(): void {
+  function clear(): void {
     set([])
   }
 

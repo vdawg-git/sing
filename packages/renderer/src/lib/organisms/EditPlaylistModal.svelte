@@ -19,9 +19,9 @@
 
   // TODO on "Enter" -> "Save"
 
-  const coverPickerWindowTitle = `Select image`
+  const coverPickerWindowTitle = `Select image for ${playlist.name}`
   const coverPickerWindowMessage = `Select image for ${playlist.name}`
-  const coverPickerWindowButton = `Set ${playlist.name} image`
+  const coverPickerWindowButton = `Set image`
   const dispatch = createEventDispatcher<{ hide: never }>()
 
   $: id = playlist.id

@@ -28,15 +28,13 @@
   })
 
   function navigateTo(type: StrictExtract<keyof ITrack, "album" | "artist">) {
-    if (!track[type]) return
+    if (!track[type]) throw new Error("Invalid navigation")
 
     const route = `/${type === "album" ? ROUTES.albums : ROUTES.artists}/${
       track[type]
     }`
     return () => navigate(route)
   }
-
-  // TODO links should not be bigger than the text (no clicking empty space and getting forwarded)
 </script>
 
 <div

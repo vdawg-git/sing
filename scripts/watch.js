@@ -2,9 +2,10 @@
 /* eslint-disable no-multi-assign */
 /* eslint-disable unicorn/prefer-top-level-await */
 
+const { spawn } = require("node:child_process")
+
 const { createServer, build, createLogger } = require("vite")
 const electronPath = require("electron")
-const { spawn } = require("node:child_process")
 
 /** @type 'production' | 'development'' */
 const mode = (process.env.MODE = process.env.MODE || "development")

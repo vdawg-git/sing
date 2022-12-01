@@ -51,8 +51,6 @@
     }),
   }))
 
-  $: console.log({ playlistItems })
-
   const settingsDropdownItems: IOpenMenuArgument = {
     menuItems: [
       {
@@ -70,7 +68,6 @@
     ],
   } as const
 
-  // TODO Fix menu not opening
   const openSettingsMenu = createOpenMenu(settingsDropdownItems)
 
   // TODO Idea: Minimize sidebar, extend it when hovering over playlists

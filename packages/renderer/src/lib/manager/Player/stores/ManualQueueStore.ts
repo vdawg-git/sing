@@ -70,4 +70,4 @@ function createManuellQueueStore() {
   }
 }
 
-export const manuallQueueStore = createManuellQueueStore()
+export const manualQueueStore = createManuellQueueStore()

@@ -29,7 +29,7 @@
   let menuID: "main" | symbol = "main"
 
   // How long does the menu take to resize. Update this also in the CSS down below.
-  const animationSlideDuration = 320
+  const animationSlideDuration = 200
   const animantionSizeDuration = 140
 
   let menuElement: HTMLElement
@@ -154,8 +154,8 @@
         transition-property: {isJustOpened
         ? 'none'
         : 'width, height, left, top'};"
-      in:fade={{ duration: 140 }}
       use:onOutClick
+      in:fade={{ duration: 120 }}
     >
       <!---- Menu Content -->
       {#key activeMenu}

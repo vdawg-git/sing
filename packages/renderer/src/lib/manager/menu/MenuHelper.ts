@@ -69,9 +69,6 @@ export function createMenu(
     .flatMap((item) => ("transformedSubMenuItem" in item ? item : []))
     .flatMap(({ menus }) => menus)
 
-  console.log({ raw })
-  console.log({ subMenus })
-
   const thisMenu: IMenu = {
     id,
     title,

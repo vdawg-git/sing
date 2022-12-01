@@ -8,9 +8,11 @@
   export let image: FilePath | readonly FilePath[] | undefined = undefined
   export let title = "Choose image"
   export let buttonLabel = "Pick image"
-  export let message = "WHAT IS THIS MESSAGE"
+  export let message = "Select image"
   // eslint-disable-next-line func-style
   export let handleOnClick: () => void | Promise<void> = pickImage
+
+  // TODO add remove image button, if one is set
 
   async function pickImage() {
     const { filePath, canceled } = await window.api.selectImage({

@@ -4,20 +4,25 @@
   import { onMount } from "svelte"
 
   import { TEST_ATTRIBUTES, TEST_IDS } from "@/TestConsts"
+  import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
   import {
     playedTracks,
     nextTracks,
     currentTrack,
     playIndex,
-    playFromQueue,
+    playFromAutoQueue,
     removeIndexFromQueue,
     pausePlayback,
-  } from "@/lib/manager/Player"
-  import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
+    manualQueue,
+    removeIndexFromManualQueue,
+  } from "@/lib/manager/player"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
 
   import QueueItem from "@/lib/atoms/QueueItem.svelte"
+
+
+  
 
   // TODO when going to the next song multiple times, scroll to the current track
 
@@ -38,7 +43,7 @@
   function scrollToCurrent() {
     // Scroll but leave some top space for the subtitle
     if (currentTrackElement) {
-      scroller.scroll(0, currentTrackElement.offsetTop - 88)
+      scroller.scroll(0, currentTrackElement.offsetTop - 84)
     }
   }
 
@@ -103,7 +108,7 @@
               testQueuePlayedIndex={index}
               testattribute={TEST_ATTRIBUTES.queuePreviousTracks}
               {createContextMenuItems}
-              on:dblclick={() => playFromQueue(queueItemData.index)}
+              on:dblclick={() => playFromAutoQueue(queueItemData.index)}
               on:remove={() => handleRemove(queueItemData.index)}
             />
           {/each}
@@ -127,7 +132,25 @@
         </div>
       {/if}
 
-      <!---- Next Tracks --->
+      <!-- Manually added queue tracks -->
+      {#if $manualQueue.length > 0}
+        <div class="mt-4 ">
+          <div class="mb-3 text-xs font-semibold uppercase text-grey-300">
+            Queue
+          </div>
+          <div class="flex flex-col gap-4">
+            {#each $manualQueue as track, index}
+              <QueueItem
+                {track}
+                {createContextMenuItems}
+                on:remove={async () => removeIndexFromManualQueue(index)}
+              />
+            {/each}
+          </div>
+        </div>
+      {/if}
+
+      <!-- Next Tracks --->
       {#if $nextTracks.length > 0}
         <div class="mt-4">
           <div class="mb-3 text-xs font-semibold uppercase text-grey-300">
@@ -144,7 +167,7 @@
                 testQueueNextIndex={index}
                 testattribute={TEST_ATTRIBUTES.queueNextTracks}
                 {createContextMenuItems}
-                on:dblclick={() => playFromQueue(queueItemData.index)}
+                on:dblclick={() => playFromAutoQueue(queueItemData.index)}
                 on:remove={() => handleRemove(queueItemData.index)}
               />
             {/each}

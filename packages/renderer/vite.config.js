@@ -20,10 +20,6 @@ const config = {
   resolve: {
     alias: {
       "@": `${path.join(PACKAGE_ROOT, "src")}/`,
-      "@sing-player-manager": `${path.join(
-        PACKAGE_ROOT,
-        "/lib/manager/player/index.ts"
-      )}`,
       "@tests": `${path.join(PACKAGE_ROOT, "tests")}/`,
       "@sing-types": `${path.join(PACKAGE_ROOT, "..", "..", "types")}/`,
       "@sing-main": `${path.join(PACKAGE_ROOT, "..", "main", "src")}/`,
@@ -57,7 +53,7 @@ const config = {
     assetsDir: ".",
     rollupOptions: {
       input: path.join(PACKAGE_ROOT, "index.html"),
-      external: [...builtinModules.flatMap((p) => [p, `node:${p}`])],
+      external: builtinModules.flatMap((p) => [p, `node:${p}`]),
     },
     emptyOutDir: true,
     brotliSize: false,

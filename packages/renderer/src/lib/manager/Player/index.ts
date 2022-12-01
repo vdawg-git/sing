@@ -17,16 +17,26 @@ import {
   notifiyError,
   sortAlphabetically,
 } from "@/Helper"
-import audioPlayer from "@/lib/manager/Player/AudioPlayer"
 import type { IPlayLoop, IPlayState, IQueueItem } from "@/types/Types"
 
+import audioPlayer from "./AudioPlayer"
 import { loopStateStore } from "./stores/LoopStateStore"
 import { indexStore } from "./stores/PlayIndex"
 import { autoQueueStore } from "./stores/QueueStore"
-import { manuallQueueStore } from "./stores/ManualQueueStore"
+import { manualQueueStore } from "./stores/ManualQueueStore"
 
 import type { IpcRendererEvent } from "electron"
 import type { Either } from "fp-ts/lib/Either"
+
+export const removeIndexFromManualQueue = manualQueueStore.removeIndex
+export const addTracksToManualQueueEnd = manualQueueStore.addTracksToEnd
+export const addTracksToManualQueueBeginning =
+  manualQueueStore.addTracksToBeginning
+
+/**
+ * Used to determine if the player is currently playing from the tracks added manually to the queue.
+ */
+const isPlayingFromManualQueue = writable(false)
 
 // Create stores / state
 const playStateStore = writable<IPlayState>("STOPPED")
@@ -47,24 +57,19 @@ await initialiseStores()
 
 // Now it makes sense to create and use the derived stores, as the base stores are initialised
 export const currentTrack: Readable<ITrack> = derived(
-  [autoQueueStore, indexStore],
-  ([$queue, $index]) =>
-    isPlayingFromManuellQueue ? $manuellQueue[0] : $queue[$index].track
+  [autoQueueStore, indexStore, manualQueueStore, isPlayingFromManualQueue],
+  ([$queue, $index, $manualQueue, $isPlayingFromManualQueue]) => {
+    console.log({ $manualQueue })
+    return $isPlayingFromManualQueue ? $manualQueue[0] : $queue[$index].track
+  }
 )
-export const playedTracks = derived(
-  [autoQueueStore, indexStore],
-  ([$queue, $index]) => $queue.slice($index - 20 > 0 ? $index - 20 : 0, $index) // Display only the last 20 played tracks or less if there are no more
-)
-export const nextTracks = derived(
-  [autoQueueStore, indexStore],
-  ([$queue, $index]) => $queue.slice($index + 1)
-)
+
 export const shuffleState = derived(
   playbackStore,
   ({ isShuffleOn }) => isShuffleOn
 )
 
-let isPlayingFromManuellQueue = false
+currentTrack.subscribe(console.log)
 
 // Bind the values of the stores localy.
 let $playState: IPlayState = "STOPPED"
@@ -75,7 +80,8 @@ let $playback: IPlayback
 let seekAnimationID: number
 let $isShuffleOn: boolean
 let $loopState: IPlayLoop
-let $manuellQueue: readonly ITrack[]
+let $manualQueue: readonly ITrack[]
+let $isPlayingFromManualQueue = false
 
 autoQueueStore.subscribe(($newQueue) => {
   $autoQueue = $newQueue
@@ -96,6 +102,10 @@ playbackStore.subscribe(($newPlayback) => {
   $playback = $newPlayback
 })
 
+isPlayingFromManualQueue.subscribe(
+  ($newState) => ($isPlayingFromManualQueue = $newState)
+)
+
 /**
  * Shuffle or unshuffle the current queue when the shuffle state changes
  */
@@ -107,22 +117,20 @@ loopStateStore.subscribe(($newLoopState) => {
   $loopState = $newLoopState
 })
 
-manuallQueueStore.subscribe(($newManuellQueue) => {
-  $manuellQueue = $newManuellQueue
+manualQueueStore.subscribe(($newManuellQueue) => {
+  $manualQueue = $newManuellQueue
 })
 
 // Events
+
 window.api.on("syncedMusic", handleSyncUpdate)
-audioPlayer.audio.addEventListener("ended", handlePlayNext)
+audioPlayer.audio.addEventListener("ended", handleClickedNext)
 audioPlayer.audio.addEventListener("volumechange", onVolumeChange)
 
-export function handlePlayNext() {
-  // TODO Make this nicer
+// Functions
 
-  // If the manuell queue played, remove the played song
-  if (isPlayingFromManuellQueue) {
-    manuallQueueStore.removeFirst()
-  }
+export function handleClickedNext() {
+  // TODO Make this nicer, but how
 
   // If the current track is set to loop, loop it
   if ($loopState === "LOOP_TRACK") {
@@ -135,24 +143,37 @@ export function handlePlayNext() {
     return
   }
 
-  // If there is a track in the manuell queue, play it
-  if ($manuellQueue.length > 0) {
-    isPlayingFromManuellQueue = true
+  console.log({ $isPlayingFromManualQueue }, "1")
 
-    if ($playState === "PLAYING") {
-      startPlayingCurrentTrack()
-    } else {
-      manuallQueueStore.removeFirst()
-    }
+  // If the manuell queue played, remove the played song
+  if ($isPlayingFromManualQueue) {
+    console.log("XXX")
 
-    return
-  } else {
-    isPlayingFromManuellQueue = false
+    manualQueueStore.removeFirst()
   }
 
-  // If the queue reached its end
-  if ($currentIndex === $autoQueue.length - 1) {
+  $manualQueue.length > 0
+    ? isPlayingFromManualQueue.set(true)
+    : isPlayingFromManualQueue.set(false)
+
+  console.log({ $isPlayingFromManualQueue })
+
+  // If there are tracks in the manualQueueStore
+  if ($isPlayingFromManualQueue) {
+    const source = $manualQueue[0].filepath
+    if ($playState === "PLAYING") audioPlayer.play(source)
+    else audioPlayer.setSource(source)
+
+    return
+  }
+
+  // If the auto queue reached the end
+  if (
+    $isPlayingFromManualQueue === false &&
+    $currentIndex === $autoQueue.length - 1
+  ) {
     // Loop the playback if set
+
     if ($loopState === "LOOP_QUEUE") {
       indexStore.reset()
 
@@ -169,12 +190,9 @@ export function handlePlayNext() {
     return
   }
 
-  // If it did not reach its end and it is not looping. Simply go to the next track
-  if ($playState === "PLAYING") {
-    playNext()
-  } else {
-    goToNextTrack()
-  }
+  // If no manual queue is set, no looping etc. just play the next track in the auto queue.
+  if ($playState === "PLAYING") playNext()
+  else goToNextTrack()
 }
 
 export function handleClickedPrevious() {
@@ -250,10 +268,15 @@ export function resumePlayback() {
 }
 
 function playPrevious() {
-  indexStore.update((index) => {
-    if (index <= 0) return $autoQueue.length - 1
-    return index - 1
-  })
+  // Manually added tracks get removed after play, so there are no previous ones
+  if ($isPlayingFromManualQueue) {
+    isPlayingFromManualQueue.set(false)
+  } else {
+    indexStore.update((index) => {
+      if (index <= 0) return $autoQueue.length - 1
+      return index - 1
+    })
+  }
 
   if ($playState === "STOPPED" || $playState === "PAUSED")
     audioPlayer.setSource($currentTrack.filepath)
@@ -278,7 +301,8 @@ export function isMuted() {
 /**
  * Play a track from the queue and update the index according to the track index in the queue.
  */
-export function playFromQueue(index: number): void {
+export function playFromAutoQueue(index: number): void {
+  isPlayingFromManualQueue.set(false)
   indexStore.set(index)
 
   startPlayingCurrentTrack()
@@ -341,15 +365,11 @@ export async function playTrackAsShuffledTracks(trackToPlay: ITrack) {
  * Starts playback and initializes a new queue
  */
 export async function playNewSource(newPlayback: INewPlayback, index = 0) {
-  console.log("sourceStore:", get(playbackStore))
-  console.log("new source:", newPlayback)
-  console.log(dequal(get(playbackStore), newPlayback))
+  isPlayingFromManualQueue.set(false)
 
   // If the source stayed the same then just go to the specified index of the queue
   if (dequal($playback, newPlayback)) {
-    indexStore.set(index)
-
-    startPlayingCurrentTrack()
+    playFromAutoQueue(index)
     return
   }
 
@@ -609,7 +629,30 @@ export const tracks = { subscribe: tracksStore.subscribe }
 export const albums = { subscribe: albumsStore.subscribe }
 export const artists = { subscribe: artistsStore.subscribe }
 export const queue = { subscribe: autoQueueStore.subscribe }
-export const manuellyQueue = { subscribe: manuallQueueStore.subscribe }
+export const playedTracks = derived(
+  [autoQueueStore, indexStore, isPlayingFromManualQueue],
+  // Display only the last 20 played tracks or less if there are no more
+  // And if a track from the manualQueue is playing, also display the track at the current index of the autoQueue, as it is not the current track, but the previous to the manualQueue track.
+  ([$queue, $index, $newIsPlayingFromManualQueue]) =>
+    $queue.slice(
+      $index - 20 > 0 ? $index - 20 : 0,
+      $newIsPlayingFromManualQueue ? $index + 1 : $index
+    )
+)
+export const nextTracks = derived(
+  [autoQueueStore, indexStore],
+  ([$queue, $index]) => $queue.slice($index + 1)
+)
+/**
+ * The manual queue for the UI to display.
+ * Not to be used for anything else.
+ */
+export const manualQueue = derived(
+  [manualQueueStore, isPlayingFromManualQueue],
+  ([$newManualQueue, $newIsPlayingFromManualQueue]) =>
+    // If the current track is from the manual queue, it woukd still show up in "manually added" section. So lets remove it from the queue for display purposes.
+    $newIsPlayingFromManualQueue ? $newManualQueue.slice(1) : $newManualQueue
+)
 
 export {
   setNextLoopState,

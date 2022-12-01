@@ -20,6 +20,7 @@ import type {
   IAddTracksToPlaylistArgument,
   IPlaylistEditDescriptionArgument,
   IPlaylistUpdateCoverArgumentSend,
+  IMusicIDsUnion,
 } from "@sing-types/DatabaseTypes"
 
 import { ipcRenderer } from "./TypedIPC"
@@ -72,6 +73,10 @@ export async function removeTracksFromPlaylist(
  */
 export async function getTracks(options?: ITrackFindManyArgument) {
   return ipcRenderer.invoke("getTracks", options)
+}
+
+export async function getTracksFromMusic(music: IMusicIDsUnion) {
+  return ipcRenderer.invoke("getTracksFromMusic", music)
 }
 
 export async function getAlbums(options?: IAlbumFindManyArgument) {

@@ -9,9 +9,14 @@ import type {
   ITrack,
   IPlaylist,
   IPlaylistCreateArgument,
-  IAddTracksToPlaylistArgument,
+  IMusicIDsUnion,
 } from "@sing-types/DatabaseTypes"
 import type { IError } from "@sing-types/Types"
+
+import {
+  addTracksToManualQueueBeginning,
+  addTracksToManualQueueEnd,
+} from "@/lib/manager/player"
 
 import { convertFilepathToFilename, getErrorMessage } from "../../shared/Pures"
 
@@ -340,74 +345,94 @@ export function createOnOutClick(
   }
 }
 
-function createAddToPlaylistAndQueueMenuItemsBase(
-  musicToAdd: IPlaylistCreateArgument,
-  playlists: readonly IPlaylist[],
-  addToPlaylist: (items: IAddTracksToPlaylistArgument) => void,
-  _playNext: (tracks: readonly ITrack[]) => void,
-  _playLater: (tracks: readonly ITrack[]) => void
-): IMenuItemsArgument {
-  // TODO Add "add to new playlist" action
+function createAddToPlaylistMenuItems(
+  playlists: readonly IPlaylist[]
+): ICreateMenuOutOfMusic {
+  return (musicToAdd) => {
+    const addToNewPlaylist: IMenuItemArgument = {
+      label: "Create playlist",
+      async onClick() {
+        window.api.createPlaylist(musicToAdd)
+      },
+      type: "item",
+    }
 
-  const addToNewPlaylist: IMenuItemArgument = {
-    label: "Create playlist",
-    async onClick() {
-      window.api.createPlaylist(musicToAdd)
-    },
-    type: "item",
+    const playlistSubMenu: ISubmenuItemArgument = {
+      type: "subMenu",
+      label: "Add to playlist",
+      subMenu: [
+        { type: "spacer" },
+        addToNewPlaylist,
+        { type: "spacer" },
+        ...playlists.flatMap((playlist) =>
+          // Create the add to playlist options, but do not allow adding a playlist to itself.
+          musicToAdd.type === "playlist" && musicToAdd.id === playlist.id
+            ? []
+            : ({
+                label: playlist.name,
+                onClick: () =>
+                  window.api.addToPlaylist({ playlist, musicToAdd }),
+                type: "item",
+              } as const)
+        ),
+      ],
+    }
+
+    return [playlistSubMenu]
   }
+}
 
-  const playlistSubMenu: ISubmenuItemArgument = {
-    type: "subMenu",
-    label: "Add to playlist",
-    subMenu: [
-      { type: "spacer" },
-      addToNewPlaylist,
-      { type: "spacer" },
-      ...playlists.flatMap((playlist) =>
-        // Create the add to playlist options, but do not allow adding a playlist to itself.
-        musicToAdd.type === "playlist" && musicToAdd.id === playlist.id
-          ? []
-          : ({
-              label: playlist.name,
-              onClick: () => addToPlaylist({ playlist, musicToAdd }),
-              type: "item",
-            } as const)
-      ),
-    ],
-  }
-
+// eslint-disable-next-line func-style
+const createAddToQueueMenuItems: ICreateMenuOutOfMusic = (
+  musicToAdd: IMusicIDsUnion
+) => {
   const queueSubMenu: readonly (IMenuItemArgument | IMenuSpacer)[] = [
     {
       type: "item",
       label: "Play next",
-      onClick: () =>
-        notifiyError("Queue play next is not implemented yet")(
-          "Queue play next is not implemented yet"
-        ),
+      async onClick() {
+        pipe(
+          await window.api.getTracksFromMusic(musicToAdd),
+
+          E.matchW(
+            notifiyError("Failed to add to play next"),
+
+            addTracksToManualQueueBeginning
+          )
+        )
+      },
     },
     {
       type: "item",
       label: "Play later",
-      onClick: () =>
-        notifiyError("Queue play later is not implemented yet")(
-          "Queue play later is not implemented yet"
-        ),
+      async onClick() {
+        pipe(
+          await window.api.getTracksFromMusic(musicToAdd),
+
+          E.matchW(
+            notifiyError("Failed to add to play later"),
+
+            addTracksToManualQueueEnd
+          )
+        )
+      },
     },
   ]
+  return queueSubMenu
+}
 
-  return [...queueSubMenu, playlistSubMenu]
+function createAddToPlaylistAndQueueMenuItemsBase(
+  musicToAdd: IPlaylistCreateArgument,
+  playlists: readonly IPlaylist[]
+): IMenuItemsArgument {
+  return [
+    ...createAddToQueueMenuItems(musicToAdd),
+    ...createAddToPlaylistMenuItems(playlists)(musicToAdd),
+  ]
 }
 
 export function createAddToPlaylistAndQueueMenuItems(
   playlists: readonly IPlaylist[]
 ): ICreateMenuOutOfMusic {
-  return (item) =>
-    createAddToPlaylistAndQueueMenuItemsBase(
-      item,
-      playlists,
-      window.api.addToPlaylist,
-      () => console.error("Not implemented yet"),
-      () => console.error("Not implemented yet")
-    )
+  return (item) => createAddToPlaylistAndQueueMenuItemsBase(item, playlists)
 }

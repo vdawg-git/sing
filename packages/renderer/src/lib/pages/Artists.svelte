@@ -5,9 +5,9 @@
   import { removeDuplicates } from "@sing-shared/Pures"
 
   import { ROUTES } from "@/Consts"
-  import { artists, playNewSource } from "@/lib/manager/Player"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
   import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
+  import { artists, playNewSource } from "@/lib/manager/player"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
 

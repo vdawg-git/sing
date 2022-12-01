@@ -1,11 +1,9 @@
 import { writable } from "svelte/store"
 
 import type {
-  IMenuItemArgument,
   IMenuItemsArgument,
   IMenuLocation,
   IOpenMenuArgument,
-  ISubmenuItemArgument,
 } from "@/types/Types"
 
 import type { StrictOmit } from "ts-essentials"

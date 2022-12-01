@@ -4,9 +4,9 @@
   import { displayTypeWithCount, removeDuplicates } from "@sing-shared/Pures"
   import type { IPlaySource, ISortOptions } from "@sing-types/Types"
 
-  import { playNewSource, tracks } from "@/lib/manager/player/index"
   import type { IHeroMetaDataItem } from "@/types/Types"
   import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
+  import { playNewSource, tracks } from "@/lib/manager/player"
 
   import { backgroundImages } from "../stores/BackgroundImages"
   import { playlistsStore } from "../stores/PlaylistsStore"

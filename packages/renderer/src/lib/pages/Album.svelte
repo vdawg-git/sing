@@ -15,8 +15,8 @@
     ITrackListDisplayOptions,
   } from "@/types/Types"
   import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
+  import { playNewSource } from "@/lib/manager/player"
 
-  import { playNewSource } from "../manager/Player"
   import { backgroundImages } from "../stores/BackgroundImages"
   import { playlistsStore } from "../stores/PlaylistsStore"
 
@@ -24,6 +24,7 @@
   import TrackList from "@/lib/organisms/TrackList.svelte"
 
   import type { Either } from "fp-ts/lib/Either"
+
 
   export let albumID: string
 
@@ -41,7 +42,7 @@
   })
 
   let tracks: readonly ITrack[] = []
-  $: tracks = album !== undefined ? album?.tracks : []
+  $: tracks = album === undefined ? [] : album?.tracks
 
   let metadata: IHeroMetaDataItem[]
   $: metadata = [

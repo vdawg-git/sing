@@ -3,20 +3,16 @@ import IconArrowRight from "virtual:icons/heroicons-outline/arrow-right"
 import IconPlay from "virtual:icons/heroicons-outline/play"
 
 import { convertFilepathToFilename } from "@sing-shared/Pures"
+import type { IAlbum, IArtist, ITrack } from "@sing-types/DatabaseTypes"
 import type {
-  IAlbum,
-  IArtist,
   IConvertedSearchData,
   ISearchItemSubtext,
   ISearchResultItem,
-  ITrack,
 } from "@sing-types/Types"
 
 import { ROUTES } from "@/Consts"
+import { playTrackAsShuffledTracks } from "@/lib/manager/player"
 
-import { playTrackAsShuffledTracks } from "../manager/player"
-
-import type {} from "@/types/Types"
 // const navigate = useNavigate()
 
 /**
