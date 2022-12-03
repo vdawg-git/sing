@@ -23,7 +23,7 @@ async function createWindow() {
     // Disable native frame on Windows to show a completly custom title bar.
     frame: osName === "darwin" ? true : false,
     titleBarStyle: "hiddenInset",
-    trafficLightPosition: { x: 4, y: 4 },
+    trafficLightPosition: { x: 8, y: 4 },
   })
 
   /**
