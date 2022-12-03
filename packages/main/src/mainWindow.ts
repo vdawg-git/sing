@@ -1,22 +1,29 @@
 import { join } from "node:path"
 import { URL } from "node:url"
+import os from "node:os"
 
 import { BrowserWindow } from "electron"
 
 // @ts-expect-error
 import tailwind from "../../../tailwind.config.cjs"
 
+const osName = os.platform()
+
 async function createWindow() {
   const browserWindow = new BrowserWindow({
     width: 1280,
     height: 744,
     show: import.meta.env.DEV, // Use 'ready-to-show' event to show window when in production
-    frame: false, // Disable native frame
     webPreferences: {
       preload: join(__dirname, "../../preload/dist/index.cjs"),
       webSecurity: false,
     },
     backgroundColor: tailwind.theme.colors.grey[900],
+
+    // Disable native frame on Windows to show a completly custom title bar.
+    frame: osName === "darwin" ? true : false,
+    titleBarStyle: "hiddenInset",
+    trafficLightPosition: { x: 4, y: 4 },
   })
 
   /**

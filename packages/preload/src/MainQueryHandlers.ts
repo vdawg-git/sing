@@ -1,3 +1,5 @@
+import os from "node:os"
+
 import { app, dialog } from "electron"
 import slash from "slash"
 import { match } from "ts-pattern"
@@ -184,13 +186,14 @@ export const mainQueryHandlers = Object.freeze({
       arguments_: query,
     }),
 
-  async updatePlaylistCover(
+  updatePlaylistCover: async (
     _: IpcMainInvokeEvent,
     options: IPlaylistUpdateCoverArgumentSend
-  ) {
-    return queryBackend({
+  ) =>
+    queryBackend({
       query: "updatePlaylistImage",
       arguments_: { ...options, coversDirectory },
-    })
-  },
+    }),
+
+  isMacOS: async () => os.platform() === "darwin",
 })

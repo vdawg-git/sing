@@ -1,5 +1,3 @@
-import { app } from "electron"
-
 import { ipcRenderer } from "./TypedIPC"
 
 import type {
@@ -174,4 +172,8 @@ export async function minimizeWindow() {
 
 export async function toggleFullscreen() {
   ipcRenderer.send("toggleFullscreen")
+}
+
+export async function isMacOS() {
+  return ipcRenderer.invoke("isMacOS")
 }

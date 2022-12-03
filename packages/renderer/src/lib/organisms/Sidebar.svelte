@@ -70,6 +70,9 @@
 
   const openSettingsMenu = createOpenMenu(settingsDropdownItems)
 
+  let isMacOS = false
+  window.api.isMacOS().then((isTrue) => (isMacOS = isTrue))
+
   // TODO Idea: Minimize sidebar, extend it when hovering over playlists
 
   // TODO make playlist sortable by dragging them
@@ -87,7 +90,7 @@
   <!-- Items -->
 
   <!-- Logo & Menu-->
-  <div class="mb-4 mt-2 flex justify-between px-2">
+  <div class="mb-4 mt-2 flex justify-between px-2" class:mt-6={isMacOS}>
     <Logo class="h-6 w-6  text-white/50" />
     <!---- Settings dropdown -->
     <button

@@ -12,20 +12,30 @@
 <div
   class="fixed z-20 flex h-6 w-full items-center justify-end bg-grey-900/50 backdrop-blur-sm"
 >
-  <div class="button hover:bg-grey-500" on:click={window.api.minimizeWindow}>
-    <IconMinimize class="h-4 w-4" />
-  </div>
+  {#await window.api.isMacOS() then isMacOS}
+    {#if isMacOS === false}
+      <div
+        class="button hover:bg-grey-500"
+        on:click={window.api.minimizeWindow}
+      >
+        <IconMinimize class="h-4 w-4" />
+      </div>
 
-  <div class="button hover:bg-grey-500" on:click={window.api.toggleFullscreen}>
-    <IconMaximize class="h-4 w-4 stroke-1" />
-  </div>
+      <div
+        class="button hover:bg-grey-500"
+        on:click={window.api.toggleFullscreen}
+      >
+        <IconMaximize class="h-4 w-4 stroke-1" />
+      </div>
 
-  <div
-    class="button hover:bg-red-600 hover:hover:text-white"
-    on:click={window.api.closeApp}
-  >
-    <IconClose class="h-4 w-4 " />
-  </div>
+      <div
+        class="button hover:bg-red-600 hover:hover:text-white"
+        on:click={window.api.closeApp}
+      >
+        <IconClose class="h-4 w-4 " />
+      </div>
+    {/if}
+  {/await}
 
   <!-- The inverted border radius edges -->
   <Edge
