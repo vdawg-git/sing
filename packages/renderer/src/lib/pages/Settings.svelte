@@ -44,7 +44,7 @@
             return
           }
           console.log("Syncing paths: " + paths)
-          await window.api.setUserSettings("musicFolders", paths)
+          await window.api.setUserSettings({setting: "musicFolders",value: paths})
 
           await window.api.sync()
         }}

@@ -31,7 +31,6 @@
   import VolumeControl from "@/lib/molecules/VolumeControl.svelte"
   import QueueBar from "@/lib/organisms/QueueBar.svelte"
 
-
   let showQueue = false
 
   let volume = 1
@@ -52,12 +51,12 @@
   }
 </script>
 
-<div
+<section
   class="
     custom_shadow absolute inset-x-0
     bottom-0 z-40 grid h-[72px]
     w-full grid-cols-3 items-center  justify-between  
-    rounded-3xl border
+    rounded-t-3xl border
     border-grey-400/50 bg-grey-700/80 px-6 backdrop-blur-xl
   "
   data-testid={TEST_IDS.playbar}
@@ -206,7 +205,7 @@
       <IconQueue class="h-6 w-6" />
     </button>
   </div>
-</div>
+</section>
 
 {#if showQueue}
   <QueueBar />

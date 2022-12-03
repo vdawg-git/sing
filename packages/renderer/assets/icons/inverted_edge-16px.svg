@@ -1,0 +1,15 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g filter="url(#filter0_b_51_633)">
+    <path fill-rule="evenodd" clip-rule="evenodd"
+      d="M16 16L16 0L1.39876e-06 -1.39876e-06C8.83656 -6.26248e-07 16 7.16344 16 16Z" fill="currentColor" />
+  </g>
+  <defs>
+    <filter id="filter0_b_51_633" x="-4" y="-4" width="24" height="24" filterUnits="userSpaceOnUse"
+      color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix" />
+      <feGaussianBlur in="BackgroundImageFix" stdDeviation="2" />
+      <feComposite in2="SourceAlpha" operator="in" result="effect1_backgroundBlur_51_633" />
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_backgroundBlur_51_633" result="shape" />
+    </filter>
+  </defs>
+</svg>

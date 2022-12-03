@@ -1,3 +1,5 @@
+import { app } from "electron"
+
 import { ipcRenderer } from "./TypedIPC"
 
 import type {
@@ -112,7 +114,7 @@ export async function setUserSettings<Key extends IUserSettingsKey>({
   return ipcRenderer.send("setUserSettings", { setting, value })
 }
 
-export async function selectDirectory(
+export async function openDirectoryPicker(
   ...arguments_: Parameters<IMainQueryHandlers["openDirectoryPicker"]>
 ) {
   return ipcRenderer.invoke("openDirectoryPicker", arguments_[0], arguments_[1])
@@ -160,4 +162,16 @@ export async function updatePlaylistCover(
   options: IPlaylistUpdateCoverArgumentSend
 ) {
   return ipcRenderer.invoke("updatePlaylistCover", options)
+}
+
+export async function closeApp() {
+  ipcRenderer.send("quit")
+}
+
+export async function minimizeWindow() {
+  ipcRenderer.send("minimizeWindow")
+}
+
+export async function toggleFullscreen() {
+  ipcRenderer.send("toggleFullscreen")
 }

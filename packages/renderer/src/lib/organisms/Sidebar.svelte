@@ -80,14 +80,14 @@
   data-testid={id.sidebar}
   class="
     custom_style z-30 flex h-screen  w-[208px]
-    flex-shrink-0 flex-grow-0 flex-col gap-2 rounded-3xl
-    border border-grey-400/50  bg-grey-900/60 p-4 backdrop-blur-lg
+    flex-shrink-0 flex-grow-0 flex-col rounded-r-3xl
+    border border-grey-400/50  bg-grey-900/60 p-2 backdrop-blur-lg
     "
 >
   <!-- Items -->
 
   <!-- Logo & Menu-->
-  <div class="mb-4 flex justify-between">
+  <div class="mb-4 mt-2 flex justify-between px-2">
     <Logo class="h-6 w-6  text-white/50" />
     <!---- Settings dropdown -->
     <button
@@ -108,18 +108,22 @@
     />
   {/each}
 
-  <!---- Playlist items -->
-  {#if $playlistsStore.length > 0}
-    <MenuSeperator marginX={12} />
-    {#each playlistItems as { to, label, contextMenuItems }}
-      <SidebarItem
-        {to}
-        {label}
-        isActive={to === currentRoute}
-        {contextMenuItems}
-      />
-    {/each}
-  {/if}
+  <div class="flex flex-col overflow-auto">
+    <!---- Playlist items -->
+    {#if $playlistsStore.length > 0}
+      <MenuSeperator marginX={12} />
+      {#each playlistItems as { to, label, contextMenuItems }}
+        <SidebarItem
+          {to}
+          {label}
+          isActive={to === currentRoute}
+          {contextMenuItems}
+        />
+      {/each}
+    {/if}
+
+    <div class="min-h-playbar w-full" />
+  </div>
 </nav>
 
 <style>

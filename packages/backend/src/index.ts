@@ -1,7 +1,6 @@
 import log from "ololog"
 import { match } from "ts-pattern"
 
-
 import { backendEventHandlers } from "@/lib/EventHandlers"
 import { queryHandlers } from "@/lib/QueryHandlers"
 import { isBackendEvent, isBackendQuery } from "@/types/TypeGuards"
@@ -43,7 +42,7 @@ backendMessages.on("playlistUpdatedInternal", (id) =>
 )
 
 function handleMessageFromMain(request: unknown): void {
-  log.blue.maxArrayLength(3).maxObjectLength(5)(request)
+  // log.blue.maxArrayLength(3).maxObjectLength(5)(request)
 
   if (isBackendQuery(request)) {
     handleQuery(request)
@@ -89,7 +88,7 @@ function sendToMain(response: IBackendQueryResponse | IBackendEmitToFrontend) {
 
     return
   }
-  log.cyan.maxArrayLength(3).maxObjectLength(5)("Event from backend:", response)
+  // log.cyan.maxArrayLength(3).maxObjectLength(5)("Event from backend:", response)
 
   process.send(response)
 }

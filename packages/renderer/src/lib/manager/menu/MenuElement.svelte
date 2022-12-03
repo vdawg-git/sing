@@ -18,6 +18,9 @@
 
   import type { Coords } from "@floating-ui/dom"
 
+  
+
+
   // TODO !! When clicking an item (not a submenu), the does the action and closes as expect5ed. But the next time a submenu is clicked, the menu ghets nulled. Fix this
 
   // TODO fix no shifting when nessecary after submenu opens
@@ -137,6 +140,15 @@
     return fly(node, options)
   }
 </script>
+
+<!--
+  @component
+
+  The element which renders the active menu.
+  
+  As there can only be one active menu, having only one managing component is enough.
+-->
+
 
 {#key $menuStore}
   {#if activeMenu !== undefined && activeMenu?.items.length !== 0}

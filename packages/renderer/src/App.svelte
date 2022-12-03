@@ -2,8 +2,7 @@
   import { onDestroy } from "svelte"
   import { Router, Route, createHistory } from "svelte-navigator"
 
-  import Settings from "@/lib/pages/Settings.svelte"
-
+  import Settings from "./lib/pages/Settings.svelte"
   import { ROUTES } from "./Consts"
   import { createHashSource } from "./Helper"
   import BackgroundGallery from "./lib/atoms/BackgroundGallery.svelte"
@@ -22,6 +21,7 @@
   import Tracks from "./lib/pages/Tracks.svelte"
   import { backgroundImages } from "./lib/stores/BackgroundImages"
   import Playlist from "./lib/pages/Playlist.svelte"
+  import TitleBar from "./lib/organisms/TitleBar.svelte"
 
   const hashHistory = createHistory(createHashSource())
 
@@ -49,6 +49,8 @@
 
     <div class="flex w-full">
       <Sidebar />
+
+      <TitleBar />
 
       <main
         class="

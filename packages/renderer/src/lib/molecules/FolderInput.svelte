@@ -11,7 +11,7 @@
   const dispatch = createEventDispatcher()
 
   async function pickFolder() {
-    const { filePaths, canceled } = await window.api.openDirectory({
+    const { filePaths, canceled } = await window.api.openDirectoryPicker({
       defaultPath: "music",
       buttonLabel: "Select music folder(s)",
       title: "Sing music folder selection",

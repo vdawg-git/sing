@@ -1,5 +1,5 @@
 import log from "ololog"
-
+import { app, BrowserWindow } from "electron"
 
 import { coversDirectory } from "../../main/src/Consts"
 import userSettingsStore from "../../main/src/lib/UserSettings"
@@ -17,7 +17,7 @@ import type {
   IUserSettingsKey,
 } from "../../main/src/lib/UserSettings"
 
-export const mainEventHandlers = {
+export const mainEventHandlers = Object.freeze({
   setUserSettings: async <Key extends IUserSettingsKey>(
     _event: IpcMainInvokeEvent,
     { setting, value }: { setting: Key; value: IUserSettings[Key] }
@@ -65,4 +65,34 @@ export const mainEventHandlers = {
       arguments_: [options],
     })
   },
-} as const
+
+  minimizeWindow: async (event: IpcMainInvokeEvent) => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+
+    if (window === null) {
+      log.error.red(
+        "Invalid minimize event received. The window could not be found."
+      )
+
+      return
+    }
+
+    window.minimize()
+  },
+
+  toggleFullscreen: async (event: IpcMainInvokeEvent) => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+
+    if (window === null) {
+      log.error.red(
+        "Invalid minimize event received. The window could not be found."
+      )
+
+      return
+    }
+
+    window.setFullScreen(!window.isFullScreen())
+  },
+
+  quit: app.quit,
+})
