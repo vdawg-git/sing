@@ -2,6 +2,7 @@
   import IconFolderRemove from "virtual:icons/heroicons-outline/folder-remove"
   import IconFolderAdd from "virtual:icons/heroicons-outline/folder-add"
   import { createEventDispatcher } from "svelte"
+  import slash from "slash"
 
   import { TEST_ATTRIBUTES } from "@/TestConsts"
 
@@ -9,21 +10,6 @@
   export let testID: string | undefined = undefined
 
   const dispatch = createEventDispatcher()
-
-  async function pickFolder() {
-    const { filePaths, canceled } = await window.api.openDirectoryPicker({
-      defaultPath: "music",
-      buttonLabel: "Select music folder(s)",
-      title: "Sing music folder selection",
-      properties: ["openDirectory", "multiSelections", "dontAddToRecent"],
-      message: "Choose folders to sync",
-      securityScopedBookmarks: false,
-    })
-
-    if (canceled || filePaths.length === 0) return undefined
-
-    return filePaths
-  }
 
   async function handleClick() {
     if (path === undefined) {
@@ -49,6 +35,25 @@
     if (newPaths === undefined) return
 
     dispatch("folderEdited", { oldPath: path, newPaths })
+  }
+
+  async function pickFolder() {
+    // FIXME open current path as defaultPath does not work when it includes spaces
+
+    const defaultPath = path ?? "music"
+
+    const { filePaths, canceled } = await window.api.openDirectoryPicker({
+      defaultPath,
+      buttonLabel: "Select music folder(s)",
+      title: "Sing music folder selection",
+      properties: ["openDirectory", "multiSelections", "dontAddToRecent"],
+      message: "Choose folders to sync",
+      securityScopedBookmarks: false,
+    })
+
+    if (canceled || filePaths.length === 0) return undefined
+
+    return filePaths
   }
 
   const filledClass = "bg-grey-400 text-white hover:bg-grey-500"

@@ -3,6 +3,7 @@ import path from "node:path"
 import { app } from "electron"
 import slash from "slash"
 
+import type { IElectronPaths } from "@sing-types/Types"
 import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"
 
 export const developmentDBPath = slash(
@@ -21,3 +22,22 @@ export const databaseURL = `file:${databasePath}`
 export const coversDirectory = `${slash(
   app.getPath("userData")
 )}/covers/` as DirectoryPath
+
+export const electronPaths = [
+  "home",
+  "appData",
+  "userData",
+  "sessionData",
+  "temp",
+  "exe",
+  "module",
+  "desktop",
+  "documents",
+  "downloads",
+  "music",
+  "pictures",
+  "videos",
+  "recent",
+  "logs",
+  "crashDumps",
+] satisfies readonly IElectronPaths[]

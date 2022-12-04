@@ -115,7 +115,7 @@ export async function setUserSettings<Key extends IUserSettingsKey>({
 export async function openDirectoryPicker(
   ...arguments_: Parameters<IMainQueryHandlers["openDirectoryPicker"]>
 ) {
-  return ipcRenderer.invoke("openDirectoryPicker", arguments_[0], arguments_[1])
+  return ipcRenderer.invoke("openDirectoryPicker", arguments_[0])
 }
 
 export async function selectImage(

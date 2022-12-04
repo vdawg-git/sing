@@ -5,7 +5,7 @@ import slash from "slash"
 import { match } from "ts-pattern"
 import log from "ololog"
 
-import { coversDirectory } from "../../main/src/Consts"
+import { coversDirectory, electronPaths } from "../../main/src/Consts"
 import userSettingsStore from "../../main/src/lib/UserSettings"
 
 import { queryBackend } from "./BackendProcess"
@@ -32,7 +32,11 @@ import type {
 } from "@sing-types/DatabaseTypes"
 import type { IElectronPaths, IError } from "@sing-types/Types"
 import type { Prisma } from "@prisma/client"
-import type { IpcMainInvokeEvent, OpenDialogReturnValue } from "electron"
+import type {
+  IpcMainInvokeEvent,
+  OpenDialogReturnValue,
+  OpenDialogOptions,
+} from "electron"
 import type { Either } from "fp-ts/lib/Either"
 
 /**
@@ -127,14 +131,24 @@ export const mainQueryHandlers = Object.freeze({
       arguments_: options,
     }),
 
+  /**
+   *
+   * @param defaultPath Can get one of Electrons default paths or a custom one.
+   * @returns
+   */
   openDirectoryPicker: async (
     _: IpcMainInvokeEvent,
-    options: Electron.OpenDialogOptions = {},
-    defaultPath: IElectronPaths = "music"
+    options: Electron.OpenDialogOptions = {}
   ): Promise<OpenDialogReturnValue & { filePaths: DirectoryPath[] }> => {
-    const dialogOptions = {
+    const defaultPath = options.defaultPath
+      ? electronPaths.includes(options.defaultPath as IElectronPaths)
+        ? app.getPath(options.defaultPath as IElectronPaths)
+        : options.defaultPath
+      : undefined
+
+    const dialogOptions: OpenDialogOptions = {
       ...options,
-      ...(defaultPath && { defaultPath: app.getPath(defaultPath) }),
+      ...(defaultPath && { defaultPath }),
     }
 
     const { filePaths, canceled } = await dialog.showOpenDialog(dialogOptions)
