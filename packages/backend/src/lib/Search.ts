@@ -24,7 +24,7 @@ import type { IBackEndMessages, IToSearchData } from "@/types/Types"
 
 // TODO use combined keys as the ID for the album (name + artist / albumartist)
 
-const searchList = createSearchList()
+let searchList = createSearchList()
 
 /**
  * The search options for Fuse.js, ultimately used by the {@link search} function
@@ -119,8 +119,6 @@ async function getSearchResults(
   dataToSearchFrom: Promise<readonly IToSearchData[]>,
   query: string
 ): Promise<ISearchedData[]> {
-  // TODO Search list is currently defined in the module scope and is static. Make it refresh when the library is updated
-
   const fuse = new Fuse(await dataToSearchFrom, options)
 
   return fuse
@@ -217,4 +215,8 @@ function getTopMatches(
     .sort(sortByScore)
 
   return topMatches
+}
+
+export async function updateSearchList() {
+  searchList = createSearchList()
 }

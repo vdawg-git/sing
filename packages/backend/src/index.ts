@@ -7,6 +7,7 @@ import { isBackendEvent, isBackendQuery } from "@/types/TypeGuards"
 
 import { backendMessages } from "./lib/Messages"
 import { updatePlaylistCoverAfterTracksUpdate } from "./lib/Crud"
+import { updateSearchList } from "./lib/Search"
 
 import type {
   IBackendQueryResponse,
@@ -40,6 +41,7 @@ backendMessages.on("*", (_, message) => {
 backendMessages.on("playlistUpdatedInternal", (id) =>
   updatePlaylistCoverAfterTracksUpdate(backendMessages, id)
 )
+backendMessages.on("syncedMusic", updateSearchList)
 
 function handleMessageFromMain(request: unknown): void {
   // log.blue.maxArrayLength(3).maxObjectLength(5)(request)

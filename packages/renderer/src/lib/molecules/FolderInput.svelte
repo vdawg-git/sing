@@ -2,7 +2,6 @@
   import IconFolderRemove from "virtual:icons/heroicons-outline/folder-remove"
   import IconFolderAdd from "virtual:icons/heroicons-outline/folder-add"
   import { createEventDispatcher } from "svelte"
-  import slash from "slash"
 
   import { TEST_ATTRIBUTES } from "@/TestConsts"
 
