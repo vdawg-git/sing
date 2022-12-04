@@ -10,7 +10,6 @@ import {
   getSupportedMusicFiles,
   getUnsupportedMusicFiles,
   hasCover,
-  removeDuplicates,
 } from "@sing-shared/Pures"
 
 import { deleteFromDirectoryInverted, getFilesFromDirectory } from "../Helper"
@@ -127,7 +126,7 @@ export async function syncMusic(
 
   // Save the covers to the cover folder
   // const { left: coverWriteErrors, right: savedCoverPaths } =
-  const { left: coverWriteErrors, right: savedCoverPaths } = getLeftsRights(
+  const { left: coverWriteErrors } = getLeftsRights(
     await Promise.all(
       rawMetaData
         .filter(hasCover)

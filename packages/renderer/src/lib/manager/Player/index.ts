@@ -55,12 +55,10 @@ const playbackStore = writable<IPlayback>({
 await initialiseStores()
 
 // Now it makes sense to create and use the derived stores, as the base stores are initialised
-export const currentTrack: Readable<ITrack> = derived(
+export const currentTrack: Readable<ITrack | undefined> = derived(
   [autoQueueStore, indexStore, manualQueueStore, isPlayingFromManualQueue],
-  ([$queue, $index, $manualQueue, $isPlayingFromManualQueue]) => {
-    console.log({ $manualQueue })
-    return $isPlayingFromManualQueue ? $manualQueue[0] : $queue[$index].track
-  }
+  ([$queue, $index, $manualQueue, $isPlayingFromManualQueue]) =>
+    $isPlayingFromManualQueue ? $manualQueue[0] : $queue[$index]?.track
 )
 
 export const shuffleState = derived(
@@ -74,7 +72,7 @@ currentTrack.subscribe(console.log)
 let $playState: IPlayState = "STOPPED"
 let $autoQueue: readonly IQueueItem[] = []
 let $currentIndex = -1
-let $currentTrack: ITrack
+let $currentTrack: ITrack | undefined
 let $playback: IPlayback
 let seekAnimationID: number
 let $isShuffleOn: boolean
@@ -214,14 +212,14 @@ export async function toggleShuffle() {
       notifiyError("Failed to set shuffle. Could not retrieve tracks."),
 
       async (tracks) => {
-        const trackID = $currentTrack.id
+        const trackID = $currentTrack?.id
 
         const indexAndTracks: { index: number; tracks: readonly ITrack[] } =
           match($isShuffleOn)
             .with(true, () => {
-              const indexToMove = tracks.findIndex(
-                (track) => track.id === trackID
-              ) as number
+              const indexToMove = trackID
+                ? tracks.findIndex((track) => track.id === trackID)
+                : 0
 
               return {
                 index: 0,
@@ -254,7 +252,7 @@ export function setVolume(newVolume: number) {
 }
 
 export function seekTo(percentage: number) {
-  const newCurrentTime = ($currentTrack.duration || 0) * percentage
+  const newCurrentTime = ($currentTrack?.duration ?? 0) * percentage
   audioPlayer.audio.currentTime = newCurrentTime
 
   currentTimeStore.set(newCurrentTime)
@@ -276,10 +274,13 @@ function playPrevious() {
       return index - 1
     })
   }
+  if ($currentTrack === undefined) {
+    throw new Error("No current track is defined after playing previous")
+  }
 
-  if ($playState === "STOPPED" || $playState === "PAUSED")
+  if ($playState === "STOPPED" || $playState === "PAUSED") {
     audioPlayer.setSource($currentTrack.filepath)
-  else {
+  } else {
     audioPlayer.play($currentTrack.filepath)
   }
 }
@@ -459,6 +460,11 @@ function playNext() {
 
 function goToNextTrack() {
   indexStore.increment()
+
+  if ($currentTrack === undefined) {
+    throw new Error("Current track is undefined afer going to the next track")
+  }
+
   audioPlayer.setSource($currentTrack.filepath)
 }
 
@@ -490,6 +496,10 @@ function cancelIntervalUpdateTime() {
 }
 
 function startPlayingCurrentTrack() {
+  if ($currentTrack === undefined) {
+    throw new Error("Current track is undefined and cannot be played")
+  }
+
   playStateStore.set("PLAYING")
   audioPlayer.play($currentTrack.filepath)
 }

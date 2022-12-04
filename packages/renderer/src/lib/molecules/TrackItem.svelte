@@ -1,7 +1,6 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
 
-
   import { ROUTES } from "@/Consts"
   import { displayTrackMetadata } from "@/Helper"
   import { TEST_ATTRIBUTES } from "@/TestConsts"
@@ -27,8 +26,12 @@
     name: displayTrackMetadata("title", track),
   })
 
+  /**
+   * Handles the click on the artist and album metadata.
+   * @return A function to navigate to the metadata origin, or an empty function if the metadata is not defined.
+   */
   function navigateTo(type: StrictExtract<keyof ITrack, "album" | "artist">) {
-    if (!track[type]) throw new Error("Invalid navigation")
+    if (!track[type]) return () => undefined
 
     const route = `/${type === "album" ? ROUTES.albums : ROUTES.artists}/${
       track[type]

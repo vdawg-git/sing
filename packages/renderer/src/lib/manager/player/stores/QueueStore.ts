@@ -3,6 +3,8 @@ import { get, writable } from "svelte/store"
 import type { ITrack } from "@sing-types/DatabaseTypes"
 import type { IQueueItem } from "@/types/Types"
 
+// TODO enable default sorting when setting manuall queue
+
 /**
  * The queue which gets filled up automatically.
  * For example, a user plays an album and the queue fills up with tracks from that album.
