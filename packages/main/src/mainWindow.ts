@@ -24,6 +24,7 @@ async function createWindow() {
     frame: osName === "darwin" ? true : false,
     titleBarStyle: "hiddenInset",
     trafficLightPosition: { x: 8, y: 4 },
+    fullscreenable: false,
   })
 
   /**

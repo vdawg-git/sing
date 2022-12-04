@@ -3,6 +3,13 @@
   import IconMinimize from "virtual:icons/heroicons/minus-20-solid"
   import IconMaximize from "virtual:icons/custom/maximize_icon"
   import IconClose from "virtual:icons/heroicons/x-mark-solid"
+  import IconUnsetFullscreen from "virtual:icons/custom/unset_fullscreen_icon"
+
+  let isFullscreen = false
+
+  async function toggleFullscreen() {
+    isFullscreen = await window.api.toggleFullscreen()
+  }
 </script>
 
 <!-- Draggable area -->
@@ -21,11 +28,12 @@
         <IconMinimize class="h-4 w-4" />
       </div>
 
-      <div
-        class="button hover:bg-grey-500"
-        on:click={window.api.toggleFullscreen}
-      >
-        <IconMaximize class="h-4 w-4 stroke-1" />
+      <div class="button hover:bg-grey-500" on:click={toggleFullscreen}>
+        {#if isFullscreen}
+          <IconUnsetFullscreen class="h-4 w-4 stroke-1" />
+        {:else}
+          <IconMaximize class="h-4 w-4 stroke-1" />
+        {/if}
       </div>
 
       <div
@@ -39,10 +47,10 @@
 
   <!-- The inverted border radius edges -->
   <Edge
-    class="absolute right-0 top-6 text-grey-900/70 ring-0 backdrop-blur-sm"
+    class="absolute right-0 top-6 text-grey-900/50 ring-0 backdrop-blur-sm"
   />
   <Edge
-    class="absolute left-0 top-6 scale-x-[-1] text-grey-900/70 ring-0 backdrop-blur-sm"
+    class="absolute left-0 top-6 scale-x-[-1] text-grey-900/50 ring-0 backdrop-blur-sm"
   />
 </div>
 

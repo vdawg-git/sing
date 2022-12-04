@@ -171,7 +171,7 @@ export async function minimizeWindow() {
 }
 
 export async function toggleFullscreen() {
-  ipcRenderer.send("toggleFullscreen")
+  return ipcRenderer.invoke("toggleFullscreen")
 }
 
 export async function isMacOS() {

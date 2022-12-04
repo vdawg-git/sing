@@ -80,19 +80,5 @@ export const mainEventHandlers = Object.freeze({
     window.minimize()
   },
 
-  toggleFullscreen: async (event: IpcMainInvokeEvent) => {
-    const window = BrowserWindow.fromWebContents(event.sender)
-
-    if (window === null) {
-      log.error.red(
-        "Invalid minimize event received. The window could not be found."
-      )
-
-      return
-    }
-
-    window.setFullScreen(!window.isFullScreen())
-  },
-
   quit: app.quit,
 })

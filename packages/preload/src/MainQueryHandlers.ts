@@ -1,8 +1,9 @@
 import os from "node:os"
 
-import { app, dialog } from "electron"
+import { app, BrowserWindow, dialog } from "electron"
 import slash from "slash"
 import { match } from "ts-pattern"
+import log from "ololog"
 
 import { coversDirectory } from "../../main/src/Consts"
 import userSettingsStore from "../../main/src/lib/UserSettings"
@@ -196,4 +197,23 @@ export const mainQueryHandlers = Object.freeze({
     }),
 
   isMacOS: async () => os.platform() === "darwin",
+
+  /**
+   * @returns If fullscreen is set.
+   */
+  toggleFullscreen: async (event: IpcMainInvokeEvent): Promise<boolean> => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+
+    if (window === null) {
+      log.error.red(
+        "Invalid minimize event received. The window could not be found."
+      )
+
+      return false
+    }
+
+    window.isMaximized() ? window.unmaximize() : window.maximize()
+
+    return window.isMaximized()
+  },
 })
