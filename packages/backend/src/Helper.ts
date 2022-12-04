@@ -275,7 +275,7 @@ export function createCoverPath(
   md5: string,
   extension: string
 ): FilePath {
-  return (coverFolderPath + md5 + extension) as FilePath
+  return (coverFolderPath + md5 + "." + extension) as FilePath
 }
 
 export function createMD5(buffer: Buffer): string {
@@ -286,12 +286,12 @@ export function createError(
   type: IErrorTypes
 ): (error: unknown) => Either<IError, never> {
   return (error) => {
-    console.group("Error")
-    log.error.red(type, error)
-    if ((error as { message: string })?.message) {
-      log.error.red(type, (error as { message: string })?.message)
-    }
-    console.groupEnd()
+    log.error.red(
+      type,
+      error,
+      "\n",
+      (error as { message: string })?.message ?? ""
+    )
 
     if (typeof error !== "object" || error === null)
       return E.left({ type, error })

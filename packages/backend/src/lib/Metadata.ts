@@ -89,7 +89,7 @@ export async function getCoverNotCurried(
   const coverData = selectCover(pictures as IPicture[]) as IPicture // cast it since the function argument ensures that a cover exists
 
   const md5 = createMD5(coverData.data)
-  const extension = `.${coverData.format.split("/").at(-1)}`
+  const extension = coverData.format.split("/").at(-1) as string
   const path = createCoverPath(coverFolderPath, md5, extension)
 
   return { md5, path, buffer: coverData.data }

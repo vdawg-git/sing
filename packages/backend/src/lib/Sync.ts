@@ -13,7 +13,6 @@ import {
   removeDuplicates,
 } from "@sing-shared/Pures"
 
-
 import { deleteFromDirectoryInverted, getFilesFromDirectory } from "../Helper"
 
 import {
@@ -24,6 +23,7 @@ import {
   deleteUnusedCoversInDatabase,
   getAlbums,
   getArtists,
+  getCovers,
 } from "./Crud"
 import {
   convertMetadata,
@@ -32,8 +32,9 @@ import {
   saveCover,
 } from "./Metadata"
 
-import type { DirectoryPath } from "@sing-types/Filesystem"
+import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"
 import type {
+  IError,
   IErrorArrayIsEmpty,
   IErrorInvalidArguments,
 } from "@sing-types/Types"
@@ -176,18 +177,24 @@ export async function syncMusic(
   if (E.isLeft(deleteCoversResult))
     log.error.red("deleteCoversResult:", deleteCoversResult.left)
 
-  // TODO update cover cleanup to respect manually added playlist covers
+  const usedCoverFilepaths = (await getCovers(emitter, {
+    select: { filepath: true },
+  })) as E.Either<IError, readonly { filepath: FilePath }[]>
 
-  // Remove unused covers
-  const deleteCoversFilesystemResult = await deleteFromDirectoryInverted(
-    coversDirectory,
-    savedCoverPaths.filter(removeDuplicates)
-  )
+  if (E.isLeft(usedCoverFilepaths)) {
+    log.error.red("Failed getting covers at Sync:", usedCoverFilepaths.left)
+  } else {
+    // Remove unused covers
+    const deleteCoversFilesystemResult = await deleteFromDirectoryInverted(
+      coversDirectory,
+      usedCoverFilepaths.right.map(({ filepath }) => filepath)
+    )
 
-  if (E.isLeft(deleteCoversFilesystemResult))
-    log.error.red(deleteCoversFilesystemResult.left)
-  else if (deleteCoversFilesystemResult.right.deletionErrors.length > 0)
-    log.error.red(deleteCoversFilesystemResult.right.deletionErrors)
+    if (E.isLeft(deleteCoversFilesystemResult))
+      log.error.red(deleteCoversFilesystemResult.left)
+    else if (deleteCoversFilesystemResult.right.deletionErrors.length > 0)
+      log.error.red(deleteCoversFilesystemResult.right.deletionErrors)
+  }
 
   const deleteCoverErrors =
     E.isLeft(deleteCoversResult) && deleteCoversResult.left
@@ -215,5 +222,5 @@ export async function syncMusic(
     shouldForwardToRenderer: true,
   })
 
-  log("Finished syncing music")
+  log.green("Finished syncing music")
 }

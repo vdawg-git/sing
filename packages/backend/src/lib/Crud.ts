@@ -519,7 +519,7 @@ export async function addTracksToPlaylist(
     },
     (_success) => {
       toMainEmitter.showNotification({
-        // TODO make this nice and meaningful
+        // TODO make the notification nice and meaningful
         label: `Added ${musicToAdd.type} to playlist ${playlist.name}`,
         type: "check",
       })
@@ -624,7 +624,7 @@ export async function getArtist(
     .then((artist) => updateKeyValue("tracks", sortTracks(usedSort), artist))
     .then(removeNulledKeys)
     .then(addArtistImage)
-    .then(E.right)
+    .then((artist) => E.right(artist as IArtist))
     .catch(createError("Failed to get tracks from database"))
 }
 
@@ -723,15 +723,34 @@ export async function deleteTracksInverted(
 ): Promise<Either<IError, number>> {
   const pathsString = createSQLArray(filepaths)
 
-  const query = `DELETE FROM 
+  const tracksQuery = prisma.$executeRawUnsafe(`
+                DELETE FROM 
                   ${SQL.Track} 
-                 WHERE 
-                  ${SQL.filepath} NOT IN (${pathsString})`
+                WHERE 
+                  ${SQL.filepath} NOT IN (${pathsString})`)
 
-  return prisma
-    .$executeRawUnsafe(query)
-    .then((deleteAmount) => E.right(deleteAmount))
-    .catch(createError("Failed to remove unused tracks from the database"))
+  const playlistItemsQuery = prisma.$executeRawUnsafe(`
+    DELETE FROM
+      ${SQL.PlaylistItem}
+    WHERE
+      ${SQL["PlaylistItem.trackID"]} NOT IN (
+        SELECT
+          ${SQL["Track.id"]}
+        FROM
+          ${SQL.Track}
+        WHERE
+          ${SQL["Track.filepath"]} IN (
+            ${pathsString}
+        )
+  )`)
+
+  return (
+    prisma
+      .$transaction([playlistItemsQuery, tracksQuery])
+      // Only get the amount of deleted tracks, not deleted items
+      .then(([deleteAmount]) => E.right(deleteAmount))
+      .catch(createError("Failed to remove unused tracks from the database"))
+  )
 }
 
 export async function deleteEmptyAlbums(): Promise<Either<IError, number>> {
@@ -791,7 +810,14 @@ export async function deleteUnusedCoversInDatabase(): Promise<
           LEFT JOIN ${SQL.Track} ON ${SQL["Cover.filepath"]} = ${SQL["Track.cover"]}
         WHERE
           ${SQL["Track.cover"]} IS NULL
-      )`
+      
+      AND ${SQL["Cover.md5"]} NOT IN (
+        SELECT
+          A
+        FROM
+         _CoverToPlaylist
+      )
+  )`
 
   return prisma
     .$executeRawUnsafe(query)
@@ -972,6 +998,7 @@ async function getTracksByAlbumIDs(
 
     .then((tracks) => tracks as readonly ITrack[])
     .then(RA.map(removeNulledKeys))
+    .then((tracks) => tracks as readonly ITrack[])
     .then(E.right)
     .catch(createError("Failed to get tracks from albums"))
 }
@@ -991,6 +1018,7 @@ async function getTracksByArtistIDs(
 
     .then((tracks) => tracks as readonly ITrack[])
     .then(RA.map(removeNulledKeys))
+    .then((tracks) => tracks as readonly ITrack[])
     .then(E.right)
     .catch(createError("Failed to get tracks from artists"))
 }

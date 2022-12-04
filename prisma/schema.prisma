@@ -1,8 +1,7 @@
 // Docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["interactiveTransactions"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -166,7 +165,7 @@ model Album {
   artist      String?
   tracks      Track[] @relation(name: "album")
   coverPath   Cover?  @relation(fields: [cover], references: [filepath])
-  cover       String? @unique /// TODO dont make this unique as this can become problematic
+  cover       String?
 
   type String @default("album") /// ###DO NOT SET THIS. This is is used to provide a discriminating union for typescript.
 }
@@ -184,7 +183,7 @@ model Artist {
 model Cover {
   md5      String  @id
   filepath String  @unique
-  album    Album?
+  album    Album[]
   tracks   Track[]
 
   isManuallyAdded Boolean @default(false) /// If this image is added by the user to the app and not by music data (for example, it got added as a playlist image)
