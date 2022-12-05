@@ -8,7 +8,6 @@
 
   import { displayTypeWithCount, removeDuplicates } from "@sing-shared/Pures"
 
-
   import { createAddToPlaylistAndQueueMenuItems, notifiyError } from "@/Helper"
   import { playNewSource } from "@/lib/manager/player"
 
@@ -33,12 +32,10 @@
     IPlaylistWithTracks,
   } from "@sing-types/DatabaseTypes"
 
-
   export let playlistID: string
 
   const parameters = useParams<{ playlistID: string }>()
 
-  // TODO fix the sorting.
   const defaultSort: ISortOptions["playlist"] = [
     "manualOrderIndex",
     "ascending",

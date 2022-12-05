@@ -187,7 +187,6 @@ describe("with valid data", async () => {
       })
     })
 
-    // TODO implement remove queue item
     describe("click delete queue item", async () => {
       it("removes queue item", async () => {
         const component = render(QueueBarComponent)

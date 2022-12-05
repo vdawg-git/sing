@@ -25,12 +25,10 @@
   import type { IError, ISortOptions } from "@sing-types/Types"
   import type { Either } from "fp-ts/lib/Either"
 
-
   export let albumID: string
 
   const parameters = useParams<{ albumID: string }>()
 
-  // TODO fix the sorting.
   const defaultSort: ISortOptions["tracks"] = ["trackNo", "ascending"]
 
   let album: IAlbum | undefined

@@ -37,8 +37,13 @@
   // because of https://css-tricks.com/popping-hidden-overflow/
 </script>
 
+<!-- Create inset shadows for increased depth of the UI -->
 <div
-  class="h-screen max-h-screen w-screen max-w-[100vw] select-none overflow-hidden text-white "
+  class="_morphism pointer-events-none fixed z-[9999] h-screen w-screen touch-none"
+/>
+
+<div
+  class=" h-screen max-h-screen w-screen max-w-[100vw] select-none overflow-hidden text-white"
 >
   <Router history={hashHistory}>
     <NotificationsRenderer />
@@ -119,3 +124,11 @@
     <BackgroundGallery images={$backgroundImages} />
   </Router>
 </div>
+
+<style lang="postcss">
+  ._morphism {
+    /* An inset box shadow */
+    box-shadow: inset 4px 4px 8px 0px rgba(255, 255, 255, 0.06),
+      inset -5px -5px 10px 0px rgba(0, 0, 0, 0.4);
+  }
+</style>

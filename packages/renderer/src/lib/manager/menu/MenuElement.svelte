@@ -18,14 +18,7 @@
 
   import type { Coords } from "@floating-ui/dom"
 
-  
-
-
-  // TODO !! When clicking an item (not a submenu), the does the action and closes as expect5ed. But the next time a submenu is clicked, the menu ghets nulled. Fix this
-
-  // TODO fix no shifting when nessecary after submenu opens
-  // This could probably be accomplished by enabling shifting on each sub-menu opening.
-  // And saving an array of coordinates of each submenu after shifting and if the new coordinates of the menu match one of the already saved, simpy dont shift, as a new shift will be further away from the screen edge and not closer, so iit always stays as far away as possible and needed
+  // FIXME !! When clicking an item (not a submenu), the does the action and closes as expected. But the next time a submenu is clicked, the menu ghets nulled. Fix this
 
   // TODO enable scroll lock while menu is opened.
 
@@ -148,7 +141,6 @@
   
   As there can only be one active menu, having only one managing component is enough.
 -->
-
 
 {#key $menuStore}
   {#if activeMenu !== undefined && activeMenu?.items.length !== 0}

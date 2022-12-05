@@ -10,8 +10,6 @@
 
   let element: HTMLElement | undefined
 
-  // TODO If only one image, get its dimensions and tiled it mirrored if it is too small to fill the view, and have one centered in the middle
-
   // TODO Fix images not taking up available space when adding / removing tracks from a playlist and/or resizing the window
 
   $: displayedImages = match(images)

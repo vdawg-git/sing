@@ -23,8 +23,6 @@ import type {
 // This could be achieved by passing a "onMenuActivated" and a "onMenuClosed" callback, which could then set the state.
 // For example, when right clicking a track, the track should be highlighted, when the user clicks away, it gets set to the default state
 
-// TODO if a submenu has not items, do not display it.
-
 /**
  *
  * @param items The menu items to display. Submenus are nested inside the type {@link ISubmenuItemArgument}.

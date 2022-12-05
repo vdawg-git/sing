@@ -83,7 +83,7 @@
   data-testid={id.sidebar}
   class="
     custom_style z-30 flex h-screen  w-[208px]
-    flex-shrink-0 flex-grow-0 flex-col rounded-r-3xl
+    flex-shrink-0 flex-grow-0 flex-col rounded-r-xl
     border border-grey-400/50  bg-grey-900/60 p-2 backdrop-blur-lg
     "
 >

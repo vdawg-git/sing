@@ -13,11 +13,11 @@
 </script>
 
 <!-- Draggable area -->
-<div class="draggable fixed z-[999] h-6 w-[calc(100%-120px)]" />
+<div class="draggable fixed z-[999] h-5 w-[calc(100%-120px)]" />
 
 <!-- Visible title bar -->
 <div
-  class="fixed z-20 flex h-6 w-full items-center justify-end bg-grey-900/50 backdrop-blur-sm"
+  class="fixed z-20 flex h-5 w-full items-center justify-end bg-grey-900/50 backdrop-blur-sm"
 >
   {#await window.api.isMacOS() then isMacOS}
     {#if isMacOS === false}
@@ -47,23 +47,27 @@
 
   <!-- The inverted border radius edges -->
   <Edge
-    class="absolute right-0 top-6 text-grey-900/50 ring-0 backdrop-blur-sm"
+    class="absolute right-0 top-5 text-grey-900/50 ring-0 backdrop-blur-sm"
   />
   <Edge
-    class="absolute left-0 top-6 scale-x-[-1] text-grey-900/50 ring-0 backdrop-blur-sm"
+    class="absolute left-0 top-5 scale-x-[-1] text-grey-900/50 ring-0 backdrop-blur-sm"
   />
 </div>
 
 <style lang="postcss">
   .button {
     width: 40px;
-    height: 24px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: theme(colors.grey.300);
-    transition: background 120ms cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background 100ms cubic-bezier(0.4, 0, 0.2, 1);
     -webkit-app-region: no-drag;
+
+    &:hover {
+      color: theme(colors.white);
+    }
   }
 
   .draggable {
