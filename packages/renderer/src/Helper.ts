@@ -5,7 +5,6 @@ import * as RA from "fp-ts/ReadonlyArray"
 import { createHashHistory } from "history"
 import { isDefined } from "ts-is-present"
 
-
 import {
   addTracksToManualQueueBeginning,
   addTracksToManualQueueEnd,

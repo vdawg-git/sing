@@ -7,40 +7,75 @@
   export let currentTime: number | undefined | null
   export let duration: number | undefined | null
 
-  $: progress = ((currentTime ?? 0) / (duration ?? 0)) * 100
+  const dispatch = createEventDispatcher<{
+    seek: number
+    startedSeeking: never
+    endedSeeking: never
+  }>()
 
-  const dispatcher = createEventDispatcher()
+  /**
+   * The progress of the track in percentage (0-1)
+   */
+  let progress = 0
 
-  let seekbar: HTMLElement
+  let isMouseDownForSeeking = false
+  let isSeeking = false
 
-  function handleSeekClick(event: MouseEvent) {
-    const percentage = getSeekPercentage(event)
-
-    dispatcher("seek", percentage)
+  // Prevent the seekbar value from being overwritten by the props while seeking, which prevents seeking.
+  $: {
+    if (isSeeking === false) {
+      progress = (currentTime ?? 0) / (duration ?? 1)
+    }
   }
 
-  function getSeekPercentage({ clientX }: MouseEvent) {
-    const { left, width } = seekbar.getBoundingClientRect()
-    const normClientX = clientX - left
-    const percentage = normClientX / width
+  $: {
+    if (isSeeking === true) {
+      dispatch("startedSeeking")
+    } else {
+      dispatch("endedSeeking")
+    }
+  }
 
-    return percentage
+  function handleSeekClick() {
+    // Prevent dragging to go to the complete end
+    if (progress === 1) progress -= 0.001
+
+    dispatch("seek", progress)
   }
 </script>
 
 <main
   class="
    group -mt-1.5 cursor-pointer py-3"
-  on:click={handleSeekClick}
-  bind:this={seekbar}
 >
   <div
     data-testid={test.seekbar}
     class="relative -mt-2 h-[2px] rounded-full bg-orange-800"
+    on:mousedown={() => (isMouseDownForSeeking = true)}
+    on:mouseup={() => {
+      isSeeking = false
+      isMouseDownForSeeking = false
+    }}
+    on:mousemove={() => {
+      if (isMouseDownForSeeking === true) isSeeking = true
+    }}
   >
+    <!---- Input ---->
+    <input
+      type="range"
+      name="volume slider"
+      id="volume_slider"
+      min="0"
+      max="1"
+      step="0.001"
+      bind:value={progress}
+      class="input_"
+      on:input={handleSeekClick}
+    />
+
     <div
       data-testid={test.seekbarProgressbar}
-      style="width: {progress}%"
+      style="width: {progress * 100}%"
       class="
         pointer-events-none relative h-full rounded-full bg-amber-500
         transition-[width] duration-[60ms] ease-in
@@ -56,7 +91,7 @@
         <div
           data-testid={test.seekbarCurrentTime}
           class="
-             pointer-events-none absolute right-0 -bottom-1   -translate-x-6 rounded-md bg-grey-700/50
+             pointer-events-none absolute right-0 -bottom-1 -translate-x-6 rounded-md bg-grey-700/50
             px-2 text-sm text-grey-100 backdrop-blur-sm 
           "
         >
@@ -75,7 +110,7 @@
   </div>
 </main>
 
-<style>
+<style lang="postcss">
   .blurred {
     -webkit-backdrop-filter: blur(25px);
     backdrop-filter: blur(25px);
@@ -83,5 +118,32 @@
 
   .shadow_small {
     box-shadow: 0px 0px 12px black;
+  }
+
+  input[type="range"].input_ {
+    position: absolute;
+    padding: 12px;
+    width: 100%;
+    height: 24px;
+    background-color: red;
+    cursor: pointer;
+    top: -12px;
+    opacity: 0;
+
+    &:focus {
+      outline: none;
+    }
+
+    &::-webkit-slider-runnable-track {
+      background: theme(colors.grey.500);
+    }
+
+    &::-webkit-slider-thumb {
+      /* -webkit-appearance: none; */
+      width: 24px;
+      height: 24px;
+      background-color: red;
+      opacity: 0;
+    }
   }
 </style>

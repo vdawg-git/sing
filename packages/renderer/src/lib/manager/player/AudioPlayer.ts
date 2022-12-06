@@ -52,6 +52,12 @@ function createPlayer() {
       }, 20)
     },
 
+    pauseWithoutFadeOut() {
+      previousVolume = audio.volume
+
+      audio.pause()
+    },
+
     isPaused() {
       return audio.paused
     },
@@ -117,6 +123,4 @@ function createPlayer() {
   }
 }
 
-const audioPlayer = createPlayer()
-
-export default audioPlayer
+export const audioPlayer = createPlayer()

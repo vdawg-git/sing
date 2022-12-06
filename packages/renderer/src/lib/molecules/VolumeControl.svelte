@@ -7,20 +7,24 @@
   import { TEST_IDS as testID } from "@/TestConsts"
 
   export let disabled = false
-  export let value = 1
+  export let volume = 1
+  export let toggleMute: () => void
 
-  const animatedValue = spring(value, {
+  // FIXME Volume displays muted if paused. Fix this
+
+  const animatedValue = spring(volume, {
     damping: 0.2,
     stiffness: 0.09,
   })
   $: {
-    animatedValue.set(value)
+    animatedValue.set(volume)
   }
 
   let showSlider = false
-  let volumeBeforeMute: number | undefined = [value][0] // dont be reactive on value
-  $: muted = value === 0
 
+  $: isMuted = volume === 0
+
+  // eslint-disable-next-line no-undef
   let timeout: NodeJS.Timeout
 
   function handleMouseLeave() {
@@ -32,20 +36,6 @@
     clearTimeout(timeout)
 
     timeout = setTimeout(() => (showSlider = true), 50)
-  }
-
-  function toggleMute() {
-    if (muted) {
-      if (volumeBeforeMute) {
-        value = volumeBeforeMute
-        volumeBeforeMute = undefined
-      } else {
-        value = 1
-      }
-    } else {
-      volumeBeforeMute = value
-      value = 0
-    }
   }
 </script>
 
@@ -60,7 +50,7 @@
     on:click={toggleMute}
     class="transition-transform hover:text-grey-200 active:scale-95"
   >
-    {#if !muted}
+    {#if !isMuted}
       <IconVolume class="h-6 w-6" />
     {:else}
       <IconVolumeMuted class="h-6 w-6" />
@@ -87,8 +77,9 @@
           min="0"
           max="1"
           step="0.01"
-          bind:value
+          bind:value={volume}
           class="input_"
+          on:change
         />
         <!---- Inner gradient ---->
         <!---- Mask ---->

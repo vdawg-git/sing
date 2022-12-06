@@ -10,7 +10,7 @@ import {
   sortAlphabetically,
 } from "@/Helper"
 
-import audioPlayer from "./AudioPlayer"
+import { audioPlayer } from "./AudioPlayer"
 import { loopStateStore } from "./stores/LoopStateStore"
 import { indexStore } from "./stores/PlayIndex"
 import { autoQueueStore } from "./stores/QueueStore"
@@ -66,22 +66,28 @@ export const shuffleState = derived(
   ({ isShuffleOn }) => isShuffleOn
 )
 
-currentTrack.subscribe(console.log)
-
 // Bind the values of the stores localy.
 let $playState: IPlayState = "STOPPED"
 let $autoQueue: readonly IQueueItem[] = []
 let $currentIndex = -1
 let $currentTrack: ITrack | undefined
 let $playback: IPlayback
-let seekAnimationID: number
+let seekbarProgressIntervalID: NodeJS.Timer
 let $isShuffleOn: boolean
 let $loopState: IPlayLoop
 let $manualQueue: readonly ITrack[]
 let $isPlayingFromManualQueue = false
+let $volume: number
+
+let volumeBeforeMute: number | undefined
 
 autoQueueStore.subscribe(($newQueue) => {
   $autoQueue = $newQueue
+})
+
+volumeStore.subscribe(($newVolume) => {
+  $volume = $newVolume
+  audioPlayer.setVolume($newVolume)
 })
 
 indexStore.subscribe(($newIndex) => {
@@ -103,9 +109,6 @@ isPlayingFromManualQueue.subscribe(
   ($newState) => ($isPlayingFromManualQueue = $newState)
 )
 
-/**
- * Shuffle or unshuffle the current queue when the shuffle state changes
- */
 shuffleState.subscribe(($newShuffleState) => {
   $isShuffleOn = $newShuffleState
 })
@@ -121,8 +124,9 @@ manualQueueStore.subscribe(($newManuellQueue) => {
 // Events
 
 window.api.on("syncedMusic", handleSyncUpdate)
-audioPlayer.audio.addEventListener("ended", handleClickedNext)
-audioPlayer.audio.addEventListener("volumechange", onVolumeChange)
+audioPlayer.audio.addEventListener("ended", () => {
+  handleClickedNext()
+})
 
 // Functions
 
@@ -140,20 +144,14 @@ export function handleClickedNext() {
     return
   }
 
-  console.log({ $isPlayingFromManualQueue }, "1")
-
   // If the manuell queue played, remove the played song
   if ($isPlayingFromManualQueue) {
-    console.log("XXX")
-
     manualQueueStore.removeFirst()
   }
 
   $manualQueue.length > 0
     ? isPlayingFromManualQueue.set(true)
     : isPlayingFromManualQueue.set(false)
-
-  console.log({ $isPlayingFromManualQueue })
 
   // If there are tracks in the manualQueueStore
   if ($isPlayingFromManualQueue) {
@@ -194,6 +192,24 @@ export function handleClickedNext() {
 
 export function handleClickedPrevious() {
   playPrevious()
+}
+
+/**
+ * Pauses the audio if it is playing without changing the UI state.
+ */
+export function handleSeekingStart() {
+  if ($playState === "PLAYING") {
+    audioPlayer.pauseWithoutFadeOut()
+  }
+}
+
+/**
+ * Used with {@link handleSeekingStart}.
+ */
+export function handleSeekingEnd() {
+  if ($playState === "PLAYING") {
+    audioPlayer.resume()
+  }
 }
 
 export async function toggleShuffle() {
@@ -248,7 +264,8 @@ export async function toggleShuffle() {
 }
 
 export function setVolume(newVolume: number) {
-  audioPlayer.setVolume(newVolume)
+  // For some reason the range input starting returning a string onChange.
+  volumeStore.set(Number(newVolume))
 }
 
 export function seekTo(percentage: number) {
@@ -288,14 +305,6 @@ function playPrevious() {
 export function pausePlayback() {
   playStateStore.set("PAUSED")
   audioPlayer.pause()
-}
-
-export function setMuted(muted: boolean) {
-  audioPlayer.setMuted(muted)
-}
-
-export function isMuted() {
-  return audioPlayer.isMuted()
 }
 
 /**
@@ -359,6 +368,20 @@ export async function playTrackAsShuffledTracks(trackToPlay: ITrack) {
       }
     )
   )
+}
+
+export function toggleMute() {
+  if ($volume === 0) {
+    if (volumeBeforeMute) {
+      volumeStore.set(volumeBeforeMute)
+      volumeBeforeMute = undefined
+    } else {
+      volumeStore.set(1)
+    }
+  } else {
+    volumeBeforeMute = $volume
+    volumeStore.set(0)
+  }
 }
 
 /**
@@ -473,26 +496,26 @@ function handlePlayStateUpdate(newState: IPlayState) {
 
   if (newState === "PLAYING") {
     durationStore.set($currentTrack?.duration || 0)
-    startIntervalUpdateTime()
+    startProgressingSeekbar()
   } else {
-    cancelIntervalUpdateTime()
+    endProgressingSeekbar()
   }
 }
 
-function onVolumeChange() {
-  volumeStore.set(audioPlayer.getVolume())
-}
+// TODO make this use a much slower interval as currently it takes a lot of ressources
+function startProgressingSeekbar() {
+  progressSeekbar()
 
-function startIntervalUpdateTime() {
+  seekbarProgressIntervalID = setInterval(progressSeekbar, 400)
+}
+async function progressSeekbar() {
   const newTime = audioPlayer.getCurrentTime()
 
   currentTimeStore.set(newTime)
-
-  seekAnimationID = requestAnimationFrame(startIntervalUpdateTime)
 }
 
-function cancelIntervalUpdateTime() {
-  cancelAnimationFrame(seekAnimationID)
+function endProgressingSeekbar() {
+  clearInterval(seekbarProgressIntervalID)
 }
 
 function startPlayingCurrentTrack() {
@@ -548,8 +571,6 @@ async function handleSyncUpdate(
   _event: IpcRendererEvent,
   syncResult: ISyncResult
 ) {
-  console.log("Sync update received at handleSyncUpdate")
-
   pipe(
     syncResult,
     E.foldW(

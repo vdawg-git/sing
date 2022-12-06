@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte"
   import IconLoopSingle from "virtual:icons/custom/repeat-single"
   import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
   import IconLoop from "virtual:icons/heroicons/arrow-path-rounded-square-20-solid"
@@ -16,7 +15,6 @@
     currentTrack,
     playState,
     currentTime,
-    volume as volumeStore,
     seekTo,
     setVolume,
     handleClickedPrevious,
@@ -25,6 +23,10 @@
     handleClickedNext,
     shuffleState,
     toggleShuffle,
+    toggleMute,
+    volume,
+    handleSeekingStart,
+    handleSeekingEnd,
   } from "@/lib/manager/player"
 
   import Seekbar from "@/lib/molecules/Seekbar.svelte"
@@ -33,21 +35,16 @@
 
   let showQueue = false
 
-  let volume = 1
-  $: {
-    setVolume(volume)
-  }
-
-  onMount(() => {
-    volume = $volumeStore
-  })
-
   function handleClickQueueIcon() {
     showQueue = !showQueue
   }
 
   function handleSeek({ detail: percentage }: CustomEvent) {
     seekTo(percentage)
+  }
+
+  function handleVolumeChange({ target }: Event) {
+    setVolume((target as unknown as { value: number }).value as number)
   }
 </script>
 
@@ -57,7 +54,7 @@
     bottom-0 z-40 grid h-[72px]
     w-full grid-cols-3 items-center  justify-between  
     rounded-t-xl border
-    border-grey-400/50 bg-grey-700/80 px-6 backdrop-blur-xl
+    border-grey-400/50 bg-grey-700/80 px-4 backdrop-blur-xl
   "
   data-testid={TEST_IDS.playbar}
 >
@@ -68,6 +65,8 @@
         currentTime={$currentTime}
         duration={$currentTrack?.duration}
         on:seek={(event) => handleSeek(event)}
+        on:startedSeeking={handleSeekingStart}
+        on:endedSeeking={handleSeekingEnd}
       />
     </div>
   </div>
@@ -195,7 +194,11 @@
 
   <!---- Right icons-->
   <div class="flex items-center gap-6 justify-self-end">
-    <VolumeControl bind:value={volume} />
+    <VolumeControl
+      volume={$volume}
+      {toggleMute}
+      on:change={handleVolumeChange}
+    />
 
     <button
       data-testid={TEST_IDS.playbarQueueIcon}
