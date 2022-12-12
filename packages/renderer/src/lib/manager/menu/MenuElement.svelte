@@ -1,11 +1,6 @@
 <script lang="ts">
   import IconArrowLeft from "virtual:icons/heroicons/arrow-left"
-  import {
-    fade,
-    fly,
-    type FlyParams,
-    type TransitionConfig,
-  } from "svelte/transition"
+  import { fade, fly } from "svelte/transition"
   import { sineInOut } from "svelte/easing"
 
   import { createOnOutClick } from "../../../Helper"
@@ -28,7 +23,11 @@
   const animationSlideDuration = 200
   const animantionSizeDuration = 140
 
-  let menuElement: HTMLElement
+  /**
+   * Unanimated invisible video, used to retrieve width and height data from
+   */
+  let referenceMenuElement: HTMLElement
+
   let activeMenuElement: HTMLElement
 
   let menuX: number
@@ -49,6 +48,9 @@
   $: activeMenu = menus.find(({ id }) => id === menuID)
   $: itemsToShow = activeMenu?.items ?? []
 
+  $: console.log({ activeMenuElement })
+  $: console.log({ itemsToShow })
+
   $: {
     // When the menu is closed or another one opens, reset to the default main state
     if ($menuStore) {
@@ -58,11 +60,20 @@
   }
 
   $: {
+    if (activeMenuElement === null) {
+      // Fixes issue of menu getting nulled from the outro animation.
+      // I dont know why its getting nulled though.
+      // To recreate, delete the next line and click on a sub menu item. Then open the submenu again.
+      activeMenuElement = document.querySelector("#menu") as HTMLElement
+    }
+  }
+
+  $: {
     // (Re)- caculate the postion when the store is opened
-    if (menuElement && $menuStore && menuID) {
+    if (referenceMenuElement && $menuStore && menuID) {
       calculatePosition({
         nodeOrPosition: $menuStore.nodeOrPosition,
-        menuElement,
+        menuElement: referenceMenuElement,
         isFlipping: menuID === "main" ? true : false,
       }).then(handleMenuOpened)
     }
@@ -112,26 +123,6 @@
     menuX = coordinates.x
     menuY = coordinates.y
   }
-
-  function conditionalFly(
-    node: HTMLElement,
-    options: FlyParams & { isInAnimation: boolean }
-  ): TransitionConfig {
-    // For whatever reason the node gets nulled if the duration is too short. Even with a normal fly animation, it just gets nulled. This fixes it *mostly*.
-    // Furthermore, the `options.in` gets used to hide the old transititioning element, visually disabling the animation.
-    // Hopefully there is be a better way to do this.
-
-    if (isJustOpened)
-      return {
-        duration: animationSlideDuration + 200,
-        css: () =>
-          `display: none; opacity: ${options.isInAnimation ? 1 : 0};  
-          ${options.isInAnimation ? "" : "pointer-events: none;"}
-          `,
-      }
-
-    return fly(node, options)
-  }
 </script>
 
 <!--
@@ -145,39 +136,35 @@
 {#key $menuStore}
   {#if activeMenu !== undefined && activeMenu?.items.length !== 0}
     <!-- The displayed menu -->
-    <!-- For some reason a fade-in prevents the unmounting of the old menu (very visible when the menu completely changes) -->
     <div
       data-testID={$menuStore?.testID}
-      class=" _main fixed z-50 h-[256px] max-h-[400px] min-w-[15rem] overflow-hidden rounded-lg border border-grey-400/50 bg-grey-600 shadow-2xl"
-      style="
-        left: {menuX}px;
-        top: {menuY}px; 
-        height: {activeMenuHeight}px; 
-        width: {activeMenuWidth}px;
-        transition-duration: 400ms;
-        transition-property: {isJustOpened
-        ? 'none'
-        : 'width, height, left, top'};"
+      class=" _main fixed z-50 h-[256px] max-h-[400px] min-w-[15rem] overflow-hidden rounded-lg border border-grey-400/50 bg-grey-600 shadow-2xl duration-[400ms]"
+      style:height={`${activeMenuHeight}px`}
+      style:left={`${menuX}px`}
+      style:top={`${menuY}px`}
+      style:width={`${activeMenuWidth}px`}
+      style:transition-property={isJustOpened
+        ? "none"
+        : "width, height, left, top"}
       use:onOutClick
       in:fade={{ duration: 120 }}
     >
-      <!---- Menu Content -->
       {#key activeMenu}
+        <!---- Menu inner -->
         <div
           class="absolute top-0 left-0 flex w-max min-w-[240px] flex-col"
-          in:conditionalFly|local={{
+          in:fly|local={{
             x: animationValue * (isGoingBack ? -1 : 1),
             duration: animationSlideDuration,
             easing: sineInOut,
-            isInAnimation: true,
           }}
-          out:conditionalFly|local={{
+          out:fly|local={{
             x: animationValue * (isGoingBack ? 1 : -1),
             duration: animationSlideDuration,
             easing: sineInOut,
-            isInAnimation: false,
           }}
           bind:this={activeMenuElement}
+          id="menu"
           on:introstart={onSlideIntroStart}
         >
           <!---- Menu title + back button -->
@@ -218,21 +205,20 @@
     This one does not animate and thus delivers accurate values to the calculatePosition function. 
 
     Plus 4 to the height because otherwise the bottom gets cut off by this amount for some reason.
-  --->
+    --->
     <div
-      bind:this={menuElement}
+      bind:this={referenceMenuElement}
       class="fixed"
-      style="
-      left: {menuX}px ;top: {menuY}px; 
-      height: {activeMenuHeight + 4}px; width: {activeMenuWidth}px;"
+      style:left={`${menuX}px`}
+      style:right={`${menuY}px`}
+      style:height={`${activeMenuHeight + 4}px`}
+      style:width={`${activeMenuWidth}px`}
     />
   {/if}
 {/key}
 
 <style>
   ._main {
-    transition-property: left, top, width, height;
-    transition-duration: 140ms;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
 </style>

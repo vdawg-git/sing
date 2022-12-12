@@ -102,7 +102,12 @@
 
     <!---- Overlay gradient  -->
     <div
-      class="absolute top-0 h-full w-full bg-gradient-to-t from-grey-900 to-grey-900/20"
+      class="
+        absolute top-0 h-full w-full bg-gradient-to-t 
+        from-grey-900 {displayedImages.length === 0
+          ? 'to-orange-500/40'
+          : 'to-grey-900/10'}
+        "
     />
   </div>
 {/key}
