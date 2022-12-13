@@ -605,6 +605,7 @@ export async function getArtist(
       include: {
         coverPath: true,
       },
+      orderBy: { name: "asc" },
     },
     tracks: true,
   } as const
