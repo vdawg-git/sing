@@ -23,13 +23,13 @@
         class="-ml-1 h-6 w-6 shrink-0 grow-0 cursor-pointer  text-grey-300"
       />
     {/if}
-    <div class="grow text-sm">
+    <div class="grow text-sm tracking-wide">
       {data.label}
     </div>
     {#if data.trailingIcon}
       <svelte:component
         this={data.trailingIcon}
-        class="h-7 w-7 shrink-0 grow-0 cursor-pointer text-grey-300"
+        class="h-6 w-6 shrink-0 grow-0 cursor-pointer text-grey-300"
       />
     {/if}
   </div>
