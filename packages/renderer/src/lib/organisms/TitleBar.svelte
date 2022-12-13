@@ -47,10 +47,10 @@
 
   <!-- The inverted border radius edges -->
   <Edge
-    class="absolute right-0 top-5 text-grey-900/50 ring-0 backdrop-blur-sm"
+    class="absolute right-0 top-5 h-2 w-2 text-grey-900/50 ring-0 backdrop-blur-sm"
   />
   <Edge
-    class="absolute left-0 top-5 scale-x-[-1] text-grey-900/50 ring-0 backdrop-blur-sm"
+    class="absolute left-0 top-5 h-2 w-2 scale-x-[-1] text-grey-900/50 ring-0 backdrop-blur-sm"
   />
 </div>
 
