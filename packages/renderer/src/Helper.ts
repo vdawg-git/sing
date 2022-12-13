@@ -374,19 +374,6 @@ function createAddToPlaylistMenuItems(
                 type: "item",
               } as const)
         ),
-        {
-          type: "subMenu",
-          label: "temp",
-          subMenu: [
-            {
-              type: "item",
-              onClick() {
-                console.log("Hii")
-              },
-              label: "XX",
-            },
-          ],
-        },
       ],
     }
 

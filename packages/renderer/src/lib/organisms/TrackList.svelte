@@ -11,9 +11,13 @@
     ICreateMenuOutOfTrack,
   } from "@/types/Types"
 
-
   export let tracks: readonly ITrack[]
   export let testID: ITestIDs
+
+  /**
+   * Which colums should be displayed.
+   * Defaults to showing all columns.
+   */
   export let displayOptions: ITrackListDisplayOptions = {
     cover: true,
     album: true,
@@ -58,13 +62,13 @@
       "
   >
     <div class="mr-6 flex flex-1 basis-44">
-      {#if usedDisplayOptions.cover}
+      {#if usedDisplayOptions.cover || usedDisplayOptions.cover === undefined}
         <div class="w-16" />{/if}
       <div>Track</div>
     </div>
-    {#if usedDisplayOptions.artist}
+    {#if usedDisplayOptions.artist || usedDisplayOptions.artist === undefined}
       <div class="mr-6 flex-1 basis-32">Artist</div>{/if}
-    {#if usedDisplayOptions.album}
+    {#if usedDisplayOptions.album || usedDisplayOptions.album === undefined}
       <div class="mr-6 flex-1 basis-32">Album</div>{/if}
     <div class="flex-1 grow-0 basis-12 text-right">Length</div>
   </div>

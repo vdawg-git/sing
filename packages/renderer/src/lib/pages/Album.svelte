@@ -3,6 +3,7 @@
   import { useParams } from "svelte-navigator"
   import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
   import IconPlay from "virtual:icons/heroicons-outline/play"
+  import { onMount } from "svelte"
 
   import { displayTypeWithCount } from "@sing-shared/Pures"
 
@@ -32,12 +33,22 @@
   const defaultSort: ISortOptions["tracks"] = ["trackNo", "ascending"]
 
   let album: IAlbum | undefined
+  $: {
+    getAlbum(albumID).then((newAlbum) => {
+      album = newAlbum
+    })
+  }
 
   // Update the page when the album is changed on navigation
-  parameters.subscribe(async ({ albumID: newAlbumID }) => {
-    album = await getAlbum(newAlbumID)
-    backgroundImages.set(album?.cover)
-  })
+  onMount(
+    parameters.subscribe(({ albumID: newAlbumID }) => {
+      if (newAlbumID === albumID) return
+
+      albumID = newAlbumID
+    })
+  )
+
+  $: backgroundImages.set(album?.cover)
 
   let tracks: readonly ITrack[] = []
   $: tracks = album === undefined ? [] : album?.tracks

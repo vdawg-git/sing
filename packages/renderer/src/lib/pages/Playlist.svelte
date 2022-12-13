@@ -3,7 +3,7 @@
   import { useParams } from "svelte-navigator"
   import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
   import IconPlay from "virtual:icons/heroicons-outline/play"
-  import { onDestroy } from "svelte"
+  import { onDestroy, onMount } from "svelte"
   import { isDefined } from "ts-is-present"
 
   import { displayTypeWithCount, removeDuplicates } from "@sing-shared/Pures"
@@ -42,14 +42,25 @@
   ]
 
   let playlist: IPlaylistWithTracks | undefined
+  $: {
+    getPlaylist(Number(playlistID)).then(
+      (newPlaylist) => (playlist = newPlaylist)
+    )
+  }
   let isShowingEditModal = false
 
   $: covers = playlist?.thumbnailCovers?.map(({ filepath }) => filepath)
 
   // Update the playlist when the it is changed on navigation
-  const unsubsribeFromURLChange = parameters.subscribe(
-    // TODO Why is it calling this twice all the time
-    ({ playlistID: newPlaylistID }) => getAndSetPlaylist(Number(newPlaylistID))
+  onMount(
+    parameters.subscribe(
+      // TODO Why is it calling this twice all the time
+      ({ playlistID: newPlaylistID }) => {
+        if (newPlaylistID === playlistID) return
+
+        getPlaylist(Number(newPlaylistID))
+      }
+    )
   )
 
   // Update the playlist when its content changes
@@ -61,22 +72,28 @@
 
       unsubscribeFromPlaylistUpdate = window.api.on(
         "playlistUpdated",
-        (_, id) => {
+        async (_, id) => {
           if (id !== playlist?.id) return
 
-          getAndSetPlaylist(id)
+          playlist = await getPlaylist(id)
         }
       )
     }
   }
 
-  onDestroy(() => {
-    unsubsribeFromURLChange()
-    unsubscribeFromPlaylistUpdate()
-  })
+  onDestroy(
+    () => unsubscribeFromPlaylistUpdate && unsubscribeFromPlaylistUpdate()
+  )
 
   let tracks: readonly IPlaylistTrack[] | undefined = []
   $: tracks = playlist?.tracks
+
+  $: backgroundImages.set(
+    tracks
+      ?.map(({ cover }) => cover)
+      .filter(isDefined)
+      .filter(removeDuplicates)
+  )
 
   let metadata: IHeroMetaDataItem[]
   $: metadata = [
@@ -131,23 +148,14 @@
 
   let pickImage: () => Promise<void>
 
-  async function getAndSetPlaylist(id: number) {
-    window.api.getPlaylist({ where: { id } }).then(
+  function getPlaylist(id: number) {
+    return window.api.getPlaylist({ where: { id } }).then(
       E.fold(
         (error) => {
           notifiyError("Failed to get playlist")(error)
           return undefined
         },
-        (newPlaylist) => {
-          backgroundImages.set(
-            newPlaylist.tracks
-              .map(({ cover }) => cover)
-              .filter(isDefined)
-              .filter(removeDuplicates)
-          )
-
-          playlist = newPlaylist
-        }
+        (newPlaylist) => newPlaylist
       )
     )
   }

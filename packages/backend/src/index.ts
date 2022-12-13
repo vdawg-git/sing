@@ -44,7 +44,7 @@ backendMessages.on("playlistUpdatedInternal", (id) =>
 backendMessages.on("syncedMusic", updateSearchList)
 
 function handleMessageFromMain(request: unknown): void {
-  // log.blue.maxArrayLength(3).maxObjectLength(5)(request)
+  log.blue.maxArrayLength(3).maxObjectLength(5)(request)
 
   if (isBackendQuery(request)) {
     handleQuery(request)

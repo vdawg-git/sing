@@ -4,7 +4,6 @@ import * as A from "fp-ts/lib/ReadonlyArray"
 import { curry2 } from "fp-ts-std/function"
 import { match, P } from "ts-pattern"
 
-
 import { isKeyOfObject } from "../../types/Typeguards"
 import {
   SUPPORTED_MUSIC_FORMATS,
@@ -253,7 +252,7 @@ export function objectsKeysInArrayToObject<
  *
  * @param key The key to update
  * @param updateFunction The function which updates the key. It receives the value of it.
- * @param object_ The object to with the key. It returns a shallow copy of it gets returned.
+ * @param object_ The object with the key. A shallow copy of it gets returned.
  * @returns
  */
 export function updateKeyValue<
@@ -355,10 +354,18 @@ export function sortTracks([sortBy, sortOrder]:
         return sortString(a[sortBy] as string, b[sortBy] as string)
       }
 
-      throw new Error(`Invalid sort type. \na: ${a[sortBy]} \nb: ${b[sortBy]}`)
+      throw new Error(`Invalid sort of a track. \n
+        sortBy: ${sortBy}\n
+        Values at:\n
+        \ta: ${a[sortBy]} \n
+        \tb: ${b[sortBy]} \n
+        
+        Track a: ${a.filepath}\n
+        Track b: ${b.filepath}
+        `)
     })
 
-    // The sort was done ascending, reverse it if it should be descending
+    // The sort was done in ascending order, reverse the array if it should be descending
     return sortOrder === "ascending" ? sorted : sorted.reverse()
   }
 }

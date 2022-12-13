@@ -1,25 +1,29 @@
 <script lang="ts">
-  import { either } from "fp-ts"
+  import * as E from "fp-ts/lib/Either"
   import { useNavigate, useParams } from "svelte-navigator"
   import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
   import IconPlay from "virtual:icons/heroicons-outline/play"
+  import { onMount } from "svelte"
 
   import { displayTypeWithCount } from "@sing-shared/Pures"
 
   import { ROUTES } from "@/Consts"
   import { addNotification } from "@/lib/stores/NotificationStore"
   import { playNewSource } from "@/lib/manager/player"
+  import { playlistsStore } from "@/lib/stores/PlaylistsStore"
+  import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
+  import { TEST_IDS } from "@/TestConsts"
 
   import CardList from "../organisms/CardList.svelte"
   import { backgroundImages } from "../stores/BackgroundImages"
+  import TrackList from "../organisms/TrackList.svelte"
 
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
 
   import type { IHeroAction } from "@/types/Types"
   import type { IArtistWithAlbumsAndTracks } from "@sing-types/DatabaseTypes"
-  import type { IError, INewPlayback } from "@sing-types/Types"
+  import type { IError, INewPlayback, ISortOptions } from "@sing-types/Types"
   import type { Either } from "fp-ts/lib/Either"
-
 
   export let artistID: string
 
@@ -29,17 +33,28 @@
   const parameters = useParams<{ artistID: string }>()
 
   let artist: IArtistWithAlbumsAndTracks | undefined = undefined
+  $: {
+    getArtist(artistID).then((newArtist) => {
+      artist = newArtist
+    })
+  }
+  $: tracks = artist?.tracks ?? []
+  $: backgroundImages.set(artist?.image)
 
-  parameters.subscribe(async ({ artistID: newArtistID }) => {
-    artist = await getArtist(newArtistID)
+  onMount(
+    parameters.subscribe(async ({ artistID: newArtistID }) => {
+      // It always fires twice, idk why, so lets prevent the sideffects when it happens
+      if (newArtistID === artistID) return
 
-    backgroundImages.set(artist?.image)
-  })
+      artistID = newArtistID
+    })
+  )
 
+  const sortBy: ISortOptions["tracks"] = ["album", "ascending"]
   const source: INewPlayback = {
     source: "artist" as const,
     sourceID: artistID,
-    sortBy: ["album", "ascending"],
+    sortBy,
   }
 
   let actions: IHeroAction[]
@@ -66,14 +81,15 @@
     },
   ]
 
+  // TODO get albums in which the artist is featured, too
   async function getArtist(albumID: string) {
     const artistEither = (await window.api.getArtist({
       where: { name: albumID },
-      sortBy: ["album", "ascending"],
+      sortBy,
       isShuffleOn: false,
     })) as Either<IError, IArtistWithAlbumsAndTracks>
 
-    return either.getOrElseW((error) => {
+    return E.getOrElseW((error) => {
       addNotification({ label: "Failed to get artist", duration: 5 })
       console.log(error)
 
@@ -94,12 +110,29 @@
     {actions}
   />
 
+  <TrackList
+    {tracks}
+    sort={sortBy}
+    displayOptions={{ artist: false }}
+    createContextMenuItems={createAddToPlaylistAndQueueMenuItems(
+      $playlistsStore
+    )}
+    testID={TEST_IDS.trackItems}
+    on:play={async ({ detail }) => playNewSource(source, detail.index)}
+  />
+
+  <h2 class="mb-8 -mt-16 text-4xl">Albums</h2>
+
   <CardList
     items={artist.albums.map((album) => ({
       title: album.name,
       id: album.name,
       image: album.cover,
       secondaryText: album.artist,
+      contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)({
+        type: "album",
+        name: album.name,
+      }),
     }))}
     on:play={({ detail: id }) =>
       playNewSource({
