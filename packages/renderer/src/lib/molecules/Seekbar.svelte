@@ -77,9 +77,8 @@
       data-testid={test.seekbarProgressbar}
       style="width: {progress * 100}%"
       class="
-        pointer-events-none relative h-full rounded-full bg-amber-500
-        transition-[width] duration-[60ms] ease-in
-        "
+        pointer-events-none relative h-full rounded-full bg-amber-500 ease-in
+        {isSeeking ? '' : 'transition-[width] duration-[60ms]'}"
     >
       <div
         data-testid={test.seekbarProgressbarKnob}
