@@ -8,6 +8,7 @@ import {
   removeKeys,
   stringifyArraysInObject,
 } from "@sing-shared/Pures"
+import { UNKNOWN_ARTIST } from "@sing-shared/Consts"
 
 import {
   checkPathAccessible,
@@ -169,14 +170,19 @@ async function addRelationFieldsNotCurried<
   const artistInput:
     | Prisma.ArtistCreateNestedOneWithoutAlbumsInput
     | undefined =
-    artist !== undefined && artist !== ""
+    artist !== undefined || artist === ""
       ? {
           connectOrCreate: {
             where: { name: artist },
             create: { name: artist },
           },
         }
-      : undefined
+      : {
+          connectOrCreate: {
+            where: { name: UNKNOWN_ARTIST },
+            create: { name: UNKNOWN_ARTIST },
+          },
+        }
 
   const albumartistInput:
     | Prisma.ArtistCreateNestedOneWithoutAlbumsInput

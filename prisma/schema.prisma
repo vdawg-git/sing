@@ -15,8 +15,8 @@ model Track {
   filepath  String         @unique
   playlists PlaylistItem[]
 
-  artistName      Artist? @relation(name: "artist", fields: [artist], references: [name])
-  artist          String?
+  artistName      Artist  @relation(name: "artist", fields: [artist], references: [name])
+  artist          String
   albumartistName Artist? @relation(name: "albumartist", fields: [albumartist], references: [name])
   albumartist     String?
   albumName       Album?  @relation(name: "album", fields: [album], references: [name])
