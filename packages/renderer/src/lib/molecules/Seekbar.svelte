@@ -13,6 +13,9 @@
     endedSeeking: never
   }>()
 
+  // FIXME dragging the seekbar vertically and letting go freezes the seekbar
+  // Everything else works as expected
+
   /**
    * The progress of the track in percentage (0-1)
    */

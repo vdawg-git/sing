@@ -8,7 +8,7 @@ import {
   removeKeys,
   stringifyArraysInObject,
 } from "@sing-shared/Pures"
-import { UNKNOWN_ARTIST } from "@sing-shared/Consts"
+import { UNKNOWN_ALBUM, UNKNOWN_ARTIST } from "@sing-shared/Consts"
 
 import {
   checkPathAccessible,
@@ -167,9 +167,7 @@ async function addRelationFieldsNotCurried<
         }
       : undefined
 
-  const artistInput:
-    | Prisma.ArtistCreateNestedOneWithoutAlbumsInput
-    | undefined =
+  const artistInput: Prisma.ArtistCreateNestedOneWithoutAlbumsInput =
     artist !== undefined || artist === ""
       ? {
           connectOrCreate: {
@@ -187,28 +185,45 @@ async function addRelationFieldsNotCurried<
   const albumartistInput:
     | Prisma.ArtistCreateNestedOneWithoutAlbumsInput
     | undefined =
-    albumartist !== undefined && albumartist !== ""
-      ? {
+    albumartist === undefined || albumartist === ""
+      ? undefined
+      : {
           connectOrCreate: {
             where: { name: albumartist },
             create: { name: albumartist },
           },
         }
-      : undefined
 
-  const albumInput: Prisma.AlbumCreateNestedOneWithoutTracksInput | undefined =
+  const albumInput: Prisma.AlbumCreateNestedOneWithoutTracksInput =
     album !== undefined && album !== ""
       ? {
           connectOrCreate: {
-            where: { name: album },
+            where: {
+              name_artist: { name: album, artist: artist ?? UNKNOWN_ARTIST },
+            },
             create: {
               name: album,
-              ...(artistInput !== undefined && { artistEntry: artistInput }), // TODO display the most used artist for the album if no album artist is set
+              artistEntry: artistInput, // TODO display the most used artist for the album if no album artist is set
               ...(coverInput !== undefined && { coverPath: coverInput }),
             },
           },
         }
-      : undefined
+      : {
+          connectOrCreate: {
+            where: {
+              name_artist: {
+                name: UNKNOWN_ALBUM,
+                artist: artist ?? UNKNOWN_ARTIST,
+              },
+            },
+            create: {
+              name: UNKNOWN_ALBUM,
+              artistEntry: artistInput,
+
+              ...(coverInput !== undefined && { coverPath: coverInput }),
+            },
+          },
+        }
 
   return {
     ...(data as StrictOmit<T, "album" | "albumartist" | "artist" | "picture">),

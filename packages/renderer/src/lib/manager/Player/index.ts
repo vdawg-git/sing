@@ -619,7 +619,7 @@ async function getTracksFromSource(
     .with({ source: "album" }, async ({ sourceID, sortBy, isShuffleOn }) =>
       extractTracks(
         await window.api.getAlbum({
-          where: { name: sourceID },
+          where: { id: sourceID },
           sortBy,
           isShuffleOn,
         })

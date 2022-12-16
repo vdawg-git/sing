@@ -28,13 +28,13 @@
 
   export let albumID: string
 
-  const parameters = useParams<{ albumID: string }>()
+  const parameters = useParams<{ albumID: string }>() // The parameters are always strings. So we convert it later
 
   const defaultSort: ISortOptions["tracks"] = ["trackNo", "ascending"]
 
   let album: IAlbum | undefined
   $: {
-    getAlbum(albumID).then((newAlbum) => {
+    getAlbum(Number(albumID)).then((newAlbum) => {
       album = newAlbum
     })
   }
@@ -96,9 +96,9 @@
     album: false,
   }
 
-  async function getAlbum(id: string): Promise<IAlbum | undefined> {
+  async function getAlbum(id: IAlbum["id"]): Promise<IAlbum | undefined> {
     const albumEither: Either<IError, IAlbum> = await window.api.getAlbum({
-      where: { name: id },
+      where: { id },
       sortBy: ["trackNo", "ascending"],
       isShuffleOn: false,
     })
@@ -114,7 +114,7 @@
 
 {#if album}
   <HeroHeading
-    title={albumID}
+    title={album.name}
     {metadata}
     image={album.cover}
     type="Album"

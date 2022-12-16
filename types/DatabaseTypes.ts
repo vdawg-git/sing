@@ -270,7 +270,7 @@ export type IMusicIDs = {
   >
   album: {
     readonly type: "album"
-  } & _PickAndMakeArrayUnion<Prisma.AlbumWhereUniqueInput, "name">
+  } & _PickAndMakeArrayUnion<Prisma.AlbumWhereUniqueInput, "id">
   artist: {
     readonly type: "artist"
   } & _PickAndMakeArrayUnion<Prisma.ArtistWhereUniqueInput, "name">

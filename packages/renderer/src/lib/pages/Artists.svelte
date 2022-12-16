@@ -1,8 +1,11 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
   import { isPresent } from "ts-is-present"
+  import { pipe } from "fp-ts/lib/function"
+  import * as O from "fp-ts/lib/Option"
 
-  import { removeDuplicates } from "@sing-shared/Pures"
+  import { moveItemTo, removeDuplicates } from "@sing-shared/Pures"
+  import { UNKNOWN_ARTIST } from "@sing-shared/Consts"
 
   import { ROUTES } from "@/Consts"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
@@ -36,17 +39,25 @@
   // TODO display one artist with non-artist tagged tracks as the "Unknown artist"
 
   let items: ICardProperties[]
+  $: {
+    const allItems = $artists.map((artist) => ({
+      title: artist.name,
+      id: artist.name,
+      image: artist.albums.find((album) => album.cover !== undefined)?.cover,
+      secondaryText: "Artist",
+      contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)({
+        type: "artist",
+        name: artist.name,
+      }),
+    }))
 
-  $: items = $artists.map((artist) => ({
-    title: artist.name,
-    id: artist.name,
-    image: artist.albums.find((album) => album.cover !== undefined)?.cover,
-    secondaryText: "Artist",
-    contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)({
-      type: "artist",
-      name: artist.name,
-    }),
-  }))
+    //  If there is "Unknown artist", move it to the top.
+    items = pipe(
+      allItems,
+      (array) => moveItemTo(array, ({ title }) => title === UNKNOWN_ARTIST, 0),
+      O.getOrElse(() => allItems)
+    )
+  }
 </script>
 
 <HeroHeading

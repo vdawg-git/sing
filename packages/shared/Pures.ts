@@ -1,6 +1,7 @@
 import { pipe } from "fp-ts/Function"
 import * as E from "fp-ts/lib/Either"
 import * as A from "fp-ts/lib/ReadonlyArray"
+import { moveFrom } from "fp-ts-std/Array"
 import { curry2 } from "fp-ts-std/function"
 import { match, P } from "ts-pattern"
 
@@ -10,6 +11,7 @@ import {
   UNSUPPORTED_MUSIC_FORMATS,
 } from "../backend/src/lib/FileFormats"
 
+import type { Option } from "fp-ts/lib/Option"
 import type { ITrackID } from "@sing-types/Opaque"
 import type { FilePath } from "../../types/Filesystem"
 import type {
@@ -343,8 +345,8 @@ export function sortTracks([sortBy, sortOrder]:
 
     const sorted = [...tracks].sort((a, b) => {
       // If the value at the specified key is undefined, then sort by the title or if this one is undefined, too, sort by the filename
-      if (b[sortBy] === undefined) return -1
-      if (a[sortBy] === undefined) return 1
+      if (b[sortBy] === undefined || b[sortBy] === null) return -1
+      if (a[sortBy] === undefined || a[sortBy] === null) return 1
 
       if (typeof a[sortBy] === "number" && typeof b[sortBy] === "number") {
         return (a[sortBy] as number) - (b[sortBy] as number)
@@ -504,6 +506,16 @@ export function addPluralS(string: string, count: number): string {
   }
 
   return string
+}
+
+export function moveItemTo<T>(
+  array: T[],
+  matchFunction: (item: T) => boolean,
+  to: number
+): Option<T[]> {
+  const indexToMove = array.findIndex(matchFunction)
+
+  return moveFrom(indexToMove)(to)(array)
 }
 
 // ?########################################################################

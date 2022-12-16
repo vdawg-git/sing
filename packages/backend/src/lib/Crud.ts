@@ -715,6 +715,7 @@ export async function addTrackToDatabase(
       create: track,
     })
     .then(removeNulledKeys)
+
     .then((addedTrack) => E.right(addedTrack as ITrack))
     .catch(createError("Failed to add track to database"))
 }
@@ -756,6 +757,8 @@ export async function deleteTracksInverted(
 
 export async function deleteEmptyAlbums(): Promise<Either<IError, number>> {
   const query = `
+    PRAGMA foreign_keys = OFF;
+
     DELETE FROM
       ${SQL.Album}
     WHERE
@@ -767,7 +770,9 @@ export async function deleteEmptyAlbums(): Promise<Either<IError, number>> {
           LEFT JOIN ${SQL.Track} ON ${SQL["Album.name"]} = ${SQL["Track.album"]}
         WHERE
           ${SQL["Track.title"]} IS NULL
-      )`
+      )
+      
+    PRAGMA foreign_keys = ON;`
 
   return prisma
     .$executeRawUnsafe(query)
@@ -777,6 +782,8 @@ export async function deleteEmptyAlbums(): Promise<Either<IError, number>> {
 
 export async function deleteEmptyArtists(): Promise<Either<IError, number>> {
   const query = `
+    PRAGMA foreign_keys = OFF;
+
     DELETE FROM
       ${SQL.Artist}
     WHERE
@@ -788,7 +795,9 @@ export async function deleteEmptyArtists(): Promise<Either<IError, number>> {
           LEFT JOIN ${SQL.Track} ON ${SQL["Artist.name"]} = ${SQL["Track.artist"]}
         WHERE
           ${SQL["Track.title"]} IS NULL
-      )`
+      )
+      
+    PRAGMA foreign_keys = ON;`
 
   return prisma
     .$executeRawUnsafe(query)
@@ -953,22 +962,20 @@ export async function getTracksFromMusic(
       )
     })
 
-    .with({ type: "album" }, async ({ name: albumNames }) => {
-      if (Array.isArray(albumNames)) {
-        return getTracksByAlbumIDs(albumNames)
+    .with({ type: "album" }, async ({ id }) => {
+      if (Array.isArray(id)) {
+        return getTracksByAlbumIDs(id)
       }
 
-      return getAlbum(undefined, { where: { name: albumNames } }).then(
+      return getAlbum(undefined, { where: { id } }).then(
         E.map(({ tracks }) => tracks)
       )
     })
 
-    .with({ type: "track" }, ({ id: IDs }) => {
-      if (Array.isArray(IDs)) return getTracksByIDs(IDs)
+    .with({ type: "track" }, ({ id }) => {
+      if (Array.isArray(id)) return getTracksByIDs(id)
 
-      return getTracks(undefined, {
-        where: { id: IDs },
-      })
+      return getTracks(undefined, { where: { id } })
     })
 
     .with({ type: "playlist" }, ({ id: IDs }) => {
@@ -985,7 +992,7 @@ export async function getTracksFromMusic(
 }
 
 async function getTracksByAlbumIDs(
-  IDs: readonly string[]
+  IDs: readonly IAlbum["id"][]
 ): Promise<Either<IError, readonly ITrack[]>> {
   const IDsToInsert = createSQLArray(IDs)
 

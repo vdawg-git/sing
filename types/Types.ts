@@ -181,7 +181,10 @@ export type IPlayback = validatePlayback<
       readonly sortBy: ISortOptions["tracks"]
 
       // The ID of the source to be played. For example, an album id.
-      readonly sourceID: string
+      readonly sourceID: StrictExclude<
+        Prisma.AlbumWhereUniqueInput["id"],
+        undefined
+      >
 
       readonly isShuffleOn: boolean
     }
@@ -195,13 +198,19 @@ export type IPlayback = validatePlayback<
   | {
       readonly source: StrictExtract<IPlaySource, "playlist">
       readonly sortBy: ISortOptions["playlist"]
-      readonly sourceID: number
+      readonly sourceID: StrictExclude<
+        Prisma.PlaylistWhereUniqueInput["id"],
+        undefined
+      >
       readonly isShuffleOn: boolean
     }
   | {
       readonly source: StrictExtract<IPlaySource, "artist">
       readonly sortBy: ISortOptions["artist"]
-      readonly sourceID: string
+      readonly sourceID: StrictExclude<
+        Prisma.ArtistWhereUniqueInput["name"],
+        undefined
+      >
       readonly isShuffleOn: boolean
     }
 >

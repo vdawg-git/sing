@@ -159,22 +159,16 @@ export async function syncMusic(
 
   //* Clean up
   // Remove unused tracks in the database
-  const deleteTracksResult = await deleteTracksInverted(addedFilepaths)
-  const deleteArtistsResult = await deleteEmptyArtists()
-  const deleteAlbumsResult = await deleteEmptyAlbums()
-  const deleteCoversResult = await deleteUnusedCoversInDatabase()
-
-  if (E.isLeft(deleteTracksResult)) {
-    log.error.red("deleteTracksResult:", deleteTracksResult.left)
-    // @ts-ignore
-    log.error.red("deleteTracksResult:", deleteTracksResult.left.error.message)
+  for (const deleteResult of [
+    await deleteTracksInverted(addedFilepaths),
+    await deleteEmptyArtists(),
+    await deleteEmptyAlbums(),
+    await deleteUnusedCoversInDatabase(),
+  ]) {
+    if (E.isLeft(deleteResult)) {
+      log.error.red(deleteResult.left)
+    }
   }
-  if (E.isLeft(deleteArtistsResult))
-    log.error.red("deleteArtistsResult:", deleteArtistsResult.left)
-  if (E.isLeft(deleteAlbumsResult))
-    log.error.red("deleteAlbumsResult:", deleteAlbumsResult.left)
-  if (E.isLeft(deleteCoversResult))
-    log.error.red("deleteCoversResult:", deleteCoversResult.left)
 
   const usedCoverFilepaths = (await getCovers(emitter, {
     select: { filepath: true },
@@ -194,11 +188,6 @@ export async function syncMusic(
     else if (deleteCoversFilesystemResult.right.deletionErrors.length > 0)
       log.error.red(deleteCoversFilesystemResult.right.deletionErrors)
   }
-
-  const deleteCoverErrors =
-    E.isLeft(deleteCoversResult) && deleteCoversResult.left
-
-  if (deleteCoverErrors) log.error.red("deleteCoverError:", deleteCoverErrors)
 
   const artists = E.getOrElseW(() => {
     emitter.showAlert({ label: "Failed to get artists" })

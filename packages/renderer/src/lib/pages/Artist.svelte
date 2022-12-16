@@ -41,6 +41,8 @@
   $: tracks = artist?.tracks ?? []
   $: backgroundImages.set(artist?.image)
 
+  $: console.log("🚀 ~ file: Artist.svelte:36 ~ artist", artist)
+
   onMount(
     parameters.subscribe(async ({ artistID: newArtistID }) => {
       // It always fires twice, idk why, so lets prevent the sideffects when it happens
@@ -123,23 +125,29 @@
 
   <h2 class="mb-8 -mt-16 text-4xl">Albums</h2>
 
-  <CardList
-    items={artist.albums.map((album) => ({
-      title: album.name,
-      id: album.name,
-      image: album.cover,
-      secondaryText: album.artist,
-      contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)({
-        type: "album",
-        name: album.name,
-      }),
-    }))}
-    on:play={({ detail: id }) =>
-      playNewSource({
-        source: "album",
-        sourceID: id,
-        sortBy: ["trackNo", "ascending"],
-      })}
-    on:clickedPrimary={({ detail: id }) => navigate(`/${ROUTES.albums}/${id}`)}
-  />
+  {#if artist.albums.length > 0}
+    <CardList
+      items={artist.albums.map(({ name, cover, artist: albumArtist, id }) => ({
+        title: name,
+        id,
+        image: cover,
+        secondaryText: albumArtist,
+        contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)(
+          {
+            type: "album",
+            name,
+            id,
+          }
+        ),
+      }))}
+      on:play={({ detail: id }) =>
+        playNewSource({
+          source: "album",
+          sourceID: id,
+          sortBy: ["trackNo", "ascending"],
+        })}
+      on:clickedPrimary={({ detail: id }) =>
+        navigate(`/${ROUTES.albums}/${id}`)}
+    />
+  {/if}
 {/if}

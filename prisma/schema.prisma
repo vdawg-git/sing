@@ -19,8 +19,8 @@ model Track {
   artist          String
   albumartistName Artist? @relation(name: "albumartist", fields: [albumartist], references: [name])
   albumartist     String?
-  albumName       Album?  @relation(name: "album", fields: [album], references: [name])
-  album           String?
+  albumName       Album   @relation(name: "album", fields: [album, artist], references: [name, artist], onDelete: Cascade, onUpdate: Cascade)
+  album           String
   coverPath       Cover?  @relation(fields: [cover], references: [filepath])
   cover           String?
 
@@ -160,14 +160,17 @@ model Track {
 }
 
 model Album {
-  name        String  @id
-  artistEntry Artist? @relation(fields: [artist], references: [name])
-  artist      String?
+  id          Int     @id @default(autoincrement())
+  name        String
+  artistEntry Artist  @relation(fields: [artist], references: [name])
+  artist      String
   tracks      Track[] @relation(name: "album")
   coverPath   Cover?  @relation(fields: [cover], references: [filepath])
   cover       String?
 
   type String @default("album") /// ###DO NOT SET THIS. This is is used to provide a discriminating union for typescript.
+
+  @@unique([name, artist])
 }
 
 model Artist {

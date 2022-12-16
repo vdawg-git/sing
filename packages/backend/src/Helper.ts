@@ -288,9 +288,11 @@ export function createError(
   return (error) => {
     log.error.red(
       type,
+      "\n",
       error,
       "\n",
-      (error as { message: string })?.message ?? ""
+      (error as { message: string })?.message ?? "",
+      "\n"
     )
 
     if (typeof error !== "object" || error === null)

@@ -5,7 +5,6 @@
 
   import type { ICardProperties } from "@/types/Types"
 
-
   interface IDispatcher_ {
     // Its all the id of the album / artist
     play: string | number
@@ -13,7 +12,7 @@
     clickedSecondary: string | number
   }
 
-  export let items: ICardProperties[]
+  export let items: readonly ICardProperties[]
   export let isImageCircle = false
 
   const dispatch = createEventDispatcher<IDispatcher_>()

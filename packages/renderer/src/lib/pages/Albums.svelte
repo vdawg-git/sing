@@ -1,8 +1,15 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
   import { isPresent } from "ts-is-present"
+  import { pipe } from "fp-ts/lib/function"
+  import * as O from "fp-ts/lib/Option"
 
-  import { displayTypeWithCount, removeDuplicates } from "@sing-shared/Pures"
+  import {
+    displayTypeWithCount,
+    moveItemTo,
+    removeDuplicates,
+  } from "@sing-shared/Pures"
+  import { UNKNOWN_ALBUM } from "@sing-shared/Consts"
 
   import { ROUTES } from "@/Consts"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
@@ -15,6 +22,8 @@
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
   import NothingHereYet from "@/lib/organisms/NothingHereYet.svelte"
 
+  import type { ICardProperties } from "@/types/Types"
+
   const navigate = useNavigate()
 
   $: {
@@ -26,7 +35,27 @@
     )
   }
 
-  // TODO display one album with non-album tagged tracks as the "Unknown album"
+  let items: readonly ICardProperties[]
+  $: {
+    const allItems = $albums.map(({ name, cover, id }) => ({
+      title: name,
+      id: id,
+      image: cover,
+      secondaryText: "Album",
+      contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)({
+        type: "album",
+        name,
+        id,
+      }),
+    }))
+
+    //  If there is "Unknown album", move it to the top.
+    items = pipe(
+      allItems,
+      (array) => moveItemTo(array, ({ title }) => title === UNKNOWN_ALBUM, 0),
+      O.getOrElse(() => allItems)
+    )
+  }
 </script>
 
 <HeroHeading
@@ -41,16 +70,7 @@
   <NothingHereYet />
 {:else}
   <CardList
-    items={$albums.map((album) => ({
-      title: album.name,
-      id: album.name,
-      image: album.cover,
-      secondaryText: album.artist,
-      contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)({
-        type: "album",
-        name: album.name,
-      }),
-    }))}
+    {items}
     on:play={({ detail: id }) =>
       playNewSource({
         sourceID: id,
