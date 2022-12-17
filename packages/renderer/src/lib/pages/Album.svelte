@@ -26,9 +26,10 @@
   import type { IError, ISortOptions } from "@sing-types/Types"
   import type { Either } from "fp-ts/lib/Either"
 
-  export let albumID: string
+  export let albumID: number
 
-  const parameters = useParams<{ albumID: string }>() // The parameters are always strings. So we convert it later
+  // The parameters are always strings. So we convert it later
+  const parameters = useParams<{ albumID: string }>()
 
   const defaultSort: ISortOptions["tracks"] = ["trackNo", "ascending"]
 
@@ -42,23 +43,19 @@
   // Update the page when the album is changed on navigation
   onMount(
     parameters.subscribe(({ albumID: newAlbumID }) => {
-      if (newAlbumID === albumID) return
+      if (Number(newAlbumID) === albumID) return
 
-      albumID = newAlbumID
+      albumID = Number(newAlbumID)
     })
   )
 
-  $: backgroundImages.set(album?.cover)
+  $: $backgroundImages = album?.cover
 
   let tracks: readonly ITrack[] = []
   $: tracks = album === undefined ? [] : album?.tracks
 
   let metadata: IHeroMetaDataItem[]
-  $: metadata = [
-    {
-      label: displayTypeWithCount("track", tracks.length),
-    },
-  ]
+  $: metadata = [{ label: displayTypeWithCount("track", tracks.length) }]
 
   let actions: readonly IHeroAction[]
   $: actions = [

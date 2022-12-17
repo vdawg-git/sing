@@ -147,11 +147,11 @@
       <!---- Play button-->
       <button
         on:click={() =>
-          $playState === "PLAYING" ? pausePlayback() : resumePlayback()}
+          $playState === "playing" ? pausePlayback() : resumePlayback()}
         disabled={!$currentTrack}
         class="button button-active"
       >
-        {#if $playState === "PLAYING"}
+        {#if $playState === "playing"}
           <IconPause
             data-testid={TEST_IDS.playbarPauseButton}
             class="h-12 w-12"

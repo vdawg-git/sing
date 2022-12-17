@@ -8,7 +8,7 @@ import type {
 import type { SvelteComponentDev } from "svelte/internal"
 import type { AsyncOrSync } from "ts-essentials"
 
-export type IPlayState = "PLAYING" | "PAUSED" | "STOPPED"
+export type IPlayState = MediaSessionPlaybackState
 export type IPlayLoop = "NONE" | "LOOP_QUEUE" | "LOOP_TRACK"
 
 /**

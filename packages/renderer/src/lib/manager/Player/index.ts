@@ -5,6 +5,7 @@ import { match } from "ts-pattern"
 import { pipe } from "fp-ts/lib/function"
 
 import {
+  displayTrackMetadata,
   moveElementFromToIndex,
   notifiyError,
   sortAlphabetically,
@@ -15,17 +16,16 @@ import { loopStateStore } from "./stores/LoopStateStore"
 import { indexStore } from "./stores/PlayIndex"
 import { autoQueueStore } from "./stores/QueueStore"
 import { manualQueueStore } from "./stores/ManualQueueStore"
+import {
+  getTracksFromSource,
+  initialiseMediaKeysHandler,
+  setMediaSessionMetaData,
+} from "./Helper"
 
 import type { IPlayLoop, IPlayState, IQueueItem } from "@/types/Types"
 import type { IAlbum, IArtist, ITrack } from "@sing-types/DatabaseTypes"
-import type {
-  IError,
-  INewPlayback,
-  IPlayback,
-  ISyncResult,
-} from "@sing-types/Types"
+import type { INewPlayback, IPlayback, ISyncResult } from "@sing-types/Types"
 import type { IpcRendererEvent } from "electron"
-import type { Either } from "fp-ts/lib/Either"
 
 export const removeIndexFromManualQueue = manualQueueStore.removeIndex
 export const addTracksToManualQueueEnd = manualQueueStore.addTracksToEnd
@@ -38,7 +38,7 @@ export const addTracksToManualQueueBeginning =
 const isPlayingFromManualQueue = writable(false)
 
 // Create stores / state
-const playStateStore = writable<IPlayState>("STOPPED")
+const playStateStore = writable<IPlayState>("none")
 const volumeStore = writable(1)
 const currentTimeStore = writable(0)
 const durationStore = writable(0)
@@ -67,7 +67,7 @@ export const shuffleState = derived(
 )
 
 // Bind the values of the stores localy.
-let $playState: IPlayState = "STOPPED"
+let $playState: IPlayState = "none"
 let $autoQueue: readonly IQueueItem[] = []
 let $currentIndex = -1
 let $currentTrack: ITrack | undefined
@@ -99,6 +99,8 @@ playStateStore.subscribe(handlePlayStateUpdate)
 
 currentTrack.subscribe(($newCurrentTrack) => {
   $currentTrack = $newCurrentTrack
+
+  setMediaSessionMetaData($currentTrack)
 })
 
 playbackStore.subscribe(($newPlayback) => {
@@ -122,10 +124,16 @@ manualQueueStore.subscribe(($newManuellQueue) => {
 })
 
 // Events
-
 window.api.on("syncedMusic", handleSyncUpdate)
 audioPlayer.audio.addEventListener("ended", () => {
   handleClickedNext()
+})
+
+initialiseMediaKeysHandler({
+  handleNextTrack: handleClickedNext,
+  handlePause: pausePlayback,
+  handlePreviousTrack: handleClickedPrevious,
+  handlePlay: resumePlayback,
 })
 
 // Functions
@@ -137,7 +145,7 @@ export function handleClickedNext() {
   if ($loopState === "LOOP_TRACK") {
     durationStore.set(0)
 
-    if ($playState === "PLAYING") {
+    if ($playState === "playing") {
       startPlayingCurrentTrack()
     }
 
@@ -156,7 +164,7 @@ export function handleClickedNext() {
   // If there are tracks in the manualQueueStore
   if ($isPlayingFromManualQueue) {
     const source = $manualQueue[0].filepath
-    if ($playState === "PLAYING") audioPlayer.play(source)
+    if ($playState === "playing") audioPlayer.play(source)
     else audioPlayer.setSource(source)
 
     return
@@ -172,11 +180,11 @@ export function handleClickedNext() {
     if ($loopState === "LOOP_QUEUE") {
       indexStore.reset()
 
-      if ($playState === "PLAYING") {
+      if ($playState === "playing") {
         startPlayingCurrentTrack()
       }
       // Start a new playback state
-    } else if ($playState === "PLAYING") {
+    } else if ($playState === "playing") {
       playRandomTracksPlayback()
     } else {
       goToRandomTracksPlayback()
@@ -186,7 +194,7 @@ export function handleClickedNext() {
   }
 
   // If no manual queue is set, no looping etc. just play the next track in the auto queue.
-  if ($playState === "PLAYING") playNext()
+  if ($playState === "playing") playNext()
   else goToNextTrack()
 }
 
@@ -198,7 +206,7 @@ export function handleClickedPrevious() {
  * Pauses the audio if it is playing without changing the UI state.
  */
 export function handleSeekingStart() {
-  if ($playState === "PLAYING") {
+  if ($playState === "playing") {
     audioPlayer.pauseWithoutFadeOut()
   }
 }
@@ -207,7 +215,7 @@ export function handleSeekingStart() {
  * Used with {@link handleSeekingStart}.
  */
 export function handleSeekingEnd() {
-  if ($playState === "PLAYING") {
+  if ($playState === "playing") {
     audioPlayer.resume()
   }
 }
@@ -276,7 +284,7 @@ export function seekTo(percentage: number) {
 }
 
 export function resumePlayback() {
-  playStateStore.set("PLAYING")
+  playStateStore.set("playing")
 
   audioPlayer.resume()
 }
@@ -295,7 +303,7 @@ function playPrevious() {
     throw new Error("No current track is defined after playing previous")
   }
 
-  if ($playState === "STOPPED" || $playState === "PAUSED") {
+  if ($playState === "none" || $playState === "paused") {
     audioPlayer.setSource($currentTrack.filepath)
   } else {
     audioPlayer.play($currentTrack.filepath)
@@ -303,7 +311,7 @@ function playPrevious() {
 }
 
 export function pausePlayback() {
-  playStateStore.set("PAUSED")
+  playStateStore.set("paused")
   audioPlayer.pause()
 }
 
@@ -324,7 +332,7 @@ export function removeIndexFromQueue(index: number): void {
     indexStore.decrement() // So that the current track stays the same
   }
 
-  if ($currentIndex === index && $playState === "PLAYING") {
+  if ($currentIndex === index && $playState === "playing") {
     startPlayingCurrentTrack()
   }
 }
@@ -493,8 +501,9 @@ function goToNextTrack() {
 
 function handlePlayStateUpdate(newState: IPlayState) {
   $playState = newState
+  navigator.mediaSession.playbackState = newState
 
-  if (newState === "PLAYING") {
+  if (newState === "playing") {
     durationStore.set($currentTrack?.duration || 0)
     startProgressingSeekbar()
   } else {
@@ -523,7 +532,7 @@ function startPlayingCurrentTrack() {
     throw new Error("Current track is undefined and cannot be played")
   }
 
-  playStateStore.set("PLAYING")
+  playStateStore.set("playing")
   audioPlayer.play($currentTrack.filepath)
 }
 
@@ -601,49 +610,6 @@ async function handleSyncUpdate(
       }
     )
   )
-}
-
-async function getTracksFromSource(
-  playback: IPlayback
-): Promise<Either<IError, readonly ITrack[]>> {
-  return match(playback)
-    .with({ source: "artist" }, async ({ sourceID, sortBy, isShuffleOn }) =>
-      extractTracks(
-        await window.api.getArtist({
-          where: { name: sourceID },
-          sortBy,
-          isShuffleOn,
-        })
-      )
-    )
-    .with({ source: "album" }, async ({ sourceID, sortBy, isShuffleOn }) =>
-      extractTracks(
-        await window.api.getAlbum({
-          where: { id: sourceID },
-          sortBy,
-          isShuffleOn,
-        })
-      )
-    )
-    .with({ source: "allTracks" }, ({ isShuffleOn, sortBy }) =>
-      window.api.getTracks({ isShuffleOn, sortBy })
-    )
-    .with({ source: "playlist" }, async ({ sourceID, sortBy, isShuffleOn }) =>
-      extractTracks(
-        await window.api.getPlaylist({
-          where: { id: sourceID },
-          sortBy,
-          isShuffleOn,
-        })
-      )
-    )
-    .exhaustive()
-
-  function extractTracks(
-    item: Either<IError, { tracks: readonly ITrack[] }>
-  ): Either<IError, readonly ITrack[]> {
-    return E.map(({ tracks }: { tracks: readonly ITrack[] }) => tracks)(item)
-  }
 }
 
 function resetCurrentTime() {
