@@ -20,6 +20,7 @@
   class="fixed z-20 flex h-5 w-full items-center justify-end bg-grey-900/50 backdrop-blur-sm"
 >
   {#await window.api.isMacOS() then isMacOS}
+    <!-- // eslint-disable-next-line no-undef -->
     {#if isMacOS === false}
       <div
         class="button hover:bg-grey-500"

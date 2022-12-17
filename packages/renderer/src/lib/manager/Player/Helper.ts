@@ -85,24 +85,15 @@ export async function initialiseMediaKeysHandler({
   handlePause,
   handleNextTrack,
   handlePreviousTrack,
-  handleSeekFoward,
-  handleSeekbackward,
-  handleSeekTo,
 }: {
   handlePlay: () => void
   handlePause: () => void
   handleNextTrack: () => void
   handlePreviousTrack: () => void
-  handleSeekFoward: () => void
-  handleSeekbackward: () => void
-  handleSeekTo: () => void
 }) {
   navigator.mediaSession.setActionHandler("play", handlePlay)
   navigator.mediaSession.setActionHandler("pause", handlePause)
   navigator.mediaSession.setActionHandler("stop", handlePause)
   navigator.mediaSession.setActionHandler("nexttrack", handleNextTrack)
   navigator.mediaSession.setActionHandler("previoustrack", handlePreviousTrack)
-  navigator.mediaSession.setActionHandler("seekbackward", handleSeekbackward)
-  navigator.mediaSession.setActionHandler("seekforward", handleSeekFoward)
-  navigator.mediaSession.setActionHandler("seekto", handleSeekTo)
 }

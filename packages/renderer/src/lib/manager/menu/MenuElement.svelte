@@ -173,7 +173,7 @@
               class="flex items-center gap-3 py-3 pl-2 pr-6 text-lg font-medium"
             >
               <button
-                class="rounded-full p-1  hover:bg-grey-500"
+                class="p-1hover:bg-grey-500 rounded-full"
                 on:click={goBack}
               >
                 <IconArrowLeft class="h-6 w-6 text-grey-300" />
