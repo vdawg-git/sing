@@ -1,7 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte"
-  import IconPlay from "virtual:icons/heroicons-solid/play"
-
+  import IconPlay from "virtual:icons/heroicons/play-circle-solid"
 
   import CoverAndPlaylistThumbnail from "../atoms/CoverAndPlaylistThumbnail.svelte"
   import { useOpenContextMenu } from "../manager/menu"

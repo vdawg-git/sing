@@ -1,6 +1,6 @@
 <script lang="ts">
-  import IconFolderRemove from "virtual:icons/heroicons-outline/folder-remove"
-  import IconFolderAdd from "virtual:icons/heroicons-outline/folder-add"
+  import IconFolderRemove from "virtual:icons/heroicons/folder-minus"
+  import IconFolderAdd from "virtual:icons/heroicons/folder-plus"
   import { createEventDispatcher } from "svelte"
 
   import { TEST_ATTRIBUTES } from "@/TestConsts"

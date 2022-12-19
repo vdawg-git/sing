@@ -1,7 +1,6 @@
 <script lang="ts">
-  import IconSearch from "virtual:icons/heroicons-outline/search"
-  import IconX from "virtual:icons/heroicons-outline/x"
-
+  import IconSearch from "virtual:icons/heroicons/magnifying-glass-20-solid"
+  import IconX from "virtual:icons/heroicons/x-mark-20-solid"
 
   import { createOnOutClick } from "@/Helper"
 

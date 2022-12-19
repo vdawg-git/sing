@@ -2,7 +2,7 @@
   import * as E from "fp-ts/lib/Either"
   import { useNavigate, useParams } from "svelte-navigator"
   import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
-  import IconPlay from "virtual:icons/heroicons-outline/play"
+  import IconPlay from "virtual:icons/heroicons/play"
   import { onMount } from "svelte"
 
   import { displayTypeWithCount } from "@sing-shared/Pures"

@@ -1,16 +1,15 @@
 <script lang="ts">
   import IconLoading from "virtual:icons/eos-icons/loading"
-  import IconCheck from "virtual:icons/heroicons-outline/check-circle"
-  import IconWarn from "virtual:icons/heroicons-outline/exclamation-circle"
-  import IconDanger from "virtual:icons/heroicons-outline/exclamation"
-  import IconClose from "virtual:icons/heroicons-outline/x"
+  import IconCheck from "virtual:icons/heroicons/check-circle"
+  import IconWarn from "virtual:icons/heroicons/exclamation-circle"
+  import IconDanger from "virtual:icons/heroicons/exclamation-triangle"
+  import IconClose from "virtual:icons/heroicons/x-mark-20-solid"
   import { createEventDispatcher, onMount } from "svelte"
   import { fly } from "svelte/transition"
 
   import { TEST_ATTRIBUTES } from "@/TestConsts"
 
   import type { INotificationTypes } from "@sing-types/Types"
-
 
   export let id: symbol
   export let label: string

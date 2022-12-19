@@ -1,6 +1,6 @@
 <script lang="ts">
-  import IconChevronLeft from "virtual:icons/heroicons-outline/chevron-left"
-  import IconChevronRight from "virtual:icons/heroicons-outline/chevron-right"
+  import IconChevronLeft from "virtual:icons/heroicons/chevron-left-20-solid"
+  import IconChevronRight from "virtual:icons/heroicons/chevron-right-20-solid"
 
   export let direction: "left" | "right"
   export let disabled = false

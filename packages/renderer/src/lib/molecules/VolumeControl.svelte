@@ -1,6 +1,6 @@
 <script lang="ts">
-  import IconVolume from "virtual:icons/heroicons-outline/volume-up"
-  import IconVolumeMuted from "virtual:icons/heroicons-outline/volume-off"
+  import IconVolume from "virtual:icons/heroicons/speaker-wave"
+  import IconVolumeMuted from "virtual:icons/heroicons/speaker-x-mark"
   import { spring } from "svelte/motion"
   import { fade } from "svelte/transition"
 

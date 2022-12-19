@@ -2,7 +2,7 @@
   import Edge from "virtual:icons/custom/inverted_edge-16px"
   import IconMinimize from "virtual:icons/heroicons/minus-20-solid"
   import IconMaximize from "virtual:icons/custom/maximize_icon"
-  import IconClose from "virtual:icons/heroicons/x-mark-solid"
+  import IconClose from "virtual:icons/heroicons/x-mark-20-solid"
   import IconUnsetFullscreen from "virtual:icons/custom/unset_fullscreen_icon"
 
   let isFullscreen = false

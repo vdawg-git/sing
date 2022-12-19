@@ -2,8 +2,7 @@
   type IState = "PLAYING" | "HAS_PLAYED" | "DEFAULT"
 
   import { createEventDispatcher } from "svelte"
-  import IconClose from "virtual:icons/heroicons-outline/x"
-
+  import IconClose from "virtual:icons/heroicons/x-mark-20-solid"
 
   import { TEST_IDS, TEST_ATTRIBUTES } from "@/TestConsts"
   import { displayTrackMetadata } from "@/Helper"

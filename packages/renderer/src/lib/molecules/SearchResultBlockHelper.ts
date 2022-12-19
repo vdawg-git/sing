@@ -1,6 +1,6 @@
 import { match, P } from "ts-pattern"
-import IconArrowRight from "virtual:icons/heroicons-outline/arrow-right"
-import IconPlay from "virtual:icons/heroicons-outline/play"
+import IconArrowRight from "virtual:icons/heroicons/arrow-right"
+import IconPlay from "virtual:icons/heroicons/play"
 
 import { convertFilepathToFilename } from "@sing-shared/Pures"
 
@@ -13,7 +13,6 @@ import type {
   ISearchItemSubtext,
   ISearchResultItem,
 } from "@sing-types/Types"
-
 
 // const navigate = useNavigate()
 

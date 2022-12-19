@@ -1,12 +1,12 @@
 <script lang="ts">
   import { useLocation, useNavigate } from "svelte-navigator"
   import Logo from "virtual:icons/custom/drool"
-  import IconSettings from "virtual:icons/heroicons-outline/cog"
-  import IconDotsVr from "virtual:icons/heroicons-outline/dots-vertical"
-  import IconArtists from "virtual:icons/heroicons-outline/microphone"
-  import IconMusic from "virtual:icons/heroicons-outline/music-note"
-  import IconRefresh from "virtual:icons/heroicons-outline/refresh"
-  import IconAlbum from "virtual:icons/ri/album-line"
+  import IconSettings from "virtual:icons/heroicons/cog-6-tooth-solid"
+  import IconDotsVr from "virtual:icons/heroicons/ellipsis-vertical-solid"
+  import IconArtists from "virtual:icons/heroicons/microphone-solid"
+  import IconMusic from "virtual:icons/heroicons/musical-note-solid"
+  import IconRefresh from "virtual:icons/heroicons/arrow-path-solid"
+  import IconAlbum from "virtual:icons/ri/album-fill"
   import IconPlaylist from "virtual:icons/tabler/playlist"
 
   import { ROUTES, type IRoutes } from "@/Consts"

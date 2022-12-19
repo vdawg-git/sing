@@ -1,5 +1,5 @@
 <script lang="ts">
-  import IconRefresh from "virtual:icons/heroicons-outline/refresh"
+  import IconRefresh from "virtual:icons/heroicons/refresh"
 
   import MenuItem from "@/lib/atoms/MenuItem.svelte"
 </script>

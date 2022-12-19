@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fade } from "svelte/transition"
   import { createEventDispatcher } from "svelte"
-  import IconX from "virtual:icons/heroicons-outline/x"
+  import IconX from "virtual:icons/heroicons/x-mark-20-solid"
 
   import { TEST_ATTRIBUTES } from "@/TestConsts"
 
