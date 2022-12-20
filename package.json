@@ -2,7 +2,7 @@
   "name": "sing",
   "private": true,
   "type": "module",
-  "version": "0.1-alpha",
+  "version": "0.1",
   "engines": {
     "node": ">=v16.13",
     "npm": ">=8.1"
