@@ -2,6 +2,7 @@
   "name": "sing",
   "private": true,
   "type": "module",
+  "version": "0.1-alpha",
   "engines": {
     "node": ">=v16.13",
     "npm": ">=8.1"
@@ -29,7 +30,7 @@
     "typecheck:main": "tsc --noEmit -p packages/main/tsconfig.json",
     "typecheck:preload": "tsc --noEmit -p packages/preload/tsconfig.json",
     "typecheck:renderer": "svelte-check --tsconfig packages/renderer/tsconfig.json",
-    "typecheck": "npm run typecheck:main && npm run typecheck:preload && npm run typecheck:renderer",
+    "typecheck": "npm run typecheck:wain && npm run typecheck:preload && npm run typecheck:renderer",
     "deps:check": "ncu -x slash,music-metadata",
     "deps:update": "ncu -x slash,music-metadata -u"
   },
