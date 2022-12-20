@@ -31,6 +31,6 @@ jobs:
 
       - run: npm run build
 
-      - run: npx --no-install electron-builder --config .electron-builder.config.js --publish always
+      - run: npx --no-install electron-builder --config .electron-builder.config.cjs --publish always
         env:
           GH_TOKEN: ${{ secrets.github_token }}
