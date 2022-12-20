@@ -38,10 +38,8 @@ async function createWindow() {
   browserWindow.on("ready-to-show", () => {
     if (!import.meta.env.DEV) browserWindow?.show() // this repositions the window and is annoying when in development
 
-    browserWindow.webContents.openDevTools()
-
     if (import.meta.env.DEV) {
-      // Lets just always open devtools for now
+      browserWindow.webContents.openDevTools()
     }
   })
 
