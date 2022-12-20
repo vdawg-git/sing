@@ -3,10 +3,15 @@
   "private": true,
   "type": "module",
   "version": "0.0.1-alpha",
+  "author": {
+    "email": "imchris@tuta.io",
+    "name": "Christofer Koeth"
+  },
   "engines": {
     "node": ">=v16.13",
     "npm": ">=8.1"
   },
+  "repository": "https://github.com/Visual-Dawg/sing",
   "main": "packages/main/dist/index.cjs",
   "scripts": {
     "build": "npm run build:main && npm run build:preload && npm run build:renderer && npm run build:backend",
