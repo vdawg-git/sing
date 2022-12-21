@@ -21,6 +21,7 @@ import type {
   IAlbumGetArgument,
   IArtist,
   IArtistFindManyArgument,
+  IArtistGetArgument,
   IMusicIDsUnion,
   IPlaylistCreateArgument,
   IPlaylistEditDescriptionArgument,
@@ -109,7 +110,7 @@ export const mainQueryHandlers = Object.freeze({
 
   getArtist: async (
     _: IpcMainInvokeEvent,
-    options: IAlbumGetArgument
+    options: IArtistGetArgument
   ): Promise<Either<IError, IArtist>> =>
     queryBackend({
       query: "getArtist",
