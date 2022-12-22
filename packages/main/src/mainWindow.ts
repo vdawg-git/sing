@@ -11,8 +11,6 @@ const osName = os.platform()
 
 async function createWindow() {
   const browserWindow = new BrowserWindow({
-    width: 1280,
-    height: 744,
     show: import.meta.env.DEV, // Use 'ready-to-show' event to show window when in production
     webPreferences: {
       preload: join(__dirname, "../../preload/dist/index.cjs"),
@@ -25,6 +23,11 @@ async function createWindow() {
     titleBarStyle: "hiddenInset",
     trafficLightPosition: { x: 8, y: 4 },
     fullscreenable: false,
+
+    width: 1280,
+    height: 744,
+    minHeight: 720,
+    minWidth: 640,
   })
 
   /**
