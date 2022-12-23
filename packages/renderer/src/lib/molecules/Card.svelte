@@ -41,8 +41,8 @@
   use:useOpenContextMenu={{ menuItems: contextMenuItems }}
 >
   <div
-    class="flex w-[220px] flex-col gap-3 rounded-lg bg-grey-600/60 p-4 backdrop-blur
-    transition-all ease-out group-hover:bg-grey-500/60
+    class="_effects flex w-[220px] flex-col gap-3   rounded-lg bg-grey-600/60
+    p-4 backdrop-blur transition-all ease-out group-hover:bg-grey-500/60
     "
   >
     <!--- Cover -->
@@ -98,6 +98,7 @@
 </div>
 
 <style lang="postcss">
+  /* The background image blur */
   .glow_ {
     opacity: 0;
     @apply absolute inset-0 -z-10 overflow-hidden  rounded-lg;
@@ -140,6 +141,12 @@
 
     .group:hover & {
       filter: drop-shadow(0 16px 16px rgba(0, 0, 0, 0.7));
+    }
+  }
+
+  ._effects {
+    &:hover {
+      box-shadow: inset 0.2px 0.5px 1px rgba(255, 255, 255, 0.2);
     }
   }
 </style>
