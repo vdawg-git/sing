@@ -7,14 +7,14 @@ publish:
   releaseType: release
   publishAutoUpdate: false
 directories:
-  buildResources: resources
+  buildResources: buildResources
   output: packed
 files:
   - dist/**/*
   - localization/!(locales)
   - prisma/**/*
   - "!prisma/app.db"
-  - resources/**/*
+  - buildResources/**/*
   # @prisma is not needed in the packed app unless using prisma migrate
   - "!**/node_modules/@prisma/engines/introspection-engine*"
   - "!**/node_modules/@prisma/engines/migration-engine*"

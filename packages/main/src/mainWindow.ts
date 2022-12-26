@@ -18,7 +18,6 @@ async function createWindow() {
       preload: join(__dirname, "./preload.cjs"),
       webSecurity: false,
     },
-    backgroundColor: tailwind.theme.colors.grey[900],
 
     // Disable native frame on Windows to show a completly custom title bar.
     frame: osName === "darwin" ? true : false,
@@ -30,6 +29,8 @@ async function createWindow() {
     height: 744,
     minHeight: 720,
     minWidth: 1040,
+    backgroundColor: tailwind.theme.colors.grey[900],
+    icon: join(__dirname, "..", "..", "..", "buildResources", "icon.png"),
   })
 
   /**
