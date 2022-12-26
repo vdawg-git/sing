@@ -1,7 +1,7 @@
 import * as E from "fp-ts/lib/Either"
 import slash from "slash"
 
-import { NOTIFICATION_LABEL } from "@sing-renderer/Consts"
+import { NOTIFICATION_LABEL } from "@sing-renderer/Constants"
 import {
   getLeftsRights,
   getLeftValues,
@@ -90,7 +90,11 @@ export async function syncMusic(
     return
   }
 
-  emitter.showNotification({ label: NOTIFICATION_LABEL.syncStarted })
+  emitter.showNotification({
+    label: NOTIFICATION_LABEL.syncStarted,
+    type: "loading",
+    duration: -1,
+  })
 
   console.log("Reading out dirs")
 

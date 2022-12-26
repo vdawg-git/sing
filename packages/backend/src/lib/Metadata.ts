@@ -109,7 +109,7 @@ export async function saveCover({
 
 type _UsedKeys = StrictExtract<
   keyof Prisma.TrackCreateInput,
-  "artistName" | "albumartistName" | "coverPath" | "albumName"
+  "artistEntry" | "albumartistEntry" | "coverEntry" | "albumEntry"
 >
 type _AllKeys = keyof Prisma.TrackCreateInput
 // Use new OnlyKeysOf type for this
@@ -133,16 +133,16 @@ async function addRelationFieldsNotCurried<
 ): Promise<
   StrictOmit<T, "album" | "albumartist" | "artist" | "picture"> &
     _ValidateTrackKeys<{
-      readonly artistName:
+      readonly artistEntry:
         | Prisma.ArtistCreateNestedOneWithoutAlbumsInput
         | undefined
-      readonly albumName:
+      readonly albumEntry:
         | Prisma.AlbumCreateNestedOneWithoutTracksInput
         | undefined
-      readonly coverPath:
+      readonly coverEntry:
         | Prisma.CoverCreateNestedOneWithoutTracksInput
         | undefined
-      readonly albumartistName:
+      readonly albumartistEntry:
         | Prisma.ArtistCreateNestedOneWithoutAlbumartistTracksInput
         | undefined
     }>
@@ -204,7 +204,7 @@ async function addRelationFieldsNotCurried<
             create: {
               name: album,
               artistEntry: artistInput, // TODO display the most used artist for the album if no album artist is set
-              ...(coverInput !== undefined && { coverPath: coverInput }),
+              ...(coverInput !== undefined && { coverEntry: coverInput }),
             },
           },
         }
@@ -220,7 +220,7 @@ async function addRelationFieldsNotCurried<
               name: UNKNOWN_ALBUM,
               artistEntry: artistInput,
 
-              ...(coverInput !== undefined && { coverPath: coverInput }),
+              ...(coverInput !== undefined && { coverEntry: coverInput }),
             },
           },
         }
@@ -228,13 +228,13 @@ async function addRelationFieldsNotCurried<
   return {
     ...(data as StrictOmit<T, "album" | "albumartist" | "artist" | "picture">),
 
-    artistName: artistInput,
+    artistEntry: artistInput,
 
-    albumartistName: albumartistInput,
+    albumartistEntry: albumartistInput,
 
-    coverPath: coverInput,
+    coverEntry: coverInput,
 
-    albumName: albumInput,
+    albumEntry: albumInput,
   } as const
 }
 

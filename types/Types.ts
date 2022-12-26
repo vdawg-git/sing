@@ -43,6 +43,9 @@ export interface INotificationBase {
   readonly id: symbol
   readonly label: string
   readonly type?: INotificationTypes
+  /**
+   * The duration in seconds. Set to -1 to remove the duration.
+   */
   readonly duration?: number
 }
 
