@@ -111,7 +111,7 @@
     />
   {/each}
 
-  <div class="flex flex-col overflow-auto">
+  <div class="_scroller flex flex-col overflow-auto">
     <!---- Playlist items -->
     {#if $playlistsStore.length > 0}
       <MenuSeperator marginX={12} />
@@ -129,8 +129,31 @@
   </div>
 </nav>
 
-<style>
+<style lang="postcss">
   .custom_style {
     box-shadow: 0px 0px 24px 0px rgba(0, 0, 0, 0.5);
+  }
+
+  ._scroller {
+    transition: all 0.5s ease-in-out;
+
+    &::-webkit-scrollbar {
+      position: absolute;
+      width: 2px;
+      z-index: 99999;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: transparent;
+      border-radius: 9999px;
+    }
+
+    &:hover&::-webkit-scrollbar-thumb {
+      background-color: theme(colors.grey.600);
+    }
   }
 </style>
