@@ -48,9 +48,6 @@
   $: activeMenu = menus.find(({ id }) => id === menuID)
   $: itemsToShow = activeMenu?.items ?? []
 
-  $: console.log({ activeMenuElement })
-  $: console.log({ itemsToShow })
-
   $: {
     // When the menu is closed or another one opens, reset to the default main state
     if ($menuStore) {
