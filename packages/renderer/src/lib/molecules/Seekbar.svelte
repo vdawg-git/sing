@@ -41,7 +41,7 @@
 
   function handleSeekClick() {
     // Prevent dragging to go to the complete end
-    if (progress === 1) progress -= 0.001
+    if (progress === 1) progress -= 0.0001
 
     dispatch("seek", progress)
   }
