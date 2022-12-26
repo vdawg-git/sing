@@ -83,12 +83,12 @@ export type ITrack = Override<
 export type IAlbum = DeepReadonlyNullToUndefined<Album> &
   OnlyKeysOf<
     Prisma.AlbumGetPayload<{
-      include: { tracks: true }
+      include: { tracks: true; artistEntry: true }
     }>,
     {
       cover?: FilePath
-
       tracks: readonly ITrack[]
+      artistEntry?: IArtist
     }
   >
 

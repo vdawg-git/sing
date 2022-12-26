@@ -3,7 +3,7 @@
 
   import { useOpenContextMenu } from "../manager/menu"
 
-  import type { IRoutes } from "@/Consts"
+  import type { IRoutes } from "@/Routes"
   import type { IMenuItemsArgument } from "@/types/Types"
   import type { SvelteComponentDev } from "svelte/internal"
 

@@ -26,7 +26,11 @@
   import type { IError, ISortOptions } from "@sing-types/Types"
   import type { Either } from "fp-ts/lib/Either"
 
-  export let albumID: number
+  /**
+   * This gets set automatically by svelte-navigator as a string.
+   */
+  export let albumID: number | string
+  console.log("🚀 ~ file: Album.svelte:30 ~ albumID", albumID)
 
   // The parameters are always strings. So we convert it later
   const parameters = useParams<{ albumID: string }>()
@@ -43,6 +47,10 @@
   // Update the page when the album is changed on navigation
   onMount(
     parameters.subscribe(({ albumID: newAlbumID }) => {
+      console.log(
+        "🚀 ~ file: Album.svelte:50 ~ parameters.subscribe ~ newAlbumID",
+        newAlbumID
+      )
       if (Number(newAlbumID) === albumID) return
 
       albumID = Number(newAlbumID)
@@ -65,7 +73,7 @@
       callback: () =>
         playNewSource({
           source: "album",
-          sourceID: albumID,
+          sourceID: Number(albumID),
           sortBy: defaultSort,
           isShuffleOn: false,
         }),
@@ -77,7 +85,7 @@
       callback: () =>
         playNewSource({
           source: "album",
-          sourceID: albumID,
+          sourceID: Number(albumID),
           sortBy: defaultSort,
           isShuffleOn: true,
         }),

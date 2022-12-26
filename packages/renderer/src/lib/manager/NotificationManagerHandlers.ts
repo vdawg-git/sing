@@ -1,6 +1,6 @@
 import * as E from "fp-ts/lib/Either"
 
-import { NOTIFICATION_LABEL } from "@/Consts"
+import { NOTIFICATION_LABEL } from "@/Constants"
 
 import {
   addNotification,

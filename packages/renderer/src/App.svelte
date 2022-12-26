@@ -3,7 +3,7 @@
   import { Router, Route, createHistory } from "svelte-navigator"
 
   import Settings from "./lib/pages/Settings.svelte"
-  import { ROUTES } from "./Consts"
+  import { ROUTES } from "./Routes"
   import { createHashSource } from "./Helper"
   import BackgroundGallery from "./lib/atoms/BackgroundGallery.svelte"
   import { initNotificationHandler } from "./lib/manager/NotificationManager"

@@ -7,7 +7,7 @@
 
   import { displayTypeWithCount } from "@sing-shared/Pures"
 
-  import { ROUTES } from "@/Consts"
+  import { ROUTES } from "@/Routes"
   import { addNotification } from "@/lib/stores/NotificationStore"
   import { playNewSource } from "@/lib/manager/player"
   import { playlistsStore } from "@/lib/stores/PlaylistsStore"

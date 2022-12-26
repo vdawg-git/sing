@@ -7,7 +7,7 @@
   import { moveItemTo, removeDuplicates } from "@sing-shared/Pures"
   import { UNKNOWN_ARTIST } from "@sing-shared/Consts"
 
-  import { ROUTES } from "@/Consts"
+  import { ROUTES } from "@/Routes"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
   import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
   import { artists, playNewSource } from "@/lib/manager/player"

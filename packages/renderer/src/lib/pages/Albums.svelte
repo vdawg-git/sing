@@ -11,7 +11,7 @@
   } from "@sing-shared/Pures"
   import { UNKNOWN_ALBUM } from "@sing-shared/Consts"
 
-  import { ROUTES } from "@/Consts"
+  import { ROUTES } from "@/Routes"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
   import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
   import { albums, playNewSource } from "@/lib/manager/player"

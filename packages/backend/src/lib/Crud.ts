@@ -568,7 +568,7 @@ export async function getArtists(
     include: {
       albums: {
         include: {
-          coverPath: true,
+          coverEntry: true,
         },
       },
       tracks: true,
@@ -599,7 +599,7 @@ export async function getArtist(
   const include: Prisma.ArtistInclude = {
     albums: {
       include: {
-        coverPath: true,
+        coverEntry: true,
       },
       orderBy: { name: "asc" },
     },
@@ -650,6 +650,7 @@ export async function getAlbum(
 ): Promise<Either<IError, IAlbum>> {
   const include: Prisma.AlbumInclude = {
     tracks: true,
+    artistEntry: true,
   }
 
   const sort: ISortOptions["tracks"] | ["RANDOM"] = isShuffleOn

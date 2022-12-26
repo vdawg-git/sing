@@ -1,6 +1,9 @@
 import slash from "slash"
 
-import { TEST_ATTRIBUTES, TEST_IDS } from "../../packages/renderer/src/TestConsts"
+import {
+  TEST_ATTRIBUTES,
+  TEST_IDS,
+} from "../../packages/renderer/src/TestConsts"
 import { convertDisplayTimeToSeconds } from "../Helper"
 
 import { reduceTitlesToFolders } from "./Helper"
@@ -8,7 +11,7 @@ import createLibrarySettingsPage from "./LibrarySettingsPage"
 import createTracksPage from "./TracksPage"
 
 /* eslint-disable unicorn/prefer-dom-node-text-content */
-import type { IRoutes } from "../../packages/renderer/src/Consts"
+import type { IRoutes } from "../../packages/renderer/src/Routes"
 import type { ElectronApplication } from "playwright"
 
 export default async function createBasePage(electronApp: ElectronApplication) {

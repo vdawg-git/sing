@@ -1,8 +1,7 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
 
-
-  import { ROUTES } from "@/Consts"
+  import { ROUTES } from "@/Routes"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
   import {
     createAddToPlaylistAndQueueMenuItems,

@@ -5,7 +5,6 @@ import { match } from "ts-pattern"
 import { pipe } from "fp-ts/lib/function"
 
 import {
-  displayTrackMetadata,
   moveElementFromToIndex,
   notifiyError,
   sortAlphabetically,
@@ -87,6 +86,11 @@ autoQueueStore.subscribe(($newQueue) => {
 
 volumeStore.subscribe(($newVolume) => {
   $volume = $newVolume
+  console.log(
+    "🚀 ~ file: index.ts:91 ~ volumeStore.subscribe ~ $newVolume",
+    $newVolume
+  )
+
   audioPlayer.setVolume($newVolume)
 })
 

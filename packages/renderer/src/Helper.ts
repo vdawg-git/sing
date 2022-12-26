@@ -13,7 +13,7 @@ import {
 import { convertFilepathToFilename, getErrorMessage } from "../../shared/Pures"
 
 import { addNotification } from "./lib/stores/NotificationStore"
-import { ROUTES } from "./Consts"
+import { ROUTES } from "./Routes"
 
 import type { IError } from "@sing-types/Types"
 import type {

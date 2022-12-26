@@ -4,7 +4,7 @@ import IconPlay from "virtual:icons/heroicons/play"
 
 import { convertFilepathToFilename } from "@sing-shared/Pures"
 
-import { ROUTES } from "@/Consts"
+import { createAlbumURI, createArtistURI, ROUTES } from "@/Routes"
 import { playTrackAsShuffledTracks } from "@/lib/manager/player"
 
 import type { IAlbum, IArtist, ITrack } from "@sing-types/DatabaseTypes"
@@ -13,6 +13,7 @@ import type {
   ISearchItemSubtext,
   ISearchResultItem,
 } from "@sing-types/Types"
+import type { NavigateFn } from "svelte-navigator"
 
 // const navigate = useNavigate()
 
@@ -23,7 +24,7 @@ import type {
  * @returns The converted data, ready to be displayed.
  */
 export function convertSearchedDataToSearchItems(
-  navigate: (route: string) => void,
+  navigate: NavigateFn,
   data: IConvertedSearchData
 ): readonly ISearchResultItem[] {
   return match(data)
@@ -74,11 +75,11 @@ function convertTrackToSearchItem(
 }
 
 function convertAlbumToSearchItem(
-  navigate: (route: string) => void,
+  navigate: NavigateFn,
   album: IAlbum,
   label?: string
 ): ISearchResultItem {
-  const subtexts = createAlbumSubtexts(navigate, album?.artist)
+  const subtexts = createAlbumSubtexts(navigate, album?.artistEntry)
 
   return {
     title: album.name,
@@ -86,12 +87,12 @@ function convertAlbumToSearchItem(
     subtexts,
     icon: IconArrowRight,
     label,
-    onClick: async () => navigate(`${ROUTES.albums}/${album.name}`),
+    onClick: async () => navigate(createAlbumURI(album.id)),
   }
 }
 
 function convertArtistToSearchItem(
-  navigate: (route: string) => void,
+  navigate: NavigateFn,
   artist: IArtist,
   label?: string
 ): ISearchResultItem {
@@ -102,20 +103,19 @@ function convertArtistToSearchItem(
     icon: IconArrowRight,
     label,
     onClick: () => {
-      navigate(`${ROUTES.artists}/${artist.name}`)
+      navigate(createArtistURI(artist.name))
     },
   }
 }
-
 function createAlbumSubtexts(
-  navigate: (route: string) => void,
-  albumArtist: string | undefined
+  navigate: NavigateFn,
+  albumArtist: IArtist | undefined
 ): ISearchItemSubtext[] {
   return albumArtist
     ? [
         {
-          label: albumArtist,
-          onClick: async () => navigate(`${ROUTES.artists}/${albumArtist}`),
+          label: albumArtist.name,
+          onClick: async () => navigate(createArtistURI(albumArtist.name)),
         },
       ]
     : [{ label: "Unknown" }]
@@ -135,7 +135,7 @@ function createTrackSubtexts(
   const artistItem: ISearchItemSubtext | undefined = artist
     ? {
         label: artist,
-        onClick: async () => navigate(`${ROUTES.artists}/${artist}`),
+        onClick: async () => navigate(createArtistURI(artist)),
       }
     : undefined
 

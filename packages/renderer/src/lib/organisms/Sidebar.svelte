@@ -9,7 +9,7 @@
   import IconAlbum from "virtual:icons/ri/album-fill"
   import IconPlaylist from "virtual:icons/tabler/playlist"
 
-  import { ROUTES, type IRoutes } from "@/Consts"
+  import { ROUTES, type IRoutes } from "@/Routes"
   import { TEST_IDS as id } from "@/TestConsts"
   import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
 

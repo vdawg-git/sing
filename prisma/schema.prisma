@@ -17,14 +17,14 @@ model Track {
   filepath  String         @unique
   playlists PlaylistItem[]
 
-  artistName      Artist  @relation(name: "artist", fields: [artist], references: [name])
-  artist          String
-  albumartistName Artist? @relation(name: "albumartist", fields: [albumartist], references: [name])
-  albumartist     String?
-  albumName       Album   @relation(name: "album", fields: [album, artist], references: [name, artist], onDelete: Cascade, onUpdate: Cascade)
-  album           String
-  coverPath       Cover?  @relation(fields: [cover], references: [filepath])
-  cover           String?
+  artistEntry      Artist  @relation(name: "artist", fields: [artist], references: [name]) /// The database entry for the track's artist
+  artist           String /// The id of the track's artist
+  albumartistEntry Artist? @relation(name: "albumartist", fields: [albumartist], references: [name]) /// The database entry for the track's album artist 
+  albumartist      String? /// The id of the track's album artist
+  albumEntry       Album   @relation(name: "album", fields: [album, artist], references: [name, artist], onDelete: Cascade, onUpdate: Cascade) /// The database entry for the track's album
+  album            String /// The id of the track's album
+  coverEntry       Cover?  @relation(fields: [cover], references: [filepath]) /// The database entry for the track's cover
+  cover            String? /// The id / path of the track's cover
 
   playCount Int? @default(0) // Todo implement play stats
   skipCount Int? @default(0)
@@ -165,11 +165,11 @@ model Track {
 model Album {
   id          Int     @id @default(autoincrement())
   name        String
-  artistEntry Artist  @relation(fields: [artist], references: [name])
-  artist      String
+  artistEntry Artist  @relation(fields: [artist], references: [name]) /// The database entry for the albums artist
+  artist      String /// The id of the albums artist
   tracks      Track[] @relation(name: "album")
-  coverPath   Cover?  @relation(fields: [cover], references: [filepath])
-  cover       String?
+  coverEntry  Cover?  @relation(fields: [cover], references: [filepath]) /// The database entry for the albums cover
+  cover       String? /// The id of the albums cover
 
   type String @default("album") /// ###DO NOT SET THIS. This is is used to provide a discriminating union for typescript.
 
@@ -181,7 +181,7 @@ model Artist {
   tracks            Track[] @relation(name: "artist")
   albumartistTracks Track[] @relation(name: "albumartist")
   albums            Album[]
-  image             String? /// This is the filepath to the artist image
+  image             String? /// The filepath to the artist's image
 
   type String @default("artist") /// ###DO NOT SET THIS. This is is used to provide a discriminating union for typescript.
 }
@@ -194,18 +194,18 @@ model Cover {
 
   isManuallyAdded Boolean @default(false) /// If this image is added by the user to the app and not by music data (for example, it got added as a playlist image)
 
-  playlistsThumbnail Playlist[]
+  playlistsThumbnail Playlist[] /// The playlists that use this image as a cover
 
   type String @default("cover") /// ###DO NOT SET THIS. This is is used to provide a discriminating union for typescript.
 }
 
 model Playlist {
   id          Int            @id @default(autoincrement())
-  name        String
+  name        String /// The name of the playlist. Does not need to be unique
   items       PlaylistItem[] /// Those contain the tracks and their associated index in the playlist
-  description String?
+  description String? /// The description of the playlist, which gets displayed under its name
 
-  thumbnailCovers Cover[]
+  thumbnailCovers Cover[] /// The covers to be displayed in the playlist. Can be multiple covers of the tracks in the playlist or one user set image.
 
   type String @default("playlist") /// ###DO NOT SET THIS. This is is used to provide a discriminating union for typescript.
 }
