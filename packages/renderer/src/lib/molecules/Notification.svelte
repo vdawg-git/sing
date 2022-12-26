@@ -14,7 +14,10 @@
   export let id: symbol
   export let label: string
   export let type: INotificationTypes = "default"
-  export let duration = 7 // Timeout in seconds. Set to -1 to disable
+  /**
+   * Timeout in seconds. Set to -1 to disable
+   */
+  export let duration = 7
 
   // TODO when hovering make the timeout slider stop smoothly and not abruptly like now
 

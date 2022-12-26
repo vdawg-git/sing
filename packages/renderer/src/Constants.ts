@@ -11,7 +11,7 @@ export enum ROUTES {
 }
 
 export enum NOTIFICATION_LABEL {
-  syncStarted = "Started syncing music",
+  syncStarted = "Syncing..",
   syncSuccess = "Syncing music succesfully",
   syncFailure = "Syncing music failed",
 }

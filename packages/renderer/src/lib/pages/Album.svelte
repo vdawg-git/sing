@@ -134,7 +134,7 @@
       playNewSource(
         {
           source: "album",
-          sourceID: albumID,
+          sourceID: Number(albumID),
           sortBy: defaultSort,
         },
         detail.index
