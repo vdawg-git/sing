@@ -1,6 +1,6 @@
 <script lang="ts">
   import { useLocation, useNavigate } from "svelte-navigator"
-  import Logo from "virtual:icons/custom/drool"
+  import Logo from "virtual:icons/custom/sing_logo"
   import IconSettings from "virtual:icons/heroicons/cog-6-tooth-solid"
   import IconDotsVr from "virtual:icons/heroicons/ellipsis-vertical-solid"
   import IconArtists from "virtual:icons/heroicons/microphone-solid"
