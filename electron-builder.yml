@@ -1,0 +1,70 @@
+productName: Sing
+appId: com.vdawg.sing
+copyright: Copyright 2022 Christofer Koeth
+publish:
+  provider: github
+  private: false
+  releaseType: release
+  publishAutoUpdate: false
+directories:
+  buildResources: resources
+  output: packed
+files:
+  - dist/**/*
+  - localization/!(locales)
+  - prisma/**/*
+  - "!prisma/app.db"
+  - resources/**/*
+  # @prisma is not needed in the packed app unless using prisma migrate
+  - "!**/node_modules/@prisma/engines/introspection-engine*"
+  - "!**/node_modules/@prisma/engines/migration-engine*"
+  - "!**/node_modules/@prisma/engines/prisma-fmt*"
+  - "!**/node_modules/@prisma/engines/query_engine-*"
+  - "!**/node_modules/@prisma/engines/libquery_engine*"
+  - "!**/node_modules/prisma/query_engine*"
+  - "!**/node_modules/prisma/libquery_engine*"
+  - "!**/node_modules/prisma/**/*.mjs"
+extraFiles:
+  - localization/locales/**/*
+extraResources: # Only if you need to run prisma migrate
+  - node_modules/@prisma/engines/migration-engine*
+  - node_modules/@prisma/engines/query*
+  - node_modules/@prisma/engines/libquery*
+  - THIRD-PARTY-LICENSES.txt
+win:
+  target:
+    - nsis
+  asar:
+    smartUnpack: false
+  asarUnpack: # only if you need to run prisma migrate:
+    - prisma
+  # signingHashAlgorithms: ["sha256"]
+  publisherName: VDawg
+  signAndEditExecutable: false
+  verifyUpdateCodeSignature: false
+  # had to add artifactName here because electron-builder was generating latest.yml with hyphens instead of spaces,
+  # which screwed up auto updates
+  artifactName: ${productName}-Setup-${version}.${ext}
+linux:
+  target:
+    - snap
+    - AppImage
+  asarUnpack: # only if you need to run prisma migrate:
+    - prisma
+mac:
+  category: public.app-category.music
+  #  gatekeeperAssess: true
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip # zip is required because of electron-userland/electron-builder#2199
+      arch:
+        - x64
+        - arm64
+  entitlements: ./entitlements.mac.plist
+  entitlementsInherit: ./entitlements.mac.plist
+  hardenedRuntime: true
+  asarUnpack: # only if you need to run prisma migrate:
+    - prisma

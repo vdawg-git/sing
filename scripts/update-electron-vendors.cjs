@@ -37,6 +37,7 @@ function updateVendors() {
           chrome: chromeMajorVersion,
           node: nodeMajorVersion,
         },
+        // eslint-disable-next-line unicorn/no-null
         null,
         2
       )}\n`

@@ -164,30 +164,30 @@ function setupBackendPackageWatcher({ resolvedUrls }) {
  * @param {import('vite').ViteDevServer} watchServer Renderer watch server instance.
  * Required to access the web socket of the page. By sending the `full-reload` command to the socket, it reloads the web page.
  */
-function setupPreloadPackageWatcher({ ws }) {
-  return build({
-    mode,
-    logLevel,
-    build: {
-      /**
-       * Set to {} to enable rollup watcher
-       * @see https://vitejs.dev/config/build-options.html#build-watch
-       */
-      watch: {},
-    },
-    configFile: "packages/preload/vite.config.js",
-    plugins: [
-      {
-        name: "reload-page-on-preload-package-change",
-        writeBundle() {
-          ws.send({
-            type: "full-reload",
-          })
-        },
-      },
-    ],
-  })
-}
+// function setupPreloadPackageWatcher({ ws }) {
+//   return build({
+//     mode,
+//     logLevel,
+//     build: {
+//       /**
+//        * Set to {} to enable rollup watcher
+//        * @see https://vitejs.dev/config/build-options.html#build-watch
+//        */
+//       watch: {},
+//     },
+//     configFile: "packages/preload/vite.config.js",
+//     plugins: [
+//       {
+//         name: "reload-page-on-preload-package-change",
+//         writeBundle() {
+//           ws.send({
+//             type: "full-reload",
+//           })
+//         },
+//       },
+//     ],
+//   })
+// }
 
 ;(async () => {
   try {
@@ -210,7 +210,7 @@ function setupPreloadPackageWatcher({ ws }) {
     /**
      * See {@link setupPreloadPackageWatcher} JSDoc
      */
-    await setupPreloadPackageWatcher(rendererWatchServer)
+    // await setupPreloadPackageWatcher(rendererWatchServer)
 
     /**
      * See {@link setupBackendPackageWatcher} JSDoc

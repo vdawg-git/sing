@@ -49,7 +49,7 @@ const config = {
   build: {
     sourcemap: true,
     target: `chrome${chrome}`,
-    outDir: "dist",
+    outDir: "../../dist/renderer/",
     assetsDir: ".",
     rollupOptions: {
       input: path.join(PACKAGE_ROOT, "index.html"),
@@ -57,6 +57,7 @@ const config = {
     },
     emptyOutDir: true,
     brotliSize: false,
+    minify: false,
   },
   optimizeDeps: { exclude: ["svelte-navigator"] },
   test: {

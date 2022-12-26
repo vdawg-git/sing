@@ -2,7 +2,6 @@
 import * as E from "fp-ts/lib/Either"
 import { map as mapArray } from "fp-ts/lib/ReadonlyArray"
 import Fuse from "fuse.js"
-import log from "ololog"
 import { match } from "ts-pattern"
 
 import { convertFilepathToFilename } from "@sing-shared/Pures"
@@ -199,7 +198,7 @@ function logErrorAndReturnEmptyArray(
 ): // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (error: IError) => readonly IToSearchData[] {
   return (error: IError) => {
-    log.error.red(errorMessage, error)
+    console.error(errorMessage, error)
     return []
   }
 }

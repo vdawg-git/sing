@@ -12,6 +12,13 @@ scratch
 **/_Scratch.js
 **/testDB.db
 
+packed
+
+packages/generated
+packages/generated/**/*
+prisma/app.db
+
+
 .eslintcache
 
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider

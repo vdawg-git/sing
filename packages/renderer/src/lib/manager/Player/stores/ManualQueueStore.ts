@@ -1,6 +1,6 @@
 import { writable } from "svelte/store"
 import { dropAt, slice } from "fp-ts-std/ReadonlyArray"
-import { flow } from "fp-ts/Function"
+import { flow } from "fp-ts/lib/function"
 import { matchW } from "fp-ts/Option"
 
 import type { ITrack } from "@sing-types/DatabaseTypes"

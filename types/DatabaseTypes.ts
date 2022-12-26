@@ -16,7 +16,7 @@ import type {
   Artist,
   Cover,
   Playlist,
-} from "@prisma/client"
+} from "../packages/generated/client"
 import type { Opaque } from "type-fest"
 import type { CamelCase, StrictExtract, StrictOmit } from "ts-essentials"
 

@@ -3,11 +3,9 @@ import os from "node:os"
 import { app, BrowserWindow, dialog } from "electron"
 import slash from "slash"
 import { match } from "ts-pattern"
-import log from "ololog"
 
-import { coversDirectory, electronPaths } from "../../main/src/Consts"
-import userSettingsStore from "../../main/src/lib/UserSettings"
-
+import { coversDirectory, electronPaths } from "./Constants"
+import userSettingsStore from "./lib/UserSettings"
 import { queryBackend } from "./BackendProcess"
 
 import type {
@@ -32,7 +30,7 @@ import type {
   ITrackFindManyArgument,
 } from "@sing-types/DatabaseTypes"
 import type { IElectronPaths, IError } from "@sing-types/Types"
-import type { Prisma } from "@prisma/client"
+import type { Prisma } from "@sing-prisma"
 import type {
   IpcMainInvokeEvent,
   OpenDialogReturnValue,
@@ -220,7 +218,7 @@ export const mainQueryHandlers = Object.freeze({
     const window = BrowserWindow.fromWebContents(event.sender)
 
     if (window === null) {
-      log.error.red(
+      console.error(
         "Invalid minimize event received. The window could not be found."
       )
 

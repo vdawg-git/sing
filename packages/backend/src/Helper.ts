@@ -1,6 +1,5 @@
 import { createHash } from "node:crypto"
 import {
-  copyFile,
   mkdir,
   readdir,
   stat,
@@ -12,13 +11,12 @@ import path from "node:path"
 
 import c from "ansicolor"
 import * as E from "fp-ts/lib/Either"
-import log from "ololog"
 import slash from "slash"
 import { pipe } from "fp-ts/lib/function"
 import { omit } from "fp-ts-std/Struct"
 import { isDefined } from "ts-is-present"
 
-import { isError, isKeyOfObject } from "@sing-types/Typeguards"
+import { isKeyOfObject } from "@sing-types/TypeGuards"
 
 import { getLeftsRights, removeDuplicates } from "../../shared/Pures"
 
@@ -39,7 +37,7 @@ import type {
   ITrack,
 } from "@sing-types/DatabaseTypes"
 import type { ICoverData } from "./types/Types"
-import type { Prisma } from "@prisma/client"
+import type { Prisma } from "@sing-prisma"
 import type { Either } from "fp-ts/lib/Either"
 
 export async function getFilesFromDirectory(
@@ -144,34 +142,6 @@ export async function deleteFiles(
   )
 
   return Promise.all(result)
-}
-
-/**
- * Check if database exists. If not copy the empty master database over to the user directory to make it available
- */
-export async function checkAndCreateDatabase(databasePath: FilePath) {
-  const checkAccessible = await checkPathAccessible(databasePath)
-  if (E.isLeft(checkAccessible)) {
-    const possibleError = checkAccessible.left.error
-
-    if (
-      isError(possibleError) &&
-      !possibleError.message.includes("no such file or directory")
-    ) {
-      log.error.red(possibleError)
-    }
-
-    if (import.meta.env.DEV) {
-      copyFile(
-        path.join(__dirname, "../public/masterDB.db"),
-        databasePath
-      ).catch(log.error.red)
-    } else {
-      copyFile(path.join(__dirname, "masterDB.db"), databasePath).catch(
-        log.error.red
-      )
-    }
-  }
 }
 
 /**
@@ -286,7 +256,7 @@ export function createError(
   type: IErrorTypes
 ): (error: unknown) => Either<IError, never> {
   return (error) => {
-    log.error.red(
+    console.error(
       type,
       "\n",
       error,

@@ -11,7 +11,7 @@ import type {
 import type { IFrontendEventsSend } from "@sing-types/IPC"
 import type { IPlaylistID } from "@sing-types/Opaque"
 import type { Override } from "@sing-types/Utilities"
-import type { Prisma } from "@prisma/client"
+import type { Prisma } from "@sing-prisma"
 
 export interface ICoverData {
   readonly md5: string

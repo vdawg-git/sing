@@ -1,12 +1,14 @@
 // Docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  output        = "../packages/generated/client"
+  binaryTargets = ["native", "darwin", "darwin-arm64"]
 }
 
 datasource db {
   provider = "sqlite"
-  url      = "file:../packages/main/public/masterDB.db"
+  url      = env("DATABASE_URL")
 }
 
 model Track {
@@ -53,6 +55,7 @@ model Track {
   arranger        String? /// Stringified JSON Array
   engineer        String? /// Stringified JSON Array
   producer        String? /// Stringified JSON Array
+
   djmixer         String? /// Stringified JSON Array
   mixer           String? /// Stringified JSON Array
   technician      String? /// Stringified JSON Array

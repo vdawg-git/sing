@@ -113,7 +113,12 @@ module.exports = {
     "plugin:svelte/recommended",
     "prettier",
   ],
-  ignorePatterns: ["node_modules/**", "**/dist/**"],
+  ignorePatterns: [
+    "node_modules/**",
+    "**/dist/**",
+    "packages/generated/**",
+    "dist/**",
+  ],
   overrides: [
     {
       env: {

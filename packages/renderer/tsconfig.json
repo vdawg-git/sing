@@ -4,7 +4,7 @@
     "./**/*.ts",
     "types/**/*.d.ts",
     "../../types/**/*.d.ts",
-    "../preload/contracts.d.ts",
+    "../main/src/types/contracts.d.ts",
     "./tests/**/*.ts"
   ],
   "exclude": ["./assets/**/*", "./dist/**/*"],
@@ -30,7 +30,6 @@
       "@sing-player-manager": ["./src/lib/manager/player/index.ts"],
       "@tests/*": ["./tests/*"],
       "@sing-main/*": ["../main/src/*"],
-      "@sing-preload/*": ["../preload/src/*"],
       "@sing-shared/*": ["../shared/*"],
       "@sing-types/*": ["../../types/*"]
     },

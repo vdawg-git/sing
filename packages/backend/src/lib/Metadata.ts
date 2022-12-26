@@ -1,5 +1,5 @@
-import { curry2 } from "fp-ts-std/function"
-import { pipe } from "fp-ts/Function"
+import { curry2 } from "fp-ts-std/Function"
+import { pipe } from "fp-ts/lib/function"
 import * as E from "fp-ts/lib/Either"
 import { parseFile, selectCover } from "music-metadata"
 
@@ -26,7 +26,7 @@ import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"
 import type { ICoverData } from "@/types/Types"
 import type { StrictExtract, StrictOmit } from "ts-essentials"
 import type { IPicture } from "music-metadata"
-import type { Prisma } from "@prisma/client"
+import type { Prisma } from "@sing-prisma"
 import type { Either } from "fp-ts/lib/Either"
 
 export async function getRawMetaDataFromFilepath(

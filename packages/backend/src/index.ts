@@ -1,5 +1,5 @@
-import log from "ololog"
 import { match } from "ts-pattern"
+import sourceMaps from "source-map-support"
 
 import { backendEventHandlers } from "@/lib/EventHandlers"
 import { queryHandlers } from "@/lib/QueryHandlers"
@@ -16,11 +16,13 @@ import type {
   IBackendEvent,
 } from "@sing-types/IPC"
 
-log.dim("Database path provided to backend:", process.argv[2])
+sourceMaps.install()
+
+// log.dim("Databasepath provided to backend:", process.argv[2])
 
 // Handle incoming requests
 process.on("message", handleMessageFromMain)
-process.on("error", log.error.red)
+process.on("error", console.error)
 
 // Handle internal events
 backendMessages.on("*", (_, message) => {
@@ -34,7 +36,7 @@ backendMessages.on("*", (_, message) => {
       })
     )
     .otherwise((data) =>
-      log.error.red("Backend Index: Unhandled message received:", data)
+      console.error("Backend Index: Unhandled message received:", data)
     )
 })
 
@@ -44,8 +46,6 @@ backendMessages.on("playlistUpdatedInternal", (id) =>
 backendMessages.on("syncedMusic", updateSearchList)
 
 function handleMessageFromMain(request: unknown): void {
-  log.blue.maxArrayLength(3).maxObjectLength(5)(request)
-
   if (isBackendQuery(request)) {
     handleQuery(request)
     return
@@ -56,7 +56,7 @@ function handleMessageFromMain(request: unknown): void {
     return
   }
 
-  log.error.red("Received unprocessed / unsupported request:", request)
+  console.error("Received unprocessed / unsupported request:", request)
 }
 
 // Handle incoming queries and responses
@@ -83,7 +83,7 @@ function handleEvent({ event, arguments_ }: IBackendEvent): void {
 
 function sendToMain(response: IBackendQueryResponse | IBackendEmitToFrontend) {
   if (!process.send) {
-    log.red(
+    console.error(
       `process.send does not seem to be available. It is:\n`,
       process.send
     )

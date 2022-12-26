@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "module": "esnext",
+    "module": "CommonJS",
     "target": "esnext",
-    "sourceMap": false,
+    "inlineSourceMap": true,
     "moduleResolution": "Node",
     "skipLibCheck": true,
     "strict": true,
@@ -19,7 +19,8 @@
       "@sing-preload/*": ["../preload/src/*"],
       "@sing-renderer/*": ["../renderer/src/*"],
       "@sing-shared/*": ["../shared/*"],
-      "@sing-types/*": ["../../types/*"]
+      "@sing-types/*": ["../../types/*"],
+      "@sing-prisma": ["../generated/client"]
     }
   },
   "include": [
@@ -33,5 +34,10 @@
     "**/*.test.ts",
     "tests/**/*.ts"
   ],
-  "exclude": ["./dist/**/*"]
+  "exclude": ["./dist/**/*"],
+  "ts-node": {
+    "transpileOnly": true,
+    "transpiler": "ts-node/transpilers/swc",
+    "require": ["tsconfig-paths/register"]
+  }
 }

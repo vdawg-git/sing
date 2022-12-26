@@ -1,4 +1,3 @@
-import type { FilePath } from "@sing-types/Filesystem"
 import type {
   IBackendEmitToFrontend,
   IBackendEvent,
@@ -70,37 +69,4 @@ export function isEventToForwardToRenderer(
   if (!(("data" as keyof IBackendEmitToFrontend) in data)) return false
 
   return true
-}
-
-if (import.meta.vitest) {
-  const { expect, test } = await import("vitest")
-
-  test("isICoverData happy", () => {
-    const given: ICoverData = {
-      md5: "coverMD5",
-      path: "path" as FilePath,
-      buffer: Buffer.from("coverBuffer"),
-    }
-
-    expect(isICoverData(given)).toBe(true)
-  })
-
-  test("isICoverData sad", () => {
-    const given = {
-      coverPath: "coverPath",
-      coverBuffer: Buffer.from("coverBuffer"),
-    }
-
-    expect(isICoverData(given)).toBe(false)
-  })
-
-  test("isICoverData sad 2", () => {
-    const given = {
-      coverMD5: 1,
-      coverPath: 2,
-      coverBuffer: "3",
-    }
-
-    expect(isICoverData(given)).toBe(false)
-  })
 }

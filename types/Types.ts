@@ -8,7 +8,7 @@ import type {
   IArtist,
   IPlaylistTrack,
 } from "./DatabaseTypes"
-import type { Prisma } from "@prisma/client"
+import type { Prisma } from "../packages/generated/client"
 import type { app } from "electron"
 import type { Either } from "fp-ts/lib/Either"
 import type * as mm from "music-metadata"

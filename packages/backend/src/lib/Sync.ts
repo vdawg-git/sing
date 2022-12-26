@@ -1,5 +1,4 @@
 import * as E from "fp-ts/lib/Either"
-import log from "ololog"
 import slash from "slash"
 
 import { NOTIFICATION_LABEL } from "@sing-renderer/Consts"
@@ -65,7 +64,7 @@ export async function syncMusic(
       ),
     }
 
-    log.error.red(error)
+    console.error(error)
 
     emitter.emit({
       event: "syncedMusic",
@@ -81,7 +80,7 @@ export async function syncMusic(
       message: "No directories to sync provided.",
     }
 
-    log.error.red("No directories to sync provided", error)
+    console.error("No directories to sync provided", error)
 
     emitter.emit({
       event: "syncedMusic",
@@ -93,7 +92,7 @@ export async function syncMusic(
 
   emitter.showNotification({ label: NOTIFICATION_LABEL.syncStarted })
 
-  log("Reading out dirs")
+  console.log("Reading out dirs")
 
   const directoriesContents = await Promise.all(
     directories
@@ -103,22 +102,24 @@ export async function syncMusic(
 
   const folderReadErrors = getLeftValues(directoriesContents)
 
-  if (folderReadErrors.length > 0) log("folderReadErrors:", folderReadErrors)
+  if (folderReadErrors.length > 0)
+    console.log("folderReadErrors:", folderReadErrors)
 
   const allFiles = getRightValues(directoriesContents).flat()
 
   const supportedFiles = getSupportedMusicFiles(allFiles)
   const unsupportedFiles = getUnsupportedMusicFiles(allFiles)
 
-  if (unsupportedFiles.length > 0) log("unsupportedFiles:", unsupportedFiles)
+  if (unsupportedFiles.length > 0)
+    console.log("unsupportedFiles:", unsupportedFiles)
 
   const { left: fileReadErrors, right: rawMetaData } = getLeftsRights(
     await Promise.all(supportedFiles.map(getRawMetaDataFromFilepath))
   )
 
-  if (fileReadErrors.length > 0) log("fileReadErrors:", fileReadErrors)
+  if (fileReadErrors.length > 0) console.log("fileReadErrors:", fileReadErrors)
 
-  log("Getting metadata")
+  console.log("Getting metadata")
 
   const metaData = await Promise.all(
     rawMetaData.map(convertMetadata(coversDirectory))
@@ -136,9 +137,10 @@ export async function syncMusic(
     )
   )
 
-  if (coverWriteErrors.length > 0) log("coverWriteErrors:", coverWriteErrors)
+  if (coverWriteErrors.length > 0)
+    console.log("coverWriteErrors:", coverWriteErrors)
 
-  log("Updating database")
+  console.log("Updating database")
 
   // Add tracks to the database
   // Use a sync loop for Prisma as it might otherwise throw a timeOutException if it is done asynchronously
@@ -166,7 +168,7 @@ export async function syncMusic(
     await deleteUnusedCoversInDatabase(),
   ]) {
     if (E.isLeft(deleteResult)) {
-      log.error.red(deleteResult.left)
+      console.error(deleteResult.left)
     }
   }
 
@@ -175,7 +177,7 @@ export async function syncMusic(
   })) as E.Either<IError, readonly { filepath: FilePath }[]>
 
   if (E.isLeft(usedCoverFilepaths)) {
-    log.error.red("Failed getting covers at Sync:", usedCoverFilepaths.left)
+    console.error("Failed getting covers at Sync:", usedCoverFilepaths.left)
   } else {
     // Remove unused covers
     const deleteCoversFilesystemResult = await deleteFromDirectoryInverted(
@@ -184,9 +186,9 @@ export async function syncMusic(
     )
 
     if (E.isLeft(deleteCoversFilesystemResult))
-      log.error.red(deleteCoversFilesystemResult.left)
+      console.error(deleteCoversFilesystemResult.left)
     else if (deleteCoversFilesystemResult.right.deletionErrors.length > 0)
-      log.error.red(deleteCoversFilesystemResult.right.deletionErrors)
+      console.error(deleteCoversFilesystemResult.right.deletionErrors)
   }
 
   const artists = E.getOrElseW(() => {
@@ -210,5 +212,5 @@ export async function syncMusic(
     shouldForwardToRenderer: true,
   })
 
-  log.green("Finished syncing music")
+  console.log("Finished syncing music")
 }

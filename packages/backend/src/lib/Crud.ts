@@ -2,7 +2,6 @@ import { dequal } from "dequal"
 import * as E from "fp-ts/Either"
 import { pipe } from "fp-ts/lib/function"
 import * as RA from "fp-ts/lib/ReadonlyArray"
-import log from "ololog"
 import { isDefined } from "ts-is-present"
 import { match, P } from "ts-pattern"
 
@@ -30,7 +29,7 @@ import {
 } from "../Helper"
 
 import { SQL_STRINGS as SQL } from "./Consts"
-import { createPrismaClient } from "./CustomPrismaClient"
+import { prisma } from "./CustomPrismaClient"
 
 import type {
   IAddTracksToPlaylistArgument,
@@ -60,12 +59,9 @@ import type { FilePath } from "@sing-types/Filesystem"
 import type { IPlaylistID, ITrackID } from "@sing-types/Opaque"
 import type { IError, ISortOptions } from "@sing-types/Types"
 import type { IBackEndMessages, IPlaylistSetCoverArgument } from "@/types/Types"
-import type { PlaylistItem, Prisma, PrismaPromise } from "@prisma/client"
+import type { PlaylistItem, Prisma, PrismaPromise } from "@sing-prisma"
 import type { Either } from "fp-ts/Either"
 import type { IBackMessagesHandler } from "./Messages"
-
-log(process.argv[2])
-const prisma = createPrismaClient(process.argv[2])
 
 // TODO Update changed covers correctly (now they are getting deleted for whatever reason when they change)
 
@@ -214,7 +210,7 @@ export async function createPlaylist(
 
   if (E.isLeft(playlistData)) {
     emitter.showAlert({ label: "Failed to create playlist" })
-    log.red.error(playlistData)
+    console.error(playlistData)
     return playlistData
   }
 
@@ -244,7 +240,7 @@ export async function createPlaylist(
     })
     .catch((error) => {
       emitter.showAlert({ label: "Failed to create playlist" })
-      log.red.error(error)
+      console.error(error)
 
       return createError("Failed to create playlist at database")(error)
     })
@@ -353,7 +349,7 @@ export async function updatePlaylistCoverAfterTracksUpdate(
   })
 
   if (E.isLeft(playlist)) {
-    log.error.red(`Failed retrieving playlist afer update: ID: ${playlistID}`)
+    console.error(`Failed retrieving playlist afer update: ID: ${playlistID}`)
     return
   }
 
@@ -394,7 +390,7 @@ export async function updatePlaylistCoverAfterTracksUpdate(
         shouldForwardToRenderer: true,
       })
     })
-    .catch(log.error.red)
+    .catch(console.error)
 }
 
 export async function renamePlaylist(
@@ -485,7 +481,7 @@ export async function addTracksToPlaylist(
   )
 
   if (E.isLeft(trackIDs)) {
-    log.red.error(trackIDs.left)
+    console.error(trackIDs.left)
 
     toMainEmitter.emit({
       event: "createNotification",
@@ -507,7 +503,7 @@ export async function addTracksToPlaylist(
 
   E.foldW(
     (error) => {
-      log.error.red(error)
+      console.error(error)
       toMainEmitter.emit({
         event: "createNotification",
         data: {
@@ -556,7 +552,7 @@ export async function removeTracksFromPlaylist(
       })
     })
     .catch((error) => {
-      log.error.red(error)
+      console.error(error)
       mainEmitter.showAlert({
         label: "Failed to delete track" + (trackIDs.length > 1 ? "s" : ""),
       })

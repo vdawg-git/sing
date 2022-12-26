@@ -14,9 +14,8 @@
     "paths": {
       "@sing-renderer/*": ["../packages/renderer/src/*"],
       "@sing-main/*": ["../packages/main/src/*"],
-      "@sing-preload/*": ["../packages/preload/src/*"],
       "@sing-types/*": ["../types/*"]
     }
   },
-  "include": ["./**/*", "../packages/preload/contracts.d.ts"]
+  "include": ["./**/*"]
 }

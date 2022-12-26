@@ -6,7 +6,6 @@ import { notifiyError } from "@/Helper"
 
 import type { IPlaylist } from "@sing-types/DatabaseTypes"
 
-
 export const playlistsStore = readable<readonly IPlaylist[]>([], (set) => {
   window.api
     .getPlaylists()

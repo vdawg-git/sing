@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "esnext",
+    "module": "CommonJS",
     "target": "esnext",
     "sourceMap": false,
     "moduleResolution": "Node",
@@ -17,7 +17,8 @@
       "@sing-main/*": ["../main/src/*"],
       "@sing-backend/*": ["../backend/src/*"],
       "@sing-preload/*": ["../preload/src/*"],
-      "@sing-types/*": ["../../types/*"]
+      "@sing-types/*": ["../../types/*"],
+      "@sing-prisma": ["../generated/client"]
     }
   },
   "include": [
@@ -32,5 +33,10 @@
     "tests/**/*.ts",
     "src/_Scratch.js"
   ],
-  "exclude": ["./dist/**/*"]
+  "exclude": ["./dist/**/*"],
+  "ts-node": {
+    "transpileOnly": true,
+    "transpiler": "ts-node/transpilers/swc",
+    "require": ["tsconfig-paths/register"]
+  }
 }

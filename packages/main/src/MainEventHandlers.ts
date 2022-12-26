@@ -1,9 +1,7 @@
-import log from "ololog"
 import { app, BrowserWindow } from "electron"
 
-import { coversDirectory } from "../../main/src/Consts"
-import userSettingsStore from "../../main/src/lib/UserSettings"
-
+import { coversDirectory } from "./Constants"
+import userSettingsStore from "./lib/UserSettings"
 import { emitToBackend } from "./BackendProcess"
 
 import type {
@@ -28,7 +26,7 @@ export const mainEventHandlers = Object.freeze({
   syncFolders: async () => {
     const musicDirectories = userSettingsStore.get("musicFolders") ?? []
     if (!musicDirectories?.length) {
-      log.red("No music folders to add")
+      console.log("No music folders to add")
     }
 
     emitToBackend({
@@ -70,7 +68,7 @@ export const mainEventHandlers = Object.freeze({
     const window = BrowserWindow.fromWebContents(event.sender)
 
     if (window === null) {
-      log.error.red(
+      console.error(
         "Invalid minimize event received. The window could not be found."
       )
 

@@ -1,4 +1,4 @@
-import { pipe } from "fp-ts/Function"
+import { pipe } from "fp-ts/lib/function"
 import * as E from "fp-ts/lib/Either"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"

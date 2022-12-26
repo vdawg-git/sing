@@ -1,8 +1,7 @@
 import { fork } from "node:child_process"
 import path from "node:path"
 
-import { databaseURL } from "../../main/src/Consts"
-
+import { databaseURL, queryEnginePath } from "./Constants"
 import {
   createBackendEmitter,
   createBackendEnquirer,
@@ -10,8 +9,8 @@ import {
 } from "./Helper"
 
 export const backendProcess = fork(
-  path.join(__dirname, "../../backend/dist/index.cjs"),
-  [databaseURL]
+  path.join(__dirname, "../../backend/src/index.cjs"),
+  [databaseURL, queryEnginePath]
 )
 
 logProcessOutput(backendProcess, "backend")
