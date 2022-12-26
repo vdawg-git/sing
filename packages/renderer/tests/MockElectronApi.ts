@@ -5,7 +5,7 @@ import { vi } from "vitest"
 import trackFactory from "./factories/trackFactory"
 
 import type { Either } from "fp-ts/Either"
-import type * as ipcRenderer from "@sing-preload/ipcRenderer"
+import type * as ipcRenderer from "@sing-main/ipcRenderer"
 import type { IError, ITrack } from "@sing-types/Types"
 import type { IUserSettingsKey } from "@sing-main/lib/UserSettings"
 

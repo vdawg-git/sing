@@ -14,9 +14,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@tests/*": ["./tests/*"],
-      "@sing-main/*": ["../main/src/*"],
       "@sing-backend/*": ["../backend/src/*"],
-      "@sing-preload/*": ["../preload/src/*"],
       "@sing-types/*": ["../../types/*"],
       "@sing-prisma": ["../generated/client"]
     }
@@ -27,7 +25,6 @@
     "../backend/src/types/**.ts",
     "../../types/**/*.d.ts",
     "../../types/Track.ts",
-    "../preload/src/Crud.ts",
     "**/*.spec.ts",
     "**/*.test.ts",
     "tests/**/*.ts",

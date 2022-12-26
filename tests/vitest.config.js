@@ -20,13 +20,6 @@ const config = {
         "src"
       )}/`,
       "@sing-main/*": `${join(PACKAGE_ROOT, "..", "packages", "main", "src")}/`,
-      "@sing-preload/*": `${join(
-        PACKAGE_ROOT,
-        "..",
-        "packages",
-        "preload",
-        "src"
-      )}/`,
       "@sing-types/*": `${join(PACKAGE_ROOT, "..", "types")}/`,
       "@": `${join(PACKAGE_ROOT)}/`,
     },

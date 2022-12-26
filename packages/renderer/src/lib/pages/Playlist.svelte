@@ -24,7 +24,7 @@
     IHeroAction,
     IHeroMetaDataItem,
   } from "@/types/Types"
-  import type { TypedIpcRenderer } from "@sing-preload/types/Types"
+  import type { TypedIpcRenderer } from "@sing-main/types/Types"
   import type { IPlaylistID } from "@sing-types/Opaque"
   import type { ISortOptions } from "@sing-types/Types"
   import type {

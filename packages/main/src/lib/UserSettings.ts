@@ -1,6 +1,6 @@
 import ElectronStore from "electron-store"
 
-import type { DirectoryPath } from "@sing-types/Filesystem"
+import type { DirectoryPath } from "../../../../types/Filesystem"
 
 export interface IUserSettings {
   musicFolders?: DirectoryPath[]
@@ -20,6 +20,4 @@ const schema = {
 }
 
 // @ts-expect-error
-const userSettingsStore = new ElectronStore<IUserSettings>({ schema })
-
-export default userSettingsStore
+export const userSettingsStore = new ElectronStore<IUserSettings>({ schema })

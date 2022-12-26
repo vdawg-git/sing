@@ -5,13 +5,10 @@ import slash from "slash"
 import { match } from "ts-pattern"
 
 import { coversDirectory, electronPaths } from "./Constants"
-import userSettingsStore from "./lib/UserSettings"
+import { userSettingsStore } from "./lib/UserSettings"
 import { queryBackend } from "./BackendProcess"
 
-import type {
-  IUserSettings,
-  IUserSettingsKey,
-} from "@sing-main/lib/UserSettings"
+import type { IUserSettings, IUserSettingsKey } from "@/lib/UserSettings"
 import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"
 import type {
   IAlbum,
@@ -209,7 +206,7 @@ export const mainQueryHandlers = Object.freeze({
       arguments_: { ...options, coversDirectory },
     }),
 
-  isMacOS: async () => os.platform() === "darwin",
+  isMacOS: async (_: IpcMainInvokeEvent) => os.platform() === "darwin",
 
   /**
    * @returns If fullscreen is set.

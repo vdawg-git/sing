@@ -1,13 +1,10 @@
 import { ipcRenderer } from "./TypedIPC"
 
-import type {
-  IUserSettings,
-  IUserSettingsKey,
-} from "@sing-main/lib/UserSettings"
+import type { IUserSettings, IUserSettingsKey } from "./lib/UserSettings"
 import type {
   IFrontendEventsConsume,
   IFrontendEventsSend,
-} from "@sing-types/IPC"
+} from "../../../types/IPC"
 import type {
   IAlbumFindManyArgument,
   IAlbumGetArgument,
@@ -23,9 +20,9 @@ import type {
   IPlaylistEditDescriptionArgument,
   IPlaylistUpdateCoverArgumentSend,
   IMusicIDsUnion,
-} from "@sing-types/DatabaseTypes"
+} from "../../../types/DatabaseTypes"
 import type { IMainQueryHandlers } from "./types/Types"
-import type { Prisma } from "@prisma/client"
+import type { Prisma } from "../../generated/client"
 
 export async function getPlaylists(options?: IPlaylistFindManyArgument) {
   return ipcRenderer.invoke("getPlaylists", options)

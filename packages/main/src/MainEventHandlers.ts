@@ -1,7 +1,7 @@
 import { app, BrowserWindow } from "electron"
 
 import { coversDirectory } from "./Constants"
-import userSettingsStore from "./lib/UserSettings"
+import { userSettingsStore } from "./lib/UserSettings"
 import { emitToBackend } from "./BackendProcess"
 
 import type {

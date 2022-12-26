@@ -1,9 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte"
 
-
   import { TEST_IDS as id } from "@/TestConsts"
-  import { backgroundImages } from "@/lib//stores/BackgroundImages"
+  import { backgroundImages } from "@/lib/stores/BackgroundImages"
 
   import Button from "@/lib/atoms/Button.svelte"
   import FoldersPicker from "@/lib/organisms/FoldersPicker.svelte"
@@ -44,7 +43,10 @@
             return
           }
           console.log("Syncing paths: " + paths)
-          await window.api.setUserSettings({setting: "musicFolders",value: paths})
+          await window.api.setUserSettings({
+            setting: "musicFolders",
+            value: paths,
+          })
 
           await window.api.sync()
         }}
