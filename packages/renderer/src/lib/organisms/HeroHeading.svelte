@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { useNavigate } from "svelte-navigator"
+
   import { doTextResizeToFitElement } from "@/Helper"
 
   import CoverAndPlaylistThumbnail from "../atoms/CoverAndPlaylistThumbnail.svelte"
@@ -8,8 +10,6 @@
   import type { FilePath } from "@sing-types/Filesystem"
   import type { EventHandler } from "@sing-types/Utilities"
   import type { IHeroAction, IHeroMetaDataItem } from "@/types/Types"
-
-
 
   /**
    * The cover(s) to display
@@ -26,6 +26,7 @@
   export let handleClickTitle: EventHandler | undefined = undefined
   export let handleClickDescription: EventHandler | undefined = undefined
 
+  const navigate = useNavigate()
   // TODO disable focus indicator for now
 
   // TODO Make scrollbars vanish when user has not scrolled for a while
@@ -89,17 +90,22 @@
 
       <!-- Metadata -->
       <div class="flex gap-2">
-        {#each metadata as data}
-          {#await data then awaitedData}
+        {#each metadata as data, index}
+          {#await data then { bold, to, label }}
             <div
-              class={awaitedData.bold
-                ? "text-bold text-white"
-                : "text-grey-100"}
+              on:click={to
+                ? () => {
+                    navigate(to)
+                  }
+                : undefined}
+              class={`
+                ${to && "cursor-pointer"} 
+                ${bold ? "text-bold text-white" : "text-grey-100"}`}
             >
-              {awaitedData.label}
+              {label}
             </div>
-            {#if metadata.length > 1}
-              <div>•</div>
+            {#if metadata.length > 1 && index !== metadata.length - 1}
+              <div class="font-normal text-grey-100">•</div>
             {/if}
           {/await}
         {/each}

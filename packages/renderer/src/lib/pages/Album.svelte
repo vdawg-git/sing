@@ -10,6 +10,7 @@
   import { addNotification } from "@/lib/stores/NotificationStore"
   import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
   import { playNewSource } from "@/lib/manager/player"
+  import { createArtistURI } from "@/Routes"
 
   import { backgroundImages } from "../stores/BackgroundImages"
   import { playlistsStore } from "../stores/PlaylistsStore"
@@ -30,7 +31,6 @@
    * This gets set automatically by svelte-navigator as a string.
    */
   export let albumID: number | string
-  console.log("🚀 ~ file: Album.svelte:30 ~ albumID", albumID)
 
   // The parameters are always strings. So we convert it later
   const parameters = useParams<{ albumID: string }>()
@@ -47,10 +47,6 @@
   // Update the page when the album is changed on navigation
   onMount(
     parameters.subscribe(({ albumID: newAlbumID }) => {
-      console.log(
-        "🚀 ~ file: Album.svelte:50 ~ parameters.subscribe ~ newAlbumID",
-        newAlbumID
-      )
       if (Number(newAlbumID) === albumID) return
 
       albumID = Number(newAlbumID)
@@ -63,7 +59,14 @@
   $: tracks = album === undefined ? [] : album?.tracks
 
   let metadata: IHeroMetaDataItem[]
-  $: metadata = [{ label: displayTypeWithCount("track", tracks.length) }]
+  $: metadata = [
+    {
+      label: album?.artist ?? "",
+      bold: true,
+      to: createArtistURI(album?.artist ?? ""),
+    },
+    { label: displayTypeWithCount("track", tracks.length) },
+  ]
 
   let actions: readonly IHeroAction[]
   $: actions = [
