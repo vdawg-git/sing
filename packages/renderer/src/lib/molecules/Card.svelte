@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte"
   import IconPlay from "virtual:icons/heroicons/play-circle-solid"
 
   import CoverAndPlaylistThumbnail from "../atoms/CoverAndPlaylistThumbnail.svelte"
@@ -7,32 +6,12 @@
 
   import type { ICardProperties } from "@/types/Types"
 
-  interface IDispatcher {
-    clickedPrimary: never
-    clickedSecondary: never
-    play: never
-  }
-
-  const dispatch = createEventDispatcher<IDispatcher>()
-
   // TODO make secondary text not having hover when there is no action for it.
 
   export let data: ICardProperties
   export let isImageCircle = false
 
   $: contextMenuItems = data.contextMenuItems
-
-  function handleClickPrimary(_: MouseEvent) {
-    dispatch("clickedPrimary")
-  }
-
-  function handleClickSecondary() {
-    dispatch("clickedSecondary")
-  }
-
-  function handlePlay() {
-    dispatch("play")
-  }
 </script>
 
 <div
@@ -47,7 +26,7 @@
   >
     <!--- Cover -->
     <div class="relative h-[188px] w-[188px]">
-      <a on:click={handleClickPrimary}>
+      <a on:click={data.onClickPrimary}>
         <div class="cover_ cursor-pointer">
           <CoverAndPlaylistThumbnail
             classes=""
@@ -60,25 +39,25 @@
       <button
         class="playButton_ absolute -bottom-4 right-0 z-10 h-14 w-14  rounded-full text-white   opacity-0 transition-all
         group-hover:opacity-100"
-        on:click={handlePlay}
+        on:click={data.onPlay}
       >
         <IconPlay class="h-14 w-14" />
       </button>
     </div>
 
-    <!--- Metadata - Name & Artist -->
+    <!--- Metadata - Title & Secondary -->
     <div class="flex flex-col">
       <div
-        class="max-w-fit cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap text-lg text-white transition-colors hover:text-grey-100"
-        on:click={handleClickPrimary}
+        class="transition-color max-w-fit cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap text-lg text-white"
+        on:click={data.onClickPrimary}
       >
         {data.title}
       </div>
       {#if data.secondaryText}
         <a
           class="max-w-max  overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold tracking-wider text-grey-200 
-          {handleClickSecondary ? 'cursor-pointer hover:underline' : ''}"
-          on:click={handleClickSecondary}
+          {data.onClickSecondary ? 'cursor-pointer hover:underline' : ''}"
+          on:click={data.onClickSecondary}
         >
           {data.secondaryText}
         </a>

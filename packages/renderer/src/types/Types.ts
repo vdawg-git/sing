@@ -45,10 +45,12 @@ export type IHeroAction = {
  */
 export type ICardProperties = {
   readonly title: string
-  readonly id: string | number
   readonly secondaryText?: string
   readonly image?: FilePath | readonly FilePath[]
   readonly contextMenuItems: IMenuItemsArgument
+  readonly onPlay: () => void
+  readonly onClickPrimary: () => void
+  readonly onClickSecondary?: () => void
 }
 
 export type IMenuID = symbol | "main"

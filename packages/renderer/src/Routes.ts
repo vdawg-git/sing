@@ -6,15 +6,15 @@ export type IMainRoutes = keyof typeof ROUTES
 export type IRoutes = IMainRoutes | IPlaylistRoute | IArtistRoute | IAlbumRoute
 
 export function createArtistURI(artistId: IArtist["name"]): IArtistRoute {
-  return `${ROUTES.artists}/${artistId}`
+  return `/${ROUTES.artists}/${artistId}`
 }
 
 export function createAlbumURI(albumId: IAlbum["id"]): IAlbumRoute {
-  return `${ROUTES.albums}/${albumId}`
+  return `/${ROUTES.albums}/${albumId}`
 }
 
 export function createPlaylistURI(plalylistID: IPlaylistID): IPlaylistRoute {
-  return `${ROUTES.playlists}/${plalylistID}`
+  return `/${ROUTES.playlists}/${plalylistID}`
 }
 
 export enum ROUTES {
@@ -26,6 +26,6 @@ export enum ROUTES {
   settingsLibrary = "settingsLibrary",
 }
 
-type IArtistRoute = `${typeof ROUTES.artists}/${IArtist["name"]}`
-type IAlbumRoute = `${typeof ROUTES.albums}/${IAlbum["id"]}`
-type IPlaylistRoute = `${typeof ROUTES.playlists}/${IPlaylistID}`
+type IArtistRoute = `/${typeof ROUTES.artists}/${IArtist["name"]}`
+type IAlbumRoute = `/${typeof ROUTES.albums}/${IAlbum["id"]}`
+type IPlaylistRoute = `/${typeof ROUTES.playlists}/${IPlaylistID}`

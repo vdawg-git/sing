@@ -11,7 +11,10 @@
   import { addNotification } from "@/lib/stores/NotificationStore"
   import { playNewSource } from "@/lib/manager/player"
   import { playlistsStore } from "@/lib/stores/PlaylistsStore"
-  import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
+  import {
+    convertAlbumToCardData,
+    createAddToPlaylistAndQueueMenuItems,
+  } from "@/Helper"
   import { TEST_IDS } from "@/TestConsts"
 
   import CardList from "../organisms/CardList.svelte"
@@ -127,27 +130,9 @@
 
   {#if artist.albums.length > 0}
     <CardList
-      items={artist.albums.map(({ name, cover, artist: albumArtist, id }) => ({
-        title: name,
-        id,
-        image: cover,
-        secondaryText: albumArtist,
-        contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)(
-          {
-            type: "album",
-            name,
-            id,
-          }
-        ),
-      }))}
-      on:play={({ detail: id }) =>
-        playNewSource({
-          source: "album",
-          sourceID: id,
-          sortBy: ["trackNo", "ascending"],
-        })}
-      on:clickedPrimary={({ detail: id }) =>
-        navigate(`/${ROUTES.albums}/${id}`)}
+      items={artist.albums.map(
+        convertAlbumToCardData({ navigate, $playlistsStore })
+      )}
     />
   {/if}
 {/if}

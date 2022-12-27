@@ -7,7 +7,7 @@
   import { moveItemTo, removeDuplicates } from "@sing-shared/Pures"
   import { UNKNOWN_ARTIST } from "@sing-shared/Consts"
 
-  import { ROUTES } from "@/Routes"
+  import { createArtistURI, ROUTES } from "@/Routes"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
   import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
   import { artists, playNewSource } from "@/lib/manager/player"
@@ -21,10 +21,6 @@
   import type { ICardProperties } from "@/types/Types"
 
   const navigate = useNavigate()
-
-  function navigateToArtist({ detail: id }: { detail: number }) {
-    navigate(`/${ROUTES.artists}/${id}`)
-  }
 
   $: {
     backgroundImages.set(
@@ -40,11 +36,17 @@
 
   let items: ICardProperties[]
   $: {
-    const allItems = $artists.map((artist) => ({
+    const allItems: ICardProperties[] = $artists.map((artist) => ({
       title: artist.name,
-      id: artist.name,
       image: artist.albums.find((album) => album.cover !== undefined)?.cover,
       secondaryText: "Artist",
+      onClickPrimary: () => navigate(createArtistURI(artist.name)),
+      onPlay: () =>
+        playNewSource({
+          sourceID: artist.name,
+          source: "artist",
+          sortBy: ["album", "ascending"],
+        }),
       contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)({
         type: "artist",
         name: artist.name,
@@ -71,16 +73,5 @@
 {#if $artists.length === 0}
   <NothingHereYet />
 {:else}
-  <CardList
-    {items}
-    isImageCircle={true}
-    on:play={({ detail: id }) =>
-      playNewSource({
-        sourceID: id,
-        source: "artist",
-        sortBy: ["album", "ascending"],
-      })}
-    on:clickedPrimary={navigateToArtist}
-    on:clickedSecondary={navigateToArtist}
-  />
+  <CardList {items} isImageCircle={true} />
 {/if}

@@ -8,12 +8,13 @@ import { isDefined } from "ts-is-present"
 import {
   addTracksToManualQueueBeginning,
   addTracksToManualQueueEnd,
+  playNewSource,
 } from "@/lib/manager/player"
 
 import { convertFilepathToFilename, getErrorMessage } from "../../shared/Pures"
 
 import { addNotification } from "./lib/stores/NotificationStore"
-import { ROUTES } from "./Routes"
+import { createAlbumURI, createArtistURI, ROUTES } from "./Routes"
 
 import type { IError } from "@sing-types/Types"
 import type {
@@ -21,10 +22,12 @@ import type {
   IPlaylist,
   IPlaylistCreateArgument,
   IMusicIDsUnion,
+  IAlbum,
 } from "@sing-types/DatabaseTypes"
-import type { HistorySource } from "svelte-navigator"
+import type { HistorySource, NavigateFn } from "svelte-navigator"
 import type AnyObject from "svelte-navigator/types/AnyObject"
 import type {
+  ICardProperties,
   ICreateMenuOutOfMusic,
   IMenuItemArgument,
   IMenuItemsArgument,
@@ -434,4 +437,31 @@ export function createAddToPlaylistAndQueueMenuItems(
   playlists: readonly IPlaylist[]
 ): ICreateMenuOutOfMusic {
   return (item) => createAddToPlaylistAndQueueMenuItemsBase(item, playlists)
+}
+
+export function convertAlbumToCardData({
+  navigate,
+  $playlistsStore,
+}: {
+  navigate: NavigateFn
+  $playlistsStore: readonly IPlaylist[]
+}): (album: IAlbum) => ICardProperties {
+  return ({ name, cover, id, artist }: IAlbum) => ({
+    title: name,
+    image: cover,
+    secondaryText: artist,
+    onPlay: () =>
+      playNewSource({
+        sourceID: id,
+        source: "album",
+        sortBy: ["trackNo", "ascending"],
+      }),
+    onClickPrimary: () => navigate(createAlbumURI(id)),
+    onClickSecondary: () => navigate(createArtistURI(artist)),
+    contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)({
+      type: "album",
+      name,
+      id,
+    }),
+  })
 }

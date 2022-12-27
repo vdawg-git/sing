@@ -11,10 +11,9 @@
   } from "@sing-shared/Pures"
   import { UNKNOWN_ALBUM } from "@sing-shared/Consts"
 
-  import { ROUTES } from "@/Routes"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
-  import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
-  import { albums, playNewSource } from "@/lib/manager/player"
+  import { convertAlbumToCardData } from "@/Helper"
+  import { albums } from "@/lib/manager/player"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
 
@@ -37,17 +36,9 @@
 
   let items: readonly ICardProperties[]
   $: {
-    const allItems = $albums.map(({ name, cover, id }) => ({
-      title: name,
-      id: id,
-      image: cover,
-      secondaryText: "Album",
-      contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)({
-        type: "album",
-        name,
-        id,
-      }),
-    }))
+    const allItems: ICardProperties[] = $albums.map(
+      convertAlbumToCardData({ navigate, $playlistsStore })
+    )
 
     //  If there is "Unknown album", move it to the top.
     items = pipe(
@@ -69,16 +60,5 @@
 {#if $albums.length === 0}
   <NothingHereYet />
 {:else}
-  <CardList
-    {items}
-    on:play={({ detail: id }) =>
-      playNewSource({
-        sourceID: id,
-        source: "album",
-        sortBy: ["trackNo", "ascending"],
-      })}
-    on:clickedPrimary={({ detail: id }) => navigate(`/${ROUTES.albums}/${id}`)}
-    on:clickedSecondary={({ detail: id }) =>
-      navigate(`/${ROUTES.artists}/${id}`)}
-  />
+  <CardList {items} />
 {/if}

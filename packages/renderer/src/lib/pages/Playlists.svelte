@@ -1,7 +1,7 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
 
-  import { ROUTES } from "@/Routes"
+  import { createPlaylistURI } from "@/Routes"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
   import {
     createAddToPlaylistAndQueueMenuItems,
@@ -16,16 +16,23 @@
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
   import NothingHereYet from "@/lib/organisms/NothingHereYet.svelte"
 
-  import type { IMenuItemsArgument } from "@/types/Types"
+  import type { ICardProperties, IMenuItemsArgument } from "@/types/Types"
   import type { IPlaylist } from "@sing-types/DatabaseTypes"
 
   const navigate = useNavigate()
 
   // TODO add "Create your first playlist" button
 
+  let items: ICardProperties[]
   $: items = $playlistsStore.map((playlist) => ({
     title: playlist.name,
-    id: playlist.id,
+    onPlay: () =>
+      playNewSource({
+        sourceID: playlist.id,
+        source: "playlist",
+        sortBy: ["trackNo", "ascending"],
+      }),
+    onClickPrimary: () => navigate(createPlaylistURI(playlist.id)),
     image: playlist.thumbnailCovers?.map(({ filepath }) => filepath),
     secondaryText: "Playlist",
     contextMenuItems: createContextMenuItems(playlist),
@@ -72,15 +79,5 @@
     on:click={() => createAndNavigateToPlaylist(navigate)}
   />
 {:else}
-  <CardList
-    {items}
-    on:play={({ detail: id }) =>
-      playNewSource({
-        sourceID: id,
-        source: "playlist",
-        sortBy: ["trackNo", "ascending"],
-      })}
-    on:clickedPrimary={({ detail: id }) =>
-      navigate(`/${ROUTES.playlists}/${id}`)}
-  />
+  <CardList {items} />
 {/if}
