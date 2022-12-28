@@ -167,7 +167,7 @@ export const mainQueryHandlers = Object.freeze({
     const dialogOptions: Electron.OpenDialogOptions = {
       ...options,
       properties: ["openFile"],
-      filters: [{ extensions: ["png", "webp", "jpg", "gif"], name: "Images" }],
+      filters: [{ extensions: ["png", "webp", "jpg", "gif"], name: "Image" }],
       defaultPath: app.getPath("pictures"),
     }
 
