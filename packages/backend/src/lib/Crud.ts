@@ -683,9 +683,9 @@ export async function getTracks(
 
   return prisma.track
     .findMany(prismaOptions)
+    .then((tracks) => sortTracks(usedSort)(tracks))
     .then(RA.map(removeNulledKeys))
-    .then((tracks) => sortTracks(usedSort)(tracks as readonly ITrack[]))
-    .then(E.right)
+    .then((tracks) => E.right(tracks as readonly ITrack[]))
     .catch(createError("Failed to get tracks from database"))
 }
 
@@ -701,20 +701,25 @@ export async function getCovers(
 }
 
 export async function addTrackToDatabase(
-  track: Prisma.TrackCreateInput
+  trackInput: Prisma.TrackCreateInput
 ): Promise<Either<IError, ITrack>> {
-  return prisma.track
+  await prisma.$queryRaw`PRAGMA foreign_keys = OFF`
+
+  const result = prisma.track
     .upsert({
       where: {
-        filepath: track.filepath,
+        filepath: trackInput.filepath,
       },
-      update: track,
-      create: track,
+      update: trackInput,
+      create: trackInput,
     })
     .then(removeNulledKeys)
-
     .then((addedTrack) => E.right(addedTrack as ITrack))
     .catch(createError("Failed to add track to database"))
+
+  await prisma.$queryRaw`PRAGMA foreign_keys = ON`
+
+  return result
 }
 
 export async function deleteTracksInverted(

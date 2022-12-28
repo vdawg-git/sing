@@ -22,7 +22,7 @@
 
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
 
-  import type { IHeroAction } from "@/types/Types"
+  import type { IHeroAction, IHeroMetaDataItem } from "@/types/Types"
   import type { IArtistWithAlbumsAndTracks } from "@sing-types/DatabaseTypes"
   import type { IError, INewPlayback, ISortOptions } from "@sing-types/Types"
   import type { Either } from "fp-ts/lib/Either"
@@ -34,7 +34,8 @@
   const navigate = useNavigate()
   const parameters = useParams<{ artistID: string }>()
 
-  let artist: IArtistWithAlbumsAndTracks | undefined = undefined
+  let artist: IArtistWithAlbumsAndTracks | undefined
+
   $: {
     getArtist(artistID).then((newArtist) => {
       artist = newArtist
@@ -43,7 +44,8 @@
   $: tracks = artist?.tracks ?? []
   $: backgroundImages.set(artist?.image)
 
-  $: console.log("🚀 ~ file: Artist.svelte:36 ~ artist", artist)
+  // This check is used as an (album)artist like "Various Artist" does not nessecarily have tracks on his owm, but albums
+  $: hasTracks = artist !== undefined && tracks.length > 0
 
   onMount(
     parameters.subscribe(async ({ artistID: newArtistID }) => {
@@ -62,28 +64,38 @@
   }
 
   let actions: IHeroAction[]
-  $: actions = [
-    {
-      label: "Play",
-      icon: IconPlay,
-      callback: async () =>
-        playNewSource({
-          ...source,
-          isShuffleOn: false,
-        }),
-      primary: true,
-    },
-    {
-      label: "Shuffle",
-      icon: IconShuffle,
-      callback: async () =>
-        playNewSource({
-          ...source,
-          isShuffleOn: true,
-        }),
-      primary: false,
-    },
-  ]
+  $: actions = hasTracks
+    ? [
+        {
+          label: "Play",
+          icon: IconPlay,
+          callback: async () =>
+            playNewSource({
+              ...source,
+              isShuffleOn: false,
+            }),
+          primary: true,
+        },
+        {
+          label: "Shuffle",
+          icon: IconShuffle,
+          callback: async () =>
+            playNewSource({
+              ...source,
+              isShuffleOn: true,
+            }),
+          primary: false,
+        },
+      ]
+    : []
+
+  let metadata: readonly IHeroMetaDataItem[] = hasTracks
+    ? [
+        {
+          label: displayTypeWithCount("track", tracks.length),
+        },
+      ]
+    : []
 
   // TODO get albums in which the artist is featured, too
   async function getArtist(albumID: string) {
@@ -103,29 +115,21 @@
 </script>
 
 {#if artist}
-  <HeroHeading
-    title={artistID}
-    metadata={[
-      {
-        label: displayTypeWithCount("track", artist.tracks.length),
-      },
-    ]}
-    type="Artist"
-    {actions}
-  />
+  <HeroHeading title={artistID} {metadata} type="Artist" {actions} />
 
-  <TrackList
-    {tracks}
-    sort={sortBy}
-    displayOptions={{ artist: false }}
-    createContextMenuItems={createAddToPlaylistAndQueueMenuItems(
-      $playlistsStore
-    )}
-    testID={TEST_IDS.trackItems}
-    on:play={async ({ detail }) => playNewSource(source, detail.index)}
-  />
-
-  <h2 class="mb-8 -mt-16 text-4xl">Albums</h2>
+  {#if tracks.length > 0}
+    <TrackList
+      {tracks}
+      sort={sortBy}
+      displayOptions={{ artist: false }}
+      createContextMenuItems={createAddToPlaylistAndQueueMenuItems(
+        $playlistsStore
+      )}
+      testID={TEST_IDS.trackItems}
+      on:play={async ({ detail }) => playNewSource(source, detail.index)}
+    />
+    <h2 class="mb-8 -mt-16 text-4xl">Albums</h2>
+  {/if}
 
   {#if artist.albums.length > 0}
     <CardList

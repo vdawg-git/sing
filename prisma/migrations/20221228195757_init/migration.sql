@@ -5,6 +5,7 @@ CREATE TABLE "Track" (
     "filepath" TEXT NOT NULL,
     "artist" TEXT NOT NULL,
     "albumartist" TEXT,
+    "albumID" INTEGER NOT NULL,
     "album" TEXT NOT NULL,
     "cover" TEXT,
     "playCount" INTEGER DEFAULT 0,
@@ -132,7 +133,7 @@ CREATE TABLE "Track" (
     "type" TEXT NOT NULL DEFAULT 'track',
     CONSTRAINT "Track_artist_fkey" FOREIGN KEY ("artist") REFERENCES "Artist" ("name") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "Track_albumartist_fkey" FOREIGN KEY ("albumartist") REFERENCES "Artist" ("name") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "Track_album_artist_fkey" FOREIGN KEY ("album", "artist") REFERENCES "Album" ("name", "artist") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Track_albumID_album_fkey" FOREIGN KEY ("albumID", "album") REFERENCES "Album" ("id", "name") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "Track_cover_fkey" FOREIGN KEY ("cover") REFERENCES "Cover" ("filepath") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
@@ -194,6 +195,9 @@ CREATE UNIQUE INDEX "Track_filepath_key" ON "Track"("filepath");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Album_name_artist_key" ON "Album"("name", "artist");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Album_name_id_key" ON "Album"("name", "id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Cover_filepath_key" ON "Cover"("filepath");

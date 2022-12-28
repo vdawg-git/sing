@@ -21,8 +21,9 @@ model Track {
   artist           String /// The id of the track's artist
   albumartistEntry Artist? @relation(name: "albumartist", fields: [albumartist], references: [name]) /// The database entry for the track's album artist 
   albumartist      String? /// The id of the track's album artist
-  albumEntry       Album   @relation(name: "album", fields: [album, artist], references: [name, artist], onDelete: Cascade, onUpdate: Cascade) /// The database entry for the track's album
-  album            String /// The id of the track's album
+  albumEntry       Album   @relation(name: "album", fields: [albumID, album], references: [id, name], onDelete: Cascade, onUpdate: Cascade) /// The database entry for the track's album
+  albumID          Int /// The id of the album
+  album            String /// The name of the album
   coverEntry       Cover?  @relation(fields: [cover], references: [filepath]) /// The database entry for the track's cover
   cover            String? /// The id / path of the track's cover
 
@@ -174,6 +175,7 @@ model Album {
   type String @default("album") /// ###DO NOT SET THIS. This is is used to provide a discriminating union for typescript.
 
   @@unique([name, artist])
+  @@unique([name, id]) // This is used to provide the name and id to the Track record, as otherwise linking it would not work or would require a lot of manual runtime mapping.
 }
 
 model Artist {

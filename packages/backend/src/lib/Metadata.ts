@@ -1,3 +1,5 @@
+import Util from "node:util"
+
 import { curry2 } from "fp-ts-std/Function"
 import { pipe } from "fp-ts/lib/function"
 import * as E from "fp-ts/lib/Either"
@@ -167,6 +169,10 @@ async function addRelationFieldsNotCurried<
         }
       : undefined
 
+  /**
+   * If no artist is found in the metadata, `UNKNOWN_ARTIST` will be used.
+   * Thus `artist` is always set in the database.
+   */
   const artistInput: Prisma.ArtistCreateNestedOneWithoutAlbumsInput =
     artist !== undefined || artist === ""
       ? {
@@ -182,6 +188,9 @@ async function addRelationFieldsNotCurried<
           },
         }
 
+  /**
+   * Can be undefined, thus `null` in the database.
+   */
   const albumartistInput:
     | Prisma.ArtistCreateNestedOneWithoutAlbumsInput
     | undefined =
@@ -199,11 +208,14 @@ async function addRelationFieldsNotCurried<
       ? {
           connectOrCreate: {
             where: {
-              name_artist: { name: album, artist: artist ?? UNKNOWN_ARTIST },
+              name_artist: {
+                name: album,
+                artist: (albumartist || artist) ?? UNKNOWN_ARTIST,
+              },
             },
             create: {
               name: album,
-              artistEntry: artistInput, // TODO display the most used artist for the album if no album artist is set
+              artistEntry: albumartistInput || artistInput,
               ...(coverInput !== undefined && { coverEntry: coverInput }),
             },
           },
@@ -224,6 +236,11 @@ async function addRelationFieldsNotCurried<
             },
           },
         }
+
+  console.log(
+    "\n\n\n😺😺\n",
+    Util.inspect({ albumInput, artistInput }, { depth: 10, colors: true })
+  )
 
   return {
     ...(data as StrictOmit<T, "album" | "albumartist" | "artist" | "picture">),

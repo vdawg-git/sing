@@ -48,7 +48,7 @@ export const electronPaths = [
 process.env.DATABASE_URL = databaseURL
 
 // This needs to be updated every time you create a migration!
-export const latestMigration = "20221225161131_init"
+export const latestMigration = "20221228195757_init"
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const platformToExecutables: any = {
   win32: {

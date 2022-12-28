@@ -1,7 +1,7 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
 
-  import { ROUTES } from "@/Routes"
+  import { createAlbumURI, createArtistURI } from "@/Routes"
   import { displayTrackMetadata } from "@/Helper"
   import { TEST_ATTRIBUTES } from "@/TestConsts"
 
@@ -33,9 +33,11 @@
   function navigateTo(type: StrictExtract<keyof ITrack, "album" | "artist">) {
     if (!track[type]) return () => undefined
 
-    const route = `/${type === "album" ? ROUTES.albums : ROUTES.artists}/${
-      track[type]
-    }`
+    const route =
+      type === "album"
+        ? createAlbumURI(track.albumID)
+        : createArtistURI(track.artist)
+
     return () => navigate(route)
   }
 </script>
