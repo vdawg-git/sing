@@ -101,7 +101,7 @@
             <SearchResultBlock
               {data}
               on:closeSearchbar={close}
-              on:click={close}
+              on:close={close}
             />
           {/each}
           <!---- Spacer element -->

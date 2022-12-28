@@ -4,7 +4,7 @@ import IconPlay from "virtual:icons/heroicons/play"
 
 import { convertFilepathToFilename } from "@sing-shared/Pures"
 
-import { createAlbumURI, createArtistURI, ROUTES } from "@/Routes"
+import { createAlbumURI, createArtistURI } from "@/Routes"
 import { playTrackAsShuffledTracks } from "@/lib/manager/player"
 
 import type { IAlbum, IArtist, ITrack } from "@sing-types/DatabaseTypes"
@@ -79,7 +79,7 @@ function convertAlbumToSearchItem(
   album: IAlbum,
   label?: string
 ): ISearchResultItem {
-  const subtexts = createAlbumSubtexts(navigate, album?.artistEntry)
+  const subtexts = createAlbumSubtexts(navigate, album.artist)
 
   return {
     title: album.name,
@@ -109,13 +109,13 @@ function convertArtistToSearchItem(
 }
 function createAlbumSubtexts(
   navigate: NavigateFn,
-  albumArtist: IArtist | undefined
+  artistName: string | undefined
 ): ISearchItemSubtext[] {
-  return albumArtist
+  return artistName
     ? [
         {
-          label: albumArtist.name,
-          onClick: async () => navigate(createArtistURI(albumArtist.name)),
+          label: artistName,
+          onClick: async () => navigate(createArtistURI(artistName)),
         },
       ]
     : [{ label: "Unknown" }]
@@ -123,12 +123,12 @@ function createAlbumSubtexts(
 
 function createTrackSubtexts(
   navigate: (route: string) => void,
-  { album, artist }: ITrack
+  { albumID, artist, album }: ITrack
 ): readonly ISearchItemSubtext[] {
   const albumItem: ISearchItemSubtext | undefined = album
     ? {
         label: album,
-        onClick: async () => navigate(`${ROUTES.albums}/${album}`),
+        onClick: async () => navigate(createAlbumURI(albumID)),
       }
     : undefined
 

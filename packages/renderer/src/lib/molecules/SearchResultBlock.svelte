@@ -1,7 +1,7 @@
 <script lang="ts">
   import { match } from "ts-pattern"
   import { useNavigate } from "svelte-navigator"
-
+  import { createEventDispatcher } from "svelte"
 
   import SearchResultItem from "../atoms/SearchResultItem.svelte"
 
@@ -14,6 +14,8 @@
 
   export let data: IConvertedSearchData
   export let isExpanded = false
+
+  const dispatch = createEventDispatcher<{ close: never }>()
 
   const navigate = useNavigate()
 
@@ -53,8 +55,21 @@
     <!---- Results -->
     <div class="flex flex-col ">
       {#each isExpanded ? displayData : displayData.slice(0, amountToDisplay) as { title, label, subtexts, image, icon, onClick }}
-        <div on:click={onClick} on:click>
-          <SearchResultItem {image} {title} {label} {subtexts} {icon} />
+        <div
+          on:click={() => {
+            onClick()
+            dispatch("close")
+          }}
+          on:click
+        >
+          <SearchResultItem
+            {image}
+            {title}
+            {label}
+            {subtexts}
+            {icon}
+            on:close
+          />
         </div>
       {/each}
     </div>

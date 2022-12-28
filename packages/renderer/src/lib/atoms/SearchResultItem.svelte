@@ -1,7 +1,11 @@
 <script lang="ts">
+  import {
+    createEventDispatcher,
+    type SvelteComponentDev,
+  } from "svelte/internal"
+
   import type { FilePath } from "@sing-types/Filesystem"
   import type { ISearchItemSubtext } from "@sing-types/Types"
-  import type { SvelteComponentDev } from "svelte/internal"
 
   export let image: FilePath | undefined
   export let isImageCircle = false
@@ -9,6 +13,8 @@
   export let label: string | undefined
   export let subtexts: readonly ISearchItemSubtext[]
   export let icon: typeof SvelteComponentDev
+
+  const dispatch = createEventDispatcher<{ close: never }>()
 
   // TODO fix navigatin from artist page to artist page: Currently not updating albums
 </script>
@@ -58,10 +64,14 @@
             <div
               class="
                 flex- min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium tracking-wide text-grey-200
-               {onClick ? 'cursor-pointer hover:text-grey-300' : ''}
+               {onClick ? 'cursor-pointer hover:underline' : ''}
                {index === 0 ? 'shrink-[1] grow-[2]' : 'shrink-[2] grow-[1]'}
             "
-              on:click={onClick}
+              on:click|stopPropagation={() => {
+                if (!onClick) return
+                onClick()
+                dispatch("close")
+              }}
             >
               {subtextLabel}
             </div>
