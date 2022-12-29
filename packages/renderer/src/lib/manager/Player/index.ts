@@ -105,6 +105,16 @@ currentTrack.subscribe(($newCurrentTrack) => {
   $currentTrack = $newCurrentTrack
 
   setMediaSessionMetaData($currentTrack)
+
+  if ($currentTrack) {
+    audioPlayer.setSource($currentTrack.filepath)
+  } else {
+    console.log(
+      "🚀 ~ file: index.ts:110 ~ currentTrack.subscribe ~ No current track, stopping playback",
+      $currentTrack
+    )
+    playStateStore.set("none")
+  }
 })
 
 playbackStore.subscribe(($newPlayback) => {
@@ -129,9 +139,7 @@ manualQueueStore.subscribe(($newManuellQueue) => {
 
 // Events
 window.api.on("syncedMusic", handleSyncUpdate)
-audioPlayer.audio.addEventListener("ended", () => {
-  handleClickedNext()
-})
+audioPlayer.audio.addEventListener("ended", handleClickedNext)
 
 initialiseMediaKeysHandler({
   handleNextTrack: handleClickedNext,
@@ -169,7 +177,6 @@ export function handleClickedNext() {
   if ($isPlayingFromManualQueue) {
     const source = $manualQueue[0].filepath
     if ($playState === "playing") audioPlayer.play(source)
-    else audioPlayer.setSource(source)
 
     return
   }
@@ -307,9 +314,7 @@ function playPrevious() {
     throw new Error("No current track is defined after playing previous")
   }
 
-  if ($playState === "none" || $playState === "paused") {
-    audioPlayer.setSource($currentTrack.filepath)
-  } else {
+  if ($playState === "playing" || $playState === "paused") {
     audioPlayer.play($currentTrack.filepath)
   }
 }
@@ -499,20 +504,25 @@ function goToNextTrack() {
   if ($currentTrack === undefined) {
     throw new Error("Current track is undefined afer going to the next track")
   }
-
-  audioPlayer.setSource($currentTrack.filepath)
 }
 
 function handlePlayStateUpdate(newState: IPlayState) {
   $playState = newState
+
   navigator.mediaSession.playbackState = newState
 
-  if (newState === "playing") {
-    durationStore.set($currentTrack?.duration || 0)
-    startProgressingSeekbar()
-  } else {
-    endProgressingSeekbar()
-  }
+  match($playState)
+    .with("playing", () => {
+      durationStore.set($currentTrack?.duration || 0)
+      startProgressingSeekbar()
+    })
+    .with("none", () => {
+      endProgressingSeekbar()
+      audioPlayer.pause()
+      currentTimeStore.set(0)
+    })
+    .with("paused", endProgressingSeekbar)
+    .exhaustive()
 }
 
 // TODO make this use a much slower interval as currently it takes a lot of ressources
@@ -554,7 +564,7 @@ async function initialiseStores() {
 
         tracksStore.set(newTracks)
         autoQueueStore.setTracks(newTracks)
-        audioPlayer.setSource(newTracks[0].filepath)
+        // audioPlayer.setSource(newTracks[0].filepath)
       }
     )
   )
