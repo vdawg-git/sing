@@ -3,19 +3,22 @@
   import { fade, fly } from "svelte/transition"
   import { sineInOut } from "svelte/easing"
 
-  import { createOnOutClick } from "../../../Helper"
+  import { useOnOutClick } from "../../../Helper"
   import MenuItem from "../../atoms/MenuItem.svelte"
 
   import { calculatePosition, createMenu } from "./MenuHelper"
   import MenuSeperator from "./MenuSeperator.svelte"
 
-  import { menuStore, closeMenu } from "./index"
+  import { menuStore, closeMenu, menuElementID } from "./index"
 
   import type { Coords } from "@floating-ui/dom"
 
-  // FIXME !! When clicking an item (not a submenu), the does the action and closes as expected. But the next time a submenu is clicked, the menu ghets nulled. Fix this
-
   // TODO enable scroll lock while menu is opened.
+
+  /**
+   * The element which wraps the menu and is always in the dom (unlike the actual menu).
+   * Used to be referenced by other code.
+   */
 
   let menuID: "main" | symbol = "main"
 
@@ -76,8 +79,6 @@
     }
   }
 
-  const onOutClick = createOnOutClick(closeMenu)
-
   $: activeMenuHeight = activeMenuElement?.scrollHeight ?? 0
   $: activeMenuWidth = activeMenuElement?.scrollWidth
     ? Math.min(560, Math.max(activeMenuElement.scrollWidth, 240))
@@ -130,89 +131,93 @@
   As there can only be one active menu, having only one managing component is enough.
 -->
 
-{#key $menuStore}
-  {#if activeMenu !== undefined && activeMenu?.items.length !== 0}
-    <!-- The displayed menu -->
-    <div
-      data-testID={$menuStore?.testID}
-      class=" _main fixed z-50 h-[256px] max-h-[400px] min-w-[15rem] overflow-hidden rounded-lg border border-grey-400/50 bg-grey-600 shadow-2xl duration-[400ms]"
-      style:height={`${activeMenuHeight}px`}
-      style:left={`${menuX}px`}
-      style:top={`${menuY}px`}
-      style:width={`${activeMenuWidth}px`}
-      style:transition-property={isJustOpened
-        ? "none"
-        : "width, height, left, top"}
-      use:onOutClick
-      in:fade={{ duration: 120 }}
-    >
-      {#key activeMenu}
-        <!---- Menu inner -->
-        <div
-          class="absolute top-0 left-0 flex w-max min-w-[240px] flex-col"
-          in:fly|local={{
-            x: animationValue * (isGoingBack ? -1 : 1),
-            duration: animationSlideDuration,
-            easing: sineInOut,
-          }}
-          out:fly|local={{
-            x: animationValue * (isGoingBack ? 1 : -1),
-            duration: animationSlideDuration,
-            easing: sineInOut,
-          }}
-          bind:this={activeMenuElement}
-          id="menu"
-          on:introstart={onSlideIntroStart}
-        >
-          <!---- Menu title + back button -->
-          {#if activeMenu.id !== "main"}
-            <div
-              class="flex items-center gap-3 py-3 pl-2 pr-6 text-lg font-medium"
-            >
-              <button
-                class="p-1hover:bg-grey-500 rounded-full"
-                on:click={goBack}
-              >
-                <IconArrowLeft class="h-6 w-6 text-grey-300" />
-              </button>
-              <div class="text-white">
-                {activeMenu.title}
-              </div>
-            </div>
-          {/if}
-
-          <!---- Menu items -->
+<!-- A wrapper to be referenced by code -->
+<div class="absolute" id={menuElementID}>
+  <!-- The menu -->
+  {#key $menuStore}
+    {#if activeMenu !== undefined && activeMenu?.items.length !== 0}
+      <!-- The displayed menu -->
+      <div
+        data-testID={$menuStore?.testID}
+        class=" _main fixed z-50 h-[256px] max-h-[400px] min-w-[15rem] overflow-hidden rounded-lg border border-grey-400/50 bg-grey-600 shadow-2xl duration-[400ms]"
+        style:height={`${activeMenuHeight}px`}
+        style:left={`${menuX}px`}
+        style:top={`${menuY}px`}
+        style:width={`${activeMenuWidth}px`}
+        style:transition-property={isJustOpened
+          ? "none"
+          : "width, height, left, top"}
+        use:useOnOutClick={{ callback: closeMenu }}
+        in:fade={{ duration: 120 }}
+      >
+        {#key activeMenu}
+          <!---- Menu inner -->
           <div
-            class="flex max-h-[400px] flex-col overflow-y-auto overflow-x-hidden "
+            class="absolute top-0 left-0 flex w-max min-w-[240px] flex-col"
+            in:fly|local={{
+              x: animationValue * (isGoingBack ? -1 : 1),
+              duration: animationSlideDuration,
+              easing: sineInOut,
+            }}
+            out:fly|local={{
+              x: animationValue * (isGoingBack ? 1 : -1),
+              duration: animationSlideDuration,
+              easing: sineInOut,
+            }}
+            bind:this={activeMenuElement}
+            id="menu"
+            on:introstart={onSlideIntroStart}
           >
-            {#each itemsToShow as item}
-              {#if item.type === "item"}
-                <MenuItem data={item} />
-              {:else if item.type === "spacer"}
-                <MenuSeperator />
-              {/if}
-            {/each}
+            <!---- Menu title + back button -->
+            {#if activeMenu.id !== "main"}
+              <div
+                class="flex items-center gap-3 py-3 pl-2 pr-6 text-lg font-medium"
+              >
+                <button
+                  class="p-1hover:bg-grey-500 rounded-full"
+                  on:click={goBack}
+                >
+                  <IconArrowLeft class="h-6 w-6 text-grey-300" />
+                </button>
+                <div class="text-white">
+                  {activeMenu.title}
+                </div>
+              </div>
+            {/if}
+
+            <!---- Menu items -->
+            <div
+              class="flex max-h-[400px] flex-col overflow-y-auto overflow-x-hidden "
+            >
+              {#each itemsToShow as item}
+                {#if item.type === "item"}
+                  <MenuItem data={item} />
+                {:else if item.type === "spacer"}
+                  <MenuSeperator />
+                {/if}
+              {/each}
+            </div>
           </div>
-        </div>
-      {/key}
-    </div>
+        {/key}
+      </div>
 
-    <!-- 
-    Menu reference element. 
-    This one does not animate and thus delivers accurate values to the calculatePosition function. 
+      <!-- 
+      Menu reference element. 
+      This one does not animate and thus delivers accurate values to the calculatePosition function. 
 
-    Plus 4 to the height because otherwise the bottom gets cut off by this amount for some reason.
+      Plus 4 to the height because otherwise the bottom gets cut off by this amount for some reason.
     --->
-    <div
-      bind:this={referenceMenuElement}
-      class="fixed"
-      style:left={`${menuX}px`}
-      style:right={`${menuY}px`}
-      style:height={`${activeMenuHeight + 4}px`}
-      style:width={`${activeMenuWidth}px`}
-    />
-  {/if}
-{/key}
+      <div
+        bind:this={referenceMenuElement}
+        class="fixed"
+        style:left={`${menuX}px`}
+        style:right={`${menuY}px`}
+        style:height={`${activeMenuHeight + 4}px`}
+        style:width={`${activeMenuWidth}px`}
+      />
+    {/if}
+  {/key}
+</div>
 
 <style>
   ._main {

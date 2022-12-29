@@ -2,7 +2,9 @@
   import IconSearch from "virtual:icons/heroicons/magnifying-glass-20-solid"
   import IconX from "virtual:icons/heroicons/x-mark-20-solid"
 
-  import { createOnOutClick } from "@/Helper"
+  import { useOnOutClick } from "@/Helper"
+
+  import { getMenuElement } from "../manager/menu"
 
   import SearchResultBlock from "@/lib/molecules/SearchResultBlock.svelte"
 
@@ -40,8 +42,6 @@
     }
   }
 
-  const handleOutClick = createOnOutClick(close, { stopPropagation: false })
-
   function handleFocused() {
     isFocused = true
   }
@@ -63,7 +63,11 @@
     {isFocused ? 'bg-grey-800/80' : 'bg-grey-700/40 hover:bg-grey-800/50'}"
   style="border-radius: {isFocused ? '8px' : '48px'};
          width: {isFocused ? 'calc(100% - 48px)' : '256px'};"
-  use:handleOutClick
+  use:useOnOutClick={{
+    callback: close,
+    extraElements: getMenuElement,
+    condition: () => isFocused,
+  }}
 >
   <!--- Input -->
   <div
@@ -98,11 +102,7 @@
       {#if hasMatches && searchResult !== undefined}
         <div class="flex flex-col gap-3">
           {#each resultsAsTuples as data}
-            <SearchResultBlock
-              {data}
-              on:closeSearchbar={close}
-              on:close={close}
-            />
+            <SearchResultBlock {data} on:closeSearchbar={close} />
           {/each}
           <!---- Spacer element -->
           <div class="h-6 w-6" />

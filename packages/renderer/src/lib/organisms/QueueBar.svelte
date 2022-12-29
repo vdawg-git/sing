@@ -4,7 +4,7 @@
   import { onMount } from "svelte"
 
   import { TEST_ATTRIBUTES, TEST_IDS } from "@/TestConsts"
-  import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
+  import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
   import {
     playedTracks,
     nextTracks,
@@ -20,9 +20,6 @@
   import { playlistsStore } from "../stores/PlaylistsStore"
 
   import QueueItem from "@/lib/atoms/QueueItem.svelte"
-
-
-  
 
   // TODO when going to the next song multiple times, scroll to the current track
 

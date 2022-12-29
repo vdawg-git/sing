@@ -517,3 +517,14 @@ export function moveItemTo<T>(
 
   return moveFrom(indexToMove)(to)(array)
 }
+
+/**
+ * Pakc an item in an array if it is not one already.
+ */
+export function packInArrayIfItIsnt<T>(
+  item: T
+): T extends Array<unknown> ? T : T[] {
+  return (
+    Array.isArray(item) ? item : ([item] as T extends Array<never> ? T : T[])
+  ) as T extends Array<unknown> ? T : T[]
+}

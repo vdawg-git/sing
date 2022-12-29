@@ -8,8 +8,9 @@
 
   import { displayTypeWithCount, removeDuplicates } from "@sing-shared/Pures"
 
-  import { createAddToPlaylistAndQueueMenuItems, notifiyError } from "@/Helper"
+  import { notifiyError } from "@/Helper"
   import { playNewSource } from "@/lib/manager/player"
+  import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
 
   import { backgroundImages } from "../stores/BackgroundImages"
   import { playlistsStore } from "../stores/PlaylistsStore"

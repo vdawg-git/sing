@@ -8,7 +8,7 @@
   import { displayTypeWithCount } from "@sing-shared/Pures"
 
   import { addNotification } from "@/lib/stores/NotificationStore"
-  import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
+  import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
   import { playNewSource } from "@/lib/manager/player"
   import { createArtistURI } from "@/Routes"
 

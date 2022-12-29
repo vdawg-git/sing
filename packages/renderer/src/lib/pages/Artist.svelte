@@ -10,11 +10,9 @@
   import { addNotification } from "@/lib/stores/NotificationStore"
   import { playNewSource } from "@/lib/manager/player"
   import { playlistsStore } from "@/lib/stores/PlaylistsStore"
-  import {
-    convertAlbumToCardData,
-    createAddToPlaylistAndQueueMenuItems,
-  } from "@/Helper"
+  import { convertAlbumToCardData } from "@/Helper"
   import { TEST_IDS } from "@/TestConsts"
+  import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
 
   import CardList from "../organisms/CardList.svelte"
   import { backgroundImages } from "../stores/BackgroundImages"

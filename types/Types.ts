@@ -7,6 +7,7 @@ import type {
   IPlaylist,
   IArtist,
   IPlaylistTrack,
+  IPlaylistCreateArgument,
 } from "./DatabaseTypes"
 import type { Prisma } from "../packages/generated/client"
 import type { app } from "electron"
@@ -265,6 +266,7 @@ export type ISearchResultItem = {
   readonly subtexts: readonly ISearchItemSubtext[]
   readonly onClick: () => void
   readonly icon: typeof SvelteComponentDev
+  readonly itemForContextMenu: IPlaylistCreateArgument
 }
 
 export type IConvertedSearchData = Readonly<

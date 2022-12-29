@@ -3,8 +3,7 @@
 
   import { displayTypeWithCount, removeDuplicates } from "@sing-shared/Pures"
 
-
-  import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
+  import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
   import { playNewSource, tracks } from "@/lib/manager/player"
 
   import { backgroundImages } from "../stores/BackgroundImages"

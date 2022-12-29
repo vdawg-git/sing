@@ -15,7 +15,7 @@
   export let data: IConvertedSearchData
   export let isExpanded = false
 
-  const dispatch = createEventDispatcher<{ close: never }>()
+  const dispatch = createEventDispatcher<{ closeSearchbar: never }>()
 
   const navigate = useNavigate()
 
@@ -54,23 +54,19 @@
 
     <!---- Results -->
     <div class="flex flex-col ">
-      {#each isExpanded ? displayData : displayData.slice(0, amountToDisplay) as { title, label, subtexts, image, icon, onClick }}
-        <div
-          on:click={() => {
+      {#each isExpanded ? displayData : displayData.slice(0, amountToDisplay) as { title, label, subtexts, image, icon, onClick, itemForContextMenu }}
+        <SearchResultItem
+          {image}
+          {title}
+          {label}
+          {subtexts}
+          {itemForContextMenu}
+          {icon}
+          onClick={() => {
             onClick()
-            dispatch("close")
+            dispatch("closeSearchbar")
           }}
-          on:click
-        >
-          <SearchResultItem
-            {image}
-            {title}
-            {label}
-            {subtexts}
-            {icon}
-            on:close
-          />
-        </div>
+        />
       {/each}
     </div>
   </div>

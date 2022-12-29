@@ -9,7 +9,7 @@
 
   import { createArtistURI } from "@/Routes"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
-  import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
+  import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
   import { artists, playNewSource } from "@/lib/manager/player"
 
   import { playlistsStore } from "../stores/PlaylistsStore"

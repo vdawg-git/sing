@@ -4,8 +4,14 @@
     type SvelteComponentDev,
   } from "svelte/internal"
 
+  import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
+
+  import { useOpenContextMenu } from "../manager/menu"
+  import { playlistsStore } from "../stores/PlaylistsStore"
+
   import type { FilePath } from "@sing-types/Filesystem"
   import type { ISearchItemSubtext } from "@sing-types/Types"
+  import type { IPlaylistCreateArgument } from "@sing-types/DatabaseTypes"
 
   export let image: FilePath | undefined
   export let isImageCircle = false
@@ -13,8 +19,13 @@
   export let label: string | undefined
   export let subtexts: readonly ISearchItemSubtext[]
   export let icon: typeof SvelteComponentDev
+  export let itemForContextMenu: IPlaylistCreateArgument
+  export let onClick: () => void
 
-  const dispatch = createEventDispatcher<{ close: never }>()
+  $: menuItems =
+    createAddToPlaylistAndQueueMenuItems($playlistsStore)(itemForContextMenu)
+
+  const dispatch = createEventDispatcher<{ closeSearchbar: never }>()
 
   // TODO fix navigatin from artist page to artist page: Currently not updating albums
 </script>
@@ -25,7 +36,8 @@
     justify-between gap-6 px-3 py-2
     hover:bg-grey-300/10
   "
-  on:click
+  on:click={onClick}
+  use:useOpenContextMenu={{ menuItems }}
 >
   <div class="flex max-w-[calc(100%-56px)] grow gap-3">
     <!---- Image -->
@@ -60,17 +72,17 @@
 
         <!---- Subtexts -->
         <div class="subtexts_">
-          {#each subtexts as { label: subtextLabel, onClick }, index}
+          {#each subtexts as { label: subtextLabel, onClick: onClickSubtext }, index}
             <div
               class="
                 flex- min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium tracking-wide text-grey-200
-               {onClick ? 'cursor-pointer hover:underline' : ''}
+               {onClickSubtext ? 'cursor-pointer hover:underline' : ''}
                {index === 0 ? 'shrink-[1] grow-[2]' : 'shrink-[2] grow-[1]'}
             "
               on:click|stopPropagation={() => {
                 if (!onClick) return
                 onClick()
-                dispatch("close")
+                dispatch("closeSearchbar")
               }}
             >
               {subtextLabel}

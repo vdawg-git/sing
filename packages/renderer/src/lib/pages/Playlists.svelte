@@ -3,11 +3,9 @@
 
   import { createPlaylistURI } from "@/Routes"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
-  import {
-    createAddToPlaylistAndQueueMenuItems,
-    createAndNavigateToPlaylist,
-  } from "@/Helper"
+  import { createAndNavigateToPlaylist } from "@/Helper"
   import { playNewSource, tracks } from "@/lib/manager/player"
+  import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
   import Button from "../atoms/Button.svelte"

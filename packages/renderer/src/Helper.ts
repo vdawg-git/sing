@@ -6,34 +6,26 @@ import { createHashHistory } from "history"
 import { isDefined } from "ts-is-present"
 
 import {
-  addTracksToManualQueueBeginning,
-  addTracksToManualQueueEnd,
-  playNewSource,
-} from "@/lib/manager/player"
-
-import { convertFilepathToFilename, getErrorMessage } from "../../shared/Pures"
+  convertFilepathToFilename,
+  getErrorMessage,
+  packInArrayIfItIsnt,
+} from "../../shared/Pures"
 
 import { addNotification } from "./lib/stores/NotificationStore"
 import { createAlbumURI, createArtistURI, ROUTES } from "./Routes"
+import { playNewSource } from "./lib/manager/player"
+import { createAddToPlaylistAndQueueMenuItems } from "./MenuItemsHelper"
 
 import type { IError } from "@sing-types/Types"
 import type {
   ITrack,
-  IPlaylist,
   IPlaylistCreateArgument,
-  IMusicIDsUnion,
+  IPlaylist,
   IAlbum,
 } from "@sing-types/DatabaseTypes"
 import type { HistorySource, NavigateFn } from "svelte-navigator"
 import type AnyObject from "svelte-navigator/types/AnyObject"
-import type {
-  ICardProperties,
-  ICreateMenuOutOfMusic,
-  IMenuItemArgument,
-  IMenuItemsArgument,
-  IMenuSpacer,
-  ISubmenuItemArgument,
-} from "./types/Types"
+import type { ICardProperties } from "./types/Types"
 
 export function titleToDisplay(track: ITrack): string {
   if (track?.title) return track.title
@@ -302,141 +294,65 @@ export function moveElementFromToIndex<T>(
 }
 
 /**
- * Check if the user clicked outside of the element.
- * It creates a function to be used with the `use:` element directive.
- *
- * @param callback The callback to run when the user clicks out of the element.
- * @param extraElements The extra elements which get treated as "inside click" elements.
- * @param stopPropagation If the propagation of the outClick should be stopped. False by default.
- * @return The function to be used with the `use` directive
+ * Check if the user clicked outside of the element and runs the provided callback if he did.
  */
-export function createOnOutClick(
-  callback: (event: MouseEvent) => void,
-  options?: {
-    stopPropagation?: boolean
-    extraElements?: (HTMLElement | undefined)[]
-  }
-): (node: HTMLElement) => void {
-  return (node: HTMLElement) => {
-    function listener(event: MouseEvent) {
-      const extraElementsFiltered =
-        options?.extraElements?.filter(isDefined) || []
+export function useOnOutClick(
+  node: HTMLElement,
+  { callback, extraElements, stopPropagation, condition }: IUseOutClickParameter
+) {
+  document.addEventListener("click", onClick, true)
 
-      if (
-        ![...extraElementsFiltered, node].some((element) =>
-          isClickOutsideNode(event, element)
-        )
-      ) {
-        return
-      }
-
-      if (options?.stopPropagation === true) {
-        event.stopPropagation()
-      }
-
-      callback(event)
-    }
-
-    document.addEventListener("click", listener, true)
-
-    return {
-      destroy: () => {
-        document.removeEventListener("click", listener, true)
-      },
-    }
-  }
-}
-
-function createAddToPlaylistMenuItems(
-  playlists: readonly IPlaylist[]
-): ICreateMenuOutOfMusic {
-  return (musicToAdd) => {
-    const addToNewPlaylist: IMenuItemArgument = {
-      label: "Create playlist",
-      async onClick() {
-        window.api.createPlaylist(musicToAdd)
-      },
-      type: "item",
-    }
-
-    const playlistSubMenu: ISubmenuItemArgument = {
-      type: "subMenu",
-      label: "Add to playlist",
-      subMenu: [
-        { type: "spacer" },
-        addToNewPlaylist,
-        { type: "spacer" },
-        ...playlists.flatMap((playlist) =>
-          // Create the add to playlist options, but do not allow adding a playlist to itself.
-          musicToAdd.type === "playlist" && musicToAdd.id === playlist.id
-            ? []
-            : ({
-                label: playlist.name,
-                onClick: () =>
-                  window.api.addToPlaylist({ playlist, musicToAdd }),
-                type: "item",
-              } as const)
-        ),
-      ],
-    }
-
-    return [playlistSubMenu]
-  }
-}
-
-// eslint-disable-next-line func-style
-const createAddToQueueMenuItems: ICreateMenuOutOfMusic = (
-  musicToAdd: IMusicIDsUnion
-) => {
-  const queueSubMenu: readonly (IMenuItemArgument | IMenuSpacer)[] = [
-    {
-      type: "item",
-      label: "Play next",
-      async onClick() {
-        pipe(
-          await window.api.getTracksFromMusic(musicToAdd),
-
-          E.matchW(
-            notifiyError("Failed to add to play next"),
-
-            addTracksToManualQueueBeginning
-          )
-        )
-      },
+  return {
+    destroy: () => {
+      document.removeEventListener("click", onClick, true)
     },
-    {
-      type: "item",
-      label: "Play later",
-      async onClick() {
-        pipe(
-          await window.api.getTracksFromMusic(musicToAdd),
+  }
 
-          E.matchW(
-            notifiyError("Failed to add to play later"),
+  function onClick(event: MouseEvent) {
+    if (!!condition && condition()) return
 
-            addTracksToManualQueueEnd
-          )
-        )
-      },
-    },
-  ]
-  return queueSubMenu
+    const extraElementsFiltered = packInArrayIfItIsnt(
+      typeof extraElements === "function" ? extraElements() : extraElements
+    ).filter(isDefined) as HTMLElement[] // Typescript does not like the filtering here
+
+    if (
+      ![...extraElementsFiltered, node].some((element) =>
+        isClickOutsideNode(event, element)
+      )
+    ) {
+      return
+    }
+
+    if (stopPropagation === true) {
+      event.stopPropagation()
+    }
+
+    callback(event)
+  }
 }
 
-function createAddToPlaylistAndQueueMenuItemsBase(
-  musicToAdd: IPlaylistCreateArgument,
-  playlists: readonly IPlaylist[]
-): IMenuItemsArgument {
-  return [
-    ...createAddToQueueMenuItems(musicToAdd),
-    ...createAddToPlaylistMenuItems(playlists)(musicToAdd),
-  ]
-}
-
-export function createAddToPlaylistAndQueueMenuItems(
-  playlists: readonly IPlaylist[]
-): ICreateMenuOutOfMusic {
-  return (item) => createAddToPlaylistAndQueueMenuItemsBase(item, playlists)
+type IUseOutClickParameter = {
+  /**
+   * Callback to run when the user clicked outside of the element.
+   */
+  callback: (event: MouseEvent) => void
+  /**
+   * Elements which are treated as "inside click" elements.
+   *
+   * Can also receive a function to get them.
+   */
+  extraElements?:
+    | HTMLElement
+    | (HTMLElement | undefined)[]
+    | (() => HTMLElement | HTMLElement[] | undefined)
+  /**
+   * If the propagation of the outClick should be stopped. False by default.
+   */
+  stopPropagation?: boolean
+  /**
+   * A condition if to run the callback
+   */
+  condition?: () => boolean
 }
 
 export function convertAlbumToCardData({

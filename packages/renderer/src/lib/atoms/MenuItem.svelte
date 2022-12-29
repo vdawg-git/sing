@@ -7,7 +7,7 @@
 </script>
 
 <button
-  on:click={data.onClick}
+  on:click|stopPropagation={data.onClick}
   data-testattribute={TEST_ATTRIBUTES.menuItem}
   on:click
 >

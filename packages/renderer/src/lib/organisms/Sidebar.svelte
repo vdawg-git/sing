@@ -9,9 +9,9 @@
   import IconAlbum from "virtual:icons/ri/album-fill"
   import IconPlaylist from "virtual:icons/tabler/playlist"
 
-  import { ROUTES, type IRoutes } from "@/Routes"
+  import { createPlaylistURI, ROUTES, type IRoutes } from "@/Routes"
   import { TEST_IDS as id } from "@/TestConsts"
-  import { createAddToPlaylistAndQueueMenuItems } from "@/Helper"
+  import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
 
   import { createOpenMenu } from "../manager/menu"
   import SidebarItem from "../atoms/SidebarItem.svelte"
@@ -43,7 +43,7 @@
   let playlistItems: readonly ISidebarItem[]
   $: playlistItems = $playlistsStore.map((playlist) => ({
     label: playlist.name,
-    to: `${ROUTES.playlists}/${playlist.id}`,
+    to: createPlaylistURI(playlist.id),
     contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)({
       type: "playlist",
       id: playlist.id,

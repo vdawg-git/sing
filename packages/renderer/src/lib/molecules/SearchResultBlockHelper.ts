@@ -6,6 +6,11 @@ import { convertFilepathToFilename } from "@sing-shared/Pures"
 
 import { createAlbumURI, createArtistURI } from "@/Routes"
 import { playTrackAsShuffledTracks } from "@/lib/manager/player"
+import {
+  convertAlbumToPlaylistCreateArgument,
+  convertArtistToPlaylistCreateArgument,
+  convertTrackToPlaylistCreateArgument,
+} from "@/MenuItemsHelper"
 
 import type { IAlbum, IArtist, ITrack } from "@sing-types/DatabaseTypes"
 import type {
@@ -69,6 +74,7 @@ function convertTrackToSearchItem(
     subtexts,
     image: track.cover,
     label,
+    itemForContextMenu: convertTrackToPlaylistCreateArgument(track),
     icon: IconPlay,
     onClick: async () => playTrackAsShuffledTracks(track),
   }
@@ -87,6 +93,7 @@ function convertAlbumToSearchItem(
     subtexts,
     icon: IconArrowRight,
     label,
+    itemForContextMenu: convertAlbumToPlaylistCreateArgument(album),
     onClick: async () => navigate(createAlbumURI(album.id)),
   }
 }
@@ -102,11 +109,13 @@ function convertArtistToSearchItem(
     isImageCircle: true,
     icon: IconArrowRight,
     label,
+    itemForContextMenu: convertArtistToPlaylistCreateArgument(artist),
     onClick: () => {
       navigate(createArtistURI(artist.name))
     },
   }
 }
+
 function createAlbumSubtexts(
   navigate: NavigateFn,
   artistName: string | undefined

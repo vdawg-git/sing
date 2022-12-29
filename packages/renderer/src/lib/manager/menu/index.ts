@@ -7,6 +7,13 @@ import type {
 } from "@/types/Types"
 import type { StrictOmit } from "ts-essentials"
 
+export const menuElementID = "menuElementWrapper"
+export function getMenuElement() {
+  return (document.querySelector(`#${menuElementID}`) ?? undefined) as
+    | HTMLElement
+    | undefined
+}
+
 const { set, subscribe } = writable<
   | {
       readonly nodeOrPosition: IMenuLocation
