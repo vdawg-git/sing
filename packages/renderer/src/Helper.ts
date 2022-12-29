@@ -381,3 +381,31 @@ export function convertAlbumToCardData({
     }),
   })
 }
+
+function preventDefault(event: { preventDefault: () => void }) {
+  event.preventDefault()
+}
+
+function disableAllScrolling() {
+  document.addEventListener("wheel", preventDefault, {
+    passive: false,
+  })
+}
+
+function enableAllScrolling() {
+  document.removeEventListener("wheel", preventDefault)
+}
+
+/**
+ * To be used with the use: directive.
+ *
+ * Disable all scrolling when element enters the viewport.
+ * Re-enables it when it gets destroyed.
+ */
+export function useDisableScrolling(_: Element) {
+  disableAllScrolling()
+
+  return {
+    destroy: enableAllScrolling,
+  }
+}
