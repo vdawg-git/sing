@@ -309,14 +309,14 @@ export function useOnOutClick(
   }
 
   function onClick(event: MouseEvent) {
-    if (!!condition && condition()) return
+    if (!!condition && !condition()) return
 
     const extraElementsFiltered = packInArrayIfItIsnt(
       typeof extraElements === "function" ? extraElements() : extraElements
     ).filter(isDefined) as HTMLElement[] // Typescript does not like the filtering here
 
     if (
-      ![...extraElementsFiltered, node].some((element) =>
+      ![...extraElementsFiltered, node].every((element) =>
         isClickOutsideNode(event, element)
       )
     ) {
