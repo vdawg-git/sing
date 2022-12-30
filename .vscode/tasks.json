@@ -1,0 +1,48 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "devMode",
+      "dependsOn": ["mainDevMode", "viteDev"],
+      "problemMatcher": ["$tsc"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false,
+        "group": "dev"
+      }
+    },
+    {
+      "label": "mainDevMode",
+      "type": "npm",
+      "script": "dev:electron",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false,
+        "group": "dev"
+      },
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "viteDev",
+      "type": "npm",
+      "script": "dev:vite",
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false,
+        "group": "dev"
+      }
+    }
+  ]
+}

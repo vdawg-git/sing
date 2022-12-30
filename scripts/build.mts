@@ -1,28 +1,12 @@
-const { join } = require("node:path")
+import { join, dirname } from "node:path"
+import { fileURLToPath } from "node:url"
 
-const { build } = require("esbuild")
-const replace = require("replace-in-file")
+import { build } from "esbuild"
+import replace from "replace-in-file"
 
-// See https://github.com/evanw/esbuild/issues/456#issuecomment-739735960
-const externalizePrisma = {
-  name: "externalize-prisma",
-  setup(bundle) {
-    bundle.onResolve({ filter: /@sing-prisma/ }, (_) => {
-      // const prismaPath = join(
-      //   process.cwd(),
-      //   "dist",
-      //   "generated",
-      //   "prismaClient"
-      // )
-      // const path = relative(argument_.resolveDir, prismaPath)
-      console.log("")
-      return {
-        path: "../../generated/client",
-        external: true,
-      }
-    })
-  },
-}
+import { externalizePrisma } from "./ExternalizePrisma.mjs"
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 build({
   entryPoints: [
