@@ -44,7 +44,6 @@ async function createWindow() {
   browserWindow.on("ready-to-show", () => {
     if (!isDevelopment) browserWindow?.show() // this repositions the window and is annoying when in development
 
-    browserWindow.webContents.openDevTools()
     if (isDevelopment) {
       browserWindow.webContents.openDevTools()
     }
