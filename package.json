@@ -18,7 +18,7 @@
     "start": "cross-env NODE_ENV=development concurrently -n Ü,Ö  \"npm:dev:electron\" \"npm:dev:vite\" -c cyan,magenta",
     "build": "concurrently -g \"npm run build:*\" --kill-others-on-fail",
     "build:main": "tsx ./scripts/build.mts",
-    "build:prisma": "prisma db push && node ./scripts/copy-files.cjs && node ./scripts/InstallEnginesOnMac.js",
+    "build:prisma": "prisma db push && node ./scripts/copy-files.cjs && node ./scripts/InstallEnginesOnMac.cjs",
     "build:renderer": "cd ./packages/renderer && vite build",
     "compile": "cross-env MODE=production npm run build && electron-builder --dir ",
     "deps:check": "ncu -x slash,music-metadata",
