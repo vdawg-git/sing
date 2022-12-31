@@ -211,6 +211,8 @@
   {/if}
 {/if}
 
-{#if isShowingEditModal && playlist}
-  <EditPlaylistModal {playlist} on:hide={toggleModal} bind:pickImage />
+{#if playlist}
+  <div class:hidden={!isShowingEditModal}>
+    <EditPlaylistModal {playlist} on:hide={toggleModal} bind:pickImage />
+  </div>
 {/if}

@@ -21,7 +21,7 @@
        fixed inset-0 z-40 flex h-screen w-screen content-center 
        items-center justify-center bg-grey-900/60"
   on:click|self={handleRemove}
-  transition:fade={{ duration: 200 }}
+  transition:fade|local={{ duration: 200 }}
 >
   <!-- Wrapper -->
   <div
