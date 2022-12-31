@@ -165,16 +165,10 @@ export async function syncMusic(
 
   //* Clean up
   // Remove unused tracks in the database
-  for (const deleteResult of [
-    await deleteTracksInverted(addedFilepaths),
-    await deleteEmptyArtists(),
-    await deleteEmptyAlbums(),
-    await deleteUnusedCoversInDatabase(),
-  ]) {
-    if (E.isLeft(deleteResult)) {
-      console.error(deleteResult.left)
-    }
-  }
+  await deleteTracksInverted(addedFilepaths).then(logDeleteResult("Tracks"))
+  await deleteEmptyAlbums().then(logDeleteResult("Albums"))
+  await deleteEmptyArtists().then(logDeleteResult("Artists"))
+  await deleteUnusedCoversInDatabase().then(logDeleteResult("Covers"))
 
   const usedCoverFilepaths = (await getCovers(emitter, {
     select: { filepath: true },
@@ -217,4 +211,13 @@ export async function syncMusic(
   })
 
   console.log("Finished syncing music")
+}
+
+function logDeleteResult(
+  label: string
+): (result: E.Either<IError, unknown>) => void {
+  return (result) =>
+    E.isRight(result)
+      ? console.log(`Deletion of ${label}`, result.right)
+      : console.error(`Deletion error of ${label}`, result.left)
 }

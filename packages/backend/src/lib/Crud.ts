@@ -703,7 +703,7 @@ export async function getCovers(
 export async function addTrackToDatabase(
   trackInput: Prisma.TrackCreateInput
 ): Promise<Either<IError, ITrack>> {
-  await prisma.$queryRaw`PRAGMA foreign_keys = OFF`
+  // await prisma.$queryRaw`PRAGMA foreign_keys = OFF`
 
   const result = prisma.track
     .upsert({
@@ -717,14 +717,14 @@ export async function addTrackToDatabase(
     .then((addedTrack) => E.right(addedTrack as ITrack))
     .catch(createError("Failed to add track to database"))
 
-  await prisma.$queryRaw`PRAGMA foreign_keys = ON`
+  // await prisma.$queryRaw`PRAGMA foreign_keys = ON`
 
   return result
 }
 
 export async function deleteTracksInverted(
   filepaths: readonly FilePath[]
-): Promise<Either<IError, number>> {
+): Promise<Either<IError, number[]>> {
   const pathsString = createSQLArray(filepaths)
 
   const tracksQuery = prisma.$executeRawUnsafe(`
@@ -752,40 +752,39 @@ export async function deleteTracksInverted(
     prisma
       .$transaction([playlistItemsQuery, tracksQuery])
       // Only get the amount of deleted tracks, not deleted items
-      .then(([deleteAmount]) => E.right(deleteAmount))
+      .then(([deletedPlaylistItemsAmount, deletedTracksAmount]) =>
+        E.right([deletedPlaylistItemsAmount, deletedTracksAmount])
+      )
       .catch(createError("Failed to remove unused tracks from the database"))
   )
 }
 
 export async function deleteEmptyAlbums(): Promise<Either<IError, number>> {
   const query = `
-    PRAGMA foreign_keys = OFF;
-
-    DELETE FROM
+    DELETE
+    FROM
       ${SQL.Album}
     WHERE
-      ${SQL.name} in (
+      ${SQL.id} in (
         SELECT
-          ${SQL["Album.name"]}
+          ${SQL["Album.id"]}
         FROM
           ${SQL.Album}
-          LEFT JOIN ${SQL.Track} ON ${SQL["Album.name"]} = ${SQL["Track.album"]}
+          LEFT JOIN ${SQL.Track} ON ${SQL["Album.id"]} = ${SQL["Track.albumID"]}
         WHERE
           ${SQL["Track.title"]} IS NULL
-      )
-      
-    PRAGMA foreign_keys = ON;`
+      )`
 
-  return prisma
+  const result = await prisma
     .$executeRawUnsafe(query)
     .then((deleteAmount) => E.right(deleteAmount))
     .catch(createError("Failed to remove unused albums from the database"))
+
+  return result
 }
 
 export async function deleteEmptyArtists(): Promise<Either<IError, number>> {
   const query = `
-    PRAGMA foreign_keys = OFF;
-
     DELETE FROM
       ${SQL.Artist}
     WHERE
@@ -795,16 +794,17 @@ export async function deleteEmptyArtists(): Promise<Either<IError, number>> {
         FROM
           ${SQL.Artist}
           LEFT JOIN ${SQL.Track} ON ${SQL["Artist.name"]} = ${SQL["Track.artist"]}
+          OR ${SQL["Artist.name"]} = ${SQL["Track.albumartist"]}
         WHERE
           ${SQL["Track.title"]} IS NULL
-      )
-      
-    PRAGMA foreign_keys = ON;`
+      )`
 
-  return prisma
+  const result = await prisma
     .$executeRawUnsafe(query)
     .then((deleteAmount) => E.right(deleteAmount))
     .catch(createError("Failed to remove unused artists from the database"))
+
+  return result
 }
 
 export async function deleteUnusedCoversInDatabase(): Promise<

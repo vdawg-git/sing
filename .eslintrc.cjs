@@ -1,6 +1,7 @@
 const defaultRules = {
   "@typescript-eslint/ban-ts-comment": "off",
   "import/named": "off",
+  "no-undef": "off",
   "@typescript-eslint/no-explicit-any": [
     "error",
     {

@@ -21,7 +21,7 @@ model Track {
   artist           String /// The id of the track's artist
   albumartistEntry Artist? @relation(name: "albumartist", fields: [albumartist], references: [name]) /// The database entry for the track's album artist 
   albumartist      String? /// The id of the track's album artist
-  albumEntry       Album   @relation(name: "album", fields: [albumID, album], references: [id, name], onDelete: Cascade, onUpdate: Cascade) /// The database entry for the track's album
+  albumEntry       Album   @relation(name: "album", fields: [albumID, album], references: [id, name]) /// The database entry for the track's album
   albumID          Int /// The id of the album
   album            String /// The name of the album
   coverEntry       Cover?  @relation(fields: [cover], references: [filepath]) /// The database entry for the track's cover
@@ -166,11 +166,11 @@ model Track {
 model Album {
   id          Int     @id @default(autoincrement())
   name        String
-  artistEntry Artist  @relation(fields: [artist], references: [name]) /// The database entry for the albums artist
+  artistEntry Artist  @relation(fields: [artist], references: [name], onDelete: Cascade) /// The database entry for the albums artist
   artist      String /// The id of the albums artist
   tracks      Track[] @relation(name: "album")
   coverEntry  Cover?  @relation(fields: [cover], references: [filepath]) /// The database entry for the albums cover
-  cover       String? /// The id of the albums cover
+  cover       String? /// The filepath of the albums cover
 
   type String @default("album") /// ###DO NOT SET THIS. This is is used to provide a discriminating union for typescript.
 
@@ -183,7 +183,7 @@ model Artist {
   tracks            Track[] @relation(name: "artist")
   albumartistTracks Track[] @relation(name: "albumartist")
   albums            Album[]
-  image             String? /// The filepath to the artist's image
+  image             String? /// Currently unused. - The filepath to the artist's image.
 
   type String @default("artist") /// ###DO NOT SET THIS. This is is used to provide a discriminating union for typescript.
 }
@@ -198,7 +198,7 @@ model Cover {
 
   playlistsThumbnail Playlist[] /// The playlists that use this image as a cover
 
-  type String @default("cover") /// ###DO NOT SET THIS. This is is used to provide a discriminating union for typescript.
+  type String @default("cover") /// ###DO NOT SET THIS. This is used to provide a discriminating union for typescript.
 }
 
 model Playlist {
