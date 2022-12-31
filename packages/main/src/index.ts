@@ -1,14 +1,15 @@
 /* eslint-disable unicorn/no-process-exit */
 import { app } from "electron"
 import debug from "electron-debug"
+import c from "ansicolor"
 
 import { restoreOrCreateWindow } from "./mainWindow"
 import { ipcInit } from "./ipcMain"
 import { checkDatabase } from "./Helper"
 import { isDevelopment } from "./Constants"
 
-console.log("  Main script started  ")
-console.log(isDevelopment ? "Dev mode" : "production mode")
+console.log(c.bgBlack.blue("  Main script started   "))
+console.log(c.bgBlack.magenta(isDevelopment ? "Dev mode" : "production mode"))
 
 /**
  * Prevent multiple instances

@@ -61,7 +61,9 @@ async function handleKeypress(ch: string, key: KeyStroke) {
 }
 
 async function restartElectron() {
-  console.log(c.bgBlack.blue("\nStarting Electron.. \n"))
+  console.log(
+    "\n" + c.inverse(" # ") + c.bgBlue(" Starting Electron.. ") + "\n"
+  )
 
   if (electronApp) {
     electronApp.kill()
@@ -71,7 +73,7 @@ async function restartElectron() {
   startElectron()
 
   electronApp.addListener("exit", () => {
-    console.log(c.bgYellow("Electron exited"))
+    console.log(c.inverse(" - ") + c.bgYellow("Electron exited"))
     process.exit()
   })
 }

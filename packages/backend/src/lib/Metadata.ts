@@ -1,5 +1,3 @@
-import Util from "node:util"
-
 import { curry2 } from "fp-ts-std/Function"
 import { pipe } from "fp-ts/lib/function"
 import * as E from "fp-ts/lib/Either"
@@ -236,11 +234,6 @@ async function addRelationFieldsNotCurried<
             },
           },
         }
-
-  console.log(
-    "\n\n\n😺😺\n",
-    Util.inspect({ albumInput, artistInput }, { depth: 10, colors: true })
-  )
 
   return {
     ...(data as StrictOmit<T, "album" | "albumartist" | "artist" | "picture">),
