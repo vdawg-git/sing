@@ -28,7 +28,7 @@ async function createWindow() {
     width: 1280,
     height: 744,
     minHeight: 720,
-    minWidth: 1040,
+    minWidth: 840,
     backgroundColor: tailwind.theme.colors.grey[900],
     icon: join(__dirname, "..", "..", "..", "buildResources", "icon.png"),
   })
