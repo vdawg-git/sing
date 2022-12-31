@@ -8,6 +8,7 @@ Scratch.js
 Scratch.*
 Scratch
 scratch
+.env
 **/_Scratch.ts
 **/_Scratch.js
 **/testDB.db
