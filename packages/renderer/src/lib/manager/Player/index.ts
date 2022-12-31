@@ -86,10 +86,6 @@ autoQueueStore.subscribe(($newQueue) => {
 
 volumeStore.subscribe(($newVolume) => {
   $volume = $newVolume
-  console.log(
-    "🚀 ~ file: index.ts:91 ~ volumeStore.subscribe ~ $newVolume",
-    $newVolume
-  )
 
   audioPlayer.setVolume($newVolume)
 })
@@ -108,12 +104,6 @@ currentTrack.subscribe(($newCurrentTrack) => {
 
   if ($currentTrack) {
     audioPlayer.setSource($currentTrack.filepath)
-  } else {
-    console.log(
-      "🚀 ~ file: index.ts:110 ~ currentTrack.subscribe ~ No current track, stopping playback",
-      $currentTrack
-    )
-    playStateStore.set("none")
   }
 })
 
@@ -283,7 +273,7 @@ export async function toggleShuffle() {
 }
 
 export function setVolume(newVolume: number) {
-  // For some reason the range input starting returning a string onChange.
+  // For some reason the range input started returning a string onChange.
   volumeStore.set(Number(newVolume))
 }
 
@@ -314,12 +304,12 @@ function playPrevious() {
     throw new Error("No current track is defined after playing previous")
   }
 
-  if ($playState === "playing" || $playState === "paused") {
-    audioPlayer.play($currentTrack.filepath)
-  }
+  audioPlayer.play($currentTrack.filepath)
 }
 
 export function pausePlayback() {
+  console.log("pausePlayback")
+
   playStateStore.set("paused")
   audioPlayer.pause()
 }
@@ -486,9 +476,9 @@ function setNewPlayback({
   tracks: readonly ITrack[]
   playback: IPlayback
 }): void {
-  indexStore.set(index)
   autoQueueStore.setTracks(tracks)
   playbackStore.set(playback)
+  indexStore.set(index)
 }
 
 function playNext() {
@@ -564,7 +554,6 @@ async function initialiseStores() {
 
         tracksStore.set(newTracks)
         autoQueueStore.setTracks(newTracks)
-        // audioPlayer.setSource(newTracks[0].filepath)
       }
     )
   )

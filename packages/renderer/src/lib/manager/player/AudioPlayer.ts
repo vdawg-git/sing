@@ -13,7 +13,10 @@ function createPlayer() {
   audio.volume = 1
   audio.muted = false
 
-  let previousVolume = audio.volume // Used to fade out the audio
+  /**
+   * Used to fade out the audio
+   */
+  let previousVolume: number | undefined = undefined
   let fadeInterval: NodeJS.Timer // Used to fade out the audio
 
   return {
@@ -26,11 +29,12 @@ function createPlayer() {
     getSource,
 
     resume() {
+      // Clear the interval of the pause (nessecary if the play/pause button gets spammed)
+      // And restore the volume to before the pause
       clearInterval(fadeInterval)
       try {
-        // Clear the interval of the pause (nessecary if the play/pause button gets spammed)
-        // And restore the volume before the pause
-        audio.volume = previousVolume
+        restoreVolume()
+
         audio.play()
       } catch (error) {
         console.error(error)
@@ -48,11 +52,13 @@ function createPlayer() {
           clearInterval(fadeInterval)
           audio.pause()
         }
-        audio.volume = audio.volume > 0.1 ? audio.volume - 0.1 : 0
+        this.setVolume(audio.volume > 0.1 ? audio.volume - 0.1 : 0)
       }, 20)
     },
 
     pauseWithoutFadeOut() {
+      console.log("Pausing audio player - without fade out")
+
       previousVolume = audio.volume
 
       audio.pause()
@@ -62,9 +68,8 @@ function createPlayer() {
       return audio.paused
     },
 
-    setVolume(volume: number) {
-      audio.volume = volume
-    },
+    setVolume,
+
     getVolume() {
       return audio.volume
     },
@@ -96,10 +101,26 @@ function createPlayer() {
   function play(source: string): void {
     setSource(source)
     try {
+      restoreVolume()
+
       audio.play()
     } catch (error) {
       console.error(error)
       console.error(`filepath: \t ${source}`)
+    }
+  }
+
+  function setVolume(volume: number) {
+    audio.volume = volume
+  }
+
+  /**
+   * If the volume has been set to 0 by the pause fade, restore it to the value before it.
+   */
+  function restoreVolume() {
+    if (previousVolume) {
+      setVolume(previousVolume)
+      previousVolume = undefined
     }
   }
 
