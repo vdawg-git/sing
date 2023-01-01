@@ -1,6 +1,5 @@
 /* eslint-env node */
 import { promises as fs } from "node:fs"
-import { builtinModules } from "node:module"
 import path from "node:path"
 
 import { svelte } from "@sveltejs/vite-plugin-svelte"
@@ -52,11 +51,10 @@ const config = {
     assetsDir: ".",
     rollupOptions: {
       input: path.join(PACKAGE_ROOT, "index.html"),
-      external: builtinModules.flatMap((p) => [p, `node:${p}`]),
     },
     emptyOutDir: true,
-    brotliSize: false,
-    minify: false,
+    minify: true,
+    modulePreload: { polyfill: false },
   },
   optimizeDeps: { exclude: ["svelte-navigator"] },
   test: {
