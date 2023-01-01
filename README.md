@@ -24,7 +24,6 @@ Sing is still in Alpha and does not support auto-updates yet. Future updates mig
 - Sorting
 - Smart Playlists
 - Android sync
-- Edit playlists
 - much
 
 ### Get started
