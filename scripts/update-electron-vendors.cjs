@@ -2,7 +2,7 @@ const { writeFile } = require("node:fs/promises")
 const { execSync } = require("node:child_process")
 const path = require("node:path")
 
-const electron = require("node:electron")
+const electron = require("electron")
 
 /**
  * Returns versions of electron vendors
@@ -14,8 +14,7 @@ const electron = require("node:electron")
 function getVendors() {
   const output = execSync(`${electron} -p "JSON.stringify(process.versions)"`, {
     env: { ELECTRON_RUN_AS_NODE: "1" },
-    // eslint-disable-next-line unicorn/text-encoding-identifier-case
-    encoding: "utf-8",
+    encoding: "utf8",
   })
 
   return JSON.parse(output)
