@@ -56,17 +56,21 @@
     id: track.id,
   })
 
-  const dispatch = createEventDispatcher()
+  const dispatch = createEventDispatcher<{ play: never; remove: never }>()
 
   function handleRemoveClick() {
     dispatch("remove")
   }
+
+  function dispatchPlay() {
+    dispatch("play")
+  }
 </script>
 
-<div
+<button
   class="
     group relative flex w-full cursor-pointer items-center
-    justify-between gap-6
+    justify-between gap-6 text-left
   "
   class:opacity-70={state === "HAS_PLAYED"}
   data-trackid={track.id}
@@ -74,7 +78,12 @@
   data-testattribute={testattribute}
   data-testQueueNextIndex={testQueueNextIndex}
   data-testQueuePlayedIndex={testQueuePlayedIndex}
-  on:dblclick
+  on:dblclick={dispatchPlay}
+  on:keypress={(event) => {
+    if (event.key !== "Enter") return
+
+    dispatchPlay()
+  }}
   use:useOpenContextMenu={{ menuItems: contextMenuItems }}
 >
   <div class="flex grow gap-3">
@@ -121,4 +130,4 @@
   <div
     class="absolute inset-[-0.5rem] left-[-0.55rem] -z-10 rounded-xl  group-hover:bg-grey-300/10 "
   />
-</div>
+</button>

@@ -12,9 +12,9 @@
     playIndex,
     playFromAutoQueue,
     removeIndexFromQueue,
-    pausePlayback,
     manualQueue,
     removeIndexFromManualQueue,
+    togglePause,
   } from "@/lib/manager/player"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
@@ -105,8 +105,9 @@
               testQueuePlayedIndex={index}
               testattribute={TEST_ATTRIBUTES.queuePreviousTracks}
               {createContextMenuItems}
-              on:dblclick={() => playFromAutoQueue(queueItemData.index)}
-              on:remove={() => handleRemove(queueItemData.index)}
+              on:play={() => playFromAutoQueue(queueItemData.index)}
+              on:remove={async () =>
+                removeIndexFromManualQueue(queueItemData.index)}
             />
           {/each}
         </div>
@@ -123,7 +124,7 @@
             state="PLAYING"
             testId={TEST_IDS.queueCurrentTrack}
             {createContextMenuItems}
-            on:dblclick={() => pausePlayback()}
+            on:play={togglePause}
             on:remove={() => handleRemove($playIndex)}
           />
         </div>
@@ -164,7 +165,7 @@
                 testQueueNextIndex={index}
                 testattribute={TEST_ATTRIBUTES.queueNextTracks}
                 {createContextMenuItems}
-                on:dblclick={() => playFromAutoQueue(queueItemData.index)}
+                on:play={() => playFromAutoQueue(queueItemData.index)}
                 on:remove={() => handleRemove(queueItemData.index)}
               />
             {/each}

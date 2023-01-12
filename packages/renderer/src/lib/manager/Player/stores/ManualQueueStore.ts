@@ -42,7 +42,7 @@ function createManuellQueueStore() {
         matchW(
           () => {
             throw new Error(
-              `Invalid index to to delete manually added track provided: ${index}`
+              `Invalid index provided (manually delete added track): ${index}`
             )
           },
           (newQueue) => newQueue

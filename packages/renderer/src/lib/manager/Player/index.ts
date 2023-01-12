@@ -221,6 +221,17 @@ export function handleSeekingEnd() {
   }
 }
 
+/**
+ * If the player is playing pause, otherwise resume playback.
+ */
+export function togglePause() {
+  if ($playState === "playing") {
+    pausePlayback()
+  } else {
+    resumePlayback()
+  }
+}
+
 export async function toggleShuffle() {
   playbackStore.update(({ isShuffleOn, ...rest }) => ({
     ...rest,
@@ -308,8 +319,6 @@ function playPrevious() {
 }
 
 export function pausePlayback() {
-  console.log("pausePlayback")
-
   playStateStore.set("paused")
   audioPlayer.pause()
 }
