@@ -26,6 +26,8 @@ const { set, subscribe } = writable<
 /**
  * Create an use-directive action to open a menu.
  * By default it opens on:click of the element.
+ *
+ * This is differemt from {@link useOpenContextMenu}!
  * @return A function to be used with the `use` directive.
  */
 export function createOpenMenu({
@@ -34,20 +36,30 @@ export function createOpenMenu({
   testID,
 }: IOpenMenuArgument): (node: HTMLElement) => { destroy: () => void } {
   return (node: HTMLElement) => {
-    node.addEventListener(onEvent ?? "click", openMenu)
+    let isMenuOpen = false
+
+    node.addEventListener(onEvent ?? "click", toggleMenu)
 
     return {
       destroy: () => {
-        node.removeEventListener(onEvent ?? "click", openMenu)
+        node.removeEventListener(onEvent ?? "click", toggleMenu)
       },
     }
 
-    function openMenu() {
-      set({
-        items: menuItems,
-        nodeOrPosition: node,
-        testID,
-      })
+    function toggleMenu() {
+      if (isMenuOpen) {
+        // Close the menu
+        isMenuOpen = false
+        set(undefined)
+      } else {
+        // Open the menu
+        isMenuOpen = true
+        set({
+          items: menuItems,
+          nodeOrPosition: node,
+          testID,
+        })
+      }
     }
   }
 }
