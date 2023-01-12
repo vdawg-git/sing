@@ -44,7 +44,7 @@
     }
   }
 
-  function handleRemove(index: number) {
+  function handleRemoveFromAutoQueue(index: number) {
     removeIndexFromQueue(index)
   }
 </script>
@@ -106,8 +106,7 @@
               testattribute={TEST_ATTRIBUTES.queuePreviousTracks}
               {createContextMenuItems}
               on:play={() => playFromAutoQueue(queueItemData.index)}
-              on:remove={async () =>
-                removeIndexFromManualQueue(queueItemData.index)}
+              on:remove={async () => removeIndexFromQueue(queueItemData.index)}
             />
           {/each}
         </div>
@@ -125,7 +124,7 @@
             testId={TEST_IDS.queueCurrentTrack}
             {createContextMenuItems}
             on:play={togglePause}
-            on:remove={() => handleRemove($playIndex)}
+            on:remove={() => handleRemoveFromAutoQueue($playIndex)}
           />
         </div>
       {/if}
@@ -166,7 +165,7 @@
                 testattribute={TEST_ATTRIBUTES.queueNextTracks}
                 {createContextMenuItems}
                 on:play={() => playFromAutoQueue(queueItemData.index)}
-                on:remove={() => handleRemove(queueItemData.index)}
+                on:remove={() => handleRemoveFromAutoQueue(queueItemData.index)}
               />
             {/each}
           </div>

@@ -336,10 +336,12 @@ export function playFromAutoQueue(index: number): void {
 export function removeIndexFromQueue(index: number): void {
   autoQueueStore.removeIndex(index)
 
+  // Ensure that the current track stays the same
   if (index < $currentIndex) {
-    indexStore.decrement() // So that the current track stays the same
+    indexStore.decrement()
   }
 
+  // If the current track was removed while it was being played, play the next (the new current) one
   if ($currentIndex === index && $playState === "playing") {
     startPlayingCurrentTrack()
   }
