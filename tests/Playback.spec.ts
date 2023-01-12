@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest"
 
 import { launchElectron } from "./Helper"
-import createBasePage from "./POM/BasePage"
-import createTracksPage from "./POM/TracksPage"
+import { createBasePage } from "./POM/BasePage"
+import { createTracksPage } from "./POM/TracksPage"
 
 import type { ElectronApplication } from "playwright"
 
@@ -13,10 +13,10 @@ beforeAll(async () => {
 
   const basePage = await createBasePage(electron)
 
-  const libraryPage = await basePage.resetTo("settings/library")
+  const libraryPage = await basePage.resetTo.settingsLibrary()
   await libraryPage.resetToDefault()
 
-  await libraryPage.resetTo("tracks")
+  await libraryPage.resetTo.tracks()
 })
 
 afterAll(async () => {
@@ -201,7 +201,7 @@ describe("when playing a track after adding folders from a blank state", async (
     const trackToPlay = "10_"
 
     const tracksPage = await createTracksPage(electron)
-    const libraryPage = await tracksPage.goTo.settings()
+    const libraryPage = await tracksPage.goTo.settingsLibrary()
     await libraryPage.addFolder(1)
     await libraryPage.saveAndSyncFolders()
     await libraryPage.goTo.tracks()

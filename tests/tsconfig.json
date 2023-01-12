@@ -17,5 +17,5 @@
       "@sing-types/*": ["../types/*"]
     }
   },
-  "include": ["./**/*"]
+  "include": ["./**/*", "../packages/main/src/types/api.d.ts"]
 }

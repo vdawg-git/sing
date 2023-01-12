@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
 import { launchElectron } from "./Helper"
-import createBasePage from "./POM/BasePage"
+import { createBasePage } from "./POM/BasePage"
 
 import type { ElectronApplication } from "playwright"
 
@@ -17,9 +17,9 @@ afterAll(async () => {
 
 it("is possible to go to the settings page", async () => {
   const basePage = await createBasePage(electronApp)
-  const tracksPage = await basePage.resetTo("tracks")
+  const tracksPage = await basePage.resetTo.tracks()
 
-  const settingsPage = await tracksPage.goTo.settings()
+  const settingsPage = await tracksPage.goTo.settingsLibrary()
 
   expect(await settingsPage.isDisplayed()).toBe(true)
 })
@@ -27,7 +27,7 @@ it("is possible to go to the settings page", async () => {
 describe("From Settings", async () => {
   it("is possible to go to the tracks page", async () => {
     const basePage = await createBasePage(electronApp)
-    const settingsPage = await basePage.resetTo("settings/general")
+    const settingsPage = await basePage.resetTo.settingsLibrary()
 
     const tracksPage = await settingsPage.goTo.tracks()
 

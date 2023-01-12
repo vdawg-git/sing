@@ -1,12 +1,15 @@
 /* eslint-disable unicorn/prefer-dom-node-text-content */
-import { TEST_ATTRIBUTES, TEST_IDS } from "../../packages/renderer/src/TestConsts"
+import {
+  TEST_ATTRIBUTES,
+  TEST_IDS,
+} from "../../packages/renderer/src/TestConsts"
 import { removeDuplicates } from "../../packages/shared/Pures"
 
-import createBasePage from "./BasePage"
+import { createBasePage } from "./BasePage"
 
 import type { ElectronApplication } from "playwright"
 
-export default async function createTracksPage(electron: ElectronApplication) {
+export async function createTracksPage(electron: ElectronApplication) {
   const basePage = await createBasePage(electron)
   const page = await electron.firstWindow()
 

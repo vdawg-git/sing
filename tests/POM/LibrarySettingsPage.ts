@@ -1,18 +1,19 @@
 import path from "node:path"
 
-import { NOTIFICATION_LABEL } from "../../packages/renderer/src/Consts"
-import { TEST_ATTRIBUTES, TEST_IDS as id } from "../../packages/renderer/src/TestConsts"
+import { NOTIFICATION_LABEL } from "../../packages/renderer/src/Constants"
+import {
+  TEST_ATTRIBUTES,
+  TEST_IDS as id,
+} from "../../packages/renderer/src/TestConsts"
 
-import createSettingsBasePage from "./SettingsBasePage"
+import { createBaseSettingsPage } from "./SettingsBasePage"
 
 /* eslint-disable unicorn/prefer-dom-node-text-content */
 /* eslint-disable no-await-in-loop */
 import type { ElectronApplication, Locator } from "playwright"
 import type { AllowedIndexes } from "@sing-types/Utilities"
 
-export default async function createLibrarySettingsPage(
-  electron: ElectronApplication
-) {
+export async function createLibrarySettingsPage(electron: ElectronApplication) {
   const defaultFolders = [
     path.join(__dirname, "../testdata/folder0"),
     path.join(__dirname, "../testdata/folder1"),
@@ -20,7 +21,7 @@ export default async function createLibrarySettingsPage(
   ] as const
   const emptyFolder = path.join(__dirname, "../testdata/empty")
 
-  const settingsBase = await createSettingsBasePage(electron)
+  const settingsBase = await createBaseSettingsPage(electron)
   const page = await electron.firstWindow()
 
   const folders = page.locator(id.asQuery.settingsFolders)

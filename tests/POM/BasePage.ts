@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/prefer-dom-node-text-content */
 import slash from "slash"
 
 import {
@@ -5,16 +6,15 @@ import {
   TEST_IDS,
 } from "../../packages/renderer/src/TestConsts"
 import { convertDisplayTimeToSeconds } from "../Helper"
+import { ROUTES } from "../../packages/renderer/src/Routes"
 
 import { reduceTitlesToFolders } from "./Helper"
-import createLibrarySettingsPage from "./LibrarySettingsPage"
-import createTracksPage from "./TracksPage"
+import { createLibrarySettingsPage } from "./LibrarySettingsPage"
+import { createTracksPage } from "./TracksPage"
 
-/* eslint-disable unicorn/prefer-dom-node-text-content */
-import type { IRoutes } from "../../packages/renderer/src/Routes"
 import type { ElectronApplication } from "playwright"
 
-export default async function createBasePage(electronApp: ElectronApplication) {
+export async function createBasePage(electronApp: ElectronApplication) {
   const page = await electronApp.firstWindow()
 
   const currentTime = page.locator(TEST_IDS.asQuery.seekbarCurrentTime)
@@ -74,13 +74,16 @@ export default async function createBasePage(electronApp: ElectronApplication) {
     playNextTrackFromQueue,
     reload,
     resetMusic,
-    resetTo,
     setVolume,
     waitForNotification,
     waitForProgressBarToGrow,
     waitForTrackToChangeTo,
+    resetTo: {
+      settingsLibrary: resetToLibrarySettings,
+      tracks: resetToTracks,
+    },
     goTo: {
-      settings: gotoSettings,
+      settingsLibrary: gotoSettings,
       tracks: gotoTracks,
     },
   }
@@ -115,40 +118,24 @@ export default async function createBasePage(electronApp: ElectronApplication) {
     await sidebarMenu.waitFor({ state: "visible", timeout: 2000 })
   }
 
-  async function resetTo(
-    location: "settings/general" | "settings/library",
-    id?: number
-  ): Promise<ReturnType<typeof createLibrarySettingsPage>>
-  async function resetTo(
-    location: "tracks",
-    id?: number
-  ): Promise<ReturnType<typeof createTracksPage>>
-  async function resetTo(
-    location: IRoutes,
-    id?: number
-  ): Promise<
-    ReturnType<typeof createTracksPage | typeof createLibrarySettingsPage>
-  > {
+  async function resetToTracks() {
+    await resetTo(ROUTES.tracks)
+
+    return createTracksPage(electronApp)
+  }
+
+  async function resetToLibrarySettings() {
+    await resetTo(ROUTES.settingsLibrary)
+
+    return createLibrarySettingsPage(electronApp)
+  }
+
+  async function resetTo(location: string, id?: number | undefined) {
     const { pathname, protocol } = new URL(page.url())
 
     const path = `${protocol}//${pathname}#${location}${id ? `/${id}` : ""}`
 
-    await page.goto(path, { timeout: 2000 })
-
-    switch (location) {
-      case "settings/library":
-      case "settings/general": {
-        return createLibrarySettingsPage(electronApp)
-      }
-
-      case "tracks": {
-        return createTracksPage(electronApp)
-      }
-
-      default: {
-        throw new Error("Invalid location // Not implemented")
-      }
-    }
+    return page.goto(path, { timeout: 2000 })
   }
 
   async function reload() {
@@ -207,7 +194,7 @@ export default async function createBasePage(electronApp: ElectronApplication) {
   async function createErrorListener() {
     const errors: Error[] = []
 
-    const listener = (exception: Error) => {
+    function listener(exception: Error) {
       errors.push(exception)
       console.log(`Uncaught exception: "${exception}"`)
     }

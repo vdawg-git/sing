@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest"
 
 import { launchElectron } from "./Helper"
-import createBasePage from "./POM/BasePage"
-import createLibrarySettingsPage from "./POM/LibrarySettingsPage"
+import { createBasePage } from "./POM/BasePage"
+import { createLibrarySettingsPage } from "./POM/LibrarySettingsPage"
 
 import type { ElectronApplication } from "playwright"
 
@@ -13,7 +13,7 @@ beforeAll(async () => {
 
   const basePage = await createBasePage(electron)
 
-  basePage.resetTo("settings/library")
+  basePage.resetTo.settingsLibrary()
 })
 
 afterAll(async () => {
@@ -22,7 +22,7 @@ afterAll(async () => {
 
 beforeEach(async () => {
   const basePage = await createBasePage(electron)
-  await basePage.resetTo("settings/library")
+  await basePage.resetTo.settingsLibrary()
 })
 
 it("can add a folder", async () => {
@@ -89,7 +89,7 @@ describe("when removing all folders and instead adding new ones", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     const tracksPage = await settingsPage.goTo.tracks()
     await tracksPage.playTrack("10_")
-    await tracksPage.goTo.settings()
+    await tracksPage.goTo.settingsLibrary()
 
     await settingsPage.removeAllFolders()
     await settingsPage.addFolder(0)
@@ -114,7 +114,7 @@ describe("when removing one folder", async () => {
     const trackPage = await settingsPage.goTo.tracks()
     await trackPage.playTrack("01_")
 
-    await trackPage.goTo.settings()
+    await trackPage.goTo.settingsLibrary()
 
     // await settingsPage.removeFolder(0)
     await settingsPage.saveAndSyncFolders()
@@ -145,7 +145,7 @@ describe("when removing one folder", async () => {
 
     await tracksPage.playTrack("00_")
 
-    await tracksPage.goTo.settings()
+    await tracksPage.goTo.settingsLibrary()
 
     await settingsPage.removeFolder("folder0")
     await settingsPage.saveAndSyncFolders()
