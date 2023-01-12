@@ -13,7 +13,7 @@ import type { ChildProcess } from "node:child_process"
 
 const actions = [
   ["a", "restart Electron"],
-  ["o", "clear console"],
+  ["c", "clear console - only works when not run concurrently"],
 ]
 
 let electronApp: ChildProcess
@@ -93,6 +93,11 @@ function displayMessage() {
     .join("\n")
 
   console.log(`\n\n${c.green("Press")}\n${actionsString}\n`)
+  console.log(
+    `${c.dim(
+      "When run concurrently via 'npm start' buttons need to be pressed twice"
+    )}\n`
+  )
 }
 
 type KeyStroke = {
