@@ -5,7 +5,6 @@
 
   import type { FilePath } from "@sing-types/Filesystem"
 
-
   export let image: FilePath | readonly FilePath[] | undefined = undefined
   export let title = "Choose image"
   export let buttonLabel = "Pick image"
@@ -33,7 +32,7 @@
   on:click={handleOnClick}
 >
   <div
-    class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-grey-900/60 text-grey-200 opacity-0 group-hover:opacity-100"
+    class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-grey-900/90 text-grey-200 opacity-0 group-hover:opacity-100"
   >
     <IconPen class="h-8 w-8" />
     {title}
