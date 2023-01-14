@@ -20,11 +20,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set environment variables
-        env:
-          DATABASE_URL: file://C:/Windows_Database.db
-        run: echo "$env.DATABASE_URL"
-
       # - name: Set environment variables for Windows
       #   if: matrix.os == 'windows-latest'
       #   env:
@@ -45,6 +40,7 @@ jobs:
       - run: npm ci
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+          DATABASE_URL: file://C:/Windows_Database.db
 
       - run: npm run build
 
