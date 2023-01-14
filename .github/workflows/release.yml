@@ -24,11 +24,13 @@ jobs:
         if: matrix.os == "windows-latest"
         env:
           DATABASE_URL: file://C:/Windows_Database.db
+        run: echo "$env.DATABASE_URL"
 
       - name: Set environment variables for macOS and Linux
         if: matrix.os == "macos-latest" || matrix.os == "linux-latest"
         env:
           DATABASE_URL: file:///database.db
+        run: echo "$DATABASE_URL"
 
       - uses: actions/setup-node@v3
         with:
