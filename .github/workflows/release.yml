@@ -40,10 +40,10 @@ jobs:
       - run: npm ci
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
-          DATABASE_URL: file://C:/Windows_Database.db
 
       - run: npm run build
 
       - run: npx --no-install electron-builder --publish always
         env:
+          DATABASE_URL: "file://C:/Windows_Database.db"
           GH_TOKEN: ${{ secrets.TEST_SECRET }}
