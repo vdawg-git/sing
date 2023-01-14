@@ -46,4 +46,3 @@ jobs:
       - run: npx --no-install electron-builder --publish always
         env:
           GH_TOKEN: ${{ secrets.TEST_SECRET }}
-          DATABASE_URL: ${{}}
