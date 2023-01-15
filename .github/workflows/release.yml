@@ -8,6 +8,10 @@ defaults:
   run:
     shell: bash
 
+env:
+  WINDOWS_DATABASE_PATH: ${{join(['file://', env.RUNNER_TEMP, '\windows_database.db'], '')}}
+  UNIX_DATABASE_PATH: ${{join(['file://', env.RUNNER_TEMP, '/unix_database.db'], '')}}
+
 jobs:
   draft_release:
     strategy:
@@ -31,7 +35,7 @@ jobs:
 
       - run: npm run build
         env:
-          DATABASE_URL: ${{ runner.os == 'Windows' && ${{join(['file://', env.RUNNER_TEMP, '\windows_database.db'], '')}} || ${{join(['file://', env.RUNNER_TEMP, '/unix_database.db'], '')}}}}
+          DATABASE_URL: ${{ runner.os == 'Windows' && env.WINDOWS_DATABASE_PATH || env.UNIX_DATABASE_PATH }}
 
       - run: npx --no-install electron-builder --publish always
         env:
