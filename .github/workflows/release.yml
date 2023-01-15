@@ -31,7 +31,7 @@ jobs:
 
       - run: npm run build
         env:
-          DATABASE_URL: ${{ runner.os == 'Windows' && 'file://' + env.RUNNER_TEMP + '\windows_database.db' || 'file://' + env.RUNNER_TEMP + '/unix_database.db'}}
+          DATABASE_URL: ${{ runner.os == 'Windows' && join(['file://', env.RUNNER_TEMP, '\windows_database.db'], '') || join(['file://', env.RUNNER_TEMP, '/unix_database.db'], '')}}
 
       - run: npx --no-install electron-builder --publish always
         env:
