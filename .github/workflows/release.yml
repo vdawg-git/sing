@@ -22,6 +22,12 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - run: echo "The db path should be $env:WINDOWS_DATABASE_PATH."
+        if: runner.os == 'Windows'
+
+      - if: runner.os != 'Windows'
+        run: echo "The db path should be $env:UNIX_DATABASE_PATH."
+
       - uses: actions/checkout@v3
 
       - uses: actions/setup-node@v3
