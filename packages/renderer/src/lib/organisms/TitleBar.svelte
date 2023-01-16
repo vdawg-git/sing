@@ -13,12 +13,10 @@
 </script>
 
 <!-- Draggable area -->
-<div class="draggable fixed z-[999] h-5 w-[calc(100%-120px)]" />
+<div class="draggable fixed z-[888] h-5 w-[calc(100%-120px)]" />
 
-<!-- Visible title bar -->
-<div
-  class="fixed z-20 flex h-5 w-full items-center justify-end bg-grey-900/50 backdrop-blur-sm"
->
+<!-- Icons - always on top -->
+<div class="fixed right-0 z-[999] flex h-5 w-max items-center justify-end">
   {#await window.api.isMacOS() then isMacOS}
     <!-- // eslint-disable-next-line no-undef -->
     {#if isMacOS === false}
@@ -45,7 +43,10 @@
       </div>
     {/if}
   {/await}
+</div>
 
+<!-- Visible title bar -->
+<div class="fixed  z-20 h-5  w-full bg-grey-900/50 backdrop-blur-sm ">
   <!-- The inverted border radius edges -->
   <Edge
     class="absolute right-0 top-5 h-2 w-2 text-grey-900/50 ring-0 backdrop-blur-sm"
