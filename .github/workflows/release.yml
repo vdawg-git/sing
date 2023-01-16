@@ -9,8 +9,8 @@ defaults:
     shell: bash
 
 env:
-  WINDOWS_DATABASE_PATH: ${{join(['file:', env.RUNNER_TEMP, '\windows_database.db'], '')}}
-  UNIX_DATABASE_PATH: ${{join(['file:', env.RUNNER_TEMP, '/unix_database.db'], '')}}
+  WINDOWS_DATABASE_PATH: ${{'file:'  env.RUNNER_TEMP + '\windows_database.db'}}
+  UNIX_DATABASE_PATH: ${{'file:' + env.RUNNER_TEMP + '/unix_database.db'}}
 
 jobs:
   draft_release:
@@ -22,11 +22,11 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - run: echo "The db path should be $env:WINDOWS_DATABASE_PATH."
-        if: runner.os == 'Windows'
+      - if: runner.os == 'Windows'
+        run: echo "The db path should be $env:WINDOWS_DATABASE_PATH."
 
       - if: runner.os != 'Windows'
-        run: echo "The db path should be $env:UNIX_DATABASE_PATH."
+        run: echo "The db path should be $UNIX_DATABASE_PATH."
 
       - uses: actions/checkout@v3
 
