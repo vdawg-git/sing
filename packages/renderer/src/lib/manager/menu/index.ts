@@ -1,4 +1,4 @@
-import { writable } from "svelte/store"
+import { writable, type Unsubscriber } from "svelte/store"
 
 import type {
   IMenuItemsArgument,
@@ -14,14 +14,28 @@ export function getMenuElement() {
     | undefined
 }
 
-const { set, subscribe } = writable<
+type IMenu =
   | {
       readonly nodeOrPosition: IMenuLocation
       readonly items: IMenuItemsArgument
+      /**
+       * Only used for a regular menu, not for a context menu.
+       */
+      readonly triggerElement?: HTMLElement | HTMLElement[]
+
+      /**
+       * Gets called when the menu is opened.
+       */
+      readonly onCreate?: () => void
+      /**
+       * Gets called when the menu is closed, thus destroyed.
+       */
+      readonly onDestroy?: () => void
       readonly testID?: string
     }
   | undefined
->()
+
+const { set, subscribe } = writable<IMenu>()
 
 /**
  * Create an use-directive action to open a menu.
@@ -42,24 +56,37 @@ export function createOpenMenu({
 
     return {
       destroy: () => {
+        isMenuOpen = false
         node.removeEventListener(onEvent ?? "click", toggleMenu)
       },
     }
 
     function toggleMenu() {
+      console.log({
+        isMenuOpen,
+      })
+
       if (isMenuOpen) {
         // Close the menu
         isMenuOpen = false
-        set(undefined)
+        closeMenu()
       } else {
         // Open the menu
         isMenuOpen = true
-        set({
+
+        createMenu({
           items: menuItems,
           nodeOrPosition: node,
           testID,
+          triggerElement: node,
+          onDestroy() {
+            isMenuOpen = false
+          },
         })
       }
+      console.log({
+        isMenuOpen,
+      })
     }
   }
 }
@@ -100,7 +127,15 @@ function openContextMenu({
   clientY,
 }: PointerEvent) => void {
   return ({ clientX, clientY }) =>
-    set({ items: menuItems, nodeOrPosition: { clientX, clientY }, testID })
+    createMenu({
+      items: menuItems,
+      nodeOrPosition: { clientX, clientY },
+      testID,
+    })
+}
+
+function createMenu(menu: IMenu) {
+  set(menu)
 }
 
 export async function closeMenu() {

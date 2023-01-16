@@ -409,3 +409,21 @@ export function useDisableScrolling(_: Element) {
     destroy: enableAllScrolling,
   }
 }
+
+/**
+ * A helper to run lifecyle functions with DOM elements.
+ * Trigger a callback for onMount and onDestroy.
+ * Both are optional.
+ */
+export function useCallbacks(
+  _node: Node,
+  callbacks: { onMount?: () => void; onDestroy?: () => void }
+) {
+  callbacks.onMount && callbacks.onMount()
+
+  return {
+    destroy: () => {
+      callbacks.onDestroy && callbacks.onDestroy()
+    },
+  }
+}

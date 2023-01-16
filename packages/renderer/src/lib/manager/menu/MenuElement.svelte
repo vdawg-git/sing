@@ -3,7 +3,11 @@
   import { fade, fly } from "svelte/transition"
   import { sineInOut } from "svelte/easing"
 
-  import { useDisableScrolling, useOnOutClick } from "../../../Helper"
+  import {
+    useCallbacks,
+    useDisableScrolling,
+    useOnOutClick,
+  } from "../../../Helper"
   import MenuItem from "../../atoms/MenuItem.svelte"
 
   import { calculatePosition, createMenu } from "./MenuHelper"
@@ -147,8 +151,15 @@
         style:transition-property={isJustOpened
           ? "none"
           : "width, height, left, top"}
-        use:useOnOutClick={{ callback: closeMenu }}
+        use:useOnOutClick={{
+          callback: closeMenu,
+          extraElements: $menuStore?.triggerElement,
+        }}
         use:useDisableScrolling
+        use:useCallbacks={{
+          onMount: $menuStore?.onCreate,
+          onDestroy: $menuStore?.onDestroy,
+        }}
         in:fade={{ duration: 120 }}
       >
         {#key activeMenu}
