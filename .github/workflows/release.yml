@@ -31,6 +31,10 @@ jobs:
         run: echo "The db path should be $UNIX_DATABASE_PATH."
 
       - uses: actions/checkout@v3
+        with: 
+          lfs: true
+
+      - run: git lfs checkout
 
       - uses: actions/setup-node@v3
         with:
