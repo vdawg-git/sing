@@ -8,9 +8,7 @@ defaults:
   run:
     shell: bash
 
-env:
-  WINDOWS_DATABASE_PATH: 'file:' + env.RUNNER_TEMP + '\windows_database.db'
-  UNIX_DATABASE_PATH: 'file:' + env.RUNNER_TEMP + '/unix_database.db'
+
 
 jobs:
   draft_release:
@@ -20,6 +18,10 @@ jobs:
         os: [macos-latest, windows-latest]
 
     runs-on: ${{ matrix.os }}
+
+    env:
+      WINDOWS_DATABASE_PATH: 'file:' + env.RUNNER_TEMP + '\windows_database.db'
+      UNIX_DATABASE_PATH: 'file:' + env.RUNNER_TEMP + '/unix_database.db'
 
     steps:
       - if: runner.os == 'Windows'
