@@ -9,7 +9,7 @@ defaults:
     shell: bash
 
 env:
-  WINDOWS_DATABASE_PATH: 'file:' +  env.RUNNER_TEMP + '\windows_database.db'
+  WINDOWS_DATABASE_PATH: 'file:' + env.RUNNER_TEMP + '\windows_database.db'
   UNIX_DATABASE_PATH: 'file:' + env.RUNNER_TEMP + '/unix_database.db'
 
 jobs:
