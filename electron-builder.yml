@@ -45,6 +45,8 @@ win:
   # had to add artifactName here because electron-builder was generating latest.yml with hyphens instead of spaces,
   # which screwed up auto updates
   artifactName: ${productName}-Setup-${version}.${ext}
+  icon: buildResources/icon.png
+
 linux:
   target:
     - snap
