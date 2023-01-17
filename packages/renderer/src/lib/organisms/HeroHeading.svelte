@@ -99,7 +99,7 @@
                   }
                 : undefined}
               class={`
-                ${to && "cursor-pointer"} 
+                ${to && "cursor-pointer hover:underline"} 
                 ${bold ? "text-bold text-white" : "text-grey-100"}`}
             >
               {label}
