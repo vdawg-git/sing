@@ -200,7 +200,19 @@ export function handleClickedNext() {
 }
 
 export function handleClickedPrevious() {
-  playPrevious()
+  // If the current track is set to loop, loop it
+  if ($loopState === "LOOP_TRACK") {
+    durationStore.set(0)
+
+    if ($playState === "playing") {
+      startPlayingCurrentTrack()
+    }
+
+    return
+  }
+
+  if ($playState === "playing") playPrevious()
+  else goToPreviousTrack()
 }
 
 /**
@@ -299,6 +311,10 @@ export function resumePlayback() {
   playStateStore.set("playing")
 
   audioPlayer.resume()
+}
+
+function goToPreviousTrack() {
+  indexStore.decrement()
 }
 
 function playPrevious() {
