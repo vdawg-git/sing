@@ -10,7 +10,7 @@
   import IconPlaylist from "virtual:icons/tabler/playlist"
 
   import { createPlaylistURI, ROUTES, type IRoutes } from "@/Routes"
-  import { TEST_IDS as id } from "@/TestConsts"
+  import { TEST_IDS } from "@/TestConsts"
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
 
   import { createOpenMenu } from "../manager/menu"
@@ -51,7 +51,7 @@
     }),
   }))
 
-  const settingsDropdownItems: IOpenMenuArgument = {
+  const sidebarMenu: IOpenMenuArgument = {
     menuItems: [
       {
         label: "Settings",
@@ -66,9 +66,10 @@
         type: "item",
       },
     ],
+    testID: TEST_IDS.sidebarMenu,
   } as const
 
-  const openSettingsMenu = createOpenMenu(settingsDropdownItems)
+  const openSettingsMenu = createOpenMenu(sidebarMenu)
 
   let isMacOS = false
   window.api.isMacOS().then((isTrue) => (isMacOS = isTrue))
@@ -80,7 +81,7 @@
 
 <!-- Wrapper -->
 <nav
-  data-testid={id.sidebar}
+  data-testid={TEST_IDS.sidebar}
   class="
     custom_style z-30 flex h-screen  w-[208px]
     flex-shrink-0 flex-grow-0 flex-col rounded-r-xl
@@ -96,6 +97,7 @@
     <button
       use:openSettingsMenu
       class=" rounded-full p-1 hover:bg-grey-500 active:scale-90"
+      data-testid={TEST_IDS.sidebarMenuIcon}
     >
       <IconDotsVr class=" h-6  w-6 text-grey-300 " />
     </button>

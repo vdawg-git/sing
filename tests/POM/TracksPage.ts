@@ -58,7 +58,7 @@ export async function createTracksPage(electron: ElectronApplication) {
           ...node.querySelectorAll(selectors.trackItem),
         ] as HTMLElement[]
 
-        const result = trackElements.map((track) => {
+        return trackElements.map((track) => {
           const title = (
             track.querySelector(selectors.trackItemTitle) as
               | HTMLElement
@@ -85,8 +85,6 @@ export async function createTracksPage(electron: ElectronApplication) {
 
           return { title, album, artist, duration }
         })
-
-        return result
       },
       selectors,
       { timeout: 2000 }
@@ -127,6 +125,6 @@ export async function createTracksPage(electron: ElectronApplication) {
 
     await element.dblclick({ timeout: 2000 })
 
-    return element.innerText()
+    return element.innerText({ timeout: 2000 })
   }
 }

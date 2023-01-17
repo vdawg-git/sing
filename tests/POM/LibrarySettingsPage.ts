@@ -60,6 +60,8 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
   }
 
   async function removeAllFolders() {
+    await page.waitForSelector(TEST_ATTRIBUTES.asQuery.folderInput)
+
     const deleteIcons = await page.$$(
       TEST_ATTRIBUTES.asQuery.folderInputDeleteIcon
     )

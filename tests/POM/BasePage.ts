@@ -77,11 +77,18 @@ export async function createBasePage(electronApp: ElectronApplication) {
     setVolume,
     waitForNotification,
     waitForProgressBarToGrow,
+    waitForTimeout,
     waitForTrackToChangeTo,
+    /**
+     * Hard reload the page while setting it.
+     */
     resetTo: {
       settingsLibrary: resetToLibrarySettings,
       tracks: resetToTracks,
     },
+    /**
+     * Navigate to a page directly via URL.
+     */
     goTo: {
       settingsLibrary: gotoSettings,
       tracks: gotoTracks,
@@ -418,6 +425,10 @@ export async function createBasePage(electronApp: ElectronApplication) {
     }
   }
 
+  /**
+   * Mock the electron file/folder selector dialog.
+   * @param paths The paths it should return.
+   */
   async function mockDialog(paths: string[]): Promise<void> {
     const returnValue = paths.map((path) => slash(path))
 
@@ -458,11 +469,23 @@ export async function createBasePage(electronApp: ElectronApplication) {
     return items
   }
 
+  /**
+   *
+   * @returns The folder numbers.
+   * For example: [1, 2, 3] which means all three folders are represented in the queue.
+   */
   async function getQueueAddedFolders() {
     const items = await getQueueItems()
 
     const folders = reduceTitlesToFolders(items.map((item) => item.title))
 
     return folders
+  }
+
+  /**
+   * Useful when debugging and wanting to pause the execution of a text to inspect the UI.
+   */
+  async function waitForTimeout(timeout: number) {
+    return page.waitForTimeout(timeout)
   }
 }
