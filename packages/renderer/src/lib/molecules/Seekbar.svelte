@@ -24,8 +24,9 @@
   let isMouseDownForSeeking = false
   let isSeeking = false
 
-  // Prevent the seekbar value from being overwritten by the props while seeking, which prevents seeking.
+  // FIXME its possible to skip to the next track by seeking even when paused (only once though?).
   $: {
+    // Prevent the seekbar value from being overwritten by the props while seeking, which prevents seeking.
     if (isSeeking === false) {
       progress = (currentTime ?? 0) / (duration ?? 1)
     }
@@ -40,8 +41,8 @@
   }
 
   function handleSeekClick() {
-    // Prevent dragging to go to the complete end
-    if (progress === 1) progress -= 0.0001
+    // Prevent dragging to go to the complete end, thus triggering the going to the next track
+    if (progress >= 0.99) progress -= 0.0001
 
     dispatch("seek", progress)
   }

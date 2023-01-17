@@ -1,4 +1,4 @@
-import { writable, type Unsubscriber } from "svelte/store"
+import { writable } from "svelte/store"
 
 import type {
   IMenuItemsArgument,
