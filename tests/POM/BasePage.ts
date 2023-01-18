@@ -26,6 +26,7 @@ export async function createBasePage(electronApp: ElectronApplication) {
   const playbarBackButton = page.locator(TEST_IDS.asQuery.playbarBackButton)
   const playbarCover = page.locator(TEST_IDS.asQuery.playbarCover)
   const playbarNextButton = page.locator(TEST_IDS.asQuery.playbarNextButton)
+  const playbarPauseButton = page.locator(TEST_IDS.asQuery.playbarPauseButton)
   const playbarPlayButton = page.locator(TEST_IDS.asQuery.playbarPlayButton)
   const playbarQueueIcon = page.locator(TEST_IDS.asQuery.playbarQueueIcon)
   const previousTrack = page.locator(TEST_IDS.asQuery.queuePreviousTrack)
@@ -47,6 +48,7 @@ export async function createBasePage(electronApp: ElectronApplication) {
   return {
     clickPlay,
     clickSeekbar,
+    closeAllNotifications,
     closeQueue,
     createErrorListener,
     dragKnob: dragSeekbarKnob,
@@ -71,13 +73,14 @@ export async function createBasePage(electronApp: ElectronApplication) {
     isRenderingPlaybarCover,
     mockDialog,
     openQueue,
+    pause,
+    pauseExecution,
     playNextTrackFromQueue,
     reload,
     resetMusic,
     setVolume,
     waitForNotification,
     waitForProgressBarToGrow,
-    waitForTimeout,
     waitForTrackToChangeTo,
     /**
      * Hard reload the page while setting it.
@@ -87,7 +90,7 @@ export async function createBasePage(electronApp: ElectronApplication) {
       tracks: resetToTracks,
     },
     /**
-     * Navigate to a page directly via URL.
+     * Navigate to a page like a user would do. Uses the sidebar.
      */
     goTo: {
       settingsLibrary: gotoSettings,
@@ -483,9 +486,33 @@ export async function createBasePage(electronApp: ElectronApplication) {
   }
 
   /**
-   * Useful when debugging and wanting to pause the execution of a text to inspect the UI.
+   * Useful when debugging and wanting to pause the execution to inspect the UI.
    */
-  async function waitForTimeout(timeout: number) {
-    return page.waitForTimeout(timeout)
+  async function pauseExecution() {
+    page.evaluate(() => console.log("---- Pausing test execution ----"))
+
+    return page.waitForTimeout(999_999_999)
+  }
+
+  /**
+   * Pause the playback by clicking the pause button.
+   */
+  async function pause() {
+    await playbarPauseButton.click()
+  }
+
+  /**
+   * Closes all open notifications (which can be closed by the user).
+   *
+   * Useful when notifcations overlap a button and the test suite fails to click it because of that.
+   */
+  async function closeAllNotifications() {
+    const closeButtons = await page.$$(
+      TEST_ATTRIBUTES.asQuery.notificationCloseButton
+    )
+
+    for (const button of closeButtons) {
+      await button.click({ timeout: 1200, force: true })
+    }
   }
 }

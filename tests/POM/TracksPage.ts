@@ -113,6 +113,12 @@ export async function createTracksPage(electron: ElectronApplication) {
     return folders
   }
 
+  /**
+   * Play a track by its generic title like "12_".
+   *
+   * @param title In form of "01_"
+   * @returns The inner text of the element
+   */
   async function playTrack(title: string): Promise<string> {
     if (title.at(-1) !== "_")
       throw new Error(
@@ -123,7 +129,7 @@ export async function createTracksPage(electron: ElectronApplication) {
       hasText: title,
     })
 
-    await element.dblclick({ timeout: 2000 })
+    await element.dblclick({ timeout: 2000, position: { x: 4, y: 4 } })
 
     return element.innerText({ timeout: 2000 })
   }

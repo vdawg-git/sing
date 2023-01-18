@@ -43,6 +43,7 @@ describe("when removing all folders after having folders added", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
     await settingsPage.setDefaultFolders()
+    await settingsPage.closeAllNotifications()
     await settingsPage.saveAndSyncFolders()
 
     await settingsPage.resetMusic()
@@ -82,6 +83,7 @@ describe("when removing all folders and instead adding new ones", async () => {
 
     await settingsPage.addFolder(1)
     await settingsPage.addFolder(2)
+    await settingsPage.closeAllNotifications()
     await settingsPage.saveAndSyncFolders()
   })
 
@@ -93,6 +95,7 @@ describe("when removing all folders and instead adding new ones", async () => {
 
     await settingsPage.removeAllFolders()
     await settingsPage.addFolder(0)
+    await settingsPage.closeAllNotifications()
     await settingsPage.saveAndSyncFolders()
 
     const queue = await settingsPage.getQueueItems()
@@ -116,7 +119,8 @@ describe("when removing one folder", async () => {
 
     await trackPage.goTo.settingsLibrary()
 
-    // await settingsPage.removeFolder(0)
+    await settingsPage.removeFolder(0)
+    await settingsPage.closeAllNotifications()
     await settingsPage.saveAndSyncFolders()
 
     const foldersAddedToQueue = await settingsPage.getQueueAddedFolders()
@@ -128,6 +132,7 @@ describe("when removing one folder", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
     await settingsPage.removeFolder(0)
+    await settingsPage.closeAllNotifications()
     await settingsPage.saveAndSyncFolders()
 
     const tracksPage = await settingsPage.goTo.tracks()
@@ -139,15 +144,16 @@ describe("when removing one folder", async () => {
 
   it("changes the current track if it came from the removed folder", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
-    const oldCurrentTrack = await settingsPage.getCurrentTrack()
-
     const tracksPage = await settingsPage.goTo.tracks()
 
     await tracksPage.playTrack("00_")
+    const oldCurrentTrack = await settingsPage.getCurrentTrack()
 
     await tracksPage.goTo.settingsLibrary()
 
-    await settingsPage.removeFolder("folder0")
+    await settingsPage.removeFolder(0)
+
+    await settingsPage.closeAllNotifications()
     await settingsPage.saveAndSyncFolders()
 
     const newCurrentTrack = await settingsPage.getCurrentTrack()
@@ -155,6 +161,7 @@ describe("when removing one folder", async () => {
     expect(newCurrentTrack).not.toBe(oldCurrentTrack)
   })
 })
+
 describe("when adding one folder from a clear state", async () => {
   beforeEach(async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
@@ -168,6 +175,7 @@ describe("when adding one folder from a clear state", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
     await settingsPage.addFolder(0)
+    await settingsPage.closeAllNotifications()
     await settingsPage.saveAndSyncFolders()
 
     const tracksPage = await settingsPage.goTo.tracks()
