@@ -734,6 +734,8 @@ export async function deleteTracksInverted(
                   ${SQL.filepath} NOT IN (${pathsString})`)
 
   const playlistItemsQuery = prisma.$executeRawUnsafe(`
+    PRAGMA foreign_keys = OFF;
+  
     DELETE FROM
       ${SQL.PlaylistItem}
     WHERE
@@ -745,7 +747,9 @@ export async function deleteTracksInverted(
         WHERE
           ${SQL["Track.filepath"]} IN (
             ${pathsString}
-        )
+        );
+
+    PRAGMA foreign_keys = On;
   )`)
 
   return (
@@ -761,6 +765,8 @@ export async function deleteTracksInverted(
 
 export async function deleteEmptyAlbums(): Promise<Either<IError, number>> {
   const query = `
+    PRAGMA foreign_keys = OFF;
+
     DELETE
     FROM
       ${SQL.Album}
@@ -772,7 +778,9 @@ export async function deleteEmptyAlbums(): Promise<Either<IError, number>> {
           ${SQL.Album}
           LEFT JOIN ${SQL.Track} ON ${SQL["Album.id"]} = ${SQL["Track.albumID"]}
         WHERE
-          ${SQL["Track.title"]} IS NULL
+          ${SQL["Track.title"]} IS NULL;
+          
+    PRAGMA foreign_keys = ON;
       )`
 
   const result = await prisma
@@ -785,6 +793,8 @@ export async function deleteEmptyAlbums(): Promise<Either<IError, number>> {
 
 export async function deleteEmptyArtists(): Promise<Either<IError, number>> {
   const query = `
+    PRAGMA foreign_keys = OFF;
+  
     DELETE FROM
       ${SQL.Artist}
     WHERE
@@ -797,6 +807,9 @@ export async function deleteEmptyArtists(): Promise<Either<IError, number>> {
           OR ${SQL["Artist.name"]} = ${SQL["Track.albumartist"]}
         WHERE
           ${SQL["Track.title"]} IS NULL
+
+
+    PRAGMA foreign_keys = ON;      
       )`
 
   const result = await prisma
@@ -811,6 +824,8 @@ export async function deleteUnusedCoversInDatabase(): Promise<
   Either<IError, number>
 > {
   const query = `
+    PRAGMA foreign_keys = OFF;
+  
     DELETE FROM
       ${SQL.Cover}
     WHERE
@@ -829,6 +844,8 @@ export async function deleteUnusedCoversInDatabase(): Promise<
         FROM
          _CoverToPlaylist
       )
+
+    PRAGMA foreign_keys = ON;
   )`
 
   return prisma
