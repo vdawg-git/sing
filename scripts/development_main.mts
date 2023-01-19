@@ -73,7 +73,7 @@ async function restartElectron() {
   startElectron()
 
   electronApp.addListener("exit", () => {
-    console.log(c.inverse(" - ") + c.bgYellow("Electron exited"))
+    console.log(c.inverse(" - ") + c.bgYellow(" Electron exited"))
     process.exit()
   })
 }

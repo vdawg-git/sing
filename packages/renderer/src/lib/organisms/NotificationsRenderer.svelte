@@ -18,7 +18,9 @@
 This renders the notifications from the `NotificationManager.ts`
 -->
 
-<div class="absolute right-16 bottom-24 z-50 flex flex-col gap-4">
+<div
+  class="_notification absolute right-16 bottom-24 z-50 flex flex-col justify-end gap-4"
+>
   {#each $notificationStore as { label, type, duration, id } (id)}
     <div animate:flip={{ duration: 150 }}>
       <Notification {label} {type} {duration} {id} on:close={handleClose} />

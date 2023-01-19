@@ -32,7 +32,9 @@
       <p class="mb-6 text-grey-100">
         Choose which folders you want to sync with your library
       </p>
+
       <FoldersPicker bind:paths />
+
       <Button
         label="Save and sync"
         testid={id.settingsFoldersSaveButton}

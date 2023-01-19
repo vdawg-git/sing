@@ -18,6 +18,10 @@
    * Timeout in seconds. Set to -1 to disable
    */
   export let duration = 7
+  /**
+   * If the notification can be removed by the user. Defaults to true
+   */
+  export let removeable = true
 
   // TODO when hovering make the timeout slider stop smoothly and not abruptly like now
 
@@ -124,11 +128,13 @@
     </div>
   {/if}
 
-  <button
-    data-testattribute={TEST_ATTRIBUTES.notificationCloseButton}
-    class="absolute top-0 right-0  p-2 opacity-70 hover:opacity-100"
-    on:click={handleClose}
-  >
-    <IconClose class="h-4 w-4 {iconClass}" />
-  </button>
+  {#if removeable}
+    <button
+      data-testattribute={TEST_ATTRIBUTES.notificationCloseButton}
+      class="absolute top-0 right-0  p-2 opacity-70 hover:opacity-100"
+      on:click={handleClose}
+    >
+      <IconClose class="h-4 w-4 {iconClass}" />
+    </button>
+  {/if}
 </div>
