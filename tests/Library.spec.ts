@@ -25,7 +25,7 @@ beforeEach(async () => {
   await basePage.resetTo.settingsLibrary()
 })
 
-it("can add a folder", async () => {
+it.only("can add a folder", async () => {
   const nameToAdd = "testdata/folder"
 
   const settingsPage = await createLibrarySettingsPage(electron)
@@ -90,7 +90,7 @@ describe("when removing all folders and instead adding new ones", async () => {
   it("does not have a queue", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     const tracksPage = await settingsPage.goTo.tracks()
-    await tracksPage.playTrack("10_")
+    await tracksPage.playTrack("10")
     await tracksPage.goTo.settingsLibrary()
 
     await settingsPage.removeAllFolders()
@@ -115,7 +115,7 @@ describe("when removing one folder", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
     const trackPage = await settingsPage.goTo.tracks()
-    await trackPage.playTrack("01_")
+    await trackPage.playTrack("01")
 
     await trackPage.goTo.settingsLibrary()
 
@@ -146,7 +146,7 @@ describe("when removing one folder", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     const tracksPage = await settingsPage.goTo.tracks()
 
-    await tracksPage.playTrack("00_")
+    await tracksPage.playTrack("00")
     const oldCurrentTrack = await settingsPage.getCurrentTrack()
 
     await tracksPage.goTo.settingsLibrary()

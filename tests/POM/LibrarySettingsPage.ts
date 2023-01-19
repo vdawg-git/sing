@@ -62,12 +62,18 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
   async function removeAllFolders() {
     await page.waitForSelector(TEST_ATTRIBUTES.asQuery.folderInput)
 
-    const deleteIcons = await page.$$(
-      TEST_ATTRIBUTES.asQuery.folderInputDeleteIcon
-    )
+    await recursion()
 
-    for (const deleteIcon of deleteIcons) {
+    async function recursion() {
+      const deleteIcon = await page.$(
+        TEST_ATTRIBUTES.asQuery.folderInputDeleteIcon
+      )
+
+      if (!deleteIcon) return
+
       await deleteIcon.click({ timeout: 2000, force: true })
+
+      recursion()
     }
   }
 

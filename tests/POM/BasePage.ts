@@ -5,10 +5,14 @@ import {
   TEST_ATTRIBUTES,
   TEST_IDS,
 } from "../../packages/renderer/src/TestConsts"
-import { convertDisplayTimeToSeconds } from "../Helper"
 import { ROUTES } from "../../packages/renderer/src/Routes"
 
-import { reduceTitlesToFolders } from "./Helper"
+import {
+  convertDisplayTimeToSeconds,
+  getTrackTitle,
+  isE2ETrackTitle,
+  reduceTitlesToFolders,
+} from "./Helper"
 import { createLibrarySettingsPage } from "./LibrarySettingsPage"
 import { createTracksPage } from "./TracksPage"
 
@@ -30,7 +34,6 @@ export async function createBasePage(electronApp: ElectronApplication) {
   const playbarPlayButton = page.locator(TEST_IDS.asQuery.playbarPlayButton)
   const playbarQueueIcon = page.locator(TEST_IDS.asQuery.playbarQueueIcon)
   const previousTrack = page.locator(TEST_IDS.asQuery.queuePreviousTrack)
-  const previousTracks = page.locator(TEST_IDS.asQuery.queuePlayedTracks)
   const progressBarKnob = page.locator(TEST_IDS.asQuery.seekbarProgressbarKnob)
   const progressbar = page.locator(TEST_IDS.asQuery.seekbarProgressbar)
   const queueBar = page.locator(TEST_IDS.asQuery.queueBar)
@@ -45,6 +48,8 @@ export async function createBasePage(electronApp: ElectronApplication) {
   const volumeSlider = page.locator(TEST_IDS.asQuery.volumeSlider)
   const volumeSliderInner = page.locator(TEST_IDS.asQuery.volumeSliderInner)
 
+  // const previousTracks = page.locator(TEST_IDS.asQuery.queuePlayedTracks)
+
   return {
     clickPlay,
     clickSeekbar,
@@ -58,7 +63,6 @@ export async function createBasePage(electronApp: ElectronApplication) {
     getNextTrack,
     getNextTracks,
     getPreviousTrack,
-    getPreviousTracks,
     getProgressBarWidth,
     getQueueAddedFolders,
     getQueueItems,
@@ -74,14 +78,16 @@ export async function createBasePage(electronApp: ElectronApplication) {
     mockDialog,
     openQueue,
     pause,
-    pauseExecution,
+    pauseExecution: () => page.pause(),
     playNextTrackFromQueue,
     reload,
     resetMusic,
     setVolume,
+    startVisualisingClicks,
+    stopVisualisingClicks,
     waitForNotification,
     waitForProgressBarToGrow,
-    waitForTrackToChangeTo,
+    waitForCurrentTrackToChangeTo,
     /**
      * Hard reload the page while setting it.
      */
@@ -256,76 +262,157 @@ export async function createBasePage(electronApp: ElectronApplication) {
     return nextTracks
   }
 
-  async function getPreviousTracks() {
-    return previousTracks
-  }
-
   async function getProgressBarWidth() {
     const boundingBox = await progressbar.boundingBox({ timeout: 3000 })
 
     return boundingBox?.width
   }
 
+  /**
+   * Returns the next track title like `02`
+   *
+   * Returns undefined if there is none
+   */
   async function getNextTrack(): Promise<string | undefined> {
     const element = await nextTrack.elementHandle({ timeout: 2000 })
-    const titleElement = await element?.$(
-      TEST_ATTRIBUTES.asQuery.queueItemTitle
-    )
-    return titleElement?.innerText()
+
+    if (!element) return undefined
+
+    const titleElement = await element.$(TEST_ATTRIBUTES.asQuery.queueItemTitle)
+
+    if (!titleElement)
+      throw new Error("titleElement of track in getNextTrack not found")
+
+    return getTrackTitle(await titleElement?.innerText())
   }
+
+  /**
+   * Returns the previous track title like `01`.
+   *
+   * Returns undefined if there is none
+   */
   async function getPreviousTrack(): Promise<string | undefined> {
     const element = await previousTrack.elementHandle({ timeout: 2000 })
-    const titleElement = await element?.$(
-      TEST_ATTRIBUTES.asQuery.queueItemTitle
-    )
-    return titleElement?.innerText()
+
+    if (!element) return undefined
+
+    const titleElement = await element.$(TEST_ATTRIBUTES.asQuery.queueItemTitle)
+
+    if (!titleElement)
+      throw new Error("titleElement of track in getPreviousTrack not found")
+
+    return getTrackTitle(await titleElement.innerText())
   }
+
+  /**
+   * Get the current track title like `01`. Return `undefined` if there is none.
+   */
   async function getCurrentTrack(): Promise<string | undefined> {
     if ((await currentTrack.count()) === 0) return undefined
 
-    return currentTrack.innerText({ timeout: 2000 })
+    return getTrackTitle(await currentTrack.innerText({ timeout: 2000 }))
   }
 
-  async function waitForTrackToChangeTo(
+  /**
+   * Get the title of the next or previous track and wait for the current track to change to it.
+   *
+   * Throws an error if the specified track does not exists.
+   */
+  async function waitForCurrentTrackToChangeTo(
     waitFor: "Next track" | "Previous track"
   ): Promise<void>
-  async function waitForTrackToChangeTo(waitFor: string): Promise<void> {
+  /**
+   * Wait for the current track to change to the specified title.
+   * Use e2e titles like `01`, `02` or `10`.
+   */
+  async function waitForCurrentTrackToChangeTo(waitFor: string): Promise<void> {
     if (waitFor === "Next track" || waitFor === "Previous track") {
       const nextTitle =
         waitFor === "Next track"
           ? await getNextTrack()
           : await getPreviousTrack()
-      if (!nextTitle) return undefined
+      if (!nextTitle) throw new Error(`Could not find ${waitFor} element`)
 
-      return waitPlaybarTitleToBecome(nextTitle)
+      return waitCurrentTrackToBecome(nextTitle)
     }
-    return waitPlaybarTitleToBecome(waitFor)
+
+    if (!isE2ETrackTitle)
+      throw new TypeError(
+        `Invalid track title provided: ${waitFor} \nOnly e2e titles like "01" and "24" are allowed.`
+      )
+
+    return waitCurrentTrackToBecome(waitFor)
   }
 
-  async function waitPlaybarTitleToBecome(that: string) {
+  async function waitCurrentTrackToBecome(title: string) {
     const selector = TEST_IDS.asQuery.playbarTitle
 
     await page.waitForFunction(
       // eslint-disable-next-line @typescript-eslint/no-shadow
-      ({ that, selector }) => {
-        const currentTitle = document.querySelector(selector)?.textContent
+      ({ title, selector }) => {
+        const currentTitle = document
+          .querySelector(selector)
+          ?.textContent?.slice(0, 2) // Get the track title
 
-        return currentTitle === that
+        return currentTitle === title
       },
-      { that, selector }
+      { title, selector }
     )
   }
 
-  async function clickSeekbar(percentage: number) {
+  /**
+   * Visualizses clicks by adding dots to where they occured.
+   */
+  async function startVisualisingClicks() {
+    return page.evaluate(() => {
+      // @ts-expect-error
+      window._visualizeClick_ = ({ clientX: x, clientY: y }: MouseEvent) => {
+        document.body.append(createClickDot({ x, y }))
+      }
+
+      // @ts-expect-error
+      document.addEventListener("click", window._visualizeClick_)
+
+      // eslint-disable-next-line unicorn/consistent-function-scoping
+      function createClickDot({ x, y }: { x: number; y: number }) {
+        const element = document.createElement("div")
+        element.style.position = "fixed"
+        element.style.left = `${x}px`
+        element.style.top = `${y}px`
+        element.style.backgroundColor = "red"
+        element.style.borderRadius = "50%"
+        element.style.width = "8px"
+        element.style.height = "8px"
+        element.style.zIndex = "9999999"
+        element.style.opacity = "0.7"
+
+        return element
+      }
+    })
+  }
+
+  async function stopVisualisingClicks() {
+    return page.evaluate(() => {
+      // @ts-expect-error
+      document.removeEventListener("click", window._visualizeClick_)
+    })
+  }
+
+  async function clickSeekbar(seekPercentage: number) {
     const boundingBox = await seekbar.boundingBox({ timeout: 1000 })
 
-    const x = (boundingBox?.width ?? 0) * (percentage / 100)
+    if (!boundingBox?.height || !boundingBox?.width) {
+      throw new Error(
+        `Seekbar is not properly rendered.\nSeekbar: ${seekbar}\nHeight: ${boundingBox?.height}\nWidth: ${boundingBox?.width}`
+      )
+    }
 
-    await seekbar.click({
-      position: {
-        x,
-        y: 0,
-      },
+    const x = boundingBox.width * (seekPercentage / 100)
+    // Subtract 4 because it has a negative top margin of 8, and 4 works
+    const y = -4
+
+    return seekbar.click({
+      position: { x, y },
       timeout: 1000,
       force: true,
     })
@@ -483,15 +570,6 @@ export async function createBasePage(electronApp: ElectronApplication) {
     const folders = reduceTitlesToFolders(items.map((item) => item.title))
 
     return folders
-  }
-
-  /**
-   * Useful when debugging and wanting to pause the execution to inspect the UI.
-   */
-  async function pauseExecution() {
-    page.evaluate(() => console.log("---- Pausing test execution ----"))
-
-    return page.waitForTimeout(999_999_999)
   }
 
   /**

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte"
+  import { clsx } from "clsx"
 
   import { secondsToDuration } from "@/Helper"
   import { TEST_IDS as test } from "@/TestConsts"
@@ -34,6 +35,7 @@
 
   $: {
     if (isSeeking === true) {
+      console.log("Seeking")
       dispatch("startedSeeking")
     } else {
       dispatch("endedSeeking")
@@ -41,17 +43,18 @@
   }
 
   function handleSeekClick() {
-    // Prevent dragging to go to the complete end, thus triggering the going to the next track
-    if (progress >= 0.99) progress -= 0.0001
+    if (!duration) return
+
+    // Prevent dragging to go to the complete end, thus triggering going to the next track
+    // by substracting 0.5s from the current progress
+    // Also prevent a negative progress when there is a less than half a second track
+    if (progress >= 0.99) progress = Math.max((duration - 0.5) / duration, 0)
 
     dispatch("seek", progress)
   }
 </script>
 
-<main
-  class="
-   group -mt-1.5 cursor-pointer py-3"
->
+<main class="group -mt-1.5 cursor-pointer py-3">
   <div
     data-testid={test.seekbar}
     class="relative -mt-2 h-[2px] rounded-full bg-orange-800"
@@ -80,23 +83,21 @@
     <div
       data-testid={test.seekbarProgressbar}
       style="width: {progress * 100}%"
-      class="
-        pointer-events-none relative h-full rounded-full bg-amber-500 ease-in
-        {isSeeking ? '' : 'transition-[width] duration-[60ms]'}"
+      class={clsx(
+        "pointer-events-none relative h-full rounded-full bg-amber-500 ease-in",
+        !isSeeking && "transition-[width] duration-[40ms]"
+      )}
     >
       <div
         data-testid={test.seekbarProgressbarKnob}
         class="
           shadow_small blurred
-          pointer-events-auto absolute -top-[6px] -right-2 h-3 w-3 rounded-full bg-amber-500  opacity-0 backdrop-blur-3xl delay-100 duration-[150ms]  group-hover:opacity-100
+          pointer-events-auto absolute -top-[6px] -right-2 h-3 w-3 rounded-full bg-amber-500  opacity-0 backdrop-blur-3xl delay-100 duration-[150ms] group-hover:opacity-100
         "
       >
         <div
           data-testid={test.seekbarCurrentTime}
-          class="
-             pointer-events-none absolute right-0 -bottom-1 -translate-x-6 rounded-md bg-grey-700/50
-            px-2 text-sm text-grey-100 backdrop-blur-sm 
-          "
+          class="pointer-events-none absolute right-0 -bottom-1 -translate-x-6 rounded-md bg-grey-700/50 px-2 text-sm text-grey-100 backdrop-blur-sm"
         >
           {secondsToDuration(currentTime)}
         </div>
@@ -105,7 +106,7 @@
     <div
       data-testid={test.seekbarTotalDuration}
       class="
-       blurred  pointer-events-none absolute -bottom-2 right-0 translate-x-[calc(100%+12px)]  rounded-md bg-grey-700/50 px-2 text-sm text-grey-100 opacity-0 backdrop-blur-3xl delay-150 duration-[120ms] group-hover:opacity-100
+blurred  pointer-events-none absolute -bottom-2 right-0 translate-x-[calc(100%+12px)]  rounded-md bg-grey-700/50 px-2 text-sm text-grey-100 opacity-0 backdrop-blur-3xl delay-150 duration-[120ms] group-hover:opacity-100
       "
     >
       {secondsToDuration(duration)}
@@ -125,7 +126,7 @@
 
   input[type="range"].input_ {
     position: absolute;
-    padding: 12px;
+    padding: 0px;
     width: 100%;
     height: 24px;
     background-color: red;
@@ -146,7 +147,7 @@
       width: 24px;
       height: 24px;
       background-color: red;
-      opacity: 0;
+      opacity: 1;
     }
   }
 </style>

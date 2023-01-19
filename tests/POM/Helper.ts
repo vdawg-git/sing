@@ -26,3 +26,25 @@ export function isMediaElement(
 
   return false
 }
+
+export function convertDisplayTimeToSeconds(displayTime: string) {
+  const [minutes, seconds] = displayTime.split(":").map(Number)
+
+  return minutes * 60 + seconds
+}
+
+/**
+ * Get the track title for e2e from the rendered title
+ * @param trackTitle - Title as rendered, for example: `01_Lorem Ipsum`
+ * @returns Title for e2e testing like `01`
+ */
+export function getTrackTitle(trackTitle: string): string {
+  return trackTitle.slice(0, 2)
+}
+
+/**
+ * Checks if the provided string is an e2e track title like `01`, or `20`
+ */
+export function isE2ETrackTitle(trackTitle: string): boolean {
+  return !!trackTitle.match(/^\d\d$/)?.length
+}

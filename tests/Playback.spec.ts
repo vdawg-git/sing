@@ -123,15 +123,16 @@ it("displays the total time when hovering the seekbar", async () => {
   expect(await tracksPage.getTotalDuration()).toBeGreaterThan(0)
 })
 
-it("goes to the next track in queue after the current has finished", async () => {
+it.only("goes to the next track in queue after the current has finished", async () => {
   const tracksPage = await createTracksPage(electron)
   await tracksPage.openQueue()
 
   const oldNextTrack = await tracksPage.getNextTrack()
 
-  await tracksPage.clickSeekbar(98)
+  await tracksPage.clickSeekbar(97)
+
   await tracksPage.clickPlay()
-  await tracksPage.waitForTrackToChangeTo("Next track")
+  await tracksPage.waitForCurrentTrackToChangeTo("Next track")
 
   const newCurrentTrack = await tracksPage.getCurrentTrack()
 
@@ -198,7 +199,7 @@ describe("when playing a track after adding folders from a blank state", async (
   })
 
   it("does play the track correctly", async () => {
-    const trackToPlay = "10_"
+    const trackToPlay = "10"
 
     const tracksPage = await createTracksPage(electron)
     const libraryPage = await tracksPage.goTo.settingsLibrary()

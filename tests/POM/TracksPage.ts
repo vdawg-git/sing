@@ -1,10 +1,12 @@
 /* eslint-disable unicorn/prefer-dom-node-text-content */
+
 import {
   TEST_ATTRIBUTES,
   TEST_IDS,
 } from "../../packages/renderer/src/TestConsts"
 import { removeDuplicates } from "../../packages/shared/Pures"
 
+import { isE2ETrackTitle } from "./Helper"
 import { createBasePage } from "./BasePage"
 
 import type { ElectronApplication } from "playwright"
@@ -114,19 +116,19 @@ export async function createTracksPage(electron: ElectronApplication) {
   }
 
   /**
-   * Play a track by its generic title like "12_".
+   * Play a track by its e2e title like "12".
    *
-   * @param title In form of "01_"
+   * @param title In form of "01"
    * @returns The inner text of the element
    */
   async function playTrack(title: string): Promise<string> {
-    if (title.at(-1) !== "_")
-      throw new Error(
-        `Invalid track title provided. It lacks the \`_\` at the end. \nProvided: ${title}`
+    if (!isE2ETrackTitle(title))
+      throw new TypeError(
+        `Invalid track title provided. \nProvided: ${title}\nExpected something like "01" or "23"`
       )
 
     const element = page.locator(TEST_ATTRIBUTES.asQuery.trackItem, {
-      hasText: title,
+      hasText: title + "_",
     })
 
     await element.dblclick({ timeout: 2000, position: { x: 4, y: 4 } })

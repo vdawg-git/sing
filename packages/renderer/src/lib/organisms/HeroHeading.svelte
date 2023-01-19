@@ -25,6 +25,7 @@
     | undefined = undefined
   export let handleClickTitle: EventHandler | undefined = undefined
   export let handleClickDescription: EventHandler | undefined = undefined
+  export let titleTestID: string | undefined = undefined
 
   const navigate = useNavigate()
   // TODO disable focus indicator for now
@@ -70,6 +71,7 @@
           {!!handleClickTitle && 'cursor-pointer hover:text-grey-200'}"
           use:doTextResizeToFitElement={{ minSize: 32, maxSize: 120, step: 8 }}
           on:click={handleClickTitle}
+          data-testid={titleTestID}
         >
           {title}
         </h1>
