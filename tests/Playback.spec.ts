@@ -28,16 +28,16 @@ it("displays a cover", async () => {
   await tracksPage.reload() // Nessecary as the music got reset and the playbar has not current track
   // TODO implement saving queue and play state and restoring it when reopening the app
 
-  expect(await tracksPage.isRenderingPlaybarCover()).toBe(true)
+  expect(await tracksPage.playbar.isRenderingPlaybarCover()).toBe(true)
 })
 
 it("does not throw an error when playing a queue item", async () => {
   const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
-  await tracksPage.openQueue()
+  await tracksPage.queuebar.open()
 
   const errorListener = await tracksPage.createErrorListener()
-  await tracksPage.playNextTrackFromQueue()
+  await tracksPage.queuebar.playNextTrack()
 
   errorListener.stopListeners()
   expect(errorListener.getErrors()).lengthOf(
@@ -51,17 +51,17 @@ it("progresses the seekbar when playing first song", async () => {
   const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
-  const oldWidth = await tracksPage.getProgressBarWidth()
+  const oldWidth = await tracksPage.playbar.getProgressBarWidth()
 
-  await tracksPage.clickPlay()
+  await tracksPage.playbar.clickPlay()
 
   if (oldWidth !== 0)
     throw new Error(
       `Beginning width of progressesBar is not 0, but ${oldWidth}`
     )
-  await tracksPage.waitForProgressBarToGrow(oldWidth)
+  await tracksPage.playbar.waitForProgressBarToGrow(oldWidth)
 
-  const newWidth = await tracksPage.getProgressBarWidth()
+  const newWidth = await tracksPage.playbar.getProgressBarWidth()
 
   if (oldWidth === undefined) throw new Error("oldWidth is undefined") // for typescript
   if (newWidth === undefined) throw new Error("newWidth is undefined")
@@ -73,18 +73,18 @@ it("progresses the seekbar when playing second song", async () => {
   const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
-  const oldWidth = await tracksPage.getProgressBarWidth()
+  const oldWidth = await tracksPage.playbar.getProgressBarWidth()
 
-  await tracksPage.goToNextTrack()
-  await tracksPage.clickPlay()
+  await tracksPage.playbar.goToNextTrack()
+  await tracksPage.playbar.clickPlay()
 
   if (oldWidth !== 0)
     throw new Error(
       `Beginning width of progressesBar is not 0, but ${oldWidth}`
     )
-  await tracksPage.waitForProgressBarToGrow(oldWidth)
+  await tracksPage.playbar.waitForProgressBarToGrow(oldWidth)
 
-  const newWidth = await tracksPage.getProgressBarWidth()
+  const newWidth = await tracksPage.playbar.getProgressBarWidth()
 
   if (oldWidth === undefined) throw new Error("oldWidth is undefined") // for typescript
   if (newWidth === undefined) throw new Error("newWidth is undefined")
@@ -96,11 +96,11 @@ it("changes the current time when when clicking on the seekbar", async () => {
   const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
-  const oldTime = await tracksPage.getCurrentTime()
+  const oldTime = await tracksPage.playbar.getCurrentTime()
 
-  await tracksPage.clickSeekbar(50)
+  await tracksPage.playbar.clickSeekbar(50)
 
-  const newTime = await tracksPage.getCurrentTime()
+  const newTime = await tracksPage.playbar.getCurrentTime()
 
   expect(newTime).toBeGreaterThan(oldTime)
 })
@@ -109,32 +109,32 @@ it("displays the current time when hovering the seekbar", async () => {
   const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
-  await tracksPage.hoverSeekbar()
+  await tracksPage.playbar.hoverSeekbar()
 
-  expect(await tracksPage.getCurrentTime()).toBe(0)
+  expect(await tracksPage.playbar.getCurrentTime()).toBe(0)
 })
 
 it("displays the total time when hovering the seekbar", async () => {
   const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
-  await tracksPage.hoverSeekbar()
+  await tracksPage.playbar.hoverSeekbar()
 
-  expect(await tracksPage.getTotalDuration()).toBeGreaterThan(0)
+  expect(await tracksPage.playbar.getTotalDuration()).toBeGreaterThan(0)
 })
 
-it.only("goes to the next track in queue after the current has finished", async () => {
+it("goes to the next track in queue after the current has finished", async () => {
   const tracksPage = await createTracksPage(electron)
-  await tracksPage.openQueue()
+  await tracksPage.queuebar.open()
 
-  const oldNextTrack = await tracksPage.getNextTrack()
+  const oldNextTrack = await tracksPage.queuebar.getNextTrack()
 
-  await tracksPage.clickSeekbar(97)
+  await tracksPage.playbar.clickSeekbar(97)
 
-  await tracksPage.clickPlay()
+  await tracksPage.playbar.clickPlay()
   await tracksPage.waitForCurrentTrackToChangeTo("Next track")
 
-  const newCurrentTrack = await tracksPage.getCurrentTrack()
+  const newCurrentTrack = await tracksPage.playbar.getCurrentTrack()
 
   expect(oldNextTrack).toBe(newCurrentTrack)
 })
@@ -142,10 +142,10 @@ it.only("goes to the next track in queue after the current has finished", async 
 it("changes the volume when clicking the slider", async () => {
   const tracksPage = await createTracksPage(electron)
 
-  const oldVolume = await tracksPage.getVolume()
+  const oldVolume = await tracksPage.playbar.getVolume()
 
-  await tracksPage.setVolume(0.5)
-  const newVolume = await tracksPage.getVolume()
+  await tracksPage.playbar.setVolume(0.5)
+  const newVolume = await tracksPage.playbar.getVolume()
 
   expect(newVolume).not.toBe(oldVolume)
   expect(newVolume).toBeCloseTo(0.5, 1)
@@ -154,8 +154,8 @@ it("changes the volume when clicking the slider", async () => {
 it("visualizes the volume correctly", async () => {
   const tracksPage = await createTracksPage(electron)
 
-  const internalVolume = await tracksPage.getVolumeState()
-  const sliderHeight = await tracksPage.getVolume()
+  const internalVolume = await tracksPage.playbar.getVolumeState()
+  const sliderHeight = await tracksPage.playbar.getVolume()
 
   expect(internalVolume).toBeCloseTo(sliderHeight, 1)
 })
@@ -164,8 +164,8 @@ it("does not play music when paused and going to the previous track", async () =
   const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
-  await tracksPage.goToNextTrack()
-  await tracksPage.goToPreviousTrack()
+  await tracksPage.playbar.goToNextTrack()
+  await tracksPage.playbar.goToPreviousTrack()
 
   const isPlaying = await tracksPage.isPlayingAudio()
 
@@ -176,7 +176,7 @@ it("does not play music when paused and going to the next track", async () => {
   const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
-  await tracksPage.goToNextTrack()
+  await tracksPage.playbar.goToNextTrack()
 
   const isPlaying = await tracksPage.isPlayingAudio()
 
@@ -209,7 +209,7 @@ describe("when playing a track after adding folders from a blank state", async (
 
     await tracksPage.playTrack(trackToPlay)
 
-    const currentTrack = await tracksPage.getCurrentTrack()
+    const currentTrack = await tracksPage.playbar.getCurrentTrack()
 
     expect(currentTrack).to.include(trackToPlay)
   })

@@ -25,7 +25,7 @@ beforeEach(async () => {
   await basePage.resetTo.settingsLibrary()
 })
 
-it.only("can add a folder", async () => {
+it("can add a folder", async () => {
   const nameToAdd = "testdata/folder"
 
   const settingsPage = await createLibrarySettingsPage(electron)
@@ -52,7 +52,7 @@ describe("when removing all folders after having folders added", async () => {
   it("has no current track", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
-    const currentTrack = await settingsPage.getCurrentTrack()
+    const currentTrack = await settingsPage.playbar.getCurrentTrack()
 
     expect(currentTrack).toBe(undefined)
   })
@@ -60,7 +60,7 @@ describe("when removing all folders after having folders added", async () => {
   it("does not have a queue", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
-    const queue = await settingsPage.getQueueItems()
+    const queue = await settingsPage.queuebar.getItems()
 
     expect(queue.length).toBe(0)
   })
@@ -98,7 +98,7 @@ describe("when removing all folders and instead adding new ones", async () => {
     await settingsPage.closeAllNotifications()
     await settingsPage.saveAndSyncFolders()
 
-    const queue = await settingsPage.getQueueItems()
+    const queue = await settingsPage.queuebar.getItems()
 
     expect(queue.length).toBe(0)
   })
@@ -123,7 +123,7 @@ describe("when removing one folder", async () => {
     await settingsPage.closeAllNotifications()
     await settingsPage.saveAndSyncFolders()
 
-    const foldersAddedToQueue = await settingsPage.getQueueAddedFolders()
+    const foldersAddedToQueue = await settingsPage.queuebar.getAddedFolders()
 
     expect(foldersAddedToQueue.indexOf(0)).toBe(-1)
   })
@@ -147,7 +147,7 @@ describe("when removing one folder", async () => {
     const tracksPage = await settingsPage.goTo.tracks()
 
     await tracksPage.playTrack("00")
-    const oldCurrentTrack = await settingsPage.getCurrentTrack()
+    const oldCurrentTrack = await settingsPage.playbar.getCurrentTrack()
 
     await tracksPage.goTo.settingsLibrary()
 
@@ -156,7 +156,7 @@ describe("when removing one folder", async () => {
     await settingsPage.closeAllNotifications()
     await settingsPage.saveAndSyncFolders()
 
-    const newCurrentTrack = await settingsPage.getCurrentTrack()
+    const newCurrentTrack = await settingsPage.playbar.getCurrentTrack()
 
     expect(newCurrentTrack).not.toBe(oldCurrentTrack)
   })
