@@ -17,7 +17,6 @@ export async function createPlaybarOrganism(page: Page) {
   const playbarNextButton = page.locator(TEST_IDS.asQuery.playbarNextButton)
   const playbarPauseButton = page.locator(TEST_IDS.asQuery.playbarPauseButton)
   const playbarPlayButton = page.locator(TEST_IDS.asQuery.playbarPlayButton)
-  const progressBarKnob = page.locator(TEST_IDS.asQuery.seekbarProgressbarKnob)
   const progressbar = page.locator(TEST_IDS.asQuery.seekbarProgressbar)
   const seekbar = page.locator(TEST_IDS.asQuery.seekbar)
   const testAudioElement = page.locator(TEST_IDS.asQuery.testAudioELement)
@@ -28,28 +27,27 @@ export async function createPlaybarOrganism(page: Page) {
   // const previousTracks = page.locator(TEST_IDS.asQuery.queuePlayedTracks)
 
   return {
+    clickNext,
+    clickPause,
     clickPlay,
+    clickPrevious,
     clickSeekbar,
-    dragKnob: dragSeekbarKnob,
     getCoverPath,
-    getCurrentTime,
+    getCurrentProgress,
     getCurrentTrack,
     getProgressBarWidth,
     getTotalDuration,
     getVolume,
     getVolumeState,
-    goToNextTrack,
-    goToPreviousTrack,
     hoverSeekbar,
     hoverVolumeIcon,
     isRenderingPlaybarCover,
-    clickPause,
-    pauseExecution: () => page.pause(),
+    seekTo,
     setVolume,
-    waitForProgressBarToGrow,
+    waitForProgressBarToProgress,
   }
 
-  async function waitForProgressBarToGrow(desiredWidth: number) {
+  async function waitForProgressBarToProgress(desiredWidth: number) {
     const selector = TEST_IDS.asQuery.seekbarProgressbar
 
     await page.waitForFunction(
@@ -83,11 +81,14 @@ export async function createPlaybarOrganism(page: Page) {
     return playbarPlayButton.click({ timeout: 2000 })
   }
 
-  async function goToNextTrack() {
+  /**
+   * Go to the next track by clicking the `next` button.
+   */
+  async function clickNext() {
     return playbarNextButton.click({ timeout: 2000 })
   }
 
-  async function goToPreviousTrack() {
+  async function clickPrevious() {
     return playbarBackButton.click({ timeout: 2000 })
   }
 
@@ -126,13 +127,34 @@ export async function createPlaybarOrganism(page: Page) {
     })
   }
 
-  async function dragSeekbarKnob(amount: number) {
-    await progressBarKnob.dragTo(seekbar, {
-      targetPosition: { x: amount, y: 0 },
+  /**
+   * Drag and drop the seekbar knop to the desired progress in percentages like `50` or `100`.
+   */
+  async function seekTo(progress: number) {
+    if (progress > 100 || progress < 0)
+      throw new TypeError(
+        `Must provide a positive percentage between 0 and 100 to seek to. But provided: ${progress}`
+      )
+
+    await hoverSeekbar()
+
+    const { width } = await seekbar.boundingBox().then((box) => {
+      if (!box) throw new Error("Progress bar could not been found.")
+
+      return { width: box.width, x: box.x, y: box.y }
+    })
+
+    await seekbar.dragTo(seekbar, {
+      targetPosition: { x: width * (progress / 100), y: 0 },
+      timeout: 1000,
+      force: true,
     })
   }
 
-  async function getCurrentTime(): Promise<number> {
+  /**
+   * Get the current progress of the track in seconds.
+   */
+  async function getCurrentProgress(): Promise<number> {
     await hoverSeekbar()
     const time = convertDisplayTimeToSeconds(
       await currentTime.innerText({ timeout: 3000 })

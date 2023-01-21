@@ -10,6 +10,8 @@
 
   import type { ISearchResult } from "@sing-types/Types"
 
+  // TODO close on escape
+
   let searchInputElement: HTMLInputElement
   let isFocused = false
   let searchInput: string | undefined

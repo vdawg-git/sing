@@ -53,7 +53,7 @@ export async function createTracksPage(electron: ElectronApplication) {
       trackItemDuration: TEST_ATTRIBUTES.asQuery.trackItemDuration,
     }
 
-    const tracks = await trackItems.evaluate(
+    return trackItems.evaluate(
       // eslint-disable-next-line @typescript-eslint/no-shadow
       (node, selectors) => {
         const trackElements = [
@@ -91,8 +91,6 @@ export async function createTracksPage(electron: ElectronApplication) {
       selectors,
       { timeout: 2000 }
     )
-
-    return tracks
   }
 
   async function getTrackTitles(): Promise<string[]> {
@@ -131,8 +129,8 @@ export async function createTracksPage(electron: ElectronApplication) {
       hasText: title + "_",
     })
 
-    await element.dblclick({ timeout: 2000, position: { x: 4, y: 4 } })
+    await element.dblclick({ timeout: 1000, position: { x: 4, y: 4 } })
 
-    return element.innerText({ timeout: 2000 })
+    return element.innerText({ timeout: 1000 })
   }
 }

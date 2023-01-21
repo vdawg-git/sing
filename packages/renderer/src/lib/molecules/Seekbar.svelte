@@ -89,10 +89,9 @@
       )}
     >
       <div
-        data-testid={test.seekbarProgressbarKnob}
         class="
           shadow_small blurred
-          pointer-events-auto absolute -top-[6px] -right-2 h-3 w-3 rounded-full bg-amber-500  opacity-0 backdrop-blur-3xl delay-100 duration-[150ms] group-hover:opacity-100
+          pointer-events-none absolute -top-[6px] -right-2 h-3 w-3 rounded-full bg-amber-500  opacity-0 backdrop-blur-3xl delay-100 duration-[150ms] group-hover:opacity-100
         "
       >
         <div

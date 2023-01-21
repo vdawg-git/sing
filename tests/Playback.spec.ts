@@ -59,7 +59,7 @@ it("progresses the seekbar when playing first song", async () => {
     throw new Error(
       `Beginning width of progressesBar is not 0, but ${oldWidth}`
     )
-  await tracksPage.playbar.waitForProgressBarToGrow(oldWidth)
+  await tracksPage.playbar.waitForProgressBarToProgress(oldWidth)
 
   const newWidth = await tracksPage.playbar.getProgressBarWidth()
 
@@ -75,14 +75,14 @@ it("progresses the seekbar when playing second song", async () => {
 
   const oldWidth = await tracksPage.playbar.getProgressBarWidth()
 
-  await tracksPage.playbar.goToNextTrack()
+  await tracksPage.playbar.clickNext()
   await tracksPage.playbar.clickPlay()
 
   if (oldWidth !== 0)
     throw new Error(
       `Beginning width of progressesBar is not 0, but ${oldWidth}`
     )
-  await tracksPage.playbar.waitForProgressBarToGrow(oldWidth)
+  await tracksPage.playbar.waitForProgressBarToProgress(oldWidth)
 
   const newWidth = await tracksPage.playbar.getProgressBarWidth()
 
@@ -96,11 +96,11 @@ it("changes the current time when when clicking on the seekbar", async () => {
   const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
-  const oldTime = await tracksPage.playbar.getCurrentTime()
+  const oldTime = await tracksPage.playbar.getCurrentProgress()
 
   await tracksPage.playbar.clickSeekbar(50)
 
-  const newTime = await tracksPage.playbar.getCurrentTime()
+  const newTime = await tracksPage.playbar.getCurrentProgress()
 
   expect(newTime).toBeGreaterThan(oldTime)
 })
@@ -111,7 +111,7 @@ it("displays the current time when hovering the seekbar", async () => {
 
   await tracksPage.playbar.hoverSeekbar()
 
-  expect(await tracksPage.playbar.getCurrentTime()).toBe(0)
+  expect(await tracksPage.playbar.getCurrentProgress()).toBe(0)
 })
 
 it("displays the total time when hovering the seekbar", async () => {
@@ -164,8 +164,8 @@ it("does not play music when paused and going to the previous track", async () =
   const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
-  await tracksPage.playbar.goToNextTrack()
-  await tracksPage.playbar.goToPreviousTrack()
+  await tracksPage.playbar.clickNext()
+  await tracksPage.playbar.clickPrevious()
 
   const isPlaying = await tracksPage.isPlayingAudio()
 
@@ -176,7 +176,7 @@ it("does not play music when paused and going to the next track", async () => {
   const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
-  await tracksPage.playbar.goToNextTrack()
+  await tracksPage.playbar.clickNext()
 
   const isPlaying = await tracksPage.isPlayingAudio()
 
@@ -213,4 +213,173 @@ describe("when playing a track after adding folders from a blank state", async (
 
     expect(currentTrack).to.include(trackToPlay)
   })
+})
+
+describe("When seeking", async () => {
+  beforeEach(async () => {
+    const page = await createTracksPage(electron)
+    const settings = await page.resetTo.settingsLibrary()
+    await settings.removeAllFolders()
+    await settings.addFolder(0)
+    await settings.saveAndSyncFolders()
+    await page.resetTo.tracks()
+
+    await page.playTrack("01")
+    await page.playbar.clickPause()
+  })
+
+  it("does not switch track when seeking to the end while paused", async () => {
+    const tracksPage = await createTracksPage(electron)
+
+    const currentTrack = await tracksPage.playbar.getCurrentTrack()
+
+    if (!currentTrack) throw new Error("No current track is set")
+
+    await tracksPage.playbar.seekTo(100)
+
+    const newTrack = await tracksPage.playbar.getCurrentTrack()
+
+    expect(newTrack).to.equal(currentTrack)
+  })
+
+  it("does not switch track when seeking to the start while paused", async () => {
+    const tracksPage = await createTracksPage(electron)
+
+    const currentTrack = await tracksPage.playbar.getCurrentTrack()
+
+    if (!currentTrack) throw new Error("No current track is set")
+
+    await tracksPage.playbar.seekTo(10)
+    await tracksPage.playbar.seekTo(0)
+
+    const newTrack = await tracksPage.playbar.getCurrentTrack()
+
+    expect(newTrack).to.equal(currentTrack)
+  })
+
+  it("updates the current duration", async () => {
+    const tracksPage = await createTracksPage(electron)
+
+    const currentProgress = await tracksPage.playbar.getCurrentProgress()
+
+    await tracksPage.playbar.seekTo(99)
+
+    const newProgress = await tracksPage.playbar.getCurrentProgress()
+
+    expect(newProgress).not.to.equal(currentProgress)
+  }, 9_999_999)
+
+  it("pauses the playback while seeking", async () => {
+    const tracksPage = await createTracksPage(electron)
+
+    await tracksPage.playbar.clickPlay()
+
+    const getHasPaused = await tracksPage.listenToPause()
+
+    await tracksPage.playbar.seekTo(99)
+
+    const hasPaused = await getHasPaused()
+
+    expect(hasPaused).toBe(true)
+  })
+
+  it("continues the playback after seeking", async () => {
+    const tracksPage = await createTracksPage(electron)
+
+    await tracksPage.playbar.clickPlay()
+
+    await tracksPage.playbar.seekTo(99)
+
+    const isPlaying = await tracksPage.isPlayingAudio()
+
+    expect(isPlaying).toBe(true)
+  })
+})
+
+describe("Mediakey handler", async () => {
+  beforeEach(async () => {
+    const page = await createTracksPage(electron)
+    await page.resetTo.tracks()
+  })
+
+  it("correctly sets the mediaSession metadata", async () => {
+    const tracksPage = await createTracksPage(electron)
+    await tracksPage.reload()
+
+    const title = "01"
+
+    await tracksPage.playTrack(title)
+
+    const data = await tracksPage.getMediaSessionMetaData()
+
+    if (!data.metadata || !data.playbackState)
+      throw new Error("mediaSession data is not set")
+
+    expect(data.metadata.title).toBe(title)
+    expect(data.playbackState).toBe(
+      "playing" satisfies MediaSessionPlaybackState
+    )
+  })
+
+  // Currently MediaKeys are not supported. See: https://github.com/microsoft/playwright/issues/20277
+
+  // it("does switch the track when the `forward` media key is pressed", async () => {
+  //   const tracksPage = await createTracksPage(electron)
+
+  // const oldTrack = await tracksPage.playbar.getCurrentTrack()
+
+  // await tracksPage.queuebar.open()
+  // const desiredTrack = await tracksPage.queuebar.getNextTrack()
+
+  // if (!oldTrack) throw new Error("No current track is set")
+
+  // await tracksPage.pressMediaKey("MediaTrackNext")
+
+  // const newTrack = await tracksPage.playbar.getCurrentTrack()
+
+  // expect(newTrack).not.toEqual(oldTrack)
+  // expect(newTrack).toEqual(desiredTrack)
+  // })
+
+  // it("does switch the track when the `previous` media key is pressed", async () => {
+  //   const tracksPage = await createTracksPage(electron)
+
+  // await tracksPage.playbar.clickNext()
+
+  // const oldTrack = await tracksPage.playbar.getCurrentTrack()
+
+  // await tracksPage.queuebar.open()
+  // const desiredTrack = await tracksPage.queuebar.getPreviousTrack()
+
+  // if (!oldTrack) throw new Error("No current track is set")
+
+  // await tracksPage.pressMediaKey("MediaStop")
+
+  // const newTrack = await tracksPage.playbar.getCurrentTrack()
+
+  // expect(newTrack).not.toEqual(oldTrack)
+  // expect(newTrack).toEqual(desiredTrack)
+  // })
+
+  // it("does pauses when the `togglePlayback` media key is pressed when its currently playing", async () => {
+  //   const tracksPage = await createTracksPage(electron)
+
+  //   await tracksPage.pressMediaKey("MediaPause")
+
+  //   const isPlaying = await tracksPage.isPlayingAudio()
+
+  //   expect(isPlaying).toBe(true)
+  // })
+
+  // it("does pauses when the `togglePlayback` media key is pressed when its currently playing", async () => {
+  //   const tracksPage = await createTracksPage(electron)
+
+  // await tracksPage.playbar.clickPlay()
+
+  //   await tracksPage.pressMediaKey("MediaPlay")
+
+  //   const isPlaying = await tracksPage.isPlayingAudio()
+
+  //   expect(isPlaying).toEqual(false)
+  // })
 })

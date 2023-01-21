@@ -7,7 +7,7 @@ import {
 } from "../../packages/renderer/src/TestConsts"
 import { ROUTES } from "../../packages/renderer/src/Routes"
 
-import { isE2ETrackTitle } from "./Helper"
+import { getTrackTitle, isE2ETrackTitle } from "./Helper"
 import { createLibrarySettingsPage } from "./LibrarySettingsPage"
 import { createTracksPage } from "./TracksPage"
 import { createPlaybarOrganism } from "./Organisms/Playbar"
@@ -33,15 +33,18 @@ export async function createBasePage(electronApp: ElectronApplication) {
   return {
     closeAllNotifications,
     createErrorListener,
+    getMediaSessionMetaData: getMediaSessionData,
     isPlayingAudio,
+    listenToPause,
     mockDialog,
     pauseExecution: () => page.pause(),
+    pressMediaKey,
     reload,
     resetMusic,
     startVisualisingClicks,
     stopVisualisingClicks,
-    waitForNotification,
     waitForCurrentTrackToChangeTo,
+    waitForNotification,
 
     playbar,
     queuebar,
@@ -123,6 +126,9 @@ export async function createBasePage(electronApp: ElectronApplication) {
     )
   }
 
+  /**
+   * Checks if the audio element on the page is playing.
+   */
   async function isPlayingAudio(): Promise<boolean> {
     const isPlaying = await testAudioElement.evaluate(
       (element) =>
@@ -199,29 +205,50 @@ export async function createBasePage(electronApp: ElectronApplication) {
 
   /**
    * Visualizses clicks by adding dots to where they occured.
+   *
+   * Mousedown is cyan, mouseup (normal click event) is red
    */
   async function startVisualisingClicks() {
     return page.evaluate(() => {
       // @ts-expect-error
       window._visualizeClick_ = ({ clientX: x, clientY: y }: MouseEvent) => {
-        document.body.append(createClickDot({ x, y }))
+        document.body.append(createClickDot({ x, y, opacity: 0.7 }))
+      }
+
+      // @ts-expect-error
+      window._visualizeClickDown_ = ({
+        clientX: x,
+        clientY: y,
+      }: MouseEvent) => {
+        document.body.append(
+          createClickDot({ x, y, color: "cyan", size: 6, opacity: 1 })
+        )
       }
 
       // @ts-expect-error
       document.addEventListener("click", window._visualizeClick_)
+      // @ts-expect-error
+      document.addEventListener("mousedown", window._visualizeClickDown_)
 
       // eslint-disable-next-line unicorn/consistent-function-scoping
-      function createClickDot({ x, y }: { x: number; y: number }) {
+      function createClickDot(data: {
+        x: number
+        y: number
+        color?: string
+        size?: number
+        opacity?: number
+      }) {
         const element = document.createElement("div")
         element.style.position = "fixed"
-        element.style.left = `${x}px`
-        element.style.top = `${y}px`
-        element.style.backgroundColor = "red"
+        element.style.left = `${data.x}px`
+        element.style.top = `${data.y}px`
+        element.style.backgroundColor = data.color ?? "red"
         element.style.borderRadius = "50%"
-        element.style.width = "8px"
-        element.style.height = "8px"
+        element.style.width = `${data.size ?? 9}px`
+        element.style.height = `${data.size ?? 9}px`
         element.style.zIndex = "9999999"
-        element.style.opacity = "0.7"
+        element.style.opacity = `${data.opacity ?? 1}`
+        element.style.pointerEvents = "none"
 
         return element
       }
@@ -232,6 +259,8 @@ export async function createBasePage(electronApp: ElectronApplication) {
     return page.evaluate(() => {
       // @ts-expect-error
       document.removeEventListener("click", window._visualizeClick_)
+      // @ts-expect-error
+      document.removeEventListener("click", window._visualizeClickDown_)
     })
   }
 
@@ -264,4 +293,69 @@ export async function createBasePage(electronApp: ElectronApplication) {
       await button.click({ timeout: 1200, force: true })
     }
   }
+
+  /**
+   * Listens to the audio player element for its `pause` event.
+   * Not directly related to the UI, but nessecary to check if everything works.
+   * @returns A function which returns if the audio was paused since invoking the `listenToPause` function
+   */
+  async function listenToPause(): Promise<() => Promise<boolean>> {
+    await testAudioElement.evaluate((audioNode) => {
+      // @ts-expect-error
+      window._registerPause_ = () => {
+        // @ts-expect-error
+        window._hasPaused_ = true
+      }
+
+      // @ts-expect-error
+      audioNode.addEventListener("pause", _registerPause_)
+    })
+
+    return () =>
+      testAudioElement.evaluate((audioNode) => {
+        // @ts-expect-error
+        audioNode.removeEventListener("pause", _registerPause_)
+
+        // @ts-expect-error
+        return window._hasPaused_ ?? false
+      })
+  }
+
+  async function getMediaSessionData() {
+    const metadata = await page.evaluate(() => {
+      console.log(navigator.mediaSession.metadata)
+
+      return (
+        (navigator.mediaSession.metadata &&
+          // The MediaMetadata instance cannot geet serialied as it seems.
+          ({
+            title: navigator.mediaSession.metadata.title.slice(0, 2), // Convert to e2e title
+            artist: navigator.mediaSession.metadata.artist,
+            album: navigator.mediaSession.metadata.album,
+            artwork: navigator.mediaSession.metadata.artwork,
+          } satisfies MediaMetadata)) ??
+        undefined
+      )
+    })
+    const playbackState = await page.evaluate(
+      () => navigator.mediaSession.playbackState
+    )
+
+    return {
+      metadata,
+      playbackState,
+    }
+  }
+
+  async function pressMediaKey(
+    key:
+      | "MediaTrackNext"
+      | "MediaTrackPrevious"
+      | "MediaPlayPause"
+      | "MediaStop"
+  ) {
+    return page.keyboard.press(key)
+  }
 }
+
+// playbackstate: navigator.mediaSession.metadata,

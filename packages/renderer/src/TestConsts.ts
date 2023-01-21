@@ -31,7 +31,6 @@ const testIDNames = [
   "seekbar",
   "seekbarCurrentTime",
   "seekbarProgressbar",
-  "seekbarProgressbarKnob",
   "seekbarTotalDuration",
   "settingsFolders",
   "settingsFoldersEmptyInput",
