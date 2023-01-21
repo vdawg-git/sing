@@ -103,7 +103,10 @@
                 ? TEST_IDS.queuePreviousTrack
                 : undefined}
               testQueuePlayedIndex={index}
-              testattribute={TEST_ATTRIBUTES.queuePreviousTracks}
+              testattributes={[
+                TEST_ATTRIBUTES.queuePreviousTracks,
+                TEST_ATTRIBUTES.queueItem,
+              ]}
               {createContextMenuItems}
               on:play={() => playFromAutoQueue(queueItemData.index)}
               on:remove={async () => removeIndexFromQueue(queueItemData.index)}
@@ -122,6 +125,7 @@
             track={$currentTrack}
             state="PLAYING"
             testId={TEST_IDS.queueCurrentTrack}
+            testattributes={TEST_ATTRIBUTES.queueItem}
             {createContextMenuItems}
             on:play={togglePause}
             on:remove={() => handleRemoveFromAutoQueue($playIndex)}
@@ -141,6 +145,10 @@
                 {track}
                 {createContextMenuItems}
                 on:remove={async () => removeIndexFromManualQueue(index)}
+                testattributes={[
+                  TEST_ATTRIBUTES.queueNextTracks,
+                  TEST_ATTRIBUTES.queueItem,
+                ]}
               />
             {/each}
           </div>
@@ -162,7 +170,10 @@
                 track={queueItemData.track}
                 testId={index === 0 ? "queueNextTrack" : undefined}
                 testQueueNextIndex={index}
-                testattribute={TEST_ATTRIBUTES.queueNextTracks}
+                testattributes={[
+                  TEST_ATTRIBUTES.queueNextTracks,
+                  TEST_ATTRIBUTES.queueItem,
+                ]}
                 {createContextMenuItems}
                 on:play={() => playFromAutoQueue(queueItemData.index)}
                 on:remove={() => handleRemoveFromAutoQueue(queueItemData.index)}

@@ -9,6 +9,7 @@ import { getTrackTitle, reduceTitlesToFolders } from "../Helper"
 import type { Page } from "playwright"
 
 export async function createQueuebarOrganism(page: Page) {
+  const currentTrack = page.locator(TEST_IDS.asQuery.queueCurrentTrack)
   const nextQueueTrack = page.locator(TEST_IDS.asQuery.queueNextTrack)
   const nextTrack = page.locator(TEST_IDS.asQuery.queueNextTrack)
   const nextTracks = page.locator(TEST_IDS.asQuery.queueBarNextTracks)
@@ -20,11 +21,12 @@ export async function createQueuebarOrganism(page: Page) {
 
   return {
     close,
+    getAddedFolders,
+    getCurrentTrack,
+    getItems,
     getNextTrack,
     getNextTracks,
     getPreviousTrack,
-    getAddedFolders,
-    getItems,
     open,
     playNextTrack,
   }
@@ -105,7 +107,7 @@ export async function createQueuebarOrganism(page: Page) {
           await item.$(TEST_ATTRIBUTES.asQuery.queueItemCover),
           await item.$(TEST_ATTRIBUTES.asQuery.queueItemArtist),
         ]
-        const title = await titleElement?.innerText()
+        const title = await titleElement?.innerText().then(getTrackTitle)
         const cover = await coverElement?.innerText()
         const artist = await artistElement?.innerText()
 
@@ -133,5 +135,15 @@ export async function createQueuebarOrganism(page: Page) {
     const folders = reduceTitlesToFolders(items.map((item) => item.title))
 
     return folders
+  }
+
+  async function getCurrentTrack() {
+    await open()
+
+    const title = currentTrack.innerText({ timeout: 600 }).then(getTrackTitle)
+
+    await close()
+
+    return title
   }
 }

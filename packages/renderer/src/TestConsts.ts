@@ -8,11 +8,11 @@ const testIDNames = [
   "playbarBackButton",
   "playbarCover",
   "playbarLoopIcon",
-  "playbarModeIcon",
   "playbarNextButton",
   "playbarPauseButton",
   "playbarPlayButton",
   "playbarQueueIcon",
+  "playbarShuffleButton",
   "playbarTitle",
   "playbarVolumeIcon",
   "queueBar",
@@ -83,7 +83,7 @@ type testAttributes = {
   readonly [index in typeof testAttributeNames[number]]: index
 } & {
   readonly asQuery: {
-    readonly [index in typeof testAttributeNames[number]]: `[data-testattribute=${index}]`
+    readonly [index in typeof testAttributeNames[number]]: `[data-testattribute~=${index}]`
   }
 }
 
@@ -101,7 +101,7 @@ export const TEST_ATTRIBUTES: testAttributes = testAttributeNames.reduce(
     if (!accumulator?.asQuery) accumulator.asQuery = {}
 
     accumulator[name] = name
-    accumulator.asQuery[name] = `[data-testattribute=${name}]`
+    accumulator.asQuery[name] = `[data-testattribute~=${name}]`
 
     return accumulator
   },

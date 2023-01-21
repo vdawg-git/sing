@@ -11,18 +11,20 @@ import type { Page } from "playwright"
 export async function createPlaybarOrganism(page: Page) {
   const currentTime = page.locator(TEST_IDS.asQuery.seekbarCurrentTime)
   const currentTrack = page.locator(TEST_IDS.asQuery.playbarTitle)
-  const playBarVolumeIcon = page.locator(TEST_IDS.asQuery.playbarVolumeIcon)
-  const playbarBackButton = page.locator(TEST_IDS.asQuery.playbarBackButton)
-  const playbarCover = page.locator(TEST_IDS.asQuery.playbarCover)
-  const playbarNextButton = page.locator(TEST_IDS.asQuery.playbarNextButton)
-  const playbarPauseButton = page.locator(TEST_IDS.asQuery.playbarPauseButton)
-  const playbarPlayButton = page.locator(TEST_IDS.asQuery.playbarPlayButton)
+  const artistName = page.locator(TEST_IDS.asQuery.playbarArtist)
+  const volumeIcon = page.locator(TEST_IDS.asQuery.playbarVolumeIcon)
+  const backButton = page.locator(TEST_IDS.asQuery.playbarBackButton)
+  const cover = page.locator(TEST_IDS.asQuery.playbarCover)
+  const nextButton = page.locator(TEST_IDS.asQuery.playbarNextButton)
+  const pauseButton = page.locator(TEST_IDS.asQuery.playbarPauseButton)
+  const playButton = page.locator(TEST_IDS.asQuery.playbarPlayButton)
   const progressbar = page.locator(TEST_IDS.asQuery.seekbarProgressbar)
   const seekbar = page.locator(TEST_IDS.asQuery.seekbar)
   const testAudioElement = page.locator(TEST_IDS.asQuery.testAudioELement)
   const totalDuration = page.locator(TEST_IDS.asQuery.seekbarTotalDuration)
   const volumeSlider = page.locator(TEST_IDS.asQuery.volumeSlider)
   const volumeSliderInner = page.locator(TEST_IDS.asQuery.volumeSliderInner)
+  const shuffleButton = page.locator(TEST_IDS.asQuery.playbarShuffleButton)
 
   // const previousTracks = page.locator(TEST_IDS.asQuery.queuePlayedTracks)
 
@@ -32,7 +34,9 @@ export async function createPlaybarOrganism(page: Page) {
     clickPlay,
     clickPrevious,
     clickSeekbar,
+    clickShuffle,
     getCoverPath,
+    getCurrentArtist,
     getCurrentProgress,
     getCurrentTrack,
     getProgressBarWidth,
@@ -42,6 +46,7 @@ export async function createPlaybarOrganism(page: Page) {
     hoverSeekbar,
     hoverVolumeIcon,
     isRenderingPlaybarCover,
+    isShuffleOn,
     seekTo,
     setVolume,
     waitForProgressBarToProgress,
@@ -64,13 +69,11 @@ export async function createPlaybarOrganism(page: Page) {
   }
 
   async function getCoverPath() {
-    return playbarCover.evaluate((element: HTMLElement) =>
-      element.getAttribute("src")
-    )
+    return cover.evaluate((element: HTMLElement) => element.getAttribute("src"))
   }
 
   async function isRenderingPlaybarCover() {
-    return playbarCover.evaluate((element: HTMLElement) => {
+    return cover.evaluate((element: HTMLElement) => {
       if (element?.tagName !== "IMG") return false
 
       return !!(element as HTMLImageElement)?.naturalWidth
@@ -78,18 +81,18 @@ export async function createPlaybarOrganism(page: Page) {
   }
 
   async function clickPlay() {
-    return playbarPlayButton.click({ timeout: 2000 })
+    return playButton.click({ timeout: 2000 })
   }
 
   /**
    * Go to the next track by clicking the `next` button.
    */
   async function clickNext() {
-    return playbarNextButton.click({ timeout: 2000 })
+    return nextButton.click({ timeout: 2000 })
   }
 
   async function clickPrevious() {
-    return playbarBackButton.click({ timeout: 2000 })
+    return backButton.click({ timeout: 2000 })
   }
 
   async function getProgressBarWidth() {
@@ -175,7 +178,7 @@ export async function createPlaybarOrganism(page: Page) {
   }
 
   async function hoverVolumeIcon() {
-    await playBarVolumeIcon.hover({ timeout: 2500, force: true })
+    await volumeIcon.hover({ timeout: 2500, force: true })
   }
 
   async function getVolumeState(): Promise<number> {
@@ -249,6 +252,27 @@ export async function createPlaybarOrganism(page: Page) {
    * Pause the playback by clicking the pause button.
    */
   async function clickPause() {
-    await playbarPauseButton.click()
+    await pauseButton.click({ timeout: 500 })
+  }
+
+  /**
+   * Returns the currently displayed artist name on the playbar.
+   */
+  async function getCurrentArtist(): Promise<string> {
+    return artistName.innerText({ timeout: 500 })
+  }
+
+  /**
+   * Press the shuffle button
+   */
+  async function clickShuffle() {
+    await shuffleButton.click({ timeout: 500 })
+  }
+
+  async function isShuffleOn() {
+    return shuffleButton.evaluate(
+      (element) => element.classList.contains("button-active"),
+      { timeout: 500 }
+    )
   }
 }

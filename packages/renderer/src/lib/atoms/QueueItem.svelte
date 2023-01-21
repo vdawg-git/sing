@@ -21,7 +21,7 @@
   export let track: ITrack
   export let state: IState = "DEFAULT"
   export let testId: ITestIDs = undefined
-  export let testattribute: string | undefined = undefined
+  export let testattributes: string | readonly string[] | undefined = undefined
   export let testQueuePlayedIndex: number | undefined = undefined
   export let testQueueNextIndex: number | undefined = undefined
   export let createContextMenuItems: ICreateMenuOutOfMusic
@@ -75,7 +75,9 @@
   class:opacity-70={state === "HAS_PLAYED"}
   data-trackid={track.id}
   data-testid={testId}
-  data-testattribute={testattribute}
+  data-testattribute={Array.isArray(testattributes)
+    ? testattributes.join(" ")
+    : testattributes}
   data-testQueueNextIndex={testQueueNextIndex}
   data-testQueuePlayedIndex={testQueuePlayedIndex}
   on:dblclick={dispatchPlay}

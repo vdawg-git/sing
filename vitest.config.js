@@ -10,14 +10,18 @@ const config = {
      * By default, vitest search test files in all packages.
      * For e2e tests have sense search only is project root tests folder
      */
-    include: ['./tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    include: ["./tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
 
     /**
      * A default timeout of 5000ms is sometimes not enough for playwright.
+     *
+     * This one is too high, but set the timeouts in the Playwright methods instead.
      */
-    testTimeout: 30_000,
+    testTimeout: 60_000,
     hookTimeout: 30_000,
+    maxThreads: 1,
   },
-};
+}
 
-export default config;
+// eslint-disable-next-line import/no-default-export
+export default config

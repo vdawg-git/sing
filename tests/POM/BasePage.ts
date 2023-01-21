@@ -7,7 +7,7 @@ import {
 } from "../../packages/renderer/src/TestConsts"
 import { ROUTES } from "../../packages/renderer/src/Routes"
 
-import { getTrackTitle, isE2ETrackTitle } from "./Helper"
+import { isE2ETrackTitle } from "./Helper"
 import { createLibrarySettingsPage } from "./LibrarySettingsPage"
 import { createTracksPage } from "./TracksPage"
 import { createPlaybarOrganism } from "./Organisms/Playbar"
@@ -327,7 +327,7 @@ export async function createBasePage(electronApp: ElectronApplication) {
 
       return (
         (navigator.mediaSession.metadata &&
-          // The MediaMetadata instance cannot geet serialied as it seems.
+          // The MediaMetadata instance cannot get serialied as it seems.
           ({
             title: navigator.mediaSession.metadata.title.slice(0, 2), // Convert to e2e title
             artist: navigator.mediaSession.metadata.artist,

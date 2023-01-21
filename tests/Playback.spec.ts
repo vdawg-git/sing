@@ -192,6 +192,70 @@ it("does not play music when just opened", async () => {
   expect(isPlaying).toBe(false)
 })
 
+it("sets the queue correctly when (un)shuffling", async () => {
+  const tracksPage = await createTracksPage(electron)
+
+  await tracksPage.playbar.clickNext()
+
+  const currentTrackPlaybar = await tracksPage.playbar.getCurrentTrack()
+  const currentQueue = await tracksPage.queuebar.getItems()
+
+  const isShuffleOn = await tracksPage.playbar.isShuffleOn()
+
+  isShuffleOn && (await tracksPage.playbar.clickShuffle()) // If shuffle is already on, unset it
+  await tracksPage.playbar.clickShuffle()
+
+  const newQueue = await tracksPage.queuebar.getItems()
+  const newCurrentTrackQueue = await tracksPage.queuebar.getCurrentTrack()
+  const newCurrentTrackPlaybar = await tracksPage.playbar.getCurrentTrack()
+
+  expect(currentQueue).not.toEqual(newQueue)
+  expect(currentTrackPlaybar).toEqual(newCurrentTrackQueue)
+  expect(currentTrackPlaybar).toEqual(newCurrentTrackPlaybar)
+  expect(currentTrackPlaybar).toEqual(newQueue[0].title)
+
+  // Unshuffle
+
+  await tracksPage.playbar.clickShuffle()
+
+  const latestQueue = await tracksPage.queuebar.getItems()
+
+  expect(latestQueue).toEqual(currentQueue)
+  expect(latestQueue[1].title).toEqual(currentTrackPlaybar)
+})
+
+// it("does not interuppt playback when clicking shuffle", async () => {
+//   const tracksPage = await createTracksPage(electron)
+
+//   await tracksPage.playbar.clickPlay()
+
+//   const currentTrackPlaybar = await tracksPage.playbar.getCurrentTrack()
+//   const currentQueue = await tracksPage.queuebar.getItems()
+
+//   const isShuffleOn = await tracksPage.playbar.isShuffleOn()
+
+//   isShuffleOn && (await tracksPage.playbar.clickShuffle()) // If shuffle is already on, unset it
+//   await tracksPage.playbar.clickShuffle()
+
+//   const newQueue = await tracksPage.queuebar.getItems()
+//   const newCurrentTrackQueue = await tracksPage.queuebar.getCurrentTrack()
+//   const newCurrentTrackPlaybar = await tracksPage.playbar.getCurrentTrack()
+
+//   expect(currentQueue).not.toEqual(newQueue)
+//   expect(currentTrackPlaybar).toEqual(newCurrentTrackQueue)
+//   expect(currentTrackPlaybar).toEqual(newCurrentTrackPlaybar)
+//   expect(currentTrackPlaybar).toEqual(newQueue[0].title)
+
+//   // Unshuffle
+
+//   await tracksPage.playbar.clickShuffle()
+
+//   const latestQueue = await tracksPage.queuebar.getItems()
+
+//   expect(latestQueue).toEqual(currentQueue)
+//   expect(latestQueue[1].title).toEqual(currentTrackPlaybar)
+// })
+
 describe("when playing a track after adding folders from a blank state", async () => {
   beforeEach(async () => {
     const tracksPage = await createTracksPage(electron)
@@ -318,6 +382,9 @@ describe("Mediakey handler", async () => {
     expect(data.metadata.title).toBe(title)
     expect(data.playbackState).toBe(
       "playing" satisfies MediaSessionPlaybackState
+    )
+    expect(data.metadata.artist).toBe(
+      await tracksPage.playbar.getCurrentArtist()
     )
   })
 

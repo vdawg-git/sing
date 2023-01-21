@@ -122,10 +122,8 @@
     <div class="mb-1 flex items-center gap-6 text-white ">
       <!---- Shuffle Button -->
       <button
-        data-testid={TEST_IDS.playbarModeIcon}
-        class="button 
-          {$shuffleState ? 'button-active' : 'button-inactive'}
-          "
+        data-testid={TEST_IDS.playbarShuffleButton}
+        class="button {$shuffleState ? 'button-active' : 'button-inactive'}"
         disabled={!$currentTrack}
         on:click={toggleShuffle}
       >
