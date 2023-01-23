@@ -1,5 +1,5 @@
 /* eslint-disable unicorn/prefer-dom-node-text-content */
-import "./setupBasicMocks"
+import "./setupBasicMocks.ts_"
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/svelte"
 import * as E from "fp-ts/lib/Either"
@@ -8,11 +8,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import mockedPlayer from "../src/lib/manager/__mocks__/AudioPlayer"
 import { TEST_IDS as id } from "../src/TestConsts"
 
-import trackFactory from "./factories/trackFactory"
+import trackFactory from "./factories/trackFactory.ts_"
 import mockElectronApi, {
   mockedApiTracks,
   mockedApiTracksResponse,
-} from "./MockElectronApi"
+} from "./MockElectronApi.ts_"
 
 import type { SvelteComponentDev } from "svelte/internal"
 

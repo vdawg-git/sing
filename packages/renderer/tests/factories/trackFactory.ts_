@@ -1,8 +1,8 @@
 import { Factory } from "fishery"
 
-import type { ITrack } from "@sing-types/Types"
+import type { ITrack } from "@sing-types/DatabaseTypes"
 
-const trackFactory = Factory.define<ITrack>(({ sequence }) => {
+export const trackFactory = Factory.define<ITrack>(({ sequence }) => {
   // eslint-disable-next-line no-param-reassign
   sequence -= 1
 
@@ -16,5 +16,3 @@ const trackFactory = Factory.define<ITrack>(({ sequence }) => {
     duration: 12 + 1 / sequence,
   }
 })
-
-export default trackFactory

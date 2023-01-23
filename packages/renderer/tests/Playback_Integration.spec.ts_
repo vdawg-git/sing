@@ -5,7 +5,7 @@ import { TEST_IDS as id } from "@/TestConsts"
 
 import mockedPlayer from "../src/lib/manager/__mocks__/AudioPlayer"
 
-import mockElectronApi, { mockedApiTracksResponse } from "./MockElectronApi"
+import mockElectronApi, { mockedApiTracksResponse } from "./MockElectronApi.ts_"
 
 import type { SvelteComponentDev } from "svelte/internal"
 import type { IError, ITrack } from "@sing-types/Types"

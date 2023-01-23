@@ -5,7 +5,7 @@ import { expect, it } from "vitest"
 
 import { TEST_ATTRIBUTES, TEST_IDS as id } from "@/TestConsts"
 
-import MockedApi from "./MockElectronApi"
+import MockedApi from "./MockElectronApi.ts_"
 
 import type { RenderResult } from "@testing-library/svelte"
 import type { SvelteComponentDev } from "svelte/internal"

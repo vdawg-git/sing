@@ -1,8 +1,8 @@
 import { get } from "svelte/store"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import queueItemFactory from "./factories/queueItemFactory"
-import mockElectronApi from "./MockElectronApi"
+import queueItemFactory from "./factories/queueItemFactory.ts_"
+import mockElectronApi from "./MockElectronApi.ts_"
 
 vi.mock("@/lib/manager/AudioPlayer")
 
@@ -12,7 +12,7 @@ const {
   default: player,
   currentTrack,
   playIndex,
-  queue,
+  autoQueue: queue,
   playState,
 } = await import("@/lib/manager/player/index")
 

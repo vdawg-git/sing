@@ -2,7 +2,7 @@
 import * as E from "fp-ts/Either"
 import { vi } from "vitest"
 
-import trackFactory from "./factories/trackFactory"
+import trackFactory from "./factories/trackFactory.ts_"
 
 import type { Either } from "fp-ts/Either"
 import type * as ipcRenderer from "@sing-main/ipcRenderer"

@@ -1,4 +1,4 @@
-import "./setupBasicMocks"
+import "./setupBasicMocks.ts_"
 
 import { fireEvent, render } from "@testing-library/svelte"
 import { beforeEach, expect, it, vi } from "vitest"

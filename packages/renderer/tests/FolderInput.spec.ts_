@@ -4,7 +4,7 @@ import { expect, it } from "vitest"
 
 import { TEST_ATTRIBUTES } from "@/TestConsts"
 
-import MockedApi from "./MockElectronApi"
+import MockedApi from "./MockElectronApi.ts_"
 
 import type { SvelteComponentDev } from "svelte/internal"
 

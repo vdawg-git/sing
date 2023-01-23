@@ -1,6 +1,6 @@
 /* eslint-disable unicorn/prefer-dom-node-text-content */
 /* eslint-disable no-await-in-loop */
-import "./setupBasicMocks"
+import "./setupBasicMocks.ts_"
 
 import { fireEvent, render } from "@testing-library/svelte"
 import * as E from "fp-ts/lib/Either"
@@ -9,8 +9,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { TEST_ATTRIBUTES, TEST_IDS as id } from "../src/TestConsts"
 
-import trackFactory from "./factories/trackFactory"
-import mockElectronApi from "./MockElectronApi"
+import trackFactory from "./factories/trackFactory.ts_"
+import mockElectronApi from "./MockElectronApi.ts_"
 
 import type { SvelteComponentDev } from "svelte/internal"
 import type { IError, ITrack } from "@sing-types/Types"

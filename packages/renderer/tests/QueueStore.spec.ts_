@@ -8,8 +8,8 @@ import queueStore, {
 } from "@/lib/stores/QueueStore"
 
 import queueItemFactory from "./factories/queueItemFactory"
-import trackFactory from "./factories/trackFactory"
-import mockElectronApi from "./MockElectronApi"
+import trackFactory from "./factories/trackFactory.ts_"
+import mockElectronApi from "./MockElectronApi.ts_"
 
 vi.stubGlobal("api", mockElectronApi)
 

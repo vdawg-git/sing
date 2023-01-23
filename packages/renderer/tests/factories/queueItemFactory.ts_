@@ -1,6 +1,6 @@
 import { Factory } from "fishery"
 
-import trackFactory from "./trackFactory"
+import { trackFactory } from "./trackFactory.ts_"
 
 import type { IQueueItem } from "@/types/Types"
 
