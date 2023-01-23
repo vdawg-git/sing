@@ -23,9 +23,13 @@ afterAll(async () => {
   await electron.close()
 })
 
+beforeEach(async () => {
+  const page = await createBasePage(electron)
+  await page.reload()
+})
+
 it("displays a cover", async () => {
   const tracksPage = await createTracksPage(electron)
-  await tracksPage.reload() // Nessecary as the music got reset and the playbar has not current track
   // TODO implement saving queue and play state and restoring it when reopening the app
 
   expect(await tracksPage.playbar.isRenderingPlaybarCover()).toBe(true)
@@ -33,7 +37,6 @@ it("displays a cover", async () => {
 
 it("does not throw an error when playing a queue item", async () => {
   const tracksPage = await createTracksPage(electron)
-  await tracksPage.reload()
   await tracksPage.queuebar.open()
 
   const errorListener = await tracksPage.createErrorListener()
@@ -49,7 +52,6 @@ it("does not throw an error when playing a queue item", async () => {
 
 it("progresses the seekbar when playing first song", async () => {
   const tracksPage = await createTracksPage(electron)
-  await tracksPage.reload()
 
   const oldWidth = await tracksPage.playbar.getProgressBarWidth()
 
@@ -71,7 +73,6 @@ it("progresses the seekbar when playing first song", async () => {
 
 it("progresses the seekbar when playing second song", async () => {
   const tracksPage = await createTracksPage(electron)
-  await tracksPage.reload()
 
   const oldWidth = await tracksPage.playbar.getProgressBarWidth()
 
@@ -94,7 +95,6 @@ it("progresses the seekbar when playing second song", async () => {
 
 it("changes the current time when when clicking on the seekbar", async () => {
   const tracksPage = await createTracksPage(electron)
-  await tracksPage.reload()
 
   const oldTime = await tracksPage.playbar.getCurrentProgress()
 
@@ -107,7 +107,6 @@ it("changes the current time when when clicking on the seekbar", async () => {
 
 it("displays the current time when hovering the seekbar", async () => {
   const tracksPage = await createTracksPage(electron)
-  await tracksPage.reload()
 
   await tracksPage.playbar.hoverSeekbar()
 
@@ -116,7 +115,6 @@ it("displays the current time when hovering the seekbar", async () => {
 
 it("displays the total time when hovering the seekbar", async () => {
   const tracksPage = await createTracksPage(electron)
-  await tracksPage.reload()
 
   await tracksPage.playbar.hoverSeekbar()
 
@@ -162,7 +160,6 @@ it("visualizes the volume correctly", async () => {
 
 it("does not play music when paused and going to the previous track", async () => {
   const tracksPage = await createTracksPage(electron)
-  await tracksPage.reload()
 
   await tracksPage.playbar.clickNext()
   await tracksPage.playbar.clickPrevious()
@@ -174,7 +171,6 @@ it("does not play music when paused and going to the previous track", async () =
 
 it("does not play music when paused and going to the next track", async () => {
   const tracksPage = await createTracksPage(electron)
-  await tracksPage.reload()
 
   await tracksPage.playbar.clickNext()
 
@@ -185,7 +181,6 @@ it("does not play music when paused and going to the next track", async () => {
 
 it("does not play music when just opened", async () => {
   const tracksPage = await createTracksPage(electron)
-  await tracksPage.reload()
 
   const isPlaying = await tracksPage.isPlayingAudio()
 
@@ -224,37 +219,36 @@ it("sets the queue correctly when (un)shuffling", async () => {
   expect(latestQueue[1].title).toEqual(currentTrackPlaybar)
 })
 
-// it("does not interuppt playback when clicking shuffle", async () => {
-//   const tracksPage = await createTracksPage(electron)
+it.only("does not interuppt playback when clicking shuffle", async () => {
+  const tracksPage = await createTracksPage(electron)
 
-//   await tracksPage.playbar.clickPlay()
+  // If shuffle is already on, unset it
+  const isShuffleOn = await tracksPage.playbar.isShuffleOn()
+  isShuffleOn && (await tracksPage.playbar.clickShuffle())
 
-//   const currentTrackPlaybar = await tracksPage.playbar.getCurrentTrack()
-//   const currentQueue = await tracksPage.queuebar.getItems()
+  await tracksPage.playbar.clickPlay()
 
-//   const isShuffleOn = await tracksPage.playbar.isShuffleOn()
+  await tracksPage.playbar.clickShuffle()
 
-//   isShuffleOn && (await tracksPage.playbar.clickShuffle()) // If shuffle is already on, unset it
-//   await tracksPage.playbar.clickShuffle()
+  const isPlaying = await tracksPage.isPlayingAudio()
 
-//   const newQueue = await tracksPage.queuebar.getItems()
-//   const newCurrentTrackQueue = await tracksPage.queuebar.getCurrentTrack()
-//   const newCurrentTrackPlaybar = await tracksPage.playbar.getCurrentTrack()
+  expect(isPlaying).toBe(true)
+})
 
-//   expect(currentQueue).not.toEqual(newQueue)
-//   expect(currentTrackPlaybar).toEqual(newCurrentTrackQueue)
-//   expect(currentTrackPlaybar).toEqual(newCurrentTrackPlaybar)
-//   expect(currentTrackPlaybar).toEqual(newQueue[0].title)
+it("does not interuppt playback when unshuffle", async () => {
+  const tracksPage = await createTracksPage(electron)
 
-//   // Unshuffle
+  const isShuffleOn = await tracksPage.playbar.isShuffleOn()
+  !isShuffleOn && (await tracksPage.playbar.clickShuffle())
 
-//   await tracksPage.playbar.clickShuffle()
+  await tracksPage.playbar.clickPlay()
 
-//   const latestQueue = await tracksPage.queuebar.getItems()
+  await tracksPage.playbar.clickShuffle()
 
-//   expect(latestQueue).toEqual(currentQueue)
-//   expect(latestQueue[1].title).toEqual(currentTrackPlaybar)
-// })
+  const isPlaying = await tracksPage.isPlayingAudio()
+
+  expect(isPlaying).toBe(true)
+})
 
 describe("when playing a track after adding folders from a blank state", async () => {
   beforeEach(async () => {
