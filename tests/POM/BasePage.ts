@@ -12,6 +12,8 @@ import { createLibrarySettingsPage } from "./LibrarySettingsPage"
 import { createTracksPage } from "./TracksPage"
 import { createPlaybarOrganism } from "./Organisms/Playbar"
 import { createQueuebarOrganism } from "./Organisms/Queuebar"
+import { createAlbumsPage } from "./AlbumPage"
+import { createArtistsPage } from "./ArtistPage"
 
 import type { ElectronApplication } from "playwright"
 
@@ -22,6 +24,8 @@ export async function createBasePage(electronApp: ElectronApplication) {
   const queuebar = await createQueuebarOrganism(page)
 
   const sidebar = page.locator(TEST_IDS.asQuery.sidebar)
+  const sidebarItemAlbums = sidebar.locator("text=Albums")
+  const sidebarItemArtists = sidebar.locator("text=Artists")
   const sidebarItemTracks = sidebar.locator("text=Tracks")
   const sidebarMenu = page.locator(TEST_IDS.asQuery.sidebarMenu)
   const sidebarMenuIcon = page.locator(TEST_IDS.asQuery.sidebarMenuIcon)
@@ -62,6 +66,8 @@ export async function createBasePage(electronApp: ElectronApplication) {
     goTo: {
       settingsLibrary: gotoSettings,
       tracks: gotoTracks,
+      albums: gotoAlbums,
+      artists: goToArtists,
     },
   }
 
@@ -85,6 +91,22 @@ export async function createBasePage(electronApp: ElectronApplication) {
     // await page.waitForTimeout(520) // Rendering of the store does not seem to be instant
 
     return createTracksPage(electronApp)
+  }
+
+  async function gotoAlbums() {
+    await sidebarItemAlbums.click({ timeout: 2000, force: true })
+
+    // await page.waitForTimeout(520) // Rendering of the store does not seem to be instant
+
+    return createAlbumsPage(electronApp)
+  }
+
+  async function goToArtists() {
+    await sidebarItemArtists.click({ timeout: 1000, force: true })
+
+    // await page.waitForTimeout(520) // Rendering of the store does not seem to be instant
+
+    return createArtistsPage(electronApp)
   }
 
   async function openSidebarMenu() {

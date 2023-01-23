@@ -1,6 +1,10 @@
 <script lang="ts">
   import IconPlay from "virtual:icons/heroicons/play-circle-solid"
 
+  import { createTestAttribute } from "@sing-shared/Pures"
+
+  import { TEST_ATTRIBUTES } from "@/TestConsts"
+
   import CoverAndPlaylistThumbnail from "../atoms/CoverAndPlaylistThumbnail.svelte"
   import { useOpenContextMenu } from "../manager/menu"
 
@@ -10,6 +14,8 @@
 
   export let data: ICardProperties
   export let isImageCircle = false
+  export let testAttributes: string | readonly string[] | undefined = undefined
+  export let testID: string | undefined = undefined
 
   $: contextMenuItems = data.contextMenuItems
 </script>
@@ -18,6 +24,8 @@
   class="group relative"
   on:click
   use:useOpenContextMenu={{ menuItems: contextMenuItems }}
+  data-testattribute={createTestAttribute(testAttributes)}
+  data-testID={testID}
 >
   <div
     class="_effects flex w-[220px] flex-col gap-3   rounded-lg bg-grey-600/60
@@ -40,6 +48,7 @@
         class="playButton_ absolute -bottom-4 right-0 z-10 h-14 w-14  rounded-full text-white   opacity-0 transition-all
         group-hover:opacity-100"
         on:click={data.onPlay}
+        data-testattribute={TEST_ATTRIBUTES.cardPlay}
       >
         <IconPlay class="h-14 w-14" />
       </button>
@@ -50,6 +59,7 @@
       <div
         class="transition-color max-w-fit cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap text-lg text-white"
         on:click={data.onClickPrimary}
+        data-testattribute={TEST_ATTRIBUTES.cardTitle}
       >
         {data.title}
       </div>
@@ -58,6 +68,7 @@
           class="max-w-max  overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold tracking-wider text-grey-200 
           {data.onClickSecondary ? 'cursor-pointer hover:underline' : ''}"
           on:click={data.onClickSecondary}
+          data-testattribute={TEST_ATTRIBUTES.cardSecondaryText}
         >
           {data.secondaryText}
         </a>

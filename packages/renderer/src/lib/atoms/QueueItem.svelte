@@ -4,6 +4,8 @@
   import { createEventDispatcher } from "svelte"
   import IconClose from "virtual:icons/heroicons/x-mark-20-solid"
 
+  import { createTestAttribute } from "@sing-shared/Pures"
+
   import { TEST_IDS, TEST_ATTRIBUTES } from "@/TestConsts"
   import { displayTrackMetadata } from "@/Helper"
 
@@ -75,9 +77,7 @@
   class:opacity-70={state === "HAS_PLAYED"}
   data-trackid={track.id}
   data-testid={testId}
-  data-testattribute={Array.isArray(testattributes)
-    ? testattributes.join(" ")
-    : testattributes}
+  data-testattribute={createTestAttribute(testattributes)}
   data-testQueueNextIndex={testQueueNextIndex}
   data-testQueuePlayedIndex={testQueuePlayedIndex}
   on:dblclick={dispatchPlay}

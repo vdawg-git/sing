@@ -2,7 +2,8 @@
   import { createEventDispatcher } from "svelte"
   import { clsx } from "clsx"
 
-  import { secondsToDuration } from "@/Helper"
+  import { secondsToDuration } from "@sing-shared/Pures"
+
   import { TEST_IDS as test } from "@/TestConsts"
 
   export let currentTime: number | undefined | null

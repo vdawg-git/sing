@@ -1,9 +1,13 @@
 import { pipe } from "fp-ts/lib/function"
+import * as O from "fp-ts/Option"
+import * as RA from "fp-ts/ReadonlyArray"
 import * as E from "fp-ts/lib/Either"
 import * as A from "fp-ts/lib/ReadonlyArray"
 import { moveFrom } from "fp-ts-std/Array"
 import { curry2 } from "fp-ts-std/Function"
 import { match, P } from "ts-pattern"
+import { deleteAt } from "fp-ts/lib/Array"
+import { toUndefined } from "fp-ts/lib/Option"
 
 import { isKeyOfObject } from "../../types/TypeGuards"
 import {
@@ -250,6 +254,7 @@ export function objectsKeysInArrayToObject<
   return result
 }
 
+// TODO use immer for this
 /**
  *
  * @param key The key to update
@@ -527,4 +532,70 @@ export function packInArrayIfItIsnt<T>(
   return (
     Array.isArray(item) ? item : ([item] as T extends Array<never> ? T : T[])
   ) as T extends Array<unknown> ? T : T[]
+}
+
+/**
+ * Removes an element at the provided index, returning undefined if the index is out of bounds.
+ *
+ * If multiple indexes get provided the array gets filtered with them.
+ */
+export function removeFromArray(
+  indexes: number | readonly number[]
+): <T>(array: T[]) => T[] | undefined {
+  return (array) =>
+    typeof indexes === "number"
+      ? pipe(array, deleteAt(indexes), toUndefined)
+      : array.filter((_, index) => !indexes.includes(index))
+}
+
+/**
+ * Move an element from one index to another.
+
+ * @param currentIndex The index which should get moved.
+ * @param newIndex The index to insert the new item to.
+ * @param array_ The array to modify. 
+
+ * @returns The new array. Does return a new copy. Does not mutate the original array.
+ */
+export function moveIndexToIndex<T>({
+  index,
+  moveTo,
+  array,
+}: {
+  index: number
+  moveTo: number
+  array: readonly T[]
+}): readonly T[] | undefined {
+  const valueToMove = array[index]
+
+  return pipe(
+    array,
+    RA.deleteAt(index),
+    O.map(RA.insertAt(moveTo, valueToMove)),
+    O.flatten,
+    O.toUndefined
+  )
+}
+
+/**
+ * Convert seconds to
+ */
+export function secondsToDuration(seconds: number | undefined | null): string {
+  if (seconds === undefined || seconds === null) return ""
+
+  const minutes = Math.floor(seconds / 60)
+  const sec = String(Math.round(seconds % 60)).padStart(2, "0")
+
+  return `${minutes}:${sec}`
+}
+
+/**
+ *
+ * @param attributes The attribute as a string or multiple as an array.
+ * @returns The string for the data-testattribute element or undefined when undefined was passed.
+ */
+export function createTestAttribute(
+  attributes: string | readonly string[] | undefined
+) {
+  return Array.isArray(attributes) ? attributes.join(" ") : attributes
 }

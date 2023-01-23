@@ -5,6 +5,7 @@ import { displayTrackMetadata } from "@/Helper"
 
 import type { ITrack } from "@sing-types/DatabaseTypes"
 import type { IError, IPlayback } from "@sing-types/Types"
+import type { IQueueItem } from "@/types/Types"
 import type { Either } from "fp-ts/lib/Either"
 
 export async function getTracksFromSource(
@@ -96,4 +97,8 @@ export async function initialiseMediaKeysHandler({
   navigator.mediaSession.setActionHandler("stop", handlePause)
   navigator.mediaSession.setActionHandler("nexttrack", handleNextTrack)
   navigator.mediaSession.setActionHandler("previoustrack", handlePreviousTrack)
+}
+
+export function convertToQueueItem(track: ITrack, index: number): IQueueItem {
+  return { index, track, queueID: Symbol(track.title ?? track.filepath) }
 }

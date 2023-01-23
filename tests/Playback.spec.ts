@@ -219,7 +219,7 @@ it("sets the queue correctly when (un)shuffling", async () => {
   expect(latestQueue[1].title).toEqual(currentTrackPlaybar)
 })
 
-it.only("does not interuppt playback when clicking shuffle", async () => {
+it("does not interuppt playback when clicking shuffle", async () => {
   const tracksPage = await createTracksPage(electron)
 
   // If shuffle is already on, unset it
@@ -248,6 +248,21 @@ it("does not interuppt playback when unshuffle", async () => {
   const isPlaying = await tracksPage.isPlayingAudio()
 
   expect(isPlaying).toBe(true)
+})
+
+it("plays the clicked track in the list when shuffle is on", async () => {
+  const tracksPage = await createTracksPage(electron)
+
+  const trackToPlay = "01"
+
+  const isShuffleOn = await tracksPage.playbar.isShuffleOn()
+  !isShuffleOn && (await tracksPage.playbar.clickShuffle())
+
+  await tracksPage.playTrack("01")
+
+  const currentTrack = await tracksPage.playbar.getCurrentTrack()
+
+  expect(trackToPlay).toEqual(currentTrack)
 })
 
 describe("when playing a track after adding folders from a blank state", async () => {

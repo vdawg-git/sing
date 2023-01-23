@@ -4,6 +4,7 @@
   import Card from "../molecules/Card.svelte"
 
   import type { ICardProperties } from "@/types/Types"
+  import type { ITestIDs } from "@/TestConsts"
 
   interface IDispatcher_ {
     // Its all the id of the album / artist
@@ -14,6 +15,7 @@
 
   export let items: readonly ICardProperties[]
   export let isImageCircle = false
+  export let testID: ITestIDs
 
   const dispatch = createEventDispatcher<IDispatcher_>()
 
@@ -24,7 +26,10 @@
   // TODO Make the secondary work
 </script>
 
-<div class="flex h-full w-full flex-wrap gap-6 overflow-y-scroll">
+<div
+  class="flex h-full w-full flex-wrap gap-6 overflow-y-scroll"
+  data-testid={testID}
+>
   {#each items as data}
     <Card
       {data}

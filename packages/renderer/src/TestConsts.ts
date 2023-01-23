@@ -1,6 +1,9 @@
 /* eslint-disable unicorn/no-array-reduce */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 const testIDNames = [
+  "albumItems",
+  "artistItems",
   "myTracksTitle",
   "playbar",
   "playbarAlbum",
@@ -48,6 +51,11 @@ const testIDNames = [
 ] as const
 
 const testAttributeNames = [
+  "albumCard",
+  "artistCard",
+  "cardPlay",
+  "cardSecondaryText",
+  "cardTitle",
   "folderInput",
   "folderInputDeleteIcon",
   "menuItem",
@@ -56,6 +64,7 @@ const testAttributeNames = [
   "modalWrapper",
   "notification",
   "notificationCloseButton",
+  "playlistCard",
   "queueItem",
   "queueItemArtist",
   "queueItemCover",
@@ -109,3 +118,4 @@ export const TEST_ATTRIBUTES: testAttributes = testAttributeNames.reduce(
 )
 
 export type ITestIDs = typeof testIDNames[number]
+export type ITestAttributes = typeof testAttributeNames[number]

@@ -11,6 +11,7 @@
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
   import { artists, playNewSource } from "@/lib/manager/player"
+  import { TEST_ATTRIBUTES, TEST_IDS } from "@/TestConsts"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
 
@@ -51,6 +52,7 @@
         type: "artist",
         name: artist.name,
       }),
+      testAttributes: TEST_ATTRIBUTES.artistCard,
     }))
 
     //  If there is "Unknown artist", move it to the top.
@@ -73,5 +75,5 @@
 {#if $artists.length === 0}
   <NothingHereYet />
 {:else}
-  <CardList {items} isImageCircle={true} />
+  <CardList {items} isImageCircle={true} testID={TEST_IDS.artistItems} />
 {/if}

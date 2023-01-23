@@ -14,6 +14,7 @@
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
   import { convertAlbumToCardData } from "@/Helper"
   import { albums } from "@/lib/manager/player"
+  import { TEST_IDS } from "@/TestConsts"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
 
@@ -60,5 +61,5 @@
 {#if $albums.length === 0}
   <NothingHereYet />
 {:else}
-  <CardList {items} />
+  <CardList {items} testID={TEST_IDS.albumItems} />
 {/if}

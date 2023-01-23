@@ -102,7 +102,7 @@ export async function createPlaybarOrganism(page: Page) {
   }
 
   /**
-   * Get the current track title like `01`. Return `undefined` if there is none.
+   * Get the current track title like `01`. Returns `undefined` if there is none.
    */
   async function getCurrentTrack(): Promise<string | undefined> {
     if ((await currentTrack.count()) === 0) return undefined

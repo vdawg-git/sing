@@ -11,6 +11,8 @@ import {
   removeDuplicates,
   removeNulledKeys,
   getRightOrThrow,
+  moveIndexToIndex,
+  secondsToDuration,
 } from "./Pures"
 
 import type { FilePath } from "../../types/Filesystem"
@@ -221,4 +223,31 @@ test("getRightOrThrow sad", () => {
   }
 
   expect(() => getRightOrThrow(given)).toThrowError("foo")
+})
+
+test("moveIndexToIndex happy", () => {
+  const given = [1, 2, 3, 4]
+
+  const expected = [4, 1, 2, 3]
+
+  expect(moveIndexToIndex({ array: given, index: 3, moveTo: 0 })).toEqual(
+    expected
+  )
+})
+
+test("moveIndexToIndex sad", () => {
+  const given = [1, 2, 3, 4]
+
+  const expected = undefined
+
+  expect(moveIndexToIndex({ array: given, index: 99, moveTo: 1 })).toEqual(
+    expected
+  )
+})
+
+test("secondsToDuration", async () => {
+  const seconds = 124.007_865_767_96
+  const desiredResult = "2:04"
+
+  expect(secondsToDuration(seconds)).toEqual(desiredResult)
 })

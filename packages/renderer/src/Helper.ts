@@ -1,7 +1,5 @@
 import { pipe } from "fp-ts/lib/function"
 import * as E from "fp-ts/lib/Either"
-import * as O from "fp-ts/Option"
-import * as RA from "fp-ts/ReadonlyArray"
 import { createHashHistory } from "history"
 import { isDefined } from "ts-is-present"
 
@@ -9,12 +7,14 @@ import {
   convertFilepathToFilename,
   getErrorMessage,
   packInArrayIfItIsnt,
+  secondsToDuration,
 } from "../../shared/Pures"
 
 import { addNotification } from "./lib/stores/NotificationStore"
 import { createAlbumURI, createArtistURI, ROUTES } from "./Routes"
 import { playNewSource } from "./lib/manager/player"
 import { createAddToPlaylistAndQueueMenuItems } from "./MenuItemsHelper"
+import { TEST_ATTRIBUTES } from "./TestConsts"
 
 import type { IError } from "@sing-types/Types"
 import type {
@@ -212,15 +212,6 @@ export function notifiyError(
 //   }
 // }
 
-export function secondsToDuration(seconds: number | undefined | null): string {
-  if (seconds === undefined || seconds === null) return ""
-
-  const minutes = Math.floor(seconds / 60)
-  const sec = String(Math.round(seconds % 60)).padStart(2, "0")
-
-  return `${minutes}:${sec}`
-}
-
 export function createHashSource(): HistorySource {
   const history = createHashHistory()
   let listeners: ((...arguments_: any[]) => unknown)[] = []
@@ -275,22 +266,6 @@ export function sortAlphabetically(a: ITrack, b: ITrack) {
   const titleB = titleToDisplay(b).toLowerCase()
 
   return titleA.localeCompare(titleB, undefined, { numeric: true })
-}
-
-export function moveElementFromToIndex<T>(
-  currentIndex: number,
-  newIndex: number,
-  array_: readonly T[]
-): readonly T[] | undefined {
-  const valueToMove = array_[currentIndex]
-  return pipe(
-    array_,
-    RA.deleteAt(currentIndex),
-    O.map(RA.insertAt(newIndex, valueToMove)),
-    O.flatten,
-    // eslint-disable-next-line unicorn/no-useless-undefined
-    O.toUndefined
-  )
 }
 
 /**
@@ -379,6 +354,7 @@ export function convertAlbumToCardData({
       name,
       id,
     }),
+    testAttributes: TEST_ATTRIBUTES.albumCard,
   })
 }
 

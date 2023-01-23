@@ -74,6 +74,26 @@ describe("when removing all folders after having folders added", async () => {
 
     expect(hasTracks).toBe(false)
   })
+
+  it("has no albums in the albums page", async () => {
+    const settingsPage = await createLibrarySettingsPage(electron)
+
+    const albumsPage = await settingsPage.goTo.albums()
+
+    const hasAlbums = await albumsPage.hasAlbums()
+
+    expect(hasAlbums).toBe(false)
+  })
+
+  it("has no artists in the artists page", async () => {
+    const settingsPage = await createLibrarySettingsPage(electron)
+
+    const artistsPage = await settingsPage.goTo.artists()
+
+    const hasArtists = await artistsPage.hasArtists()
+
+    expect(hasArtists).toBe(false)
+  })
 })
 
 describe("when removing all folders and instead adding new ones", async () => {
