@@ -94,6 +94,7 @@ export async function syncMusic(
     label: NOTIFICATION_LABEL.syncStarted,
     type: "loading",
     duration: -1,
+    isRemoveable: false,
   })
 
   console.log("Reading out dirs")

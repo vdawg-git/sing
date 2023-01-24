@@ -21,9 +21,16 @@ This renders the notifications from the `NotificationManager.ts`
 <div
   class="_notification absolute right-16 bottom-24 z-50 flex flex-col justify-end gap-4"
 >
-  {#each $notificationStore as { label, type, duration, id } (id)}
+  {#each $notificationStore as { label, type, duration, id, isRemoveable } (id)}
     <div animate:flip={{ duration: 150 }}>
-      <Notification {label} {type} {duration} {id} on:close={handleClose} />
+      <Notification
+        {label}
+        {type}
+        {duration}
+        {id}
+        {isRemoveable}
+        on:close={handleClose}
+      />
     </div>
   {/each}
 </div>
