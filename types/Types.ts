@@ -48,6 +48,10 @@ export interface INotificationBase {
    * The duration in seconds. Set to -1 to remove the duration.
    */
   readonly duration?: number
+  /**
+   * Whether the user can click away the notification
+   */
+  readonly isRemoveable?: boolean
 }
 
 export type INotification = SetOptional<INotificationBase, "id">

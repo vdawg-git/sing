@@ -11,7 +11,7 @@
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
   import { artists, playNewSource } from "@/lib/manager/player"
-  import { TEST_ATTRIBUTES, TEST_IDS } from "@/TestConsts"
+  import { TEST_ATTRIBUTES } from "@/TestConsts"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
 
@@ -47,6 +47,7 @@
           sourceID: artist.name,
           source: "artist",
           sortBy: ["album", "ascending"],
+          isShuffleOn: false,
         }),
       contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)({
         type: "artist",
@@ -75,5 +76,5 @@
 {#if $artists.length === 0}
   <NothingHereYet />
 {:else}
-  <CardList {items} isImageCircle={true} testID={TEST_IDS.artistItems} />
+  <CardList {items} isImageCircle={true} testID="artistCards" />
 {/if}

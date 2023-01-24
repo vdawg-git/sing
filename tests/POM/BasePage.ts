@@ -40,12 +40,14 @@ export async function createBasePage(electronApp: ElectronApplication) {
     getMediaSessionMetaData: getMediaSessionData,
     isPlayingAudio,
     listenToPause,
+    logPressedKeys,
     mockDialog,
     pauseExecution: () => page.pause(),
     pressMediaKey,
     reload,
     resetMusic,
     startVisualisingClicks,
+    stopLoggingPressedKeys,
     stopVisualisingClicks,
     waitForCurrentTrackToChangeTo,
     waitForNotification,
@@ -369,14 +371,43 @@ export async function createBasePage(electronApp: ElectronApplication) {
     }
   }
 
-  async function pressMediaKey(
-    key:
-      | "MediaTrackNext"
-      | "MediaTrackPrevious"
-      | "MediaPlayPause"
-      | "MediaStop"
-  ) {
-    return page.keyboard.press(key)
+  // Media keys wont trigger anything as they will be emitted as untrusted events.
+  // async function pressMediaKey(
+  //   key:
+  //     | "MediaTrackNext"
+  //     | "MediaTrackPrevious"
+  //     | "MediaPlayPause"
+  //     | "MediaStop"
+  // ) {
+  //   // eslint-disable-next-line @typescript-eslint/no-shadow
+  //   await page.evaluate(async (key) => {
+  //     const event = new KeyboardEvent("keydown", {
+  //       key,
+  //       keyCode: 179,
+  //       bubbles: true,
+  //     })
+  //     const event2 = new KeyboardEvent("keyup", {
+  //       key,
+  //       keyCode: 179,
+  //       bubbles: true,
+  //     })
+  //     document.body.dispatchEvent(event)
+  //     document.body.dispatchEvent(event2)
+  //   }, key)
+
+  //   // return page.keyboard.press(key)
+  // }
+
+  async function logPressedKeys() {
+    page.evaluate(() => {
+      document.addEventListener("keydown", console.log)
+    })
+  }
+
+  async function stopLoggingPressedKeys() {
+    page.evaluate(() => {
+      document.removeEventListener("keydown", console.log)
+    })
   }
 }
 

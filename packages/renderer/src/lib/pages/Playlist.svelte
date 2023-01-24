@@ -200,6 +200,7 @@
             source: "playlist",
             sourceID: Number(playlistID),
             sortBy: defaultSort,
+            isShuffleOn: false,
           },
           detail.index
         )}

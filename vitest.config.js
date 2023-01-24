@@ -20,6 +20,7 @@ const config = {
     testTimeout: 60_000,
     hookTimeout: 30_000,
     maxThreads: 1,
+    minThreads: 1,
   },
 }
 

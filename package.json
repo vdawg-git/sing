@@ -35,7 +35,8 @@
     "test:main": "vitest run -r packages/main --passWithNoTests --threads false",
     "test:main-watch": "vitest  -r packages/main --passWithNoTests --threads false",
     "test:renderer": "vitest run -r packages/renderer --passWithNoTests",
-    "test:renderer-watch": "vitest  -r packages/renderer --passWithNoTests"
+    "test:renderer-watch": "vitest  -r packages/renderer --passWithNoTests",
+    "test:shared": "vitest run -r packages/shared"
   },
   "devDependencies": {
     "@floating-ui/dom": "^1.1.0",
@@ -53,6 +54,7 @@
     "@typescript-eslint/eslint-plugin": "^5.47.1",
     "@typescript-eslint/parser": "^5.47.1",
     "ansicolor": "^1.1.100",
+    "clsx": "^1.2.1",
     "concurrently": "^7.6.0",
     "cross-env": "7.0.3",
     "dequal": "^2.0.3",
@@ -103,8 +105,8 @@
     "typescript": "^4.9.4",
     "unplugin-icons": "^0.14.15",
     "vite": "^4.0.3",
-    "vitest": "^0.26.2",
-    "clsx": "^1.2.1"
+    "immer": "^9.0.18",
+    "vitest": "^0.26.2"
   },
   "dependencies": {
     "prisma": "^4.8.0"

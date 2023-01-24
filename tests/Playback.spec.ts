@@ -250,19 +250,22 @@ it("does not interuppt playback when unshuffle", async () => {
   expect(isPlaying).toBe(true)
 })
 
-it("plays the clicked track in the list when shuffle is on", async () => {
+it.only("plays the clicked track in the list when shuffle is on", async () => {
   const tracksPage = await createTracksPage(electron)
 
   const trackToPlay = "01"
 
-  const isShuffleOn = await tracksPage.playbar.isShuffleOn()
-  !isShuffleOn && (await tracksPage.playbar.clickShuffle())
+  // Do it multiple times because this has randomness.
+  for (const _ of Array.from({ length: 6 })) {
+    const isShuffleOn = await tracksPage.playbar.isShuffleOn()
+    !isShuffleOn && (await tracksPage.playbar.clickShuffle())
 
-  await tracksPage.playTrack("01")
+    await tracksPage.playTrack("01")
 
-  const currentTrack = await tracksPage.playbar.getCurrentTrack()
+    const currentTrack = await tracksPage.playbar.getCurrentTrack()
 
-  expect(trackToPlay).toEqual(currentTrack)
+    expect(currentTrack).toEqual(trackToPlay)
+  }
 })
 
 describe("when playing a track after adding folders from a blank state", async () => {
@@ -399,22 +402,26 @@ describe("Mediakey handler", async () => {
 
   // Currently MediaKeys are not supported. See: https://github.com/microsoft/playwright/issues/20277
 
-  // it("does switch the track when the `forward` media key is pressed", async () => {
+  // it.only("does switch the track when the `forward` media key is pressed", async () => {
   //   const tracksPage = await createTracksPage(electron)
 
-  // const oldTrack = await tracksPage.playbar.getCurrentTrack()
+  //   await tracksPage.logPressedKeys()
 
-  // await tracksPage.queuebar.open()
-  // const desiredTrack = await tracksPage.queuebar.getNextTrack()
+  //   await tracksPage.playTrack("01")
 
-  // if (!oldTrack) throw new Error("No current track is set")
+  //   const oldTrack = await tracksPage.playbar.getCurrentTrack()
 
-  // await tracksPage.pressMediaKey("MediaTrackNext")
+  //   const desiredTrack = await tracksPage.queuebar.getNextTrack()
 
-  // const newTrack = await tracksPage.playbar.getCurrentTrack()
+  //   if (!oldTrack) throw new Error("No current track is set")
 
-  // expect(newTrack).not.toEqual(oldTrack)
-  // expect(newTrack).toEqual(desiredTrack)
+  //   await tracksPage.pressMediaKey("MediaTrackNext")
+
+  //   const newTrack = await tracksPage.playbar.getCurrentTrack()
+  //   await tracksPage.pauseExecution()
+
+  //   expect(newTrack).not.toEqual(oldTrack)
+  //   expect(newTrack).toEqual(desiredTrack)
   // })
 
   // it("does switch the track when the `previous` media key is pressed", async () => {

@@ -51,7 +51,10 @@
     tracks={$tracks}
     sort={defaultSort}
     on:play={({ detail }) =>
-      playNewSource({ source, sortBy: defaultSort }, detail.index)}
+      playNewSource(
+        { source, sortBy: defaultSort, isShuffleOn: false },
+        detail.index
+      )}
     {createContextMenuItems}
   />
 {/if}

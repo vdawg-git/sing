@@ -65,6 +65,8 @@ export async function createQueuebarOrganism(page: Page) {
    * Returns undefined if there is none
    */
   async function getNextTrack(): Promise<string | undefined> {
+    if (!(await isQueueOpen())) await open()
+
     const element = await nextTrack.elementHandle({ timeout: 2000 })
 
     if (!element) return undefined
@@ -74,7 +76,11 @@ export async function createQueuebarOrganism(page: Page) {
     if (!titleElement)
       throw new Error("titleElement of track in getNextTrack not found")
 
-    return getTrackTitle(await titleElement?.innerText())
+    const title = getTrackTitle(await titleElement?.innerText())
+
+    await close()
+
+    return title
   }
 
   /**

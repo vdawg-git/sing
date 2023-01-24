@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const testIDNames = [
-  "albumItems",
-  "artistItems",
+  "albumCards",
+  "artistCards",
   "myTracksTitle",
   "playbar",
   "playbarAlbum",
@@ -18,6 +18,7 @@ const testIDNames = [
   "playbarShuffleButton",
   "playbarTitle",
   "playbarVolumeIcon",
+  "playlistCards",
   "queueBar",
   "queueBarNextTracks",
   "queueBarPlayedTracks",

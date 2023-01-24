@@ -168,7 +168,6 @@ describe("when removing one folder", async () => {
 
     await tracksPage.playTrack("00")
     const oldCurrentTrack = await settingsPage.playbar.getCurrentTrack()
-
     await tracksPage.goTo.settingsLibrary()
 
     await settingsPage.removeFolder(0)
@@ -180,6 +179,22 @@ describe("when removing one folder", async () => {
 
     expect(newCurrentTrack).not.toBe(oldCurrentTrack)
   })
+
+  it("should correctly add tracks with an unknown artist and album", async () => {
+    const settingsPage = await createLibrarySettingsPage(electron)
+    const tracksPage = await settingsPage.goTo.tracks()
+
+    // Nessecary as they still get displayed until a refresh for some reason
+    await tracksPage.reload()
+
+    const expectedTitles = ["00", "01", "02", "03"]
+
+    const allTitles = await tracksPage
+      .getTracks()
+      .then((tracks) => tracks.map((track) => track.title))
+
+    expect(allTitles).includes(expectedTitles)
+  })
 })
 
 describe("when adding one folder from a clear state", async () => {
@@ -189,7 +204,7 @@ describe("when adding one folder from a clear state", async () => {
     await settingsPage.reload()
   })
 
-  it("only adds the newly added tracks to the track page", async () => {
+  it("adds just tracks from the newly added folder to the track page", async () => {
     const expectedTitles = Array.from({ length: 10 }, (_, index) => `0${index}`)
 
     const settingsPage = await createLibrarySettingsPage(electron)

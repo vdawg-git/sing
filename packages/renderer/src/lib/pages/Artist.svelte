@@ -59,6 +59,7 @@
     source: "artist" as const,
     sourceID: artistID,
     sortBy,
+    isShuffleOn: false,
   }
 
   let actions: IHeroAction[]
@@ -134,6 +135,7 @@
       items={artist.albums.map(
         convertAlbumToCardData({ navigate, $playlistsStore })
       )}
+      testID="artistCards"
     />
   {/if}
 {/if}

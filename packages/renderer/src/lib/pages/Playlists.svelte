@@ -29,6 +29,7 @@
         sourceID: playlist.id,
         source: "playlist",
         sortBy: ["trackNo", "ascending"],
+        isShuffleOn: false,
       }),
     onClickPrimary: () => navigate(createPlaylistURI(playlist.id)),
     image: playlist.thumbnailCovers?.map(({ filepath }) => filepath),
@@ -77,5 +78,5 @@
     on:click={() => createAndNavigateToPlaylist(navigate)}
   />
 {:else}
-  <CardList {items} />
+  <CardList {items} testID="playlistCards" />
 {/if}

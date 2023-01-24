@@ -139,6 +139,7 @@
           source: "album",
           sourceID: Number(albumID),
           sortBy: defaultSort,
+          isShuffleOn: false,
         },
         detail.index
       )}

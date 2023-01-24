@@ -1,164 +1,227 @@
-import { get, writable } from "svelte/store"
+import { writable } from "svelte/store"
+import { produce } from "immer"
 
+import { removeFromArray } from "@sing-shared/Pures"
+
+import { convertToQueueItem } from "../Helper"
+
+import type { Draft } from "immer"
 import type { ITrack } from "@sing-types/DatabaseTypes"
-import type { IQueueItem } from "@/types/Types"
+import type { RequireAtLeastOne } from "type-fest"
+import type { IQueueItem, IQueueStore } from "@/types/Types"
 
-// TODO enable default sorting when setting manuall queue
+// Learning how to use slices would be good here
 
-/**
- * The queue which gets filled up automatically.
- * For example, a user plays an album and the queue fills up with tracks from that album.
- */
-function createAutoQueueStore() {
-  const { subscribe, set, update } = writable<readonly IQueueItem[]>([])
+const { update: updateBase, subscribe } = writable<IQueueStore>({
+  autoQueue: [],
+  manualQueue: [],
+  index: 0,
+  isPlayingFromManualQueue: false,
+})
 
-  return {
-    removeIndex,
-    intersectCurrentWithNewTracks,
-    clear,
-    setTracks,
-    subscribe,
-    update,
-  }
-
-  // TODO make the queue store generic and create a normal queue and a "manuallyAddedQueue".
-  // When after a track ends the "manuallyAddedQueue" is not empty, start playing from "manuallyAddedQueue".
-  // Does this count as a playback? Does it change the state?
-
-  // What to do when switching playback?
-  // Check if the "manuallyAddedQueue" has items, if yes ask to keep it or to delete it.
-
-  // What to do when auto switching tracks?
-  // Check if the "manuallyAddedQueue" has items, if yes, set it to the current queue track and play from there.
-  // But if the current track is already from the manuallyAddedQueue then delete it from the manuallyAddedQueue and play the next inside the manuallyAddedQueue.
-
-  // How to compute the currrent track?
-  // This is decided on how the index is calculated.. More to come
-
-  // The playback functions are generic and get passed the current queue store ("default" and "manuallyAddedQueue") and does the
-  // index incrementing.
-
-  // How to delete items from manuallyAddedQueue?
-  // Delete item by ID and delete all items previous to an ID.
-
-  /**
-   * Removes all items from the queue, which are not included in the new items.
-   * This is used to remove tracks which got deleted after a sync update from the queue.
-   * @param newTrackItems The available track items
-   * @param currentIndex The current index of the playback
-   * @returns The new index to set.
-   */
-  function intersectCurrentWithNewTracks(
-    newTrackItems: readonly ITrack[],
-    currentIndex: number
-  ): number {
-    const { newQueue, newIndex } = _intersectWithItems(
-      get({ subscribe }),
-      newTrackItems,
-      currentIndex
-    )
-
-    set(newQueue)
-
-    return newIndex
-  }
-
-  function removeIndex(index: number | readonly number[]) {
-    update(($queue) => _removeIndex($queue, index))
-  }
-
-  function clear(): void {
-    set([])
-  }
-
-  /**
-   *
-   * @param tracks The tracks to add as IQueueItems
-   * @param queueIndex The current play index. Used internally to determine which manually added tracks are already played and thus should be removed.
-   */
-  function setTracks(tracks: readonly ITrack[]): void {
-    set(tracks.map(_convertTrackToQueueItem(0)))
-  }
+export const queueStore = {
+  subscribe,
+  update,
+  set,
+  index: {
+    set: setIndex,
+    increment: incrementIndex,
+    decrement: decrementIndex,
+    reset: resetIndex,
+  },
+  autoQueue: {
+    set: setAutoQueue,
+    update: updateAutoQueue,
+    removeItems: removeAutoQueueTracks,
+  },
+  manualQueue: {
+    set: setManualQueue,
+    removeFirst: removeFirstFromManualQueue,
+    addToStart: addTracksToBeginningManualQueue,
+    addToEnd: addTracksToEndManualQueue,
+    remove: removeIndexManualQueue,
+  },
+  setIsPlayingFromManualQueue,
+  intersect,
 }
 
 /**
- * Designed to be used with `Array.map`
+ * Use Immers produce funtion for the update
  */
-function _convertTrackToQueueItem(
-  continueFromIndex: number
-): (track: ITrack, index: number) => IQueueItem {
-  return (track, index) => ({
-    index: continueFromIndex + index,
-    queueID: Symbol(`${track?.title} queueID`),
-    track,
-    isManuallyAdded: true,
-  })
+function update(producer: (draft: Draft<IQueueStore>) => void) {
+  return updateBase(produce(producer))
 }
 
-function _remapIndexes(
-  queueItems: readonly IQueueItem[],
-  indexToStart = 0
-): readonly IQueueItem[] {
-  return [...queueItems].map((item, index) => {
-    const newIndex = indexToStart + index
-
-    return {
-      ...item,
-      index: newIndex,
-      queueID: Symbol(`${newIndex} ${item.track?.title || "Unknown"}`),
+// Make all keys but one optional, use TypeFest for that
+function set(data: RequireAtLeastOne<IQueueStore>) {
+  update(($store) => {
+    if (data.autoQueue !== undefined) {
+      $store.autoQueue = data.autoQueue as IQueueItem[]
+    }
+    if (data.manualQueue !== undefined) {
+      $store.manualQueue = data.manualQueue as ITrack[]
+    }
+    if (data.index !== undefined) {
+      $store.index = data.index
     }
   })
 }
 
-function _removeIndex(
-  queueItems: readonly IQueueItem[],
-  indexes: readonly number[] | number
-): readonly IQueueItem[] {
-  const cleaned = remove(queueItems, indexes)
-
-  return _remapIndexes(cleaned)
+function setAutoQueue(queue: readonly IQueueItem[]) {
+  update((draft) => {
+    draft.autoQueue = queue as IQueueItem[]
+  })
 }
 
-function remove(
-  queueItems: readonly IQueueItem[],
-  indexes: number | readonly number[]
+function updateAutoQueue(
+  producer: (queue: Draft<IQueueStore["autoQueue"]>) => void
 ) {
-  if (typeof indexes === "number") {
-    const result = [...queueItems]
-    result.splice(indexes, 1)
-    return result
-  }
-
-  return queueItems.filter((_, index) => !indexes.includes(index))
+  update((draft) => {
+    draft.autoQueue = produce(draft.autoQueue, producer)
+  })
 }
 
-function _intersectWithItems(
-  queueItems: readonly IQueueItem[],
-  newTrackItems: readonly ITrack[],
+function setIndex(index: number) {
+  update((draft) => {
+    draft.index = index
+  })
+}
+
+function incrementIndex() {
+  update((draft) => {
+    draft.index += 1
+  })
+}
+
+function decrementIndex() {
+  update((draft) => {
+    draft.index =
+      draft.index === 0 ? draft.autoQueue.length - 1 : draft.index - 1
+  })
+}
+
+function setIsPlayingFromManualQueue(value: boolean) {
+  update(($store) => {
+    $store.isPlayingFromManualQueue = value
+  })
+}
+
+/**
+ * Create an intersection of the current queue (including auto queue) with new tracks.
+ *
+ * In other words, remove all tracks which are not in the `newTracks array`
+ * and adjust the current index accordingly.
+ */
+function intersect(newTracks: readonly ITrack[]): void {
+  update(($store) => {
+    const { newIndex, newAutoQueue, newManualQueue } = _intersectWithItems({
+      newTracks,
+      autoQueue: $store.autoQueue,
+      manualQueue: $store.manualQueue,
+      currentIndex: $store.index,
+    })
+
+    $store.autoQueue = newAutoQueue as IQueueItem[]
+    $store.manualQueue = newManualQueue as ITrack[]
+    $store.index = newIndex
+  })
+}
+
+function removeAutoQueueTracks(index: number | readonly number[]) {
+  update(($queue) => {
+    const newQueue = removeFromArray(index)($queue.autoQueue)
+
+    if (newQueue === undefined)
+      throw new Error("Provided index is out of bounds")
+
+    $queue.autoQueue = newQueue
+  })
+}
+
+/**
+ * The logic behind {@link intersect}.
+ */
+function _intersectWithItems({
+  currentIndex,
+  autoQueue,
+  manualQueue,
+  newTracks,
+}: {
+  autoQueue: IQueueStore["autoQueue"]
+  manualQueue: IQueueStore["manualQueue"]
+  newTracks: readonly ITrack[]
   currentIndex: number
-): { newQueue: readonly IQueueItem[]; newIndex: number } {
-  const trackIDs = new Set(newTrackItems.map((track) => track.id))
+}) {
+  const newTrackIDs = new Set(newTracks.map((track) => track.id))
 
   const deletedIndexes: number[] = []
-  const newQueue = _remapIndexes(
-    queueItems.filter((item, index) => {
-      if (trackIDs.has(item.track.id)) return true
 
-      deletedIndexes.push(index)
-      return false
-    })
-  )
+  const newAutoQueue = autoQueue
+    .map(({ track }) => track)
+    .filter(removeNotIntersectingTracks)
+    .map(convertToQueueItem)
+  const newManualQueue = manualQueue.filter(removeNotIntersectingTracks)
 
-  const toReduceCurrentIndex =
+  // If tracks before the current one are deleted, the index needs to be adjusted
+  // so that it still points to the current track
+  const reduceIndexBy =
     deletedIndexes.filter((index) => index <= currentIndex).length +
     (deletedIndexes.includes(currentIndex) ? 1 : 0)
 
   const newIndex =
-    currentIndex - toReduceCurrentIndex < -1
-      ? -1
-      : currentIndex - toReduceCurrentIndex
+    currentIndex - reduceIndexBy < -1 ? -1 : currentIndex - reduceIndexBy
 
-  return { newIndex, newQueue }
+  return { newIndex, newAutoQueue, newManualQueue }
+
+  function removeNotIntersectingTracks(track: ITrack, index: number) {
+    if (newTrackIDs.has(track.id)) return true
+
+    deletedIndexes.push(index)
+    return false
+  }
 }
 
-export const autoQueueStore = createAutoQueueStore()
+function resetIndex() {
+  update(($store) => {
+    $store.index = 0
+  })
+}
+
+function setManualQueue(tracks: readonly ITrack[]) {
+  update(($store) => {
+    $store.manualQueue = tracks as ITrack[]
+  })
+}
+
+function removeFirstFromManualQueue() {
+  removeIndexManualQueue(0)
+}
+
+/**
+ * Remove a track from the queue based on its index / position within the queue.
+ * @param index The index to remove from the queue array. The first track is at 0.
+ */
+function removeIndexManualQueue(indexes: number | readonly number[]): void {
+  update(($store) => {
+    const newQueue = removeFromArray(indexes)($store.manualQueue)
+
+    if (newQueue === undefined)
+      throw new Error("Provided index is out of bounds")
+
+    $store.manualQueue = newQueue
+  })
+}
+
+function addTracksToEndManualQueue(tracks: readonly ITrack[] | ITrack): void {
+  update(($store) => {
+    $store.manualQueue.unshift(...(Array.isArray(tracks) ? tracks : [tracks]))
+  })
+}
+
+function addTracksToBeginningManualQueue(
+  tracks: readonly ITrack[] | ITrack
+): void {
+  update(($store) => {
+    $store.manualQueue.push(...(Array.isArray(tracks) ? tracks : [tracks]))
+  })
+}
