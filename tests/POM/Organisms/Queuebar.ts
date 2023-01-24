@@ -6,18 +6,19 @@ import {
 } from "../../../packages/renderer/src/TestConsts"
 import { getTrackTitle, reduceTitlesToFolders } from "../Helper"
 
-import type { Page } from "playwright"
+import type { ElectronApplication } from "playwright"
 
-export async function createQueuebarOrganism(page: Page) {
-  const currentTrack = page.locator(TEST_IDS.asQuery.queueCurrentTrack)
-  const nextQueueTrack = page.locator(TEST_IDS.asQuery.queueNextTrack)
-  const nextTrack = page.locator(TEST_IDS.asQuery.queueNextTrack)
-  const nextTracks = page.locator(TEST_IDS.asQuery.queueBarNextTracks)
-  const playbarQueueIcon = page.locator(TEST_IDS.asQuery.playbarQueueIcon)
-  const previousTrack = page.locator(TEST_IDS.asQuery.queuePreviousTrack)
-  const queueBar = page.locator(TEST_IDS.asQuery.queueBar)
+export async function createQueuebarOrganism(electron: ElectronApplication) {
+  const page = await electron.firstWindow()
 
-  // const previousTracks = page.locator(TEST_IDS.asQuery.queuePlayedTracks)
+  const currentTrack = page.locator(TEST_IDS.asQuery.queueCurrentTrack),
+    nextQueueTrack = page.locator(TEST_IDS.asQuery.queueNextTrack),
+    nextTrack = page.locator(TEST_IDS.asQuery.queueNextTrack),
+    nextTracks = page.locator(TEST_IDS.asQuery.queueBarNextTracks),
+    playbarQueueIcon = page.locator(TEST_IDS.asQuery.playbarQueueIcon),
+    previousTrack = page.locator(TEST_IDS.asQuery.queuePreviousTrack),
+    queueBar = page.locator(TEST_IDS.asQuery.queueBar)
+  // , previousTracks = page.locator(TEST_IDS.asQuery.queuePlayedTracks)
 
   return {
     close,

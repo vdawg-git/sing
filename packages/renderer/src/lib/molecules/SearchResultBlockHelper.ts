@@ -105,7 +105,7 @@ function convertArtistToSearchItem(
 ): ISearchResultItem {
   return {
     title: artist.name,
-    subtexts: [{ label: "Artist" }],
+    subtexts: [{ label: "Artist", testAttribute: "searchbarResultArtist" }],
     isImageCircle: true,
     icon: IconArrowRight,
     label,
@@ -125,9 +125,10 @@ function createAlbumSubtexts(
         {
           label: artistName,
           onClick: async () => navigate(createArtistURI(artistName)),
+          testAttribute: "searchbarResultAlbum",
         },
       ]
-    : [{ label: "Unknown" }]
+    : [{ label: "Unknown", testAttribute: "searchbarResultAlbum" }]
 }
 
 function createTrackSubtexts(
@@ -137,6 +138,7 @@ function createTrackSubtexts(
   const albumItem: ISearchItemSubtext | undefined = album
     ? {
         label: album,
+        testAttribute: "searchbarResultAlbum",
         onClick: async () => navigate(createAlbumURI(albumID)),
       }
     : undefined
@@ -144,6 +146,7 @@ function createTrackSubtexts(
   const artistItem: ISearchItemSubtext | undefined = artist
     ? {
         label: artist,
+        testAttribute: "searchbarResultArtist",
         onClick: async () => navigate(createArtistURI(artist)),
       }
     : undefined

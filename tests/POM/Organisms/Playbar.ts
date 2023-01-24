@@ -3,30 +3,31 @@
 import { TEST_IDS } from "../../../packages/renderer/src/TestConsts"
 import { convertDisplayTimeToSeconds, getTrackTitle } from "../Helper"
 
-import type { Page } from "playwright"
+import type { ElectronApplication } from "playwright"
 
 /**
  * Interact with the playbar
  */
-export async function createPlaybarOrganism(page: Page) {
-  const currentTime = page.locator(TEST_IDS.asQuery.seekbarCurrentTime)
-  const currentTrack = page.locator(TEST_IDS.asQuery.playbarTitle)
-  const artistName = page.locator(TEST_IDS.asQuery.playbarArtist)
-  const volumeIcon = page.locator(TEST_IDS.asQuery.playbarVolumeIcon)
-  const backButton = page.locator(TEST_IDS.asQuery.playbarBackButton)
-  const cover = page.locator(TEST_IDS.asQuery.playbarCover)
-  const nextButton = page.locator(TEST_IDS.asQuery.playbarNextButton)
-  const pauseButton = page.locator(TEST_IDS.asQuery.playbarPauseButton)
-  const playButton = page.locator(TEST_IDS.asQuery.playbarPlayButton)
-  const progressbar = page.locator(TEST_IDS.asQuery.seekbarProgressbar)
-  const seekbar = page.locator(TEST_IDS.asQuery.seekbar)
-  const testAudioElement = page.locator(TEST_IDS.asQuery.testAudioELement)
-  const totalDuration = page.locator(TEST_IDS.asQuery.seekbarTotalDuration)
-  const volumeSlider = page.locator(TEST_IDS.asQuery.volumeSlider)
-  const volumeSliderInner = page.locator(TEST_IDS.asQuery.volumeSliderInner)
-  const shuffleButton = page.locator(TEST_IDS.asQuery.playbarShuffleButton)
+export async function createPlaybarOrganism(electron: ElectronApplication) {
+  const page = await electron.firstWindow()
 
-  // const previousTracks = page.locator(TEST_IDS.asQuery.queuePlayedTracks)
+  const currentTime = page.locator(TEST_IDS.asQuery.seekbarCurrentTime),
+    currentTrack = page.locator(TEST_IDS.asQuery.playbarTitle),
+    artistName = page.locator(TEST_IDS.asQuery.playbarArtist),
+    volumeIcon = page.locator(TEST_IDS.asQuery.playbarVolumeIcon),
+    backButton = page.locator(TEST_IDS.asQuery.playbarBackButton),
+    cover = page.locator(TEST_IDS.asQuery.playbarCover),
+    nextButton = page.locator(TEST_IDS.asQuery.playbarNextButton),
+    pauseButton = page.locator(TEST_IDS.asQuery.playbarPauseButton),
+    playButton = page.locator(TEST_IDS.asQuery.playbarPlayButton),
+    progressbar = page.locator(TEST_IDS.asQuery.seekbarProgressbar),
+    seekbar = page.locator(TEST_IDS.asQuery.seekbar),
+    testAudioElement = page.locator(TEST_IDS.asQuery.testAudioELement),
+    totalDuration = page.locator(TEST_IDS.asQuery.seekbarTotalDuration),
+    volumeSlider = page.locator(TEST_IDS.asQuery.volumeSlider),
+    volumeSliderInner = page.locator(TEST_IDS.asQuery.volumeSliderInner),
+    shuffleButton = page.locator(TEST_IDS.asQuery.playbarShuffleButton)
+  // , previousTracks = page.locator(TEST_IDS.asQuery.queuePlayedTracks)
 
   return {
     clickNext,

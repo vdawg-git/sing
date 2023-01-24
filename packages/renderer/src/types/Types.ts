@@ -7,7 +7,7 @@ import type {
 } from "@sing-types/DatabaseTypes"
 import type { SvelteComponentDev } from "svelte/internal"
 import type { AsyncOrSync } from "ts-essentials"
-import type { ITestAttributes, ITestIDs } from "@/TestConsts"
+import type { ITestAttribute, ITestID } from "@/TestConsts"
 
 export type IPlayState = MediaSessionPlaybackState
 export type IPlayLoop = "NONE" | "LOOP_QUEUE" | "LOOP_TRACK"
@@ -59,8 +59,8 @@ export type ICardProperties = {
   readonly onPlay: () => void
   readonly onClickPrimary: () => void
   readonly onClickSecondary?: () => void
-  readonly testAttributes?: ITestAttributes | readonly ITestAttributes[]
-  readonly testID?: ITestIDs
+  readonly testAttributes?: ITestAttribute | readonly ITestAttribute[]
+  readonly testID?: ITestID
 }
 
 export type IMenuID = symbol | "main"

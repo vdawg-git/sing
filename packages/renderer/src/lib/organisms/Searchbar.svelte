@@ -3,6 +3,7 @@
   import IconX from "virtual:icons/heroicons/x-mark-20-solid"
 
   import { useOnOutClick } from "@/Helper"
+  import { TEST_IDS } from "@/TestConsts"
 
   import { getMenuElement } from "../manager/menu"
 
@@ -60,6 +61,7 @@
 </script>
 
 <div
+  data-testid={TEST_IDS.searchbar}
   class="custom_ flex max-h-[calc(100vh-120px)] flex-col overflow-x-hidden
     border border-grey-400/50 shadow-xl backdrop-blur-xl 
     {isFocused ? 'bg-grey-800/80' : 'bg-grey-700/40 hover:bg-grey-800/50'}"

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import type { ITestAttribute } from "@sing-renderer/TestConsts"
 import type { FilePath } from "./Filesystem"
 import type {
   ITrack,
@@ -260,6 +261,7 @@ export type ISearchedData = ISearchedArtist | ISearchedAlbum | ISearchedTrack
 export type ISearchItemSubtext = {
   readonly label: string
   readonly onClick?: () => void
+  readonly testAttribute: ITestAttribute | readonly ITestAttribute[]
 }
 
 export type ISearchResultItem = {

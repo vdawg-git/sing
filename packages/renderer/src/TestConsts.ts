@@ -3,7 +3,9 @@
 
 const testIDNames = [
   "albumCards",
+  "albumHeroTitle",
   "artistCards",
+  "artistHeroTitle",
   "myTracksTitle",
   "playbar",
   "playbarAlbum",
@@ -32,6 +34,7 @@ const testIDNames = [
   "queuePreviousTrack",
   "queuePreviousTrackArtist",
   "queuePreviousTrackTitle",
+  "searchbar",
   "seekbar",
   "seekbarCurrentTime",
   "seekbarProgressbar",
@@ -73,6 +76,11 @@ const testAttributeNames = [
   "queueItemTitle",
   "queueNextTracks",
   "queuePreviousTracks",
+  "searchbarResult",
+  "searchbarResultAlbum",
+  "searchbarResultArtist",
+  "searchbarResultTitle",
+  "searchbarResultType",
   "trackItem",
   "trackItemAlbum",
   "trackItemArtist",
@@ -118,5 +126,5 @@ export const TEST_ATTRIBUTES: testAttributes = testAttributeNames.reduce(
   {} as any
 )
 
-export type ITestIDs = typeof testIDNames[number]
-export type ITestAttributes = typeof testAttributeNames[number]
+export type ITestID = typeof testIDNames[number]
+export type ITestAttribute = typeof testAttributeNames[number]

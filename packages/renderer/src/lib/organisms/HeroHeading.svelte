@@ -10,6 +10,7 @@
   import type { FilePath } from "@sing-types/Filesystem"
   import type { EventHandler } from "@sing-types/Utilities"
   import type { IHeroAction, IHeroMetaDataItem } from "@/types/Types"
+  import type { ITestID } from "@/TestConsts"
 
   /**
    * The cover(s) to display
@@ -25,7 +26,7 @@
     | undefined = undefined
   export let handleClickTitle: EventHandler | undefined = undefined
   export let handleClickDescription: EventHandler | undefined = undefined
-  export let titleTestID: string | undefined = undefined
+  export let titleTestID: ITestID
 
   const navigate = useNavigate()
   // TODO disable focus indicator for now

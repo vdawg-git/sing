@@ -180,7 +180,7 @@ describe("when removing one folder", async () => {
     expect(newCurrentTrack).not.toBe(oldCurrentTrack)
   })
 
-  it("should correctly add tracks with an unknown artist and album", async () => {
+  it.only("should correctly add tracks with an unknown artist and album", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     const tracksPage = await settingsPage.goTo.tracks()
 

@@ -66,6 +66,7 @@
             onClick()
             dispatch("closeSearchbar")
           }}
+          on:closeSearchbar
         />
       {/each}
     </div>

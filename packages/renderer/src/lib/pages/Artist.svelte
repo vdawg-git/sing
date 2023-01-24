@@ -114,7 +114,13 @@
 </script>
 
 {#if artist}
-  <HeroHeading title={artistID} {metadata} type="Artist" {actions} />
+  <HeroHeading
+    title={artistID}
+    {metadata}
+    type="Artist"
+    {actions}
+    titleTestID="artistHeroTitle"
+  />
 
   {#if tracks.length > 0}
     <TrackList

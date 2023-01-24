@@ -5,14 +5,14 @@
 
   import type { ITrack } from "@sing-types/DatabaseTypes"
   import type { ISortOptions } from "@sing-types/Types"
-  import type { ITestIDs } from "@/TestConsts"
+  import type { ITestID } from "@/TestConsts"
   import type {
     ITrackListDisplayOptions,
     ICreateMenuOutOfTrack,
   } from "@/types/Types"
 
   export let tracks: readonly ITrack[]
-  export let testID: ITestIDs
+  export let testID: ITestID
 
   /**
    * Which colums should be displayed.

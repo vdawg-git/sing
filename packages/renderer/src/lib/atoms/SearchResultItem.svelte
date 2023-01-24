@@ -3,8 +3,12 @@
     createEventDispatcher,
     type SvelteComponentDev,
   } from "svelte/internal"
+  import clsx from "clsx"
+
+  import { createTestAttribute } from "@sing-shared/Pures"
 
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
+  import { TEST_ATTRIBUTES } from "@/TestConsts"
 
   import { useOpenContextMenu } from "../manager/menu"
   import { playlistsStore } from "../stores/PlaylistsStore"
@@ -31,11 +35,8 @@
 </script>
 
 <button
-  class="
-    group relative flex w-full cursor-pointer items-center
-    justify-between gap-6 px-3 py-2
-    hover:bg-grey-300/10
-  "
+  data-testattribute={TEST_ATTRIBUTES.searchbarResult}
+  class="group relative flex w-full cursor-pointer items-center justify-between gap-6 px-3 py-2 hover:bg-grey-300/10"
   on:click={onClick}
   use:useOpenContextMenu={{ menuItems }}
 >
@@ -54,6 +55,7 @@
     <div class="flex max-w-[calc(100%-56px)] grow-0 flex-col align-middle">
       <!---- Title -->
       <div
+        data-testattribute={TEST_ATTRIBUTES.searchbarResultTitle}
         class="mb-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-left text-base"
       >
         {title}
@@ -72,22 +74,26 @@
 
         <!---- Subtexts -->
         <div class="subtexts_">
-          {#each subtexts as { label: subtextLabel, onClick: onClickSubtext }, index}
+          {#each subtexts as { label: subtextLabel, onClick: onClickSubtext, testAttribute }, index}
             <div
-              class="
-                flex- min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium tracking-wide text-grey-200
-               {onClickSubtext ? 'cursor-pointer hover:underline' : ''}
-               {index === 0 ? 'shrink-[1] grow-[2]' : 'shrink-[2] grow-[1]'}
-            "
-              on:click|stopPropagation={() => {
-                if (!onClick) return
-                onClick()
+              class={clsx(
+                "flex- min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium tracking-wide text-grey-200",
+                onClickSubtext && "cursor-pointer hover:underline",
+                index === 0 ? "shrink-[1] grow-[2]" : "shrink-[2] grow-[1]"
+              )}
+              on:click={(event) => {
+                if (!onClickSubtext) return
+
+                event.stopPropagation()
+                onClickSubtext()
                 dispatch("closeSearchbar")
               }}
+              data-testattribute={createTestAttribute(testAttribute)}
             >
               {subtextLabel}
             </div>
             {#if index !== subtexts.length - 1}
+              <!-- Spacer -->
               <div class="text-sm font-bold text-grey-300">-</div>
             {/if}
           {/each}

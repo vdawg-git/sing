@@ -127,6 +127,7 @@
     image={album.cover}
     type="Album"
     {actions}
+    titleTestID="albumHeroTitle"
   />
 
   <TrackList

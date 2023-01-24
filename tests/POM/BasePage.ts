@@ -12,25 +12,26 @@ import { createLibrarySettingsPage } from "./LibrarySettingsPage"
 import { createTracksPage } from "./TracksPage"
 import { createPlaybarOrganism } from "./Organisms/Playbar"
 import { createQueuebarOrganism } from "./Organisms/Queuebar"
-import { createAlbumsPage } from "./AlbumPage"
-import { createArtistsPage } from "./ArtistPage"
+import { createAlbumsPage } from "./AlbumsPage"
+import { createArtistsPage } from "./ArtistsPage"
+import { createSearchbarOrganism } from "./Organisms/Searchbar"
 
 import type { ElectronApplication } from "playwright"
 
-export async function createBasePage(electronApp: ElectronApplication) {
-  const page = await electronApp.firstWindow()
+export async function createBasePage(electron: ElectronApplication) {
+  const page = await electron.firstWindow()
 
-  const playbar = await createPlaybarOrganism(page)
-  const queuebar = await createQueuebarOrganism(page)
-
-  const sidebar = page.locator(TEST_IDS.asQuery.sidebar)
-  const sidebarItemAlbums = sidebar.locator("text=Albums")
-  const sidebarItemArtists = sidebar.locator("text=Artists")
-  const sidebarItemTracks = sidebar.locator("text=Tracks")
-  const sidebarMenu = page.locator(TEST_IDS.asQuery.sidebarMenu)
-  const sidebarMenuIcon = page.locator(TEST_IDS.asQuery.sidebarMenuIcon)
-  const sidebarMenuSettings = sidebarMenu.locator("text=Settings")
-  const testAudioElement = page.locator(TEST_IDS.asQuery.testAudioELement)
+  const playbar = await createPlaybarOrganism(electron),
+    queuebar = await createQueuebarOrganism(electron),
+    searchbar = await createSearchbarOrganism(electron)
+  const sidebar = page.locator(TEST_IDS.asQuery.sidebar),
+    sidebarItemAlbums = sidebar.locator("text=Albums"),
+    sidebarItemArtists = sidebar.locator("text=Artists"),
+    sidebarItemTracks = sidebar.locator("text=Tracks"),
+    sidebarMenu = page.locator(TEST_IDS.asQuery.sidebarMenu),
+    sidebarMenuIcon = page.locator(TEST_IDS.asQuery.sidebarMenuIcon),
+    sidebarMenuSettings = sidebarMenu.locator("text=Settings"),
+    testAudioElement = page.locator(TEST_IDS.asQuery.testAudioELement)
 
   // const previousTracks = page.locator(TEST_IDS.asQuery.queuePlayedTracks)
 
@@ -43,7 +44,6 @@ export async function createBasePage(electronApp: ElectronApplication) {
     logPressedKeys,
     mockDialog,
     pauseExecution: () => page.pause(),
-    pressMediaKey,
     reload,
     resetMusic,
     startVisualisingClicks,
@@ -54,6 +54,7 @@ export async function createBasePage(electronApp: ElectronApplication) {
 
     playbar,
     queuebar,
+    searchbar,
 
     /**
      * Hard reload the page while setting it.
@@ -84,7 +85,7 @@ export async function createBasePage(electronApp: ElectronApplication) {
     await openSidebarMenu()
     await sidebarMenuSettings.click({ timeout: 3000, force: true })
 
-    return createLibrarySettingsPage(electronApp)
+    return createLibrarySettingsPage(electron)
   }
 
   async function gotoTracks() {
@@ -92,7 +93,7 @@ export async function createBasePage(electronApp: ElectronApplication) {
 
     // await page.waitForTimeout(520) // Rendering of the store does not seem to be instant
 
-    return createTracksPage(electronApp)
+    return createTracksPage(electron)
   }
 
   async function gotoAlbums() {
@@ -100,7 +101,7 @@ export async function createBasePage(electronApp: ElectronApplication) {
 
     // await page.waitForTimeout(520) // Rendering of the store does not seem to be instant
 
-    return createAlbumsPage(electronApp)
+    return createAlbumsPage(electron)
   }
 
   async function goToArtists() {
@@ -108,7 +109,7 @@ export async function createBasePage(electronApp: ElectronApplication) {
 
     // await page.waitForTimeout(520) // Rendering of the store does not seem to be instant
 
-    return createArtistsPage(electronApp)
+    return createArtistsPage(electron)
   }
 
   async function openSidebarMenu() {
@@ -122,13 +123,13 @@ export async function createBasePage(electronApp: ElectronApplication) {
   async function resetToTracks() {
     await resetTo(ROUTES.tracks)
 
-    return createTracksPage(electronApp)
+    return createTracksPage(electron)
   }
 
   async function resetToLibrarySettings() {
     await resetTo(ROUTES.settingsLibrary)
 
-    return createLibrarySettingsPage(electronApp)
+    return createLibrarySettingsPage(electron)
   }
 
   async function resetTo(location: string, id?: number | undefined) {
@@ -296,7 +297,7 @@ export async function createBasePage(electronApp: ElectronApplication) {
     const returnValue = paths.map((path) => slash(path))
 
     // eslint-disable-next-line no-shadow, @typescript-eslint/no-shadow
-    await electronApp.evaluate(async ({ dialog }, returnValue) => {
+    await electron.evaluate(async ({ dialog }, returnValue) => {
       // eslint-disable-next-line no-param-reassign
       dialog.showOpenDialog = () =>
         Promise.resolve({ canceled: false, filePaths: returnValue })
