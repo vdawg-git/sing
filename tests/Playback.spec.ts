@@ -270,6 +270,7 @@ it.only("plays the clicked track in the list when shuffle is on", async () => {
 
 it.only("should sort the tracks correctly by default by title even when title is not set and the filename is used", async () => {
   const tracksPage = await createTracksPage(electron)
+  await tracksPage.reload()
 
   const tracks = await tracksPage.getTracks()
 

@@ -36,7 +36,7 @@
   }
 </script>
 
-<HeroHeading title="Your tracks" {metadata} titleTestID={"myTracksTitle"} />
+<HeroHeading title="Your tracks" {metadata} titleTestID={"yourTracksTitle"} />
 
 {#if $tracks.length === 0}
   <NothingHereYet />

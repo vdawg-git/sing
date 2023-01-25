@@ -1,3 +1,8 @@
+import { TEST_ATTRIBUTES } from "@sing-renderer/TestConsts"
+
+import type { ITestAttributeAsQuery } from "@sing-renderer/TestConsts"
+import type { Page } from "playwright"
+
 export function reduceTitlesToFolders(
   titles: (string | undefined)[]
 ): number[] {
@@ -47,4 +52,45 @@ export function getTrackTitle(trackTitle: string): string {
  */
 export function isE2ETrackTitle(trackTitle: string): boolean {
   return !!trackTitle.match(/^\d\d$/)?.length
+}
+
+/**
+ *
+ * @param cardSelector
+ */
+export async function getCards({
+  page,
+  selector,
+}: {
+  page: Page
+  selector: ITestAttributeAsQuery
+}) {
+  const locators = await page.locator(selector).all()
+
+  return locators.map((card) => ({
+    async clickPlay() {
+      return card
+        .hover()
+        .then(() =>
+          card
+            .locator(TEST_ATTRIBUTES.asQuery.cardPlay)
+            .click({ timeout: 1000 })
+        )
+    },
+    /**
+     * Gets the data of the card as text.
+     */
+    async getData() {
+      const title =
+        (await card
+          .locator(TEST_ATTRIBUTES.asQuery.cardTitle)
+          .textContent({ timeout: 1000 })) ?? undefined
+      const subtext =
+        (await card
+          .locator(TEST_ATTRIBUTES.asQuery.cardSecondaryText)
+          .textContent({ timeout: 1000 })) ?? undefined
+
+      return { title, subtext }
+    },
+  }))
 }

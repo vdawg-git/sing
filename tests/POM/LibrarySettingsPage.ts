@@ -51,6 +51,9 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
     await settingsBase.reload()
   }
 
+  /**
+   * Adds all three test folders. `folder0, folder1, folder2)`
+   */
   async function setDefaultFolders() {
     await removeAllFolders()
 

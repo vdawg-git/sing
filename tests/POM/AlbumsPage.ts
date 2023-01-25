@@ -6,6 +6,7 @@ import {
 } from "../../packages/renderer/src/TestConsts"
 
 import { createBasePage } from "./BasePage"
+import { getCards } from "./Helper"
 
 import type { ElectronApplication } from "playwright"
 
@@ -40,40 +41,6 @@ export async function createAlbumsPage(electron: ElectronApplication) {
   }
 
   async function getAlbums() {
-    const cardSelector = TEST_ATTRIBUTES.asQuery.albumCard
-    const selectors = {
-      cardItem: cardSelector,
-      cardItemTitle:
-        `${cardSelector} ${TEST_ATTRIBUTES.asQuery.cardTitle}` as const,
-      cardItemArtist:
-        `${cardSelector} ${TEST_ATTRIBUTES.asQuery.cardSecondaryText}` as const,
-    }
-
-    return albumItems.evaluate(
-      // eslint-disable-next-line @typescript-eslint/no-shadow
-      (node, selectors) => {
-        const albumCardsElements = [
-          ...node.querySelectorAll(selectors.cardItem),
-        ] as HTMLElement[]
-
-        return albumCardsElements.map((album) => {
-          const title = (
-            album.querySelector(selectors.cardItemTitle) as
-              | HTMLElement
-              | undefined
-          )?.innerText
-
-          const artist = (
-            album.querySelector(selectors.cardItemArtist) as
-              | HTMLElement
-              | undefined
-          )?.innerText
-
-          return { title, artist }
-        })
-      },
-      selectors,
-      { timeout: 1000 }
-    )
+    return getCards({ page, selector: TEST_ATTRIBUTES.asQuery.albumCard })
   }
 }

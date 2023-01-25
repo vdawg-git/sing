@@ -11,6 +11,11 @@ let electronApp: ElectronApplication
 
 beforeAll(async () => {
   electronApp = await launchElectron()
+  const basePage = await createBasePage(electronApp)
+  const settingsPage = await basePage.resetTo.settingsLibrary()
+
+  await settingsPage.setDefaultFolders()
+  await settingsPage.saveAndSyncFolders()
 })
 
 afterAll(async () => {
@@ -48,9 +53,9 @@ describe("navigation", async () => {
 
     if (result === undefined) throw new Error("Could not find a search result")
 
-    const artistName = await result.goTo
-      .artist()
-      .then((artistPage) => artistPage.getName())
+    const artistPage = await result.goTo.artist()
+
+    const artistName = await artistPage.getName()
 
     expect(artistName).toEqual(UNKNOWN_ARTIST)
   })

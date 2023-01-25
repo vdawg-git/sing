@@ -6,6 +6,7 @@ import {
 } from "../../packages/renderer/src/TestConsts"
 
 import { createBasePage } from "./BasePage"
+import { getCards } from "./Helper"
 
 import type { ElectronApplication } from "playwright"
 
@@ -14,7 +15,9 @@ export async function createArtistsPage(electron: ElectronApplication) {
   const page = await electron.firstWindow()
 
   const pageTitle = page.locator("Your artists")
-  const artistItems = page.locator(TEST_IDS.asQuery.artistCards)
+  const artistItems = page.locator(
+    TEST_IDS.asQuery.artistCards + " " + TEST_ATTRIBUTES.asQuery.artistCard
+  )
 
   return {
     ...basePage,
@@ -39,33 +42,10 @@ export async function createArtistsPage(electron: ElectronApplication) {
     return true
   }
 
+  /**
+   * @returns Artist names as an array of strings
+   */
   async function getArtists() {
-    const cardSelector = TEST_ATTRIBUTES.asQuery.artistCard
-    const selectors = {
-      cardItem: cardSelector,
-      cardItemArtistName:
-        `${cardSelector} ${TEST_ATTRIBUTES.asQuery.cardTitle}` as const,
-    }
-
-    return artistItems.evaluate(
-      // eslint-disable-next-line @typescript-eslint/no-shadow
-      (node, selectors) => {
-        const artistCardsElements = [
-          ...node.querySelectorAll(selectors.cardItem),
-        ] as HTMLElement[]
-
-        return artistCardsElements.map((artist) => {
-          const name = (
-            artist.querySelector(selectors.cardItemArtistName) as
-              | HTMLElement
-              | undefined
-          )?.innerText
-
-          return { name }
-        })
-      },
-      selectors,
-      { timeout: 1000 }
-    )
+    return getCards({ page, selector: TEST_ATTRIBUTES.asQuery.artistCard })
   }
 }

@@ -47,8 +47,8 @@ export const electronPaths = [
 // the dbUrl into the prisma client constructor in datasources.db.url
 process.env.DATABASE_URL = databaseURL
 
-// This needs to be updated every time you create a migration!
-export const latestMigration = "20221228195757_init"
+//! This needs to be updated every time a migration is created!
+export const latestMigration = "20230125211427_init"
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const platformToExecutables: any = {
   win32: {

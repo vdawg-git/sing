@@ -4,7 +4,7 @@
   import Card from "../molecules/Card.svelte"
 
   import type { ICardProperties } from "@/types/Types"
-  import type { ITestID } from "@/TestConsts"
+  import type { ITestAttribute, ITestID } from "@/TestConsts"
 
   interface IDispatcher_ {
     // Its all the id of the album / artist
@@ -16,6 +16,7 @@
   export let items: readonly ICardProperties[]
   export let isImageCircle = false
   export let testID: ITestID
+  export let cardTestAttributes: ITestAttribute | readonly ITestAttribute[]
 
   const dispatch = createEventDispatcher<IDispatcher_>()
 
@@ -37,6 +38,7 @@
       on:play={() => dispatchPlay(data.id)}
       on:clickedPrimary={() => dispatch("clickedPrimary", data.id)}
       on:clickedSecondary={() => dispatch("clickedSecondary", data.id)}
+      testAttributes={cardTestAttributes}
     />
   {/each}
 

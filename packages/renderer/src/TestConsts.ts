@@ -6,7 +6,6 @@ const testIDNames = [
   "albumHeroTitle",
   "artistCards",
   "artistHeroTitle",
-  "myTracksTitle",
   "playbar",
   "playbarAlbum",
   "playbarArtist",
@@ -52,6 +51,10 @@ const testIDNames = [
   "trackItems",
   "volumeSlider",
   "volumeSliderInner",
+  "yourAlbumsTitle",
+  "yourArtistsTitle",
+  "yourPlaylistsTitle",
+  "yourTracksTitle",
 ] as const
 
 const testAttributeNames = [
@@ -128,3 +131,6 @@ export const TEST_ATTRIBUTES: testAttributes = testAttributeNames.reduce(
 
 export type ITestID = typeof testIDNames[number]
 export type ITestAttribute = typeof testAttributeNames[number]
+export type ITestAttributeAsQuery =
+  testAttributes["asQuery"][keyof testAttributes["asQuery"]]
+export type ITestIDAsQuery = testIDs["asQuery"][keyof testIDs["asQuery"]]

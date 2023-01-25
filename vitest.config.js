@@ -1,3 +1,7 @@
+import path from "node:path"
+
+const PACKAGE_ROOT = __dirname
+
 /**
  * Config for global end-to-end tests
  * placed in project root tests folder
@@ -5,6 +9,20 @@
  * @see https://vitest.dev/config/
  */
 const config = {
+  resolve: {
+    alias: {
+      "@": `${path.join(PACKAGE_ROOT, "tests")}/`,
+      "@sing-types": `${path.join(PACKAGE_ROOT, "types")}/`,
+      "@sing-renderer": `${path.join(
+        PACKAGE_ROOT,
+        "packages",
+        "renderer",
+        "src"
+      )}/`,
+      "@sing-main": `${path.join(PACKAGE_ROOT, "packages", "main", "src")}/`,
+      "@sing-shared": `${path.join(PACKAGE_ROOT, "packages", "shared")}/`,
+    },
+  },
   test: {
     /**
      * By default, vitest search test files in all packages.

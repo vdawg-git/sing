@@ -67,6 +67,7 @@
       }`,
     },
   ]}
+  titleTestID="yourPlaylistsTitle"
 />
 
 {#if $tracks.length === 0}
@@ -78,5 +79,5 @@
     on:click={() => createAndNavigateToPlaylist(navigate)}
   />
 {:else}
-  <CardList {items} testID="playlistCards" />
+  <CardList {items} testID="playlistCards" cardTestAttributes="playlistCard" />
 {/if}

@@ -72,9 +72,15 @@
       label: `${$artists.length} artist${$artists.length > 1 ? "s" : ""}`,
     },
   ]}
+  titleTestID="yourArtistsTitle"
 />
 {#if $artists.length === 0}
   <NothingHereYet />
 {:else}
-  <CardList {items} isImageCircle={true} testID="artistCards" />
+  <CardList
+    {items}
+    isImageCircle={true}
+    testID="artistCards"
+    cardTestAttributes="artistCard"
+  />
 {/if}

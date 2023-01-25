@@ -15,7 +15,7 @@ export async function createTracksPage(electron: ElectronApplication) {
   const basePage = await createBasePage(electron)
   const page = await electron.firstWindow()
 
-  const pageTitle = page.locator(TEST_IDS.asQuery.myTracksTitle)
+  const pageTitle = page.locator(TEST_IDS.asQuery.yourTracksTitle)
   const trackItems = page.locator(TEST_IDS.asQuery.trackItems)
 
   return {

@@ -1,4 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest"
+import * as A from "fp-ts/lib/Array"
+
+import { UNKNOWN_ARTIST } from "../packages/shared/Consts"
 
 import { launchElectron } from "./Helper"
 import { createBasePage } from "./POM/BasePage"
@@ -36,6 +39,50 @@ it("can add a folder", async () => {
   const [folderName] = await settingsPage.getFolderNames()
 
   expect(folderName).toBe(nameToAdd)
+})
+
+describe("When adding all folders", async () => {
+  beforeEach(async () => {
+    const settingsPage = await createLibrarySettingsPage(electron)
+    await settingsPage.resetMusic()
+
+    await settingsPage.setDefaultFolders()
+    await settingsPage.closeAllNotifications()
+    await settingsPage.saveAndSyncFolders()
+  })
+
+  it("should correctly add tracks with an unknown artist and album", async () => {
+    const settingsPage = await createLibrarySettingsPage(electron)
+    const tracksPage = await settingsPage.goTo.tracks()
+
+    // Nessecary as they still got displayed until a refresh for some reason
+    await tracksPage.reload()
+
+    const expectedTitles = ["00", "01", "02", "03"]
+
+    const allTitles = await tracksPage
+      .getTracks()
+      .then((tracks) => tracks.map((track) => track.title))
+
+    for (const title of expectedTitles) {
+      expect(allTitles).to.be.an("array").that.includes(title)
+    }
+  })
+
+  it("should add `Unknown artist` to artists", async () => {
+    const settingsPage = await createLibrarySettingsPage(electron)
+    const artistsPage = await settingsPage.goTo.artists()
+
+    const artists = await artistsPage
+      .getArtists()
+      .then(
+        A.map((artistCard) => artistCard.getData().then((data) => data.title))
+      )
+
+    console.log("🚀 ~ file: Library.spec.ts:207 ~ it.only ~ artists", artists)
+
+    expect(artists).to.be.an("array").that.includes(UNKNOWN_ARTIST)
+  })
 })
 
 describe("when removing all folders after having folders added", async () => {
@@ -168,6 +215,9 @@ describe("when removing one folder", async () => {
 
     await tracksPage.playTrack("00")
     const oldCurrentTrack = await settingsPage.playbar.getCurrentTrack()
+    await tracksPage.pauseExecution()
+    expect(oldCurrentTrack, "Is not playing played track").not.toBe(undefined)
+
     await tracksPage.goTo.settingsLibrary()
 
     await settingsPage.removeFolder(0)
@@ -179,24 +229,6 @@ describe("when removing one folder", async () => {
 
     expect(newCurrentTrack).not.toBe(oldCurrentTrack)
   })
-
-  it("should correctly add tracks with an unknown artist and album", async () => {
-    const settingsPage = await createLibrarySettingsPage(electron)
-    const tracksPage = await settingsPage.goTo.tracks()
-
-    // Nessecary as they still get displayed until a refresh for some reason
-    await tracksPage.reload()
-
-    const expectedTitles = ["00", "01", "02", "03"]
-
-    const allTitles = await tracksPage
-      .getTracks()
-      .then((tracks) => tracks.map((track) => track.title))
-
-    for (const title of expectedTitles) {
-      expect(allTitles).to.be.an("array").that.includes(title)
-    }
-  })
 })
 
 describe("when adding one folder from a clear state", async () => {
@@ -204,16 +236,15 @@ describe("when adding one folder from a clear state", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     await settingsPage.resetMusic()
     await settingsPage.reload()
+    await settingsPage.addFolder(0)
+    await settingsPage.closeAllNotifications()
+    await settingsPage.saveAndSyncFolders()
   })
 
   it("adds just tracks from the newly added folder to the track page", async () => {
     const expectedTitles = Array.from({ length: 10 }, (_, index) => `0${index}`)
 
     const settingsPage = await createLibrarySettingsPage(electron)
-
-    await settingsPage.addFolder(0)
-    await settingsPage.closeAllNotifications()
-    await settingsPage.saveAndSyncFolders()
 
     const tracksPage = await settingsPage.goTo.tracks()
 

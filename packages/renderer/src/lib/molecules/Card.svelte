@@ -3,7 +3,11 @@
 
   import { createTestAttribute } from "@sing-shared/Pures"
 
-  import { TEST_ATTRIBUTES } from "@/TestConsts"
+  import {
+    TEST_ATTRIBUTES,
+    type ITestAttribute,
+    type ITestID,
+  } from "@/TestConsts"
 
   import CoverAndPlaylistThumbnail from "../atoms/CoverAndPlaylistThumbnail.svelte"
   import { useOpenContextMenu } from "../manager/menu"
@@ -14,8 +18,11 @@
 
   export let data: ICardProperties
   export let isImageCircle = false
-  export let testAttributes: string | readonly string[] | undefined = undefined
-  export let testID: string | undefined = undefined
+  export let testAttributes:
+    | ITestAttribute
+    | readonly ITestAttribute[]
+    | undefined = undefined
+  export let testID: ITestID | undefined = undefined
 
   $: contextMenuItems = data.contextMenuItems
 </script>
