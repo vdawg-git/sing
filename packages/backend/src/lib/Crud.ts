@@ -734,8 +734,6 @@ export async function deleteTracksInverted(
                   ${SQL.filepath} NOT IN (${pathsString})`)
 
   const playlistItemsQuery = prisma.$executeRawUnsafe(`
-    PRAGMA foreign_keys = OFF;
-  
     DELETE FROM
       ${SQL.PlaylistItem}
     WHERE
@@ -747,14 +745,15 @@ export async function deleteTracksInverted(
         WHERE
           ${SQL["Track.filepath"]} IN (
             ${pathsString}
-        );
-
-    PRAGMA foreign_keys = On;
+        )
   )`)
+
+  const pragmaOff = prisma.$executeRaw`PRAGMA foreign_keys = OFF`
+  const pragmaOn = prisma.$executeRaw`PRAGMA foreign_keys = On`
 
   return (
     prisma
-      .$transaction([playlistItemsQuery, tracksQuery])
+      .$transaction([pragmaOff, playlistItemsQuery, tracksQuery, pragmaOn])
       // Only get the amount of deleted tracks, not deleted items
       .then(([deletedPlaylistItemsAmount, deletedTracksAmount]) =>
         E.right([deletedPlaylistItemsAmount, deletedTracksAmount])

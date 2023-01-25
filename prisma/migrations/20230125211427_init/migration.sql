@@ -133,7 +133,7 @@ CREATE TABLE "Track" (
     "type" TEXT NOT NULL DEFAULT 'track',
     CONSTRAINT "Track_artist_fkey" FOREIGN KEY ("artist") REFERENCES "Artist" ("name") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "Track_albumartist_fkey" FOREIGN KEY ("albumartist") REFERENCES "Artist" ("name") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "Track_albumID_album_fkey" FOREIGN KEY ("albumID", "album") REFERENCES "Album" ("id", "name") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Track_albumID_album_fkey" FOREIGN KEY ("albumID", "album") REFERENCES "Album" ("id", "name") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "Track_cover_fkey" FOREIGN KEY ("cover") REFERENCES "Cover" ("filepath") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
@@ -144,7 +144,7 @@ CREATE TABLE "Album" (
     "artist" TEXT NOT NULL,
     "cover" TEXT,
     "type" TEXT NOT NULL DEFAULT 'album',
-    CONSTRAINT "Album_artist_fkey" FOREIGN KEY ("artist") REFERENCES "Artist" ("name") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Album_artist_fkey" FOREIGN KEY ("artist") REFERENCES "Artist" ("name") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "Album_cover_fkey" FOREIGN KEY ("cover") REFERENCES "Cover" ("filepath") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
@@ -178,7 +178,7 @@ CREATE TABLE "PlaylistItem" (
     "trackID" INTEGER NOT NULL,
     "playlistID" INTEGER NOT NULL,
     "type" TEXT NOT NULL DEFAULT 'playlistItem',
-    CONSTRAINT "PlaylistItem_trackID_fkey" FOREIGN KEY ("trackID") REFERENCES "Track" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "PlaylistItem_trackID_fkey" FOREIGN KEY ("trackID") REFERENCES "Track" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "PlaylistItem_playlistID_fkey" FOREIGN KEY ("playlistID") REFERENCES "Playlist" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 

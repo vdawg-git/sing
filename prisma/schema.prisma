@@ -215,7 +215,7 @@ model Playlist {
 /// A playlist contains tracks, but it can contain multiple of the same and needs to know their position inside the playlist. Thus we have another type for the playlist items.
 model PlaylistItem {
   id    Int   @id @default(autoincrement())
-  track Track @relation(fields: [trackID], references: [id])
+  track Track @relation(fields: [trackID], references: [id], onDelete: Cascade, onUpdate: Cascade)
   index Int
 
   playlist Playlist @relation(fields: [playlistID], references: [id], onDelete: Cascade)
