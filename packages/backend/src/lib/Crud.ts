@@ -763,10 +763,8 @@ export async function deleteTracksInverted(
   )
 }
 
-export async function deleteEmptyAlbums(): Promise<Either<IError, number>> {
+export async function deleteEmptyAlbums(): Promise<Either<IError, unknown>> {
   const query = `
-    PRAGMA foreign_keys = OFF;
-
     DELETE
     FROM
       ${SQL.Album}
@@ -778,23 +776,25 @@ export async function deleteEmptyAlbums(): Promise<Either<IError, number>> {
           ${SQL.Album}
           LEFT JOIN ${SQL.Track} ON ${SQL["Album.id"]} = ${SQL["Track.albumID"]}
         WHERE
-          ${SQL["Track.title"]} IS NULL;
-          
-    PRAGMA foreign_keys = ON;
+          ${SQL["Track.title"]} IS NULL
       )`
 
+  const queries = [
+    prisma.$executeRaw`PRAGMA foreign_keys = OFF`,
+    prisma.$executeRawUnsafe(query),
+    prisma.$executeRaw`PRAGMA foreign_keys = ON`,
+  ]
+
   const result = await prisma
-    .$executeRawUnsafe(query)
-    .then((deleteAmount) => E.right(deleteAmount))
+    .$transaction(queries)
+    .then(E.right)
     .catch(createError("Failed to remove unused albums from the database"))
 
   return result
 }
 
-export async function deleteEmptyArtists(): Promise<Either<IError, number>> {
+export async function deleteEmptyArtists(): Promise<Either<IError, unknown>> {
   const query = `
-    PRAGMA foreign_keys = OFF;
-  
     DELETE FROM
       ${SQL.Artist}
     WHERE
@@ -807,14 +807,17 @@ export async function deleteEmptyArtists(): Promise<Either<IError, number>> {
           OR ${SQL["Artist.name"]} = ${SQL["Track.albumartist"]}
         WHERE
           ${SQL["Track.title"]} IS NULL
-
-
-    PRAGMA foreign_keys = ON;      
       )`
 
+  const queries = [
+    prisma.$executeRaw`PRAGMA foreign_keys = OFF`,
+    prisma.$executeRawUnsafe(query),
+    prisma.$executeRaw`PRAGMA foreign_keys = ON`,
+  ]
+
   const result = await prisma
-    .$executeRawUnsafe(query)
-    .then((deleteAmount) => E.right(deleteAmount))
+    .$transaction(queries)
+    .then(E.right)
     .catch(createError("Failed to remove unused artists from the database"))
 
   return result

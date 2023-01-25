@@ -180,7 +180,7 @@ describe("when removing one folder", async () => {
     expect(newCurrentTrack).not.toBe(oldCurrentTrack)
   })
 
-  it.only("should correctly add tracks with an unknown artist and album", async () => {
+  it("should correctly add tracks with an unknown artist and album", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     const tracksPage = await settingsPage.goTo.tracks()
 
@@ -193,7 +193,9 @@ describe("when removing one folder", async () => {
       .getTracks()
       .then((tracks) => tracks.map((track) => track.title))
 
-    expect(allTitles).includes(expectedTitles)
+    for (const title of expectedTitles) {
+      expect(allTitles).to.be.an("array").that.includes(title)
+    }
   })
 })
 
