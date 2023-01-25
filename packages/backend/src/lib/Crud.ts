@@ -823,11 +823,9 @@ export async function deleteEmptyArtists(): Promise<Either<IError, unknown>> {
 }
 
 export async function deleteUnusedCoversInDatabase(): Promise<
-  Either<IError, number>
+  Either<IError, unknown>
 > {
-  const query = `
-    PRAGMA foreign_keys = OFF;
-  
+  const query = prisma.$executeRawUnsafe(`
     DELETE FROM
       ${SQL.Cover}
     WHERE
@@ -846,13 +844,14 @@ export async function deleteUnusedCoversInDatabase(): Promise<
         FROM
          _CoverToPlaylist
       )
+  )`)
 
-    PRAGMA foreign_keys = ON;
-  )`
+  const pragmaOff = prisma.$executeRaw`PRAGMA foreign_keys = OFF`
+  const pragmaON = prisma.$executeRaw`PRAGMA foreign_keys = ON`
 
   return prisma
-    .$executeRawUnsafe(query)
-    .then((deleteAmount) => E.right(deleteAmount))
+    .$transaction([pragmaOff, query, pragmaON])
+    .then(E.right)
     .catch(createError("Failed to remove unused covers from the database"))
 }
 
