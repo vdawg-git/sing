@@ -1,5 +1,5 @@
 import * as E from "fp-ts/lib/Either"
-import { expect, test } from "vitest"
+import { describe, expect, test } from "vitest"
 
 import {
   filterPathsByExtenstions,
@@ -13,10 +13,14 @@ import {
   getRightOrThrow,
   moveIndexToIndex,
   secondsToDuration,
+  sortTracks,
 } from "./Pures"
 
+import type { StrictOmit } from "ts-essentials"
+import type { ITrack } from "../../types/DatabaseTypes"
 import type { FilePath } from "../../types/Filesystem"
 import type { Either } from "fp-ts/lib/Either"
+import type { ITrackID } from "../../types/Opaque"
 
 test("filterPathsByExtenstions happy", () => {
   const given = ["a.mp3", "b.alac", "c.txt", "d.flac"] as FilePath[]
@@ -245,9 +249,57 @@ test("moveIndexToIndex sad", () => {
   )
 })
 
-test("secondsToDuration", async () => {
+test("secondsToDuration", () => {
   const seconds = 124.007_865_767_96
   const desiredResult = "2:04"
 
   expect(secondsToDuration(seconds)).toEqual(desiredResult)
+})
+
+describe("sortTracks", () => {
+  test("happy", () => {
+    const given: readonly StrictOmit<ITrack, "albumID" | "type">[] =
+      // prettier-ignore
+      [
+      { id: 2 as ITrackID, filepath: "02" as FilePath, title: "02",  artist: "9",  album: "9"},
+      { id: 3 as ITrackID, filepath: "03" as FilePath, title: "03",  artist: "9",  album: "9"},
+      { id: 1 as ITrackID, filepath: "01" as FilePath, title: "01", artist: "9",  album: "9"},
+    ]
+
+    const expected: readonly { filepath: string; title: string | undefined }[] =
+      [
+        { filepath: "01", title: "01" },
+        { filepath: "02", title: "02" },
+        { filepath: "03", title: "03" },
+      ]
+
+    const given2 = sortTracks(["title", "ascending"])(given).map(
+      ({ filepath, title }) => ({ filepath, title })
+    )
+
+    expect(given2).toEqual(expected)
+  })
+
+  test("undefined title", () => {
+    const given: readonly StrictOmit<ITrack, "albumID" | "type">[] =
+      // prettier-ignore
+      [
+      { id: 2 as ITrackID, filepath: "02" as FilePath,  artist: "9",  album: "9"},
+      { id: 3 as ITrackID, filepath: "03" as FilePath, title: "03",  artist: "9",  album: "9"},
+      { id: 1 as ITrackID, filepath: "01" as FilePath,  artist: "9",  album: "9"},
+    ]
+
+    const expected: readonly { filepath: string; title: string | undefined }[] =
+      [
+        { filepath: "01", title: undefined },
+        { filepath: "02", title: undefined },
+        { filepath: "03", title: "03" },
+      ]
+
+    const given2 = sortTracks(["title", "ascending"])(given).map(
+      ({ filepath, title }) => ({ filepath, title })
+    )
+
+    expect(given2).toEqual(expected)
+  })
 })

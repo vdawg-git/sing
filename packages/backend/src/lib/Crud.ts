@@ -683,8 +683,8 @@ export async function getTracks(
 
   return prisma.track
     .findMany(prismaOptions)
-    .then((tracks) => sortTracks(usedSort)(tracks))
     .then(RA.map(removeNulledKeys))
+    .then((tracks) => sortTracks(usedSort)(tracks))
     .then((tracks) => E.right(tracks as readonly ITrack[]))
     .catch(createError("Failed to get tracks from database"))
 }

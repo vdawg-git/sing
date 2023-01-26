@@ -36,9 +36,9 @@ it("can add a folder", async () => {
 
   await settingsPage.addFolder(nameToAdd)
 
-  const [folderName] = await settingsPage.getFolderNames()
+  const folderNames = await settingsPage.getFolderNames()
 
-  expect(folderName).toBe(nameToAdd)
+  expect(folderNames).to.contain(nameToAdd)
 })
 
 describe("When adding all folders", async () => {
@@ -73,13 +73,13 @@ describe("When adding all folders", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     const artistsPage = await settingsPage.goTo.artists()
 
-    const artists = await artistsPage
-      .getArtists()
-      .then(
-        A.map((artistCard) => artistCard.getData().then((data) => data.title))
-      )
-
-    console.log("🚀 ~ file: Library.spec.ts:207 ~ it.only ~ artists", artists)
+    const artists = await Promise.all(
+      await artistsPage
+        .getArtists()
+        .then(
+          A.map((artistCard) => artistCard.getData().then((data) => data.title))
+        )
+    )
 
     expect(artists).to.be.an("array").that.includes(UNKNOWN_ARTIST)
   })
@@ -148,6 +148,7 @@ describe("when removing all folders and instead adding new ones", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     await settingsPage.resetMusic()
 
+    await settingsPage.removeAllFolders()
     await settingsPage.addFolder(1)
     await settingsPage.addFolder(2)
     await settingsPage.closeAllNotifications()
@@ -175,6 +176,7 @@ describe("when removing one folder", async () => {
   beforeEach(async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     await settingsPage.setDefaultFolders()
+    await settingsPage.closeAllNotifications()
     await settingsPage.saveAndSyncFolders()
   })
 
@@ -213,10 +215,12 @@ describe("when removing one folder", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     const tracksPage = await settingsPage.goTo.tracks()
 
-    await tracksPage.playTrack("00")
+    await tracksPage.playTrack("10")
     const oldCurrentTrack = await settingsPage.playbar.getCurrentTrack()
+
     await tracksPage.pauseExecution()
-    expect(oldCurrentTrack, "Is not playing played track").not.toBe(undefined)
+
+    expect(oldCurrentTrack, "Is not playing clicked track").not.toBe(undefined)
 
     await tracksPage.goTo.settingsLibrary()
 

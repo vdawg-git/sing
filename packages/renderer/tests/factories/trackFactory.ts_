@@ -1,18 +1,47 @@
 import { Factory } from "fishery"
 
-import type { ITrack } from "@sing-types/DatabaseTypes"
+import { UNKNOWN_ALBUM, UNKNOWN_ARTIST } from "../../../shared/Consts"
 
-export const trackFactory = Factory.define<ITrack>(({ sequence }) => {
-  // eslint-disable-next-line no-param-reassign
-  sequence -= 1
+import type { ITrack } from "../../../../types/DatabaseTypes"
+import type { ITrackID } from "../../../../types/Opaque"
+import type { FilePath } from "../../../../types/Filesystem"
 
-  return {
-    id: sequence,
-    title: `Title ${sequence}`,
-    artist: `Artist ${sequence}`,
-    album: `Album ${sequence}`,
-    filepath: `C:/Users/Music/file-${sequence}.mp3`,
-    coverPath: `C:/Users/Music/cover-${sequence}.jpg`,
-    duration: 12 + 1 / sequence,
+class TrackFactory extends Factory<ITrack> {
+  artist(artist: string | undefined) {
+    return this.transient({ artist: artist ?? UNKNOWN_ARTIST })
   }
-})
+
+  album(album: string | undefined) {
+    return this.transient({ album: album ?? UNKNOWN_ALBUM })
+  }
+
+  title(title: string | false) {
+    return this.transient({ title })
+  }
+
+  forcedSequence(int: number) {
+    return this.transient({ forcedSequence: int })
+  }
+}
+
+export const trackFactory = TrackFactory.define(
+  ({ sequence, transientParams }) => {
+    // eslint-disable-next-line no-param-reassign
+    sequence -= 1
+
+    return {
+      id: sequence as ITrackID,
+      title:
+        transientParams.title === false
+          ? undefined
+          : transientParams.title ?? `Title ${sequence}`,
+      artist: transientParams.artist ?? `Artist ${sequence}`,
+      album: transientParams.album ?? `Album ${sequence}`,
+      filepath: `C:/Users/Music/file-${sequence}.mp3` as FilePath,
+      coverPath: `C:/Users/Music/cover-${sequence}.jpg`,
+      duration: 12 + 1 / sequence,
+      albumID: 1,
+      type: "track",
+    }
+  }
+)

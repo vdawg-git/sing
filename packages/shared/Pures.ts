@@ -53,9 +53,12 @@ export function filterPathsByExtenstions(
 export function convertFilepathToFilename(filepath: FilePath): string {
   const filename = filepath.split("/").at(-1) as string
 
-  const dotLocation = filename?.lastIndexOf(".")
+  const dotLocation = filename.lastIndexOf(".")
 
-  const filenameWithoutExtension = filename?.slice(0, Math.max(0, dotLocation))
+  const filenameWithoutExtension = filename?.slice(
+    0,
+    Math.max(0, dotLocation === -1 ? Number.POSITIVE_INFINITY : dotLocation)
+  )
 
   return filenameWithoutExtension
 }
@@ -348,32 +351,43 @@ export function sortTracks([sortBy, sortOrder]:
       return shuffleArray(tracks)
     }
 
-    const sorted = [...tracks].sort((a, b) => {
-      // If the value at the specified key is undefined, then sort by the title or if this one is undefined, too, sort by the filename
-      if (b[sortBy] === undefined || b[sortBy] === null) return -1
-      if (a[sortBy] === undefined || a[sortBy] === null) return 1
+    const sorted = [...tracks].sort((trackA, trackB) => {
+      const a = getSortValue(trackA)
+      const b = getSortValue(trackB)
 
-      if (typeof a[sortBy] === "number" && typeof b[sortBy] === "number") {
-        return (a[sortBy] as number) - (b[sortBy] as number)
+      // If the value at the specified key is undefined, then sort by the title or if this one is undefined, too, sort by the filename
+      if (b === undefined || b === null) return -1
+      if (a === undefined || a === null) return 1
+
+      if (typeof a === "number" && typeof b === "number") {
+        return (a as number) - (b as number)
       }
 
-      if (typeof a[sortBy] === "string" && typeof b[sortBy] === "string") {
-        return sortString(a[sortBy] as string, b[sortBy] as string)
+      if (typeof a === "string" && typeof b === "string") {
+        return sortString(a as string, b as string)
       }
 
       throw new Error(`Invalid sort of a track. \n
         sortBy: ${sortBy}\n
         Values at:\n
-        \ta: ${a[sortBy]} \n
-        \tb: ${b[sortBy]} \n
+        \ta: ${a} \n
+        \tb: ${b} \n
         
-        Track a: ${a.filepath}\n
-        Track b: ${b.filepath}
+        Track a: ${trackA.filepath}\n
+        Track b: ${trackB.filepath}
         `)
     })
 
     // The sort was done in ascending order, reverse the array if it should be descending
     return sortOrder === "ascending" ? sorted : sorted.reverse()
+
+    // eslint-disable-next-line unicorn/consistent-function-scoping
+    function getSortValue(track: Record<string, unknown>) {
+      return sortBy === ("title" as ISortOptions["tracks"][0]) &&
+        track[sortBy] === undefined
+        ? convertFilepathToFilename((track as ITrack).filepath as FilePath)
+        : track[sortBy]
+    }
   }
 }
 

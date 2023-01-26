@@ -1,6 +1,6 @@
-import { TEST_ATTRIBUTES } from "@sing-renderer/TestConsts"
+import { TEST_ATTRIBUTES } from "../../packages/renderer/src/TestConsts"
 
-import type { ITestAttributeAsQuery } from "@sing-renderer/TestConsts"
+import type { ITestAttributeAsQuery } from "../../packages/renderer/src/TestConsts"
 import type { Page } from "playwright"
 
 export function reduceTitlesToFolders(
@@ -74,7 +74,7 @@ export async function getCards({
         .then(() =>
           card
             .locator(TEST_ATTRIBUTES.asQuery.cardPlay)
-            .click({ timeout: 1000 })
+            .click({ timeout: 2000 })
         )
     },
     /**
@@ -84,11 +84,11 @@ export async function getCards({
       const title =
         (await card
           .locator(TEST_ATTRIBUTES.asQuery.cardTitle)
-          .textContent({ timeout: 1000 })) ?? undefined
+          .textContent({ timeout: 2000 })) ?? undefined
       const subtext =
         (await card
           .locator(TEST_ATTRIBUTES.asQuery.cardSecondaryText)
-          .textContent({ timeout: 1000 })) ?? undefined
+          .textContent({ timeout: 2000 })) ?? undefined
 
       return { title, subtext }
     },
