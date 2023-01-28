@@ -13,7 +13,7 @@ import type { ChildProcess } from "node:child_process"
 
 const actions = [
   ["a", "restart Electron"],
-  ["o", "clear console - only works when not run concurrently"],
+  ["z", "clear console"],
 ]
 
 let electronApp: ChildProcess
@@ -55,7 +55,7 @@ async function handleKeypress(ch: string, key: KeyStroke) {
   match(key)
     .with({ name: "c", shift: false, ctrl: true }, () => process.exit(0))
     .with({ name: "a" }, restartElectron)
-    .with({ name: "o" }, console.clear)
+    .with({ name: "z" }, console.clear)
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     .otherwise(() => {})
 }
@@ -95,7 +95,7 @@ function displayMessage() {
   console.log(`\n\n${c.green("Press")}\n${actionsString}\n`)
   console.log(
     `${c.dim(
-      "When run concurrently via 'npm start' buttons need to be pressed twice"
+      "When run concurrently via 'npm start' buttons sometimes need to be pressed twice"
     )}\n`
   )
 }
