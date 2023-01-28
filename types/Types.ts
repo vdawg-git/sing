@@ -224,7 +224,8 @@ export type IPlayback = validatePlayback<
     }
 >
 
-export type INewPlayback = SetOptional<IPlayback, "isShuffleOn">
+export type INewPlayback = SetOptional<IPlayback, "isShuffleOn"> &
+  Readonly<{ firstTrack?: ITrack; index: number }>
 
 // const _: INewPlayback = "" as unknown as INewPlayback
 

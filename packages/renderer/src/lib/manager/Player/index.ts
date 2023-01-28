@@ -360,46 +360,6 @@ export function removeIndexFromQueue(index: number): void {
   }
 }
 
-/**
- * Play a track and set the queue to "all tracks" shuffled.
- * @param trackToPlay The track to be played.
- */
-export async function playTrackAsShuffledTracks(trackToPlay: ITrack) {
-  // Immediately start playing the provided track without waiting for the rest of the tracks from the source
-  queueStore.set({ index: 0, autoQueue: [convertToQueueItem(trackToPlay, 0)] })
-
-  startPlayingCurrentTrack()
-
-  // Now fill the queue
-  pipe(
-    await getTracksFromSource({
-      source: "allTracks",
-      sortBy: ["title", "ascending"],
-      isShuffleOn: true,
-    }),
-    E.foldW(
-      notifiyError("Could not get tracks from the database"),
-
-      (tracks) => {
-        const tracksToAdd = [
-          trackToPlay,
-          ...tracks.filter((track) => track.id !== trackToPlay.id),
-        ]
-
-        setNewPlayback({
-          index: 0,
-          tracks: tracksToAdd,
-          playback: {
-            source: "allTracks",
-            sortBy: ["title", "ascending"],
-            isShuffleOn: true,
-          },
-        })
-      }
-    )
-  )
-}
-
 export function toggleMute() {
   if ($volume === 0) {
     if (volumeBeforeMute) {
@@ -417,22 +377,27 @@ export function toggleMute() {
 /**
  * Starts playback and initializes a new queue
  */
-export async function playNewSource(newPlayback: INewPlayback, index = 0) {
+export async function playNewSource({
+  firstTrack,
+  index,
+  ...data
+}: INewPlayback) {
   queueStore.setIsPlayingFromManualQueue(false)
 
+  const newShuffleState = data.isShuffleOn ?? $isShuffleOn
+
   // If the source stayed the same just go to the specified index of the queue.
-  if (dequal($playback, newPlayback)) {
+  if (newShuffleState === false && dequal($playback, data)) {
     playFromAutoQueue(index)
     return
   }
-
-  const newPlaybackToSet = {
-    ...newPlayback,
-    isShuffleOn: newPlayback.isShuffleOn ?? $isShuffleOn,
+  const newPlaybackState = {
+    ...data,
+    isShuffleOn: newShuffleState,
   }
 
   pipe(
-    await getTracksFromSource(newPlaybackToSet),
+    await getTracksFromSource(newPlaybackState),
 
     E.foldW(
       notifiyError("Error while trying to play selected music"),
@@ -444,10 +409,26 @@ export async function playNewSource(newPlayback: INewPlayback, index = 0) {
           return
         }
 
+        console.log(
+          "🚀 ~ file: index.ts:427 ~ data.isShuffleOn && firstTrack",
+          {
+            isShuffleOn: newShuffleState,
+            firstTrack: firstTrack?.title ?? firstTrack?.filepath,
+          }
+        )
+
+        const tracksToAdd =
+          newShuffleState && firstTrack
+            ? [
+                firstTrack,
+                ...tracks.filter((track) => track.id !== firstTrack.id),
+              ]
+            : tracks
+
         setNewPlayback({
-          tracks,
-          index,
-          playback: newPlaybackToSet,
+          tracks: tracksToAdd,
+          index: newShuffleState ? 0 : index,
+          playback: newPlaybackState,
         })
 
         startPlayingCurrentTrack()

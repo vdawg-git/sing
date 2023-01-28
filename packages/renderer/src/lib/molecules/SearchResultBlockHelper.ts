@@ -5,7 +5,7 @@ import IconPlay from "virtual:icons/heroicons/play"
 import { convertFilepathToFilename } from "@sing-shared/Pures"
 
 import { createAlbumURI, createArtistURI } from "@/Routes"
-import { playTrackAsShuffledTracks } from "@/lib/manager/player"
+import { playNewSource } from "@/lib/manager/player"
 import {
   convertAlbumToPlaylistCreateArgument,
   convertArtistToPlaylistCreateArgument,
@@ -76,7 +76,14 @@ function convertTrackToSearchItem(
     label,
     itemForContextMenu: convertTrackToPlaylistCreateArgument(track),
     icon: IconPlay,
-    onClick: async () => playTrackAsShuffledTracks(track),
+    onClick: async () =>
+      playNewSource({
+        sortBy: ["title", "ascending"],
+        isShuffleOn: true,
+        source: "allTracks",
+        firstTrack: track,
+        index: 0,
+      }),
   }
 }
 

@@ -34,8 +34,10 @@
 
   // TODO how to do the sorting for playlists?
 
+  type TrackAndIndex = { track: ITrack; index: number }
+
   const dispatch = createEventDispatcher<{
-    play: { index: number }
+    play: { index: number; track: ITrack }
   }>()
 
   const usedDisplayOptions: ITrackListDisplayOptions = {
@@ -48,8 +50,8 @@
   let listHeight: number // Gets set by the virtual list within it, buit Typescript does not know it
   // let index: number // Gets set by the virtual list within it, buit Typescript does not know it
 
-  function dispatchPlay(index: number) {
-    dispatch("play", { index })
+  function dispatchPlay({ track, index }: TrackAndIndex) {
+    dispatch("play", { index, track })
   }
 </script>
 
@@ -84,7 +86,7 @@
         {track}
         displayOptions={usedDisplayOptions}
         {createContextMenuItems}
-        on:dblclick={() => dispatchPlay(index)}
+        on:dblclick={() => dispatchPlay({ index, track })}
       />
     {/each}
   </div>

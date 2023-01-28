@@ -114,6 +114,7 @@
           sourceID: Number(playlistID),
           sortBy: defaultSort,
           isShuffleOn: false,
+          index: 0,
         }),
       primary: true,
     },
@@ -126,6 +127,7 @@
           sourceID: Number(playlistID),
           sortBy: defaultSort,
           isShuffleOn: true,
+          index: 0,
         }),
       primary: false,
     },
@@ -180,6 +182,7 @@
     description={playlist.description}
     handleClickTitle={toggleModal}
     handleClickDescription={toggleModal}
+    titleTestID="yourPlaylistsTitle"
     ><CoverPicker
       slot="cover"
       image={covers}
@@ -195,15 +198,13 @@
       testID="trackItems"
       {tracks}
       on:play={({ detail }) =>
-        playNewSource(
-          {
-            source: "playlist",
-            sourceID: Number(playlistID),
-            sortBy: defaultSort,
-            isShuffleOn: false,
-          },
-          detail.index
-        )}
+        playNewSource({
+          source: "playlist",
+          sourceID: Number(playlistID),
+          sortBy: defaultSort,
+          index: detail.index,
+          firstTrack: detail.track,
+        })}
       sort={defaultSort}
       {createContextMenuItems}
     />

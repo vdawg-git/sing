@@ -22,7 +22,7 @@
 
   import type { IHeroAction, IHeroMetaDataItem } from "@/types/Types"
   import type { IArtistWithAlbumsAndTracks } from "@sing-types/DatabaseTypes"
-  import type { IError, INewPlayback, ISortOptions } from "@sing-types/Types"
+  import type { IError, ISortOptions } from "@sing-types/Types"
   import type { Either } from "fp-ts/lib/Either"
 
   export let artistID: string
@@ -31,6 +31,8 @@
 
   const navigate = useNavigate()
   const parameters = useParams<{ artistID: string }>()
+
+  const baseSource = { source: "artist" as const, sourceID: artistID }
 
   let artist: IArtistWithAlbumsAndTracks | undefined
 
@@ -55,12 +57,6 @@
   )
 
   const sortBy: ISortOptions["tracks"] = ["album", "ascending"]
-  const source: INewPlayback = {
-    source: "artist" as const,
-    sourceID: artistID,
-    sortBy,
-    isShuffleOn: false,
-  }
 
   let actions: IHeroAction[]
   $: actions = hasTracks
@@ -70,8 +66,10 @@
           icon: IconPlay,
           callback: async () =>
             playNewSource({
-              ...source,
+              ...baseSource,
+              sortBy: ["album", "ascending"],
               isShuffleOn: false,
+              index: 0,
             }),
           primary: true,
         },
@@ -80,8 +78,10 @@
           icon: IconShuffle,
           callback: async () =>
             playNewSource({
-              ...source,
+              ...baseSource,
+              sortBy: ["album", "ascending"],
               isShuffleOn: true,
+              index: 0,
             }),
           primary: false,
         },
@@ -131,7 +131,13 @@
         $playlistsStore
       )}
       testID={TEST_IDS.trackItems}
-      on:play={async ({ detail }) => playNewSource(source, detail.index)}
+      on:play={async ({ detail }) =>
+        playNewSource({
+          ...baseSource,
+          sortBy,
+          index: detail.index,
+          firstTrack: detail.track,
+        })}
     />
     <h2 class="mb-8 -mt-16 text-4xl">Albums</h2>
   {/if}
@@ -142,6 +148,7 @@
         convertAlbumToCardData({ navigate, $playlistsStore })
       )}
       testID="artistCards"
+      cardTestAttributes="artistCard"
     />
   {/if}
 {/if}

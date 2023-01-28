@@ -218,8 +218,6 @@ describe("when removing one folder", async () => {
     await tracksPage.playTrack("10")
     const oldCurrentTrack = await settingsPage.playbar.getCurrentTrack()
 
-    await tracksPage.pauseExecution()
-
     expect(oldCurrentTrack, "Is not playing clicked track").not.toBe(undefined)
 
     await tracksPage.goTo.settingsLibrary()

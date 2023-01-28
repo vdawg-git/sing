@@ -347,6 +347,9 @@ export async function createBasePage(electron: ElectronApplication) {
   }
 
   async function getMediaSessionData() {
+    // Nessecary as the state needs to be updated
+    await page.waitForTimeout(5)
+
     const metadata = await page.evaluate(() => {
       console.log(navigator.mediaSession.metadata)
 

@@ -79,6 +79,7 @@
           sourceID: Number(albumID),
           sortBy: defaultSort,
           isShuffleOn: false,
+          index: 0,
         }),
       primary: true,
     },
@@ -91,6 +92,7 @@
           sourceID: Number(albumID),
           sortBy: defaultSort,
           isShuffleOn: true,
+          index: 0,
         }),
       primary: false,
     },
@@ -135,15 +137,13 @@
     {tracks}
     {displayOptions}
     on:play={({ detail }) =>
-      playNewSource(
-        {
-          source: "album",
-          sourceID: Number(albumID),
-          sortBy: defaultSort,
-          isShuffleOn: false,
-        },
-        detail.index
-      )}
+      playNewSource({
+        source: "album",
+        sourceID: Number(albumID),
+        sortBy: defaultSort,
+        index: detail.index,
+        firstTrack: detail.track,
+      })}
     sort={defaultSort}
     {createContextMenuItems}
   />
