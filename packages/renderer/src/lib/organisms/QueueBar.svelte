@@ -13,7 +13,7 @@
     playFromAutoQueue,
     removeIndexFromQueue,
     manualQueue,
-    removeIndexFromManualQueue,
+    removeIDFromManualQueue,
     togglePause,
     playFromManualQueue,
   } from "@/lib/manager/player"
@@ -145,7 +145,7 @@
               <QueueItem
                 {track}
                 {createContextMenuItems}
-                on:remove={async () => removeIndexFromManualQueue(index)}
+                on:remove={async () => removeIDFromManualQueue(queueID)}
                 on:play={() => playFromManualQueue(index)}
                 testattributes={[
                   TEST_ATTRIBUTES.queueNextTracks,

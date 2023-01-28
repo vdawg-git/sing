@@ -39,7 +39,7 @@ export const queueStore = {
     removeFirst: removeFirstFromManualQueue,
     addToStart: addTracksToBeginningManualQueue,
     addToEnd: addTracksToEndManualQueue,
-    remove: removeIndexManualQueue,
+    remove: removeIDManualQueue,
   },
   setIsPlayingFromManualQueue,
   intersect,
@@ -195,21 +195,20 @@ function setManualQueue(tracks: readonly ITrack[]) {
 }
 
 function removeFirstFromManualQueue() {
-  removeIndexManualQueue(0)
+  update(($store) => {
+    $store.manualQueue.shift()
+  })
 }
 
 /**
  * Remove a track from the queue based on its index / position within the queue.
  * @param index The index to remove from the queue array. The first track is at 0.
  */
-function removeIndexManualQueue(indexes: number | readonly number[]): void {
+function removeIDManualQueue(id: symbol): void {
   update(($store) => {
-    const newQueue = removeFromArray(indexes)($store.manualQueue)
-
-    if (newQueue === undefined)
-      throw new Error("Provided index is out of bounds")
-
-    $store.manualQueue = newQueue
+    $store.manualQueue = $store.manualQueue.filter(
+      (item) => item.queueID !== id
+    )
   })
 }
 

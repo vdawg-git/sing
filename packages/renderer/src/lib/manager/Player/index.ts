@@ -1,6 +1,6 @@
 import { dequal } from "dequal"
 import * as E from "fp-ts/lib/Either"
-import { derived, get, writable, type Readable } from "svelte/store"
+import { derived, writable, type Readable } from "svelte/store"
 import { match } from "ts-pattern"
 import { pipe } from "fp-ts/lib/function"
 
@@ -28,7 +28,7 @@ import type { IAlbum, IArtist, ITrack } from "@sing-types/DatabaseTypes"
 import type { INewPlayback, IPlayback, ISyncResult } from "@sing-types/Types"
 import type { IpcRendererEvent } from "electron"
 
-export const removeIndexFromManualQueue = queueStore.manualQueue.remove
+export const removeIDFromManualQueue = queueStore.manualQueue.remove
 export const addTracksToManualQueueEnd = queueStore.manualQueue.addToEnd
 export const addTracksToManualQueueBeginning = queueStore.manualQueue.addToStart
 
