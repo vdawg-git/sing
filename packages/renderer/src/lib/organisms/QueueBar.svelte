@@ -15,6 +15,7 @@
     manualQueue,
     removeIndexFromManualQueue,
     togglePause,
+    playFromManualQueue,
   } from "@/lib/manager/player"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
@@ -140,11 +141,12 @@
             Queue
           </div>
           <div class="flex flex-col gap-4">
-            {#each $manualQueue as track, index}
+            {#each $manualQueue as { track, index, queueID } (queueID)}
               <QueueItem
                 {track}
                 {createContextMenuItems}
                 on:remove={async () => removeIndexFromManualQueue(index)}
+                on:play={() => playFromManualQueue(index)}
                 testattributes={[
                   TEST_ATTRIBUTES.queueNextTracks,
                   TEST_ATTRIBUTES.queueItem,

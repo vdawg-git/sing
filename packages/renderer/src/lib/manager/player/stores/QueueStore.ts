@@ -59,7 +59,7 @@ function set(data: RequireAtLeastOne<IQueueStore>) {
       $store.autoQueue = data.autoQueue as IQueueItem[]
     }
     if (data.manualQueue !== undefined) {
-      $store.manualQueue = data.manualQueue as ITrack[]
+      $store.manualQueue = data.manualQueue as IQueueItem[]
     }
     if (data.index !== undefined) {
       $store.index = data.index
@@ -67,15 +67,13 @@ function set(data: RequireAtLeastOne<IQueueStore>) {
   })
 }
 
-function setAutoQueue(queue: readonly IQueueItem[]) {
+function setAutoQueue(queue: readonly ITrack[]) {
   update((draft) => {
-    draft.autoQueue = queue as IQueueItem[]
+    draft.autoQueue = queue.map(convertToQueueItem)
   })
 }
 
-function updateAutoQueue(
-  producer: (queue: Draft<IQueueStore["autoQueue"]>) => void
-) {
+function updateAutoQueue(producer: (queue: Draft<ITrack[]>) => void) {
   update((draft) => {
     draft.autoQueue = produce(draft.autoQueue, producer)
   })
@@ -122,7 +120,7 @@ function intersect(newTracks: readonly ITrack[]): void {
     })
 
     $store.autoQueue = newAutoQueue as IQueueItem[]
-    $store.manualQueue = newManualQueue as ITrack[]
+    $store.manualQueue = newManualQueue as IQueueItem[]
     $store.index = newIndex
   })
 }
@@ -160,7 +158,10 @@ function _intersectWithItems({
     .map(({ track }) => track)
     .filter(removeNotIntersectingTracks)
     .map(convertToQueueItem)
-  const newManualQueue = manualQueue.filter(removeNotIntersectingTracks)
+  const newManualQueue = manualQueue
+    .map((item) => item.track)
+    .filter(removeNotIntersectingTracks)
+    .map(convertToQueueItem)
 
   // If tracks before the current one are deleted, the index needs to be adjusted
   // so that it still points to the current track
@@ -189,7 +190,7 @@ function resetIndex() {
 
 function setManualQueue(tracks: readonly ITrack[]) {
   update(($store) => {
-    $store.manualQueue = tracks as ITrack[]
+    $store.manualQueue = tracks.map(convertToQueueItem)
   })
 }
 
@@ -214,7 +215,9 @@ function removeIndexManualQueue(indexes: number | readonly number[]): void {
 
 function addTracksToEndManualQueue(tracks: readonly ITrack[] | ITrack): void {
   update(($store) => {
-    $store.manualQueue.unshift(...(Array.isArray(tracks) ? tracks : [tracks]))
+    $store.manualQueue.unshift(
+      ...convertTracksForManualQueueAdding($store.manualQueue, tracks)
+    )
   })
 }
 
@@ -222,6 +225,22 @@ function addTracksToBeginningManualQueue(
   tracks: readonly ITrack[] | ITrack
 ): void {
   update(($store) => {
-    $store.manualQueue.push(...(Array.isArray(tracks) ? tracks : [tracks]))
+    $store.manualQueue.push(
+      ...convertTracksForManualQueueAdding($store.manualQueue, tracks)
+    )
   })
+}
+
+function convertTracksForManualQueueAdding(
+  currentQueue: readonly IQueueItem[],
+  tracks: readonly ITrack[] | ITrack
+): readonly IQueueItem[] {
+  const lastIndex = currentQueue.at(-1)?.index
+  const startingIndex = lastIndex === undefined ? 0 : lastIndex + 1
+
+  return Array.isArray(tracks)
+    ? tracks.map((track, index) =>
+        convertToQueueItem(track, index + startingIndex)
+      )
+    : [convertToQueueItem(tracks, startingIndex)]
 }

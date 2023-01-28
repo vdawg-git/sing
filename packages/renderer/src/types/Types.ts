@@ -14,7 +14,7 @@ export type IPlayLoop = "NONE" | "LOOP_QUEUE" | "LOOP_TRACK"
 
 export type IQueueStore = Readonly<{
   readonly autoQueue: readonly IQueueItem[]
-  readonly manualQueue: readonly ITrack[]
+  readonly manualQueue: readonly IQueueItem[]
   readonly index: number
   readonly isPlayingFromManualQueue: boolean
 }>

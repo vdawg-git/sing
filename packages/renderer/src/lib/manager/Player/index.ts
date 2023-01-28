@@ -1,6 +1,6 @@
 import { dequal } from "dequal"
 import * as E from "fp-ts/lib/Either"
-import { derived, writable, type Readable } from "svelte/store"
+import { derived, get, writable, type Readable } from "svelte/store"
 import { match } from "ts-pattern"
 import { pipe } from "fp-ts/lib/function"
 
@@ -53,7 +53,7 @@ await initialiseStores()
 export const currentTrack: Readable<ITrack | undefined> = derived(
   queueStore,
   ({ autoQueue, index, manualQueue, isPlayingFromManualQueue }) =>
-    isPlayingFromManualQueue ? manualQueue[0] : autoQueue.at(index)?.track
+    isPlayingFromManualQueue ? manualQueue[0].track : autoQueue.at(index)?.track
 )
 
 export const shuffleState = derived(
@@ -163,7 +163,7 @@ export function handleClickedNext() {
 
   // If there are tracks in the manualQueueStore
   if ($isPlayingFromManualQueue) {
-    const source = $manualQueue[0].filepath
+    const source = $manualQueue[0].track.filepath
     if ($playState === "playing") audioPlayer.play(source)
 
     return
@@ -340,8 +340,21 @@ export function pausePlayback() {
  * Play a track from the queue and update the index according to the track index in the queue.
  */
 export function playFromAutoQueue(index: number): void {
-  queueStore.setIsPlayingFromManualQueue(false)
-  queueStore.index.set(index)
+  queueStore.set({ isPlayingFromManualQueue: false, index })
+
+  startPlayingCurrentTrack()
+}
+
+/**
+ * Play a track from the manual queue and if there are any, delete the other manual items before the played track.
+ */
+export function playFromManualQueue(index: number): void {
+  queueStore.update(($state) => {
+    $state.isPlayingFromManualQueue = true
+    $state.manualQueue = $state.manualQueue.filter(
+      (item) => item.index >= index
+    )
+  })
 
   startPlayingCurrentTrack()
 }
@@ -557,7 +570,7 @@ async function initialiseStores() {
         if (newTracks.length === 0) return
 
         tracksStore.set(newTracks)
-        queueStore.autoQueue.set(newTracks.map(convertToQueueItem))
+        queueStore.autoQueue.set(newTracks)
       }
     )
   )
