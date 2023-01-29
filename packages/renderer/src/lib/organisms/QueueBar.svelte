@@ -2,6 +2,7 @@
   import { fly } from "svelte/transition"
   import { sineInOut } from "svelte/easing"
   import { onMount } from "svelte"
+  import { flip } from "svelte/animate"
 
   import { TEST_ATTRIBUTES, TEST_IDS } from "@/TestConsts"
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
@@ -48,6 +49,12 @@
   function handleRemoveFromAutoQueue(index: number) {
     removeIndexFromQueue(index)
   }
+
+  function flipDuration(distance: number) {
+    return Math.sqrt(distance) * 60
+  }
+
+  //! FIXME queuebar next up delete and play from is buggy
 </script>
 
 <div
@@ -97,21 +104,24 @@
           data-testid={TEST_IDS.queueBarPlayedTracks}
         >
           {#each $playedTracks as queueItemData, index (queueItemData.queueID)}
-            <QueueItem
-              track={queueItemData.track}
-              state="HAS_PLAYED"
-              testId={index === $playIndex - 1
-                ? TEST_IDS.queuePreviousTrack
-                : undefined}
-              testQueuePlayedIndex={index}
-              testattributes={[
-                TEST_ATTRIBUTES.queuePreviousTracks,
-                TEST_ATTRIBUTES.queueItem,
-              ]}
-              {createContextMenuItems}
-              on:play={() => playFromAutoQueue(queueItemData.index)}
-              on:remove={async () => removeIndexFromQueue(queueItemData.index)}
-            />
+            <div animate:flip={{ duration: flipDuration }}>
+              <QueueItem
+                track={queueItemData.track}
+                state="HAS_PLAYED"
+                testId={index === $playIndex - 1
+                  ? TEST_IDS.queuePreviousTrack
+                  : undefined}
+                testQueuePlayedIndex={index}
+                testattributes={[
+                  TEST_ATTRIBUTES.queuePreviousTracks,
+                  TEST_ATTRIBUTES.queueItem,
+                ]}
+                {createContextMenuItems}
+                on:play={() => playFromAutoQueue(queueItemData.index)}
+                on:remove={async () =>
+                  removeIndexFromQueue(queueItemData.index)}
+              />
+            </div>
           {/each}
         </div>
       {/if}
@@ -168,18 +178,21 @@
             data-testid={TEST_IDS.queueBarNextTracks}
           >
             {#each nextTracksDisplayed as queueItemData, index (queueItemData.queueID)}
-              <QueueItem
-                track={queueItemData.track}
-                testId={index === 0 ? "queueNextTrack" : undefined}
-                testQueueNextIndex={index}
-                testattributes={[
-                  TEST_ATTRIBUTES.queueNextTracks,
-                  TEST_ATTRIBUTES.queueItem,
-                ]}
-                {createContextMenuItems}
-                on:play={() => playFromAutoQueue(queueItemData.index)}
-                on:remove={() => handleRemoveFromAutoQueue(queueItemData.index)}
-              />
+              <div animate:flip={{ duration: flipDuration }}>
+                <QueueItem
+                  track={queueItemData.track}
+                  testId={index === 0 ? "queueNextTrack" : undefined}
+                  testQueueNextIndex={index}
+                  testattributes={[
+                    TEST_ATTRIBUTES.queueNextTracks,
+                    TEST_ATTRIBUTES.queueItem,
+                  ]}
+                  {createContextMenuItems}
+                  on:play={() => playFromAutoQueue(queueItemData.index)}
+                  on:remove={() =>
+                    handleRemoveFromAutoQueue(queueItemData.index)}
+                />
+              </div>
             {/each}
           </div>
         </div>
