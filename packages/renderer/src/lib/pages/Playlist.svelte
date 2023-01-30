@@ -195,7 +195,6 @@
 
   {#if tracks && tracks?.length > 0}
     <TrackList
-      testID="trackItems"
       {tracks}
       on:play={({ detail }) =>
         playNewSource({

@@ -42,7 +42,6 @@
   <NothingHereYet />
 {:else}
   <TrackList
-    testID="trackItems"
     tracks={$tracks}
     sort={defaultSort}
     on:play={({ detail }) =>

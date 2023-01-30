@@ -3,24 +3,17 @@ import { TEST_ATTRIBUTES } from "../../packages/renderer/src/TestConsts"
 import type { ITestAttributeAsQuery } from "../../packages/renderer/src/TestConsts"
 import type { Page } from "playwright"
 
-export function reduceTitlesToFolders(
-  titles: (string | undefined)[]
-): number[] {
-  // eslint-disable-next-line unicorn/no-array-reduce
-  const folders = titles.reduce((accumulator, title) => {
-    if (title === undefined) {
-      console.error("title is undefined")
-      return accumulator
-    }
+/**
+ * Return the folder name of the track title by taking its first letter
+ */
+export function getFolderFromTitle(title: string): number {
+  const folder = title.at(0)
 
-    const folder = Number(title.at(0))
+  if (!folder) throw new TypeError("Empty string passed to getFolderFromTitle")
+  if (Number.isNaN(Number(folder)))
+    throw new TypeError(`Invalid track title: ${title}`)
 
-    if (!accumulator.includes(folder)) accumulator.push(folder)
-
-    return accumulator
-  }, [] as number[])
-
-  return folders
+  return Number(title)
 }
 
 export function isMediaElement(

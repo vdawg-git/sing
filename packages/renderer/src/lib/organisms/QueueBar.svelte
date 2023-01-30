@@ -158,6 +158,7 @@
                 on:remove={async () => removeIDFromManualQueue(queueID)}
                 on:play={() => playFromManualQueue(index)}
                 testattributes={[
+                  TEST_ATTRIBUTES.queueManuallyAddedTracks,
                   TEST_ATTRIBUTES.queueNextTracks,
                   TEST_ATTRIBUTES.queueItem,
                 ]}

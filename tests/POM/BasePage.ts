@@ -15,6 +15,7 @@ import { createQueuebarOrganism } from "./Organisms/Queuebar"
 import { createAlbumsPage } from "./AlbumsPage"
 import { createArtistsPage } from "./ArtistsPage"
 import { createSearchbarOrganism } from "./Organisms/Searchbar"
+import { createMenuOrganism } from "./Organisms/Menu"
 
 import type { ElectronApplication } from "playwright"
 
@@ -23,8 +24,9 @@ export async function createBasePage(electron: ElectronApplication) {
 
   const playbar = await createPlaybarOrganism(electron),
     queuebar = await createQueuebarOrganism(electron),
-    searchbar = await createSearchbarOrganism(electron)
-  const sidebar = page.locator(TEST_IDS.asQuery.sidebar),
+    searchbar = await createSearchbarOrganism(electron),
+    menu = await createMenuOrganism(electron)
+  const sidebar = page.getByTestId(TEST_IDS.sidebar),
     sidebarItemAlbums = sidebar.locator("text=Albums"),
     sidebarItemArtists = sidebar.locator("text=Artists"),
     sidebarItemTracks = sidebar.locator("text=Tracks"),
@@ -55,6 +57,7 @@ export async function createBasePage(electron: ElectronApplication) {
     playbar,
     queuebar,
     searchbar,
+    menu,
 
     /**
      * Hard reload the page while setting it.
@@ -231,7 +234,7 @@ export async function createBasePage(electron: ElectronApplication) {
   /**
    * Visualizses clicks by adding dots to where they occured.
    *
-   * Mousedown is cyan, mouseup (normal click event) is red
+   * Mousedown clicks are `cyan`, mouseup (normal click event) are `red`.
    */
   async function startVisualisingClicks() {
     return page.evaluate(() => {

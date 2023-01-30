@@ -1,35 +1,58 @@
 /* eslint-disable unicorn/prefer-dom-node-text-content */
 
+import * as A from "fp-ts/lib/Array"
+import { pipe } from "fp-ts/lib/function"
+
 import {
   TEST_ATTRIBUTES,
   TEST_IDS,
 } from "../../../packages/renderer/src/TestConsts"
-import { getTrackTitle, reduceTitlesToFolders } from "../Helper"
+import { getFolderFromTitle, getTrackTitle } from "../Helper"
+import { removeDuplicates } from "../../../packages/shared/Pures"
 
-import type { ElectronApplication } from "playwright"
+import type { ElectronApplication, Locator } from "playwright"
 
 export async function createQueuebarOrganism(electron: ElectronApplication) {
   const page = await electron.firstWindow()
 
-  const currentTrack = page.locator(TEST_IDS.asQuery.queueCurrentTrack),
-    nextQueueTrack = page.locator(TEST_IDS.asQuery.queueNextTrack),
-    nextTrack = page.locator(TEST_IDS.asQuery.queueNextTrack),
-    nextTracks = page.locator(TEST_IDS.asQuery.queueBarNextTracks),
-    playbarQueueIcon = page.locator(TEST_IDS.asQuery.playbarQueueIcon),
-    previousTrack = page.locator(TEST_IDS.asQuery.queuePreviousTrack),
-    queueBar = page.locator(TEST_IDS.asQuery.queueBar)
-  // , previousTracks = page.locator(TEST_IDS.asQuery.queuePlayedTracks)
+  // prettier-ignore
+  const queueBar = page.getByTestId(TEST_IDS.queueBar),
+    allItems = queueBar.locator(TEST_ATTRIBUTES.asQuery.queueItem),
+    currentTrack = queueBar.getByTestId(TEST_IDS.queueCurrentTrack),
+    manuallyAddedItems = queueBar.locator(TEST_ATTRIBUTES.asQuery.queueManuallyAddedTracks),
+    nextQueueTrack = queueBar.getByTestId(TEST_IDS.queueNextTrack),
+    nextTrack = queueBar.getByTestId(TEST_IDS.queueNextTrack),
+    nextTracks = queueBar.getByTestId(TEST_IDS.queueBarNextTracks),
+    previousTrack = queueBar.getByTestId(TEST_IDS.queuePreviousTrack),
+
+    playbarQueueIcon = page.getByTestId(TEST_IDS.playbarQueueIcon)
+
+  // , previousTracks = page.getByTestId(TEST_IDS.queuePlayedTracks)
 
   return {
     close,
     getAddedFolders,
     getCurrentTrack,
     getItems,
+    getManuallyAddedTracks,
     getNextTrack,
     getNextTracks,
     getPreviousTrack,
+    getTitles,
     open,
     playNextTrack,
+  }
+
+  async function getManuallyAddedTracks() {
+    await open()
+
+    const tracks = await Promise.all(
+      await manuallyAddedItems.all().then(A.map(convertLocatorToQueueItem))
+    )
+
+    await close()
+
+    return tracks
   }
 
   async function playNextTrack() {
@@ -57,7 +80,15 @@ export async function createQueuebarOrganism(electron: ElectronApplication) {
   }
 
   async function getNextTracks() {
-    return nextTracks
+    await open()
+
+    const tracks = Promise.all(
+      await nextTracks.all().then(A.map(convertLocatorToQueueItem))
+    )
+
+    await close()
+
+    return tracks
   }
 
   /**
@@ -105,30 +136,17 @@ export async function createQueuebarOrganism(electron: ElectronApplication) {
   async function getItems() {
     await open()
 
-    const queueItems = await page.$$(TEST_ATTRIBUTES.asQuery.queueItem)
-
     const items = await Promise.all(
-      queueItems.map(async (item) => {
-        const [titleElement, coverElement, artistElement] = [
-          await item.$(TEST_ATTRIBUTES.asQuery.queueItemTitle),
-          await item.$(TEST_ATTRIBUTES.asQuery.queueItemCover),
-          await item.$(TEST_ATTRIBUTES.asQuery.queueItemArtist),
-        ]
-        const title = await titleElement?.innerText().then(getTrackTitle)
-        const cover = await coverElement?.innerText()
-        const artist = await artistElement?.innerText()
-
-        return {
-          title,
-          cover,
-          artist,
-        }
-      })
+      await allItems.all().then(A.map(convertLocatorToQueueItem))
     )
 
     await close()
 
     return items
+  }
+
+  async function getTitles() {
+    return getItems().then(A.map((item) => item.title))
   }
 
   /**
@@ -139,9 +157,12 @@ export async function createQueuebarOrganism(electron: ElectronApplication) {
   async function getAddedFolders() {
     const items = await getItems()
 
-    const folders = reduceTitlesToFolders(items.map((item) => item.title))
-
-    return folders
+    return pipe(
+      items,
+      A.map((item) => item.title),
+      A.map(getFolderFromTitle),
+      (folders) => folders.filter(removeDuplicates)
+    )
   }
 
   async function getCurrentTrack() {
@@ -152,5 +173,37 @@ export async function createQueuebarOrganism(electron: ElectronApplication) {
     await close()
 
     return title
+  }
+
+  async function convertLocatorToQueueItem(wrapper: Locator) {
+    const title = await wrapper
+      .locator(TEST_ATTRIBUTES.asQuery.queueItemTitle)
+      .innerText()
+      .then(getTrackTitle)
+    const cover = await wrapper
+      .locator(TEST_ATTRIBUTES.asQuery.queueItemCover)
+      .innerText()
+    const artist = await wrapper
+      .locator(TEST_ATTRIBUTES.asQuery.queueItemArtist)
+      .innerText()
+
+    return {
+      title,
+      cover,
+      artist,
+
+      async play() {
+        await open()
+        await wrapper.click({ timeout: 600, force: true })
+        await close()
+      },
+      async remove() {
+        await open()
+        await wrapper
+          .locator(TEST_ATTRIBUTES.asQuery.queueItemDeleteIcon)
+          .click({ timeout: 600, force: true })
+        await close()
+      },
+    }
   }
 }

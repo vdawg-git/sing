@@ -1,18 +1,18 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte"
 
+  import { TEST_IDS } from "@/TestConsts"
+
   import TrackItem from "../molecules/TrackItem.svelte"
 
   import type { ITrack } from "@sing-types/DatabaseTypes"
   import type { ISortOptions } from "@sing-types/Types"
-  import type { ITestID } from "@/TestConsts"
   import type {
     ITrackListDisplayOptions,
     ICreateMenuOutOfTrack,
   } from "@/types/Types"
 
   export let tracks: readonly ITrack[]
-  export let testID: ITestID
 
   /**
    * Which colums should be displayed.
@@ -55,13 +55,10 @@
   }
 </script>
 
-<div class="flex w-full flex-col">
+<div data-testid={TEST_IDS.trackList} class="flex w-full flex-col">
   <!---- Header -->
   <div
-    class="
-      flex w-full py-4 text-left text-xs
-      font-medium uppercase text-grey-300
-      "
+    class="flex w-full py-4 text-left text-xs font-medium uppercase text-grey-300"
   >
     <div class="mr-6 flex flex-1 basis-44">
       {#if usedDisplayOptions.cover || usedDisplayOptions.cover === undefined}
@@ -76,11 +73,7 @@
   </div>
 
   <!---- List -->
-  <div
-    data-testid={testID}
-    class="tracksList z-0 mb-14 w-full"
-    bind:clientHeight={listHeight}
-  >
+  <div class="trackList z-0 mb-14 w-full" bind:clientHeight={listHeight}>
     {#each tracks as track, index}
       <TrackItem
         {track}
@@ -96,7 +89,7 @@
 </div>
 
 <style>
-  .tracksList :global(.virtual-list-wrapper) {
+  .trackList :global(.virtual-list-wrapper) {
     overflow: visible;
   }
 </style>

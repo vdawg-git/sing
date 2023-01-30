@@ -30,6 +30,7 @@
         source: "playlist",
         sortBy: ["trackNo", "ascending"],
         isShuffleOn: false,
+        index: 0,
       }),
     onClickPrimary: () => navigate(createPlaylistURI(playlist.id)),
     image: playlist.thumbnailCovers?.map(({ filepath }) => filepath),

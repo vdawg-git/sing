@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest"
+import * as A from "fp-ts/lib/Array"
 
 import { launchElectron } from "./Helper"
 import { createBasePage } from "./POM/BasePage"
@@ -190,31 +191,34 @@ it("sets the queue correctly when (un)shuffling", async () => {
 
   await tracksPage.playbar.clickNext()
 
-  const currentTrackPlaybar = await tracksPage.playbar.getCurrentTrack()
-  const currentQueue = await tracksPage.queuebar.getItems()
+  const startingTrackPlaybar = await tracksPage.playbar.getCurrentTrack()
+  const startingQueue = await tracksPage.queuebar.getTitles()
 
   const isShuffleOn = await tracksPage.playbar.isShuffleOn()
 
   isShuffleOn && (await tracksPage.playbar.clickShuffle()) // If shuffle is already on, unset it
   await tracksPage.playbar.clickShuffle()
 
-  const newQueue = await tracksPage.queuebar.getItems()
+  const newQueue = await tracksPage.queuebar.getTitles()
   const newCurrentTrackQueue = await tracksPage.queuebar.getCurrentTrack()
   const newCurrentTrackPlaybar = await tracksPage.playbar.getCurrentTrack()
 
-  expect(currentQueue).not.toEqual(newQueue)
-  expect(currentTrackPlaybar).toEqual(newCurrentTrackQueue)
-  expect(currentTrackPlaybar).toEqual(newCurrentTrackPlaybar)
-  expect(currentTrackPlaybar).toEqual(newQueue[0].title)
+  expect(startingQueue).not.toEqual(newQueue)
+  expect(startingTrackPlaybar).toEqual(newCurrentTrackQueue)
+  expect(startingTrackPlaybar).toEqual(newCurrentTrackPlaybar)
+  expect(startingTrackPlaybar).toEqual(newQueue[0])
 
   // Unshuffle
 
   await tracksPage.playbar.clickShuffle()
 
-  const latestQueue = await tracksPage.queuebar.getItems()
+  const latestQueue = await tracksPage.queuebar.getTitles()
 
-  expect(latestQueue).toEqual(currentQueue)
-  expect(latestQueue[1].title).toEqual(currentTrackPlaybar)
+  expect(
+    latestQueue,
+    `Does not go back to the previous queue, when setting and then unsetting shuffle.`
+  ).toEqual(startingQueue)
+  expect(latestQueue[1]).toEqual(startingTrackPlaybar)
 })
 
 it("does not interuppt playback when clicking shuffle", async () => {
@@ -252,15 +256,15 @@ describe("when playing a track while shuffle is on", async () => {
   const tracksPage = await createTracksPage(electron)
   const trackToPlay = "01"
 
-  it("should play the track and following plays correctly", async () => {
+  it("should play a track correctly and another on another too", async () => {
     await tracksPage.playbar.clickShuffle()
 
-    await tracksPage.playTrack(trackToPlay)
+    await tracksPage.trackList.playTrack(trackToPlay)
     const playingTrack = await tracksPage.playbar.getCurrentTrack()
     expect(playingTrack).toEqual(trackToPlay)
 
     const newTrackToPlay = "10"
-    await tracksPage.playTrack(newTrackToPlay)
+    await tracksPage.trackList.playTrack(newTrackToPlay)
     const newTrack = await tracksPage.playbar.getCurrentTrack()
     expect(newTrack).toEqual(newTrackToPlay)
   })
@@ -269,7 +273,7 @@ describe("when playing a track while shuffle is on", async () => {
     const oldQueue = await tracksPage.queuebar.getItems()
 
     await tracksPage.playbar.clickShuffle()
-    await tracksPage.playTrack(trackToPlay)
+    await tracksPage.trackList.playTrack(trackToPlay)
 
     const newQueue = await tracksPage.queuebar.getItems()
 
@@ -281,7 +285,7 @@ it("should sort the tracks correctly by default by title even when title is not 
   const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
-  const tracks = await tracksPage.getTracks()
+  const tracks = await tracksPage.trackList.getTracks()
 
   expect(tracks).toEqual(tracks.sort())
 })
@@ -301,7 +305,7 @@ describe("when playing a track after adding folders from a blank state", async (
     await libraryPage.saveAndSyncFolders()
     await libraryPage.goTo.tracks()
 
-    await tracksPage.playTrack(trackToPlay)
+    await tracksPage.trackList.playTrack(trackToPlay)
 
     const currentTrack = await tracksPage.playbar.getCurrentTrack()
 
@@ -318,7 +322,7 @@ describe("When seeking", async () => {
     await settings.saveAndSyncFolders()
     await page.resetTo.tracks()
 
-    await page.playTrack("01")
+    await page.trackList.playTrack("01")
     await page.playbar.clickPause()
   })
 
@@ -361,7 +365,7 @@ describe("When seeking", async () => {
     const newProgress = await tracksPage.playbar.getCurrentProgress()
 
     expect(newProgress).not.to.equal(currentProgress)
-  }, 9_999_999)
+  })
 
   it("pauses the playback while seeking", async () => {
     const tracksPage = await createTracksPage(electron)
@@ -396,13 +400,13 @@ describe("Mediakey handler", async () => {
     await page.resetTo.tracks()
   })
 
-  it.only("correctly sets the mediaSession metadata", async () => {
+  it("correctly sets the mediaSession metadata", async () => {
     const tracksPage = await createTracksPage(electron)
     await tracksPage.reload()
 
     const titleToPlay = "01"
 
-    await tracksPage.playTrack(titleToPlay)
+    await tracksPage.trackList.playTrack(titleToPlay)
 
     const data = await tracksPage.getMediaSessionMetaData()
 
@@ -418,14 +422,78 @@ describe("Mediakey handler", async () => {
     )
   })
 })
+
+describe("Manual queue", async () => {
+  const tracksPage = await createTracksPage(electron)
+
+  it("should manipulate the items correctly", async () => {
+    const firstTitle = "01"
+
+    await tracksPage.trackList
+      .getTrackItem(firstTitle)
+      .then((track) => track.openContextMenu())
+      .then((menu) => menu.clickPlayNext())
+
+    const queue1 = await tracksPage.queuebar
+      .getManuallyAddedTracks()
+      .then(A.map((item) => item.title))
+
+    expect(
+      queue1,
+      "`Play next` did not add to the manual queue correctly"
+    ).toEqual([firstTitle])
+
+    const secondTitle = "02"
+
+    await tracksPage.trackList
+      .getTrackItem(secondTitle)
+      .then((track) => track.openContextMenu())
+      .then((menu) => menu.clickPlayNext())
+
+    const queue2 = await tracksPage.queuebar
+      .getManuallyAddedTracks()
+      .then(A.map((item) => item.title))
+
+    expect(
+      queue2,
+      "`Play next` did not add to the manual queue correctly"
+    ).toEqual([secondTitle, firstTitle])
+
+    const thirdTitle = "03"
+
+    await tracksPage.trackList
+      .getTrackItem(thirdTitle)
+      .then((track) => track.openContextMenu())
+      .then((menu) => menu.clickPlayLater())
+
+    const queue3 = await tracksPage.queuebar.getManuallyAddedTracks()
+
+    expect(
+      queue3.map((item) => item.title),
+      "`Play later` did not add to the manual queue correctly"
+    ).toEqual([secondTitle, firstTitle, thirdTitle])
+
+    await queue3.at(1)?.remove()
+
+    const queue4 = await tracksPage.queuebar
+      .getManuallyAddedTracks()
+      .then(A.map((item) => item.title))
+
+    expect(
+      queue4,
+      "Removing a manual queue item did not work properly"
+    ).toEqual([secondTitle, thirdTitle])
+  })
+})
+
 // Currently MediaKeys are not supported. See: https://github.com/microsoft/playwright/issues/20277
 
-// it.only("does switch the track when the `forward` media key is pressed", async () => {
+// it("does switch the track when the `forward` media key is pressed", async () => {
 //   const tracksPage = await createTracksPage(electron)
 
 //   await tracksPage.logPressedKeys()
 
-//   await tracksPage.playTrack("01")
+//   await tracksPage.trackList.playTrack("01")
 
 //   const oldTrack = await tracksPage.playbar.getCurrentTrack()
 

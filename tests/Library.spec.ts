@@ -60,7 +60,7 @@ describe("When adding all folders", async () => {
 
     const expectedTitles = ["00", "01", "02", "03"]
 
-    const allTitles = await tracksPage
+    const allTitles = await tracksPage.trackList
       .getTracks()
       .then((tracks) => tracks.map((track) => track.title))
 
@@ -117,7 +117,7 @@ describe("when removing all folders after having folders added", async () => {
 
     const tracksPage = await settingsPage.goTo.tracks()
 
-    const hasTracks = await tracksPage.hasTracks()
+    const hasTracks = await tracksPage.trackList.hasTracks()
 
     expect(hasTracks).toBe(false)
   })
@@ -158,7 +158,7 @@ describe("when removing all folders and instead adding new ones", async () => {
   it("does not have a queue", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     const tracksPage = await settingsPage.goTo.tracks()
-    await tracksPage.playTrack("10")
+    await tracksPage.trackList.playTrack("10")
     await tracksPage.goTo.settingsLibrary()
 
     await settingsPage.removeAllFolders()
@@ -184,7 +184,7 @@ describe("when removing one folder", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
     const trackPage = await settingsPage.goTo.tracks()
-    await trackPage.playTrack("01")
+    await trackPage.trackList.playTrack("01")
 
     await trackPage.goTo.settingsLibrary()
 
@@ -206,7 +206,7 @@ describe("when removing one folder", async () => {
 
     const tracksPage = await settingsPage.goTo.tracks()
 
-    const addedFolders = await tracksPage.getAddedFolders()
+    const addedFolders = await tracksPage.trackList.getAddedFolders()
 
     expect(addedFolders).toEqual([1, 2])
   })
@@ -215,7 +215,7 @@ describe("when removing one folder", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     const tracksPage = await settingsPage.goTo.tracks()
 
-    await tracksPage.playTrack("10")
+    await tracksPage.trackList.playTrack("10")
     const oldCurrentTrack = await settingsPage.playbar.getCurrentTrack()
 
     expect(oldCurrentTrack, "Is not playing clicked track").not.toBe(undefined)
@@ -250,7 +250,7 @@ describe("when adding one folder from a clear state", async () => {
 
     const tracksPage = await settingsPage.goTo.tracks()
 
-    const titles = await tracksPage.getTracksTitles()
+    const titles = await tracksPage.trackList.getTrackTitles()
 
     expect(titles).toStrictEqual(expectedTitles)
   })

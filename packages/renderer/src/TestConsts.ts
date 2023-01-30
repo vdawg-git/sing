@@ -6,6 +6,7 @@ const testIDNames = [
   "albumHeroTitle",
   "artistCards",
   "artistHeroTitle",
+  "menu", // ContextMenu or dropdown menu
   "playbar",
   "playbarAlbum",
   "playbarArtist",
@@ -48,7 +49,7 @@ const testIDNames = [
   "test",
   "testAudioELement",
   "testIcon",
-  "trackItems",
+  "trackList",
   "volumeSlider",
   "volumeSliderInner",
   "yourAlbumsTitle",
@@ -65,7 +66,7 @@ const testAttributeNames = [
   "cardTitle",
   "folderInput",
   "folderInputDeleteIcon",
-  "menuItem",
+  "menuItem", // Items of the context or dropdown menu
   "modalCloseButton",
   "modalContent",
   "modalWrapper",
@@ -77,6 +78,7 @@ const testAttributeNames = [
   "queueItemCover",
   "queueItemDeleteIcon",
   "queueItemTitle",
+  "queueManuallyAddedTracks",
   "queueNextTracks",
   "queuePreviousTracks",
   "searchbarResult",

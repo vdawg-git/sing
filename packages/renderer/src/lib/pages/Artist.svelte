@@ -11,7 +11,6 @@
   import { playNewSource } from "@/lib/manager/player"
   import { playlistsStore } from "@/lib/stores/PlaylistsStore"
   import { convertAlbumToCardData } from "@/Helper"
-  import { TEST_IDS } from "@/TestConsts"
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
 
   import CardList from "../organisms/CardList.svelte"
@@ -130,7 +129,6 @@
       createContextMenuItems={createAddToPlaylistAndQueueMenuItems(
         $playlistsStore
       )}
-      testID={TEST_IDS.trackItems}
       on:play={async ({ detail }) =>
         playNewSource({
           ...baseSource,

@@ -7,6 +7,9 @@ import type {
 } from "@/types/Types"
 import type { StrictOmit } from "ts-essentials"
 
+/**
+ * used to fix a bug with svelte transitions nulling the element reference.
+ */
 export const menuElementID = "menuElementWrapper"
 export function getMenuElement() {
   return (document.querySelector(`#${menuElementID}`) ?? undefined) as

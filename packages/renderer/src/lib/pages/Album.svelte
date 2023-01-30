@@ -133,7 +133,6 @@
   />
 
   <TrackList
-    testID="trackItems"
     {tracks}
     {displayOptions}
     on:play={({ detail }) =>

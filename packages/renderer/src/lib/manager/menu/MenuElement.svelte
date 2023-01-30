@@ -3,6 +3,8 @@
   import { fade, fly } from "svelte/transition"
   import { sineInOut } from "svelte/easing"
 
+  import { TEST_IDS } from "@/TestConsts"
+
   import {
     useCallbacks,
     useDisableScrolling,
@@ -142,7 +144,7 @@
     {#if activeMenu !== undefined && activeMenu?.items.length !== 0}
       <!-- The displayed menu -->
       <div
-        data-testID={$menuStore?.testID}
+        data-testID={$menuStore?.testID ?? TEST_IDS.menu}
         class=" _main fixed z-50 h-[256px] max-h-[400px] min-w-[15rem] overflow-hidden rounded-lg border border-grey-400/50 bg-grey-600 shadow-2xl duration-[400ms]"
         style:height={`${activeMenuHeight}px`}
         style:left={`${menuX}px`}

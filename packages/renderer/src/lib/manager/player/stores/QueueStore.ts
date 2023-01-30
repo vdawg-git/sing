@@ -214,7 +214,7 @@ function removeIDManualQueue(id: symbol): void {
 
 function addTracksToEndManualQueue(tracks: readonly ITrack[] | ITrack): void {
   update(($store) => {
-    $store.manualQueue.unshift(
+    $store.manualQueue.push(
       ...convertTracksForManualQueueAdding($store.manualQueue, tracks)
     )
   })
@@ -224,7 +224,7 @@ function addTracksToBeginningManualQueue(
   tracks: readonly ITrack[] | ITrack
 ): void {
   update(($store) => {
-    $store.manualQueue.push(
+    $store.manualQueue.unshift(
       ...convertTracksForManualQueueAdding($store.manualQueue, tracks)
     )
   })
