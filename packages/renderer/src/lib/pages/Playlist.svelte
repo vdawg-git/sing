@@ -9,7 +9,7 @@
   import { displayTypeWithCount, removeDuplicates } from "@sing-shared/Pures"
 
   import { notifiyError } from "@/Helper"
-  import { playNewSource } from "@/lib/manager/player"
+  import { playNewSource } from "@/lib/manager/Player"
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
 
   import { backgroundImages } from "../stores/BackgroundImages"

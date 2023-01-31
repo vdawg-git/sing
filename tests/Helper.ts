@@ -1,5 +1,3 @@
-import path from "node:path"
-
 import { _electron as electron } from "playwright"
 
 import type { ElectronApplication } from "playwright"
@@ -14,10 +12,10 @@ export async function launchElectron(): Promise<ElectronApplication> {
   //   "index.cjs"
   // )
 
-  const executablePath = path.join(
-    __dirname,
-    "./../node_modules/electron/dist/electron.exe"
-  )
+  // const executablePath = path.join(
+  //   __dirname,
+  //   "./../node_modules/electron/dist/electron.exe"
+  // )
 
   const electronApp = await electron.launch({
     args: ["."],

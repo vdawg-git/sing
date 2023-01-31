@@ -27,7 +27,7 @@
     volume,
     handleSeekingStart,
     handleSeekingEnd,
-  } from "@/lib/manager/player"
+  } from "@/lib/manager/Player"
 
   import Seekbar from "@/lib/molecules/Seekbar.svelte"
   import VolumeControl from "@/lib/molecules/VolumeControl.svelte"

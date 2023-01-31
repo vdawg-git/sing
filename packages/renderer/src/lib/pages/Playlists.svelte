@@ -4,7 +4,7 @@
   import { createPlaylistURI } from "@/Routes"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
   import { createAndNavigateToPlaylist } from "@/Helper"
-  import { playNewSource, tracks } from "@/lib/manager/player"
+  import { playNewSource, tracks } from "@/lib/manager/Player"
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
 
   import { playlistsStore } from "../stores/PlaylistsStore"

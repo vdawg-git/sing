@@ -8,7 +8,7 @@
   import { displayTypeWithCount } from "@sing-shared/Pures"
 
   import { addNotification } from "@/lib/stores/NotificationStore"
-  import { playNewSource } from "@/lib/manager/player"
+  import { playNewSource } from "@/lib/manager/Player"
   import { playlistsStore } from "@/lib/stores/PlaylistsStore"
   import { convertAlbumToCardData } from "@/Helper"
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"

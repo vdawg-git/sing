@@ -4,7 +4,7 @@
 
   import { secondsToDuration } from "@sing-shared/Pures"
 
-  import { TEST_IDS as test } from "@/TestConsts"
+  import { TEST_IDS } from "@/TestConsts"
 
   export let currentTime: number | undefined | null
   export let duration: number | undefined | null
@@ -57,7 +57,7 @@
 
 <main class="group -mt-1.5 cursor-pointer py-3">
   <div
-    data-testid={test.seekbar}
+    data-testid={TEST_IDS.seekbar}
     class="relative -mt-2 h-[2px] rounded-full bg-orange-800"
     on:mousedown={() => (isMouseDownForSeeking = true)}
     on:mouseup={() => {
@@ -82,7 +82,7 @@
     />
 
     <div
-      data-testid={test.seekbarProgressbar}
+      data-testid={TEST_IDS.seekbarProgressbar}
       style="width: {progress * 100}%"
       class={clsx(
         "pointer-events-none relative h-full rounded-full bg-amber-500 ease-in",
@@ -96,7 +96,7 @@
         "
       >
         <div
-          data-testid={test.seekbarCurrentTime}
+          data-testid={TEST_IDS.seekbarCurrentTime}
           class="pointer-events-none absolute right-0 -bottom-1 -translate-x-6 rounded-md bg-grey-700/50 px-2 text-sm text-grey-100 backdrop-blur-sm"
         >
           {secondsToDuration(currentTime)}
@@ -104,7 +104,7 @@
       </div>
     </div>
     <div
-      data-testid={test.seekbarTotalDuration}
+      data-testid={TEST_IDS.seekbarTotalDuration}
       class="
 blurred  pointer-events-none absolute -bottom-2 right-0 translate-x-[calc(100%+12px)]  rounded-md bg-grey-700/50 px-2 text-sm text-grey-100 opacity-0 backdrop-blur-3xl delay-150 duration-[120ms] group-hover:opacity-100
       "

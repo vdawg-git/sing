@@ -10,7 +10,7 @@
   import { createArtistURI } from "@/Routes"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
-  import { artists, playNewSource } from "@/lib/manager/player"
+  import { artists, playNewSource } from "@/lib/manager/Player"
   import { TEST_ATTRIBUTES } from "@/TestConsts"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
@@ -48,6 +48,7 @@
           source: "artist",
           sortBy: ["album", "ascending"],
           isShuffleOn: false,
+          index: 0,
         }),
       contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)({
         type: "artist",

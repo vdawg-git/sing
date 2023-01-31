@@ -13,7 +13,7 @@
 
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
   import { convertAlbumToCardData } from "@/Helper"
-  import { albums } from "@/lib/manager/player"
+  import { albums } from "@/lib/manager/Player"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
 

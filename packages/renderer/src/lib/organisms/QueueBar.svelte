@@ -17,7 +17,7 @@
     removeIDFromManualQueue,
     togglePause,
     playFromManualQueue,
-  } from "@/lib/manager/player"
+  } from "@/lib/manager/Player"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
 

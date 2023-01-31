@@ -5,7 +5,7 @@ import IconPlay from "virtual:icons/heroicons/play"
 import { convertFilepathToFilename } from "@sing-shared/Pures"
 
 import { createAlbumURI, createArtistURI } from "@/Routes"
-import { playNewSource } from "@/lib/manager/player"
+import { playNewSource } from "@/lib/manager/Player"
 import {
   convertAlbumToPlaylistCreateArgument,
   convertArtistToPlaylistCreateArgument,

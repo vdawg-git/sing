@@ -4,7 +4,7 @@ import * as E from "fp-ts/lib/Either"
 import {
   addTracksToManualQueueBeginning,
   addTracksToManualQueueEnd,
-} from "@/lib/manager/player"
+} from "@/lib/manager/Player"
 
 import { displayTrackMetadata, notifiyError } from "./Helper"
 

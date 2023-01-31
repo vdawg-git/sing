@@ -12,7 +12,7 @@ import {
 
 import { addNotification } from "./lib/stores/NotificationStore"
 import { createAlbumURI, createArtistURI, ROUTES } from "./Routes"
-import { playNewSource } from "./lib/manager/player"
+import { playNewSource } from "./lib/manager/Player"
 import { createAddToPlaylistAndQueueMenuItems } from "./MenuItemsHelper"
 import { TEST_ATTRIBUTES } from "./TestConsts"
 

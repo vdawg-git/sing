@@ -4,7 +4,7 @@
   import { displayTypeWithCount, removeDuplicates } from "@sing-shared/Pures"
 
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
-  import { playNewSource, tracks } from "@/lib/manager/player"
+  import { playNewSource, tracks } from "@/lib/manager/Player"
 
   import { backgroundImages } from "../stores/BackgroundImages"
   import { playlistsStore } from "../stores/PlaylistsStore"
