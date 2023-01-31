@@ -207,7 +207,7 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
     await hoverVolumeIcon()
 
     const { height, width } = (await volumeSlider.boundingBox({
-      timeout: 2000,
+      timeout: 1000,
     })) || { height: undefined, width: undefined }
 
     if (height === undefined) {
@@ -226,6 +226,7 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
         x,
       },
       timeout: 2000,
+      force: true,
     })
 
     await validateAndWaitForAnimation()
