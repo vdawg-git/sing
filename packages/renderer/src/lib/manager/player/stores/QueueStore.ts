@@ -128,11 +128,9 @@ function intersect(newTracks: readonly ITrack[]): void {
 }
 
 function removeAutoQueueTracks(index: number | readonly number[]) {
-  console.log({ index })
-
-  update(($queue) => {
-    $queue.autoQueue = pipe(
-      $queue.autoQueue,
+  update(($state) => {
+    $state.autoQueue = pipe(
+      $state.autoQueue,
       removeFromArray(index),
       O.fromNullable,
       O.getOrElseW(() => {
@@ -140,6 +138,11 @@ function removeAutoQueueTracks(index: number | readonly number[]) {
       }),
       (items) => items.map((item, index_) => ({ ...item, index: index_ }))
     )
+
+    // Ensure that the current track stays the same
+    if (index < $state.index) {
+      $state.index--
+    }
   })
 }
 
