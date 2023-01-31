@@ -11,23 +11,24 @@ import type { ElectronApplication } from "playwright"
 export async function createPlaybarOrganism(electron: ElectronApplication) {
   const page = await electron.firstWindow()
 
-  const currentTime = page.locator(TEST_IDS.asQuery.seekbarCurrentTime),
-    currentTrack = page.locator(TEST_IDS.asQuery.playbarTitle),
-    artistName = page.locator(TEST_IDS.asQuery.playbarArtist),
-    volumeIcon = page.locator(TEST_IDS.asQuery.playbarVolumeIcon),
-    backButton = page.locator(TEST_IDS.asQuery.playbarBackButton),
-    cover = page.locator(TEST_IDS.asQuery.playbarCover),
-    nextButton = page.locator(TEST_IDS.asQuery.playbarNextButton),
-    pauseButton = page.locator(TEST_IDS.asQuery.playbarPauseButton),
-    playButton = page.locator(TEST_IDS.asQuery.playbarPlayButton),
-    progressbar = page.locator(TEST_IDS.asQuery.seekbarProgressbar),
-    seekbar = page.locator(TEST_IDS.asQuery.seekbar),
-    testAudioElement = page.locator(TEST_IDS.asQuery.testAudioELement),
-    totalDuration = page.locator(TEST_IDS.asQuery.seekbarTotalDuration),
-    volumeSlider = page.locator(TEST_IDS.asQuery.volumeSlider),
-    volumeSliderInner = page.locator(TEST_IDS.asQuery.volumeSliderInner),
-    shuffleButton = page.locator(TEST_IDS.asQuery.playbarShuffleButton)
-  // , previousTracks = page.locator(TEST_IDS.asQuery.queuePlayedTracks)
+  const currentTime = page.getByTestId(TEST_IDS.seekbarCurrentTime),
+    currentTrack = page.getByTestId(TEST_IDS.playbarTitle),
+    artistName = page.getByTestId(TEST_IDS.playbarArtist),
+    volumeIcon = page.getByTestId(TEST_IDS.playbarVolumeIcon),
+    backButton = page.getByTestId(TEST_IDS.playbarBackButton),
+    cover = page.getByTestId(TEST_IDS.playbarCover),
+    nextButton = page.getByTestId(TEST_IDS.playbarNextButton),
+    pauseButton = page.getByTestId(TEST_IDS.playbarPauseButton),
+    playButton = page.getByTestId(TEST_IDS.playbarPlayButton),
+    progressbar = page.getByTestId(TEST_IDS.seekbarProgressbar),
+    seekbar = page.getByTestId(TEST_IDS.seekbar),
+    testAudioElement = page.getByTestId(TEST_IDS.testAudioELement),
+    totalDuration = page.getByTestId(TEST_IDS.seekbarTotalDuration),
+    volumeSlider = page.getByTestId(TEST_IDS.volumeSlider),
+    volumeSliderInner = page.getByTestId(TEST_IDS.volumeSliderInner),
+    shuffleButton = page.getByTestId(TEST_IDS.playbarShuffleButton)
+
+  // , previousTracks = page.getByTestId(TEST_IDS.queuePlayedTracks)
 
   return {
     clickNext,
@@ -50,6 +51,7 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
     isShuffleOn,
     seekTo,
     setVolume,
+    waitForDurationToBecome,
     waitForProgressBarToProgress,
   }
 
@@ -67,6 +69,12 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
       },
       { selector, desiredWidth }
     )
+  }
+
+  async function waitForDurationToBecome(duration: number) {
+    await hoverSeekbar()
+
+    return currentTime.filter({ hasText: String(duration) }).waitFor()
   }
 
   async function getCoverPath() {
@@ -106,7 +114,7 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
    * Get the current track title like `01`. Returns `undefined` if there is none.
    */
   async function getCurrentTrack(): Promise<string | undefined> {
-    if ((await currentTrack.count()) === 0) return undefined
+    if ((await currentTrack.isVisible()) === false) return undefined
 
     return getTrackTitle(await currentTrack.innerText({ timeout: 2000 }))
   }

@@ -200,8 +200,8 @@ export async function createBasePage(electron: ElectronApplication) {
     if (waitFor === "Next track" || waitFor === "Previous track") {
       const nextTitle =
         waitFor === "Next track"
-          ? await queuebar.getNextTrack()
-          : await queuebar.getPreviousTrack()
+          ? await queuebar.getNextTrack().then((track) => track?.title)
+          : await queuebar.getPreviousTrack().then((track) => track?.title)
       if (!nextTitle) throw new Error(`Could not find ${waitFor} element`)
 
       return waitCurrentTrackToBecome(nextTitle)

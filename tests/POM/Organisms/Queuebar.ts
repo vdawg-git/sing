@@ -96,23 +96,16 @@ export async function createQueuebarOrganism(electron: ElectronApplication) {
    *
    * Returns undefined if there is none
    */
-  async function getNextTrack(): Promise<string | undefined> {
-    if (!(await isQueueOpen())) await open()
+  async function getNextTrack() {
+    await open()
 
-    const element = await nextTrack.elementHandle({ timeout: 2000 })
-
-    if (!element) return undefined
-
-    const titleElement = await element.$(TEST_ATTRIBUTES.asQuery.queueItemTitle)
-
-    if (!titleElement)
-      throw new Error("titleElement of track in getNextTrack not found")
-
-    const title = getTrackTitle(await titleElement?.innerText())
+    const result = (await nextTrack.isVisible())
+      ? await convertLocatorToQueueItem(nextTrack)
+      : undefined
 
     await close()
 
-    return title
+    return result
   }
 
   /**
@@ -120,17 +113,16 @@ export async function createQueuebarOrganism(electron: ElectronApplication) {
    *
    * Returns undefined if there is none
    */
-  async function getPreviousTrack(): Promise<string | undefined> {
-    const element = await previousTrack.elementHandle({ timeout: 2000 })
+  async function getPreviousTrack() {
+    await open()
 
-    if (!element) return undefined
+    const result = (await previousTrack.isVisible())
+      ? await convertLocatorToQueueItem(previousTrack)
+      : undefined
 
-    const titleElement = await element.$(TEST_ATTRIBUTES.asQuery.queueItemTitle)
+    await close()
 
-    if (!titleElement)
-      throw new Error("titleElement of track in getPreviousTrack not found")
-
-    return getTrackTitle(await titleElement.innerText())
+    return result
   }
 
   async function getItems() {

@@ -124,7 +124,9 @@ it("goes to the next track in queue after the current has finished", async () =>
   const tracksPage = await createTracksPage(electron)
   await tracksPage.queuebar.open()
 
-  const oldNextTrack = await tracksPage.queuebar.getNextTrack()
+  const oldNextTrack = await tracksPage.queuebar
+    .getNextTrack()
+    .then((track) => track?.title)
 
   await tracksPage.playbar.clickSeekbar(97)
 
@@ -133,7 +135,7 @@ it("goes to the next track in queue after the current has finished", async () =>
 
   const newCurrentTrack = await tracksPage.playbar.getCurrentTrack()
 
-  expect(oldNextTrack).toBe(newCurrentTrack)
+  expect(oldNextTrack).toEqual(newCurrentTrack)
 })
 
 it("changes the volume when clicking the slider", async () => {
@@ -279,6 +281,24 @@ describe("when playing a track while shuffle is on", async () => {
 
     expect(newQueue.slice(0, 10)).not.toEqual(oldQueue.slice(0, 10))
   })
+
+  it.only("should not interrupt playback when removing a previous track in the queue", async () => {
+    await tracksPage.playbar.clickShuffle()
+    await tracksPage.playbar.clickNext()
+    await tracksPage.playbar.clickNext()
+
+    await tracksPage.playbar.clickPlay()
+
+    await tracksPage.playbar.waitForDurationToBecome(1)
+
+    await tracksPage.queuebar
+      .getPreviousTrack()
+      .then((track) => track?.remove())
+
+    const progress = await tracksPage.playbar.getCurrentProgress()
+
+    expect(progress).not.toBe(0)
+  })
 })
 
 it("should sort the tracks correctly by default by title even when title is not set and the filename is used", async () => {
@@ -395,7 +415,7 @@ describe("When seeking", async () => {
 })
 
 describe("Queue", async () => {
-  it.only("correctly removes tracks from the queue on user interaction", async () => {
+  it("correctly removes tracks from the queue on user interaction", async () => {
     const tracksPage = await createTracksPage(electron)
 
     const toRemoveIndexes = [1, 1, 1, 1, 1]
