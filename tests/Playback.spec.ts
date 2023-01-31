@@ -394,6 +394,27 @@ describe("When seeking", async () => {
   })
 })
 
+describe("Queue", async () => {
+  it.only("correctly removes tracks from the queue on user interaction", async () => {
+    const tracksPage = await createTracksPage(electron)
+
+    const toRemoveIndexes = [1, 1, 1, 1, 1]
+
+    for (const index of toRemoveIndexes) {
+      const queue = await tracksPage.queuebar.getItems()
+      const titles = queue.map((item) => item.title)
+
+      await queue.at(index)?.remove()
+
+      const newQueue = await tracksPage.queuebar.getTitles()
+      expect(
+        newQueue,
+        "It should have deleted tracks in order after `00`"
+      ).not.to.include(titles.at(index))
+    }
+  })
+})
+
 describe("Mediakey handler", async () => {
   beforeEach(async () => {
     const page = await createTracksPage(electron)
