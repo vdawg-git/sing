@@ -359,6 +359,9 @@ export function playFromManualQueue(index: number): void {
   startPlayingCurrentTrack()
 }
 
+/**
+ * Remove an item from the auto queue.
+ */
 export function removeIndexFromQueue(index: number): void {
   queueStore.autoQueue.removeItems(index)
 

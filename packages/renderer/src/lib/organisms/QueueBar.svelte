@@ -51,7 +51,8 @@
   }
 
   function flipDuration(distance: number) {
-    return Math.sqrt(distance) * 60
+    // Prevent jumps
+    return distance < 100 ? Math.sqrt(distance) * 60 : 0
   }
 
   //! FIXME queuebar next up delete and play from is buggy
@@ -103,10 +104,10 @@
           class="mb-4 flex flex-col gap-4"
           data-testid={TEST_IDS.queueBarPlayedTracks}
         >
-          {#each $playedTracks as queueItemData, index (queueItemData.queueID)}
+          {#each $playedTracks as { track, queueID, index } (queueID)}
             <div animate:flip={{ duration: flipDuration }}>
               <QueueItem
-                track={queueItemData.track}
+                {track}
                 state="HAS_PLAYED"
                 testId={index === $playIndex - 1
                   ? TEST_IDS.queuePreviousTrack
@@ -117,9 +118,8 @@
                   TEST_ATTRIBUTES.queueItem,
                 ]}
                 {createContextMenuItems}
-                on:play={() => playFromAutoQueue(queueItemData.index)}
-                on:remove={async () =>
-                  removeIndexFromQueue(queueItemData.index)}
+                on:play={() => playFromAutoQueue(index)}
+                on:remove={async () => removeIndexFromQueue(index)}
               />
             </div>
           {/each}
@@ -178,10 +178,10 @@
             class="flex flex-col gap-4"
             data-testid={TEST_IDS.queueBarNextTracks}
           >
-            {#each nextTracksDisplayed as queueItemData, index (queueItemData.queueID)}
+            {#each nextTracksDisplayed as { track, index, queueID } (queueID)}
               <div animate:flip={{ duration: flipDuration }}>
                 <QueueItem
-                  track={queueItemData.track}
+                  {track}
                   testId={index === 0 ? "queueNextTrack" : undefined}
                   testQueueNextIndex={index}
                   testattributes={[
@@ -189,9 +189,8 @@
                     TEST_ATTRIBUTES.queueItem,
                   ]}
                   {createContextMenuItems}
-                  on:play={() => playFromAutoQueue(queueItemData.index)}
-                  on:remove={() =>
-                    handleRemoveFromAutoQueue(queueItemData.index)}
+                  on:play={() => playFromAutoQueue(index)}
+                  on:remove={() => handleRemoveFromAutoQueue(index)}
                 />
               </div>
             {/each}

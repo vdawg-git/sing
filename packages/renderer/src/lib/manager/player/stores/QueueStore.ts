@@ -1,5 +1,7 @@
 import { writable } from "svelte/store"
 import { produce } from "immer"
+import { pipe } from "fp-ts/lib/function"
+import * as O from "fp-ts/lib/Option"
 
 import { removeFromArray } from "@sing-shared/Pures"
 
@@ -126,13 +128,18 @@ function intersect(newTracks: readonly ITrack[]): void {
 }
 
 function removeAutoQueueTracks(index: number | readonly number[]) {
+  console.log({ index })
+
   update(($queue) => {
-    const newQueue = removeFromArray(index)($queue.autoQueue)
-
-    if (newQueue === undefined)
-      throw new Error("Provided index is out of bounds")
-
-    $queue.autoQueue = newQueue
+    $queue.autoQueue = pipe(
+      $queue.autoQueue,
+      removeFromArray(index),
+      O.fromNullable,
+      O.getOrElseW(() => {
+        throw new Error("Provided index is out of bounds")
+      }),
+      (items) => items.map((item, index_) => ({ ...item, index: index_ }))
+    )
   })
 }
 

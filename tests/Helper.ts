@@ -22,7 +22,7 @@ export async function launchElectron(): Promise<ElectronApplication> {
   const electronApp = await electron.launch({
     args: ["."],
     bypassCSP: true,
-    executablePath,
+    // executablePath,
   })
 
   // electronApp.on("window", (page) => page.on("console", log))
