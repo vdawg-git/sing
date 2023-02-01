@@ -1,5 +1,7 @@
 /* eslint-disable unicorn/prefer-dom-node-text-content */
 
+import { PAGE_TITLES } from "@sing-renderer/Constants"
+
 import {
   TEST_ATTRIBUTES,
   TEST_IDS,
@@ -7,6 +9,7 @@ import {
 
 import { createBasePage } from "./BasePage"
 import { getCards } from "./Helper"
+import { createHeroHeadingOrganism } from "./Organisms/HeroHeading"
 
 import type { ElectronApplication } from "playwright"
 
@@ -14,7 +17,7 @@ export async function createArtistsPage(electron: ElectronApplication) {
   const basePage = await createBasePage(electron)
   const page = await electron.firstWindow()
 
-  const pageTitle = page.locator("Your artists")
+  const heading = await createHeroHeadingOrganism(electron)
   const artistItems = page.locator(
     TEST_IDS.asQuery.artistCards + " " + TEST_ATTRIBUTES.asQuery.artistCard
   )
@@ -24,11 +27,11 @@ export async function createArtistsPage(electron: ElectronApplication) {
 
     getArtists,
     hasArtists,
-    isDisplayed,
+    waitToBeVisible,
   }
 
-  async function isDisplayed(): Promise<boolean> {
-    return pageTitle.isVisible()
+  async function waitToBeVisible(): Promise<void> {
+    await heading.waitForTitle(PAGE_TITLES.artists)
   }
 
   async function hasArtists() {

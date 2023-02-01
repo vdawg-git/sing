@@ -137,7 +137,7 @@ it("goes to the next track in queue after the current has finished", async () =>
   expect(oldNextTrack).toEqual(newCurrentTrack)
 })
 
-it.only("changes the volume when clicking the slider", async () => {
+it("changes the volume when clicking the slider", async () => {
   const tracksPage = await createTracksPage(electron)
 
   const oldVolume = await tracksPage.playbar.getVolume()
@@ -261,6 +261,7 @@ describe("when playing a track while shuffle is on", async () => {
     await tracksPage.playbar.clickShuffle()
 
     await tracksPage.trackList.playTrack(trackToPlay)
+
     const playingTrack = await tracksPage.playbar.getCurrentTrack()
     expect(playingTrack).toEqual(trackToPlay)
 
@@ -544,7 +545,6 @@ describe("Manual queue", async () => {
 //   await tracksPage.pressMediaKey("MediaTrackNext")
 
 //   const newTrack = await tracksPage.playbar.getCurrentTrack()
-//   await tracksPage.pauseExecution()
 
 //   expect(newTrack).not.toEqual(oldTrack)
 //   expect(newTrack).toEqual(desiredTrack)

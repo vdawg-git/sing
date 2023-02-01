@@ -6,6 +6,7 @@
   import { createAndNavigateToPlaylist } from "@/Helper"
   import { playNewSource, tracks } from "@/lib/manager/Player"
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
+  import { PAGE_TITLES } from "@/Constants"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
   import Button from "../atoms/Button.svelte"
@@ -60,7 +61,7 @@
 </script>
 
 <HeroHeading
-  title="Your playlists"
+  title={PAGE_TITLES.playlists}
   metadata={[
     {
       label: `${$playlistsStore.length} playlist${
@@ -68,7 +69,6 @@
       }`,
     },
   ]}
-  titleTestID="yourPlaylistsTitle"
 />
 
 {#if $tracks.length === 0}

@@ -3,9 +3,9 @@
 
 const testIDNames = [
   "albumCards",
-  "albumHeroTitle",
   "artistCards",
-  "artistHeroTitle",
+  "heroHeading", // The whole hero
+  "heroHeadingTitle", // The title of the hero
   "menu", // ContextMenu or dropdown menu
   "playbar",
   "playbarAlbum",

@@ -12,6 +12,7 @@
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
   import { artists, playNewSource } from "@/lib/manager/Player"
   import { TEST_ATTRIBUTES } from "@/TestConsts"
+  import { PAGE_TITLES } from "@/Constants"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
 
@@ -67,13 +68,12 @@
 </script>
 
 <HeroHeading
-  title="Your artists"
+  title={PAGE_TITLES.artists}
   metadata={[
     {
       label: `${$artists.length} artist${$artists.length > 1 ? "s" : ""}`,
     },
   ]}
-  titleTestID="yourArtistsTitle"
 />
 {#if $artists.length === 0}
   <NothingHereYet />

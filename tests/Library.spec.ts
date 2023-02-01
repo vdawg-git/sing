@@ -57,6 +57,7 @@ describe("When adding all folders", async () => {
 
     // Nessecary as they still got displayed until a refresh for some reason
     await tracksPage.reload()
+    await tracksPage.waitToBeVisible()
 
     const expectedTitles = ["00", "01", "02", "03"]
 

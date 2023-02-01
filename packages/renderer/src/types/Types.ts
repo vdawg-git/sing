@@ -8,6 +8,7 @@ import type {
 import type { SvelteComponentDev } from "svelte/internal"
 import type { AsyncOrSync } from "ts-essentials"
 import type { ITestAttribute, ITestID } from "@/TestConsts"
+import type { PAGE_TITLES } from "@/Constants"
 
 export type IPlayState = MediaSessionPlaybackState
 export type IPlayLoop = "NONE" | "LOOP_QUEUE" | "LOOP_TRACK"
@@ -146,3 +147,5 @@ export type ICreateMenuOutOfMusic = (
 export type ICreateMenuOutOfTrack = (
   item: IMusicIDs["track"] & Pick<IPlaylist, "name">
 ) => IMenuItemsArgument
+
+export type IPageTitle = typeof PAGE_TITLES[keyof typeof PAGE_TITLES]

@@ -1,29 +1,31 @@
 /* eslint-disable unicorn/prefer-dom-node-text-content */
 
-import { TEST_IDS } from "../../packages/renderer/src/TestConsts"
+import { PAGE_TITLES } from "@sing-renderer/Constants"
 
 import { createBasePage } from "./BasePage"
 import { createTrackListOrganism } from "./Organisms/TrackList"
+import { createHeroHeadingOrganism } from "./Organisms/HeroHeading"
 
 import type { ElectronApplication } from "playwright"
 
 export async function createTracksPage(electron: ElectronApplication) {
   const basePage = await createBasePage(electron)
-  const page = await electron.firstWindow()
+  // const page = await electron.firstWindow()
 
   const trackList = await createTrackListOrganism(electron)
 
-  const pageTitle = page.getByTestId(TEST_IDS.yourTracksTitle)
+  const heading = await createHeroHeadingOrganism(electron)
 
   return {
     ...basePage,
 
     trackList,
+    heading,
 
-    isDisplayed,
+    waitToBeVisible,
   }
 
-  async function isDisplayed(): Promise<boolean> {
-    return pageTitle.isVisible()
+  async function waitToBeVisible() {
+    return heading.waitForTitle(PAGE_TITLES.tracks)
   }
 }

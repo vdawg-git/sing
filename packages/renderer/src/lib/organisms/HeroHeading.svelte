@@ -1,7 +1,9 @@
 <script lang="ts">
   import { useNavigate } from "svelte-navigator"
+  import clsx from "clsx"
 
   import { doTextResizeToFitElement } from "@/Helper"
+  import { TEST_IDS } from "@/TestConsts"
 
   import CoverAndPlaylistThumbnail from "../atoms/CoverAndPlaylistThumbnail.svelte"
 
@@ -10,7 +12,6 @@
   import type { FilePath } from "@sing-types/Filesystem"
   import type { EventHandler } from "@sing-types/Utilities"
   import type { IHeroAction, IHeroMetaDataItem } from "@/types/Types"
-  import type { ITestID } from "@/TestConsts"
 
   /**
    * The cover(s) to display
@@ -26,7 +27,6 @@
     | undefined = undefined
   export let handleClickTitle: EventHandler | undefined = undefined
   export let handleClickDescription: EventHandler | undefined = undefined
-  export let titleTestID: ITestID
 
   const navigate = useNavigate()
   // TODO disable focus indicator for now
@@ -36,7 +36,10 @@
   // TODO fix auto resizing and heading size
 </script>
 
-<header class="mb-10 mt-32 flex max-w-full flex-col justify-start gap-10 ">
+<header
+  data-testid={TEST_IDS.heroHeading}
+  class="mb-10 mt-32 flex max-w-full flex-col justify-start gap-10 "
+>
   <div class="flex max-w-full items-end gap-10 text-ellipsis ">
     <!-- Image / Cover -->
     {#if Array.isArray(image) ? image.length > 0 : image}
@@ -68,11 +71,13 @@
       <!---- Title -->
       {#key title}
         <h1
-          class="scroll block h-max  overflow-x-hidden overflow-y-clip text-ellipsis whitespace-nowrap pb-4 leading-none 
-          {!!handleClickTitle && 'cursor-pointer hover:text-grey-200'}"
+          class={clsx(
+            "scroll block h-max  overflow-x-hidden overflow-y-clip text-ellipsis whitespace-nowrap pb-4 leading-none",
+            handleClickTitle && "cursor-pointer hover:text-grey-200"
+          )}
           use:doTextResizeToFitElement={{ minSize: 32, maxSize: 120, step: 8 }}
           on:click={handleClickTitle}
-          data-testid={titleTestID}
+          data-testid={TEST_IDS.heroHeadingTitle}
         >
           {title}
         </h1>
@@ -81,10 +86,10 @@
       <!-- Description -->
       {#if description}
         <div
-          class="break-words text-base text-grey-200 {handleClickDescription ===
-          undefined
-            ? 'cursor-auto'
-            : 'cursor-pointer'}"
+          class={clsx(
+            "break-words text-base text-grey-200",
+            handleClickDescription ? "cursor-auto" : "cursor-pointer"
+          )}
           on:click={handleClickDescription}
         >
           {description}
@@ -101,9 +106,10 @@
                     navigate(to)
                   }
                 : undefined}
-              class={`
-                ${to && "cursor-pointer hover:underline"} 
-                ${bold ? "text-bold text-white" : "text-grey-100"}`}
+              class={clsx(
+                to && "cursor-pointer hover:underline",
+                bold ? "text-bold text-white" : "text-grey-100"
+              )}
             >
               {label}
             </div>

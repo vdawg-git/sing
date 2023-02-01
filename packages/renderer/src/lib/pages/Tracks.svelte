@@ -5,6 +5,7 @@
 
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
   import { playNewSource, tracks } from "@/lib/manager/Player"
+  import { PAGE_TITLES } from "@/Constants"
 
   import { backgroundImages } from "../stores/BackgroundImages"
   import { playlistsStore } from "../stores/PlaylistsStore"
@@ -36,7 +37,7 @@
   }
 </script>
 
-<HeroHeading title="Your tracks" {metadata} titleTestID={"yourTracksTitle"} />
+<HeroHeading title={PAGE_TITLES.tracks} {metadata} />
 
 {#if $tracks.length === 0}
   <NothingHereYet />

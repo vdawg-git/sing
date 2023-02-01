@@ -35,12 +35,12 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
     addFolder,
     editFolder,
     getFolderNames,
-    isDisplayed,
     removeAllFolders,
     removeFolder,
+    resetToDefault,
     saveAndSyncFolders,
     setDefaultFolders,
-    resetToDefault,
+    waitToBeVisible,
   }
 
   async function resetToDefault() {
@@ -86,8 +86,8 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
     return folderElements
   }
 
-  async function isDisplayed(): Promise<boolean> {
-    return folders.isVisible()
+  async function waitToBeVisible(): Promise<void> {
+    return folders.waitFor({ timeout: 1000 })
   }
 
   async function addFolder(

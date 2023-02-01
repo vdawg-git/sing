@@ -55,7 +55,7 @@ describe("navigation", async () => {
 
     const artistPage = await result.goTo.artist()
 
-    const artistName = await artistPage.getName()
+    const artistName = await artistPage.heading.getTitle()
 
     expect(artistName).toEqual(UNKNOWN_ARTIST)
   })
@@ -72,7 +72,7 @@ describe("navigation", async () => {
 
     const albumName = await result.goTo
       .album()
-      .then((albumPage) => albumPage.getTitle())
+      .then((albumPage) => albumPage.heading.getTitle())
 
     expect(albumName).toEqual(UNKNOWN_ALBUM)
   })

@@ -14,6 +14,7 @@
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
   import { convertAlbumToCardData } from "@/Helper"
   import { albums } from "@/lib/manager/Player"
+  import { PAGE_TITLES } from "@/Constants"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
 
@@ -50,13 +51,12 @@
 </script>
 
 <HeroHeading
-  title="Your albums"
+  title={PAGE_TITLES.albums}
   metadata={[
     {
       label: displayTypeWithCount("album", $albums.length),
     },
   ]}
-  titleTestID="yourArtistsTitle"
 />
 {#if $albums.length === 0}
   <NothingHereYet />

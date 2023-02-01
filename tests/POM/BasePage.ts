@@ -88,31 +88,38 @@ export async function createBasePage(electron: ElectronApplication) {
     await openSidebarMenu()
     await sidebarMenuSettings.click({ timeout: 3000, force: true })
 
-    return createLibrarySettingsPage(electron)
+    const settingsLibraryPage = await createLibrarySettingsPage(electron)
+    await settingsLibraryPage.waitToBeVisible()
+
+    return settingsLibraryPage
   }
 
   async function gotoTracks() {
     await sidebarItemTracks.click({ timeout: 2000, force: true })
 
-    // await page.waitForTimeout(520) // Rendering of the store does not seem to be instant
+    const tracksPage = await createTracksPage(electron)
 
-    return createTracksPage(electron)
+    await tracksPage.waitToBeVisible()
+
+    return tracksPage
   }
 
   async function gotoAlbums() {
     await sidebarItemAlbums.click({ timeout: 2000, force: true })
 
-    // await page.waitForTimeout(520) // Rendering of the store does not seem to be instant
+    const albumsPage = await createAlbumsPage(electron)
+    await albumsPage.waitToBeVisible()
 
-    return createAlbumsPage(electron)
+    return albumsPage
   }
 
   async function goToArtists() {
-    await sidebarItemArtists.click({ timeout: 1000, force: true })
+    await sidebarItemArtists.click({ timeout: 500, force: true })
 
-    // await page.waitForTimeout(520) // Rendering of the store does not seem to be instant
+    const artistsPage = await createArtistsPage(electron)
+    await artistsPage.waitToBeVisible()
 
-    return createArtistsPage(electron)
+    return artistsPage
   }
 
   async function openSidebarMenu() {

@@ -1,5 +1,7 @@
 /* eslint-disable unicorn/prefer-dom-node-text-content */
 
+import { PAGE_TITLES } from "@sing-renderer/Constants"
+
 import {
   TEST_ATTRIBUTES,
   TEST_IDS,
@@ -7,6 +9,7 @@ import {
 
 import { createBasePage } from "./BasePage"
 import { getCards } from "./Helper"
+import { createHeroHeadingOrganism } from "./Organisms/HeroHeading"
 
 import type { ElectronApplication } from "playwright"
 
@@ -14,7 +17,7 @@ export async function createPlaylistsPage(electron: ElectronApplication) {
   const basePage = await createBasePage(electron)
   const page = await electron.firstWindow()
 
-  const pageTitle = page.locator("Your playlists")
+  const heading = await createHeroHeadingOrganism(electron)
   const playlistItems = page.locator(
     TEST_IDS.asQuery.playlistCards + " " + TEST_ATTRIBUTES.asQuery.playlistCard
   )
@@ -27,8 +30,8 @@ export async function createPlaylistsPage(electron: ElectronApplication) {
     isDisplayed,
   }
 
-  async function isDisplayed(): Promise<boolean> {
-    return pageTitle.isVisible()
+  async function isDisplayed(): Promise<void> {
+    return heading.waitForTitle(PAGE_TITLES.playlists)
   }
 
   async function hasPlaylists() {
