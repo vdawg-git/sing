@@ -56,7 +56,9 @@ export async function createQueuebarOrganism(electron: ElectronApplication) {
   }
 
   async function playNextTrack() {
+    await open()
     await nextQueueTrack.dblclick({ timeout: 2000 })
+    await close()
   }
 
   async function isQueueOpen() {

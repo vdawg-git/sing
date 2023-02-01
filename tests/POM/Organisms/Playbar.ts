@@ -211,6 +211,9 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
     return sliderHeight / heightTotal
   }
 
+  /**
+   * Sets the volume in decimal percentage like `0.5`.
+   */
   async function setVolume(volume: number): Promise<void> {
     await hoverVolumeIcon()
 
@@ -226,23 +229,23 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
     }
 
     const heightToReach = height * volume
-    const x = width || 12 * 0.5 // Do not click on the border
+    const x = width * 0.5 // Do not click on the border, click on the center
 
     await volumeSlider.click({
       position: {
         y: heightToReach,
         x,
       },
-      timeout: 2000,
+      timeout: 1000,
       force: true,
     })
 
-    await validateAndWaitForAnimation()
+    await waitForAnimationToFinish()
 
-    async function validateAndWaitForAnimation(
+    async function waitForAnimationToFinish(
       newHeight?: number | undefined,
       previousHeight?: number | undefined
-    ): Promise<boolean> {
+    ): Promise<void> {
       const boundingBox = await volumeSliderInner.boundingBox()
 
       const newElementHeight = boundingBox?.height
@@ -251,10 +254,11 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
         throw new Error("height of volume gradient is undefined")
 
       if (newElementHeight !== previousHeight) {
+        // Nessecary as two frames might have the same value
         await page.waitForTimeout(10)
-        return validateAndWaitForAnimation(newElementHeight, newHeight)
+        return waitForAnimationToFinish(newElementHeight, newHeight)
       }
-      return newElementHeight === heightToReach
+      return
     }
   }
 

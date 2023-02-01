@@ -178,11 +178,11 @@
             class="flex flex-col gap-4"
             data-testid={TEST_IDS.queueBarNextTracks}
           >
-            {#each nextTracksDisplayed as { track, index, queueID } (queueID)}
+            {#each nextTracksDisplayed as { track, index, queueID }, eachIndex (queueID)}
               <div animate:flip={{ duration: flipDuration }}>
                 <QueueItem
                   {track}
-                  testId={index === 0 ? "queueNextTrack" : undefined}
+                  testId={eachIndex === 0 ? "queueNextTrack" : undefined}
                   testQueueNextIndex={index}
                   testattributes={[
                     TEST_ATTRIBUTES.queueNextTracks,

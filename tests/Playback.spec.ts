@@ -36,7 +36,6 @@ it("displays a cover", async () => {
 
 it("does not throw an error when playing a queue item", async () => {
   const tracksPage = await createTracksPage(electron)
-  await tracksPage.queuebar.open()
 
   const errorListener = await tracksPage.createErrorListener()
   await tracksPage.queuebar.playNextTrack()
@@ -138,7 +137,7 @@ it("goes to the next track in queue after the current has finished", async () =>
   expect(oldNextTrack).toEqual(newCurrentTrack)
 })
 
-it("changes the volume when clicking the slider", async () => {
+it.only("changes the volume when clicking the slider", async () => {
   const tracksPage = await createTracksPage(electron)
 
   const oldVolume = await tracksPage.playbar.getVolume()
@@ -146,9 +145,9 @@ it("changes the volume when clicking the slider", async () => {
   await tracksPage.playbar.setVolume(0.5)
   const newVolume = await tracksPage.playbar.getVolume()
 
-  expect(newVolume).not.toBe(oldVolume)
+  expect(newVolume, "It did not change the volume.").not.toBe(oldVolume)
   expect(newVolume).toBeCloseTo(0.5, 1)
-}, 50_000)
+})
 
 it("visualizes the volume correctly", async () => {
   const tracksPage = await createTracksPage(electron)
@@ -282,7 +281,7 @@ describe("when playing a track while shuffle is on", async () => {
     expect(newQueue.slice(0, 10)).not.toEqual(oldQueue.slice(0, 10))
   })
 
-  it.only("should not interrupt playback when removing a previous track in the queue", async () => {
+  it("should not interrupt playback when removing a previous track in the queue", async () => {
     await tracksPage.playbar.clickShuffle()
     await tracksPage.playbar.clickNext()
     await tracksPage.playbar.clickNext()

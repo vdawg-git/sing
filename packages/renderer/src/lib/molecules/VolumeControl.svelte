@@ -13,8 +13,9 @@
   // FIXME Volume displays muted if paused. Fix this
 
   const animatedValue = spring(volume, {
-    damping: 0.2,
-    stiffness: 0.09,
+    damping: 0.15,
+    stiffness: 0.12,
+    precision: 0.005,
   })
   $: {
     animatedValue.set(volume)
