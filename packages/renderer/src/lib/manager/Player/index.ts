@@ -363,10 +363,15 @@ export function playFromManualQueue(index: number): void {
  * Remove an item from the auto queue.
  */
 export function removeIndexFromQueue(index: number): void {
-  queueStore.autoQueue.removeItems(index)
+  // Save the previous current index as `.removeItem` might change it
+  const lastCurrentIndex = $currentIndex
+
+  queueStore.autoQueue.removeItem(index)
 
   // If the current track was removed while it was being played, play the next (the new current) one
-  if ($currentIndex === index && $playState === "playing") {
+  if (lastCurrentIndex === index && $playState === "playing") {
+    console.log("Start playing _")
+
     startPlayingCurrentTrack()
   }
 }

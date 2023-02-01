@@ -34,7 +34,7 @@ export const queueStore = {
   autoQueue: {
     set: setAutoQueue,
     update: updateAutoQueue,
-    removeItems: removeAutoQueueTracks,
+    removeItem: removeAutoQueueTracks,
   },
   manualQueue: {
     set: setManualQueue,
