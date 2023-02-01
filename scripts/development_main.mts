@@ -53,7 +53,9 @@ startElectron()
 
 async function handleKeypress(ch: string, key: KeyStroke) {
   match(key)
-    .with({ name: "c", shift: false, ctrl: true }, () => process.exit(0))
+    .with({ name: "c", shift: false, ctrl: true }, () => {
+      process.exit(0)
+    })
     .with({ name: "a" }, restartElectron)
     .with({ name: "z" }, console.clear)
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -73,7 +75,7 @@ async function restartElectron() {
   startElectron()
 
   electronApp.addListener("exit", () => {
-    console.log("\n\n" + c.inverse(" - ") + c.bgYellow(" Electron exited"))
+    console.log("\n\n" + c.inverse(" - ") + c.bgYellow(" Electron exited "))
     console.log("\n" + c.dim(`Press ${c.green("a")} to restart.\n\n`))
   })
 }
