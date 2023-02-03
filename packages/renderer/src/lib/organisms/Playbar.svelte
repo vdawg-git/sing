@@ -50,11 +50,11 @@
 
 <section
   class="
-    custom_shadow absolute inset-x-0
+    _effects absolute inset-x-0
     bottom-0 z-40 grid h-[72px]
     w-full grid-cols-3 items-center  justify-between  
     rounded-t-xl border
-    border-grey-400/50 bg-grey-700/80 px-4 backdrop-blur-xl
+    border-grey-400/50 bg-grey-700/80 px-4
   "
   data-testid={TEST_IDS.playbar}
 >
@@ -213,8 +213,9 @@
 {/if}
 
 <style lang="postcss">
-  .custom_shadow {
+  ._effects {
     box-shadow: 0 0 32px 0 rgba(0, 0, 0, 0.5);
+    backdrop-filter: saturate(400%) blur(24px);
   }
 
   * {
