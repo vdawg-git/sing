@@ -24,10 +24,10 @@ Sing is still in Alpha and does not support auto-updates yet. Future updates mig
 
 ### ToDo
 
+- Smart Playlists
 - Drag and Drop support
 - Order playlists
 - Sorting
-- Smart Playlists
 - Android sync
 - much more
 
@@ -43,4 +43,3 @@ Sing is still in Alpha and does not support auto-updates yet. Future updates mig
 - `npm run start`: Start app in dev mode ( But better use the VS Code task `devMode`)
 - `npm run build`: Build
 
-Tests are currently not maintained. But will be again.
