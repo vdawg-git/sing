@@ -9,13 +9,18 @@
   <a href="https://github.com/Visual-Dawg/sing/releases">Download for Windows (MacOS and Linux coming soon)</a>
 </p>
 
+![screenshot sing 2](https://user-images.githubusercontent.com/28539403/217030031-0f96f515-079a-436e-8b32-d4afe72586d3.png)
+
+
+
 ## ⚠️ Early Alpha
 
 Sing is still in Alpha and does not support auto-updates yet. Future updates might need you to resync your library, but it does never modify your music files.
 
 <br/>
 
-## Dev instructions
+
+
 
 ### ToDo
 
