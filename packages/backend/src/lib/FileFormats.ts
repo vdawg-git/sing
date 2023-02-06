@@ -1,11 +1,16 @@
+// TODO check which formats are *fully* supported by Chrome.
+
 export const ALL_MUSIC_FORMATS = [
   "3gp",
+  "aac",
   "aif",
   "aifc",
   "aiff",
   "ape",
   "asf",
   "bwf",
+  "caf",
+  "dolby",
   "flac",
   "m4a",
   "m4b",
@@ -20,44 +25,30 @@ export const ALL_MUSIC_FORMATS = [
   "mp2",
   "mp3",
   "mp4",
+  "mp4",
   "mpc",
+  "mpeg",
   "mpp",
   "oga",
-  "ogg",
   "ogg",
   "ogm",
   "ogv",
   "ogx",
   "opus",
   "spx",
-  "spx",
-  "wav",
   "wav",
   "wave",
+  "weba",
   "webm",
-  "wma",
   "wma",
   "wmv",
   "wv",
 ] as const
 
 export const SUPPORTED_MUSIC_FORMATS = [
-  "aac",
-  "caf",
-  "dolby",
   "flac",
-  "m4b",
-  "m4a",
   "mp3",
-  "mp4",
-  "mpeg",
-  "oga",
-  "ogg",
-  "opus",
-  "wav",
-  "weba",
-  "webm",
-] as const
+] as const satisfies Readonly<typeof ALL_MUSIC_FORMATS[number][]>
 
 export const UNSUPPORTED_MUSIC_FORMATS = ALL_MUSIC_FORMATS.filter(
   (format) =>
