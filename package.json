@@ -15,28 +15,29 @@
   "repository": "https://github.com/Visual-Dawg/sing",
   "main": "dist/main/src/index.cjs",
   "scripts": {
-    "start": "cross-env NODE_ENV=development concurrently -r -n Ü,Ö  \"npm run dev:electron\" \"npm:dev:vite\" -c cyan,magenta",
-    "build": "concurrently -g \"npm run build:*\" --kill-others-on-fail",
+    "start": "cross-env NODE_ENV=development concurrently -r -n Ü,Ö  \"pnpm run dev:electron\" \"pnpm:dev:vite\" -c cyan,magenta",
+    "build": "concurrently -g \"pnpm run build:*\" --kill-others-on-fail",
     "build:main": "tsx ./scripts/build.mts",
     "build:prisma": "prisma db push && node ./scripts/copy-files.cjs && node ./scripts/InstallEnginesOnMac.cjs",
     "build:renderer": "cd ./packages/renderer && vite build",
-    "compile": "cross-env MODE=production npm run build && electron-builder --dir ",
+    "compile": "cross-env MODE=production pnpm run build && electron-builder --dir ",
     "deps:check": "ncu -x slash,music-metadata",
     "deps:update": "ncu -x slash,music-metadata -u",
     "dev:vite": "cross-env NODE_ENV=development && cd ./packages/renderer/ && vite",
     "dev:electron": "tsx ./scripts/development_main.mts",
     "lint": "eslint . --ext js,ts,svelte",
-    "package": "cross-env MODE=production npm run build && electron-builder",
-    "test": "npm run test:main | npm run test:renderer | npm run test:backend | npm run test:e2e",
+    "package": "cross-env MODE=production pnpm run build && electron-builder",
+    "test": "pnpm run test:main | pnpm run test:renderer | pnpm run test:backend | pnpm run test:e2e",
     "test:backend": "vitest run -r packages/backend --passWithNoTests --threads false",
     "test:backend-watch": "vitest -r packages/backend --passWithNoTests --threads false",
     "test:circular-dependencies": "npx madge --circular --extensions ts,svelte --exclude 'music-metadata' ./packages/",
-    "test:e2e": "npm run build && vitest run --threads false",
+    "test:e2e": "pnpm run build && vitest run --threads false",
     "test:main": "vitest run -r packages/main --passWithNoTests --threads false",
     "test:main-watch": "vitest  -r packages/main --passWithNoTests --threads false",
     "test:renderer": "vitest run -r packages/renderer --passWithNoTests",
     "test:renderer-watch": "vitest  -r packages/renderer --passWithNoTests",
-    "test:shared": "vitest run -r packages/shared"
+    "test:shared": "vitest run -r packages/shared",
+    "preinstall": "npx only-allow pnpm"
   },
   "devDependencies": {
     "@floating-ui/dom": "^1.1.0",
@@ -93,6 +94,7 @@
     "prettier-plugin-tailwindcss": "^0.2",
     "replace-in-file": "^6.3.5",
     "slash": "3.0.0",
+    "source-map-support": "^0.5.21",
     "svelte": "^3.55.0",
     "svelte-navigator": "^3.2.2",
     "svelte-preprocess": "^5.0.0",
@@ -109,6 +111,7 @@
     "vitest": "^0.26.2"
   },
   "dependencies": {
+    "@prisma/engines": "^4.11.0",
     "prisma": "^4.8.0"
   },
   "prisma": {
