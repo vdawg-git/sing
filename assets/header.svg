@@ -22,7 +22,7 @@
                 :root {
                     --orangeDark: #ff3c00;
                     --orangeLight: #ffa12d;
-                    --duration: 10s;
+                    --duration: 8s;
                 }
 
                 svg {
