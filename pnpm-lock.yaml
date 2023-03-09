@@ -14,6 +14,7 @@ specifiers:
   '@tsconfig/svelte': ^3.0.0
   '@types/jsdom': ^20.0.1
   '@types/node': ^18.11.18
+  '@types/source-map-support': ^0.5.6
   '@typescript-eslint/eslint-plugin': ^5.47.1
   '@typescript-eslint/parser': ^5.47.1
   ansicolor: ^1.1.100
@@ -90,6 +91,7 @@ devDependencies:
   '@tsconfig/svelte': 3.0.0
   '@types/jsdom': 20.0.1
   '@types/node': 18.14.6
+  '@types/source-map-support': 0.5.6
   '@typescript-eslint/eslint-plugin': 5.54.1_mlk7dnz565t663n4razh6a6v6i
   '@typescript-eslint/parser': 5.54.1_ycpbpc6yetojsgtrx3mwntkhsu
   ansicolor: 1.1.100
@@ -1218,6 +1220,12 @@ packages:
 
   /@types/semver/7.3.13:
     resolution: {integrity: sha512-21cFJr9z3g5dW8B0CVI9g2O9beqaThGQ6ZFBqHfwhzLDKUxaqTIy3vnfah/UPkfOiF2pLq+tGz+W8RyCskuslw==}
+    dev: true
+
+  /@types/source-map-support/0.5.6:
+    resolution: {integrity: sha512-b2nJ9YyXmkhGaa2b8VLM0kJ04xxwNyijcq12/kDoomCt43qbHBeK2SLNJ9iJmETaAj+bKUT05PQUu3Q66GvLhQ==}
+    dependencies:
+      source-map: 0.6.1
     dev: true
 
   /@types/tough-cookie/4.0.2:

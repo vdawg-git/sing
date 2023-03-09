@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./buildResources/icon.png" width="200" height="200">
+  <img src="https://raw.githubusercontent.com/Visual-Dawg/sing/main/assets/header.svg" width="250" height="250">
 </div>
   <br/>
 <h1 align="center">Sing</h1>
@@ -13,7 +13,7 @@
 
 ## ⚠️ Early Alpha
 
-Sing is still in Alpha and does not support auto-updates yet. Future updates might need you to resync your library, but it does never modify your music files.
+Sing is still in Alpha and does not support auto-updates yet. Future updates might require you to resync your library.
 
 <br/>
 
@@ -21,7 +21,7 @@ Sing is still in Alpha and does not support auto-updates yet. Future updates mig
 
 1. Install Node.js
 2. Install Git LFS
-3. Create a `.env` based on `.example.env`
+3. Duplicate `.example.env` as `.env`
 4. Run `pnpm install`
 5. Run `pnpm run build:prisma` (Rerun this when changing `schema.prisma`)
 
@@ -36,5 +36,5 @@ Sing is still in Alpha and does not support auto-updates yet. Future updates mig
 
 ### Commands
 
-- `npm run start`: Start app in dev mode ( But better use the VS Code task `devMode`)
-- `npm run build`: Build
+- `pnpm start`: Start app in dev mode ( Or use the VS Code task named `devMode`)
+- `pnpm run build`: Build
