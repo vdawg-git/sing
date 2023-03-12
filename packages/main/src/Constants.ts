@@ -19,9 +19,9 @@ export const productionDBPath = slash(
 export const databasePath = isDevelopment ? developmentDBPath : productionDBPath
 export const databaseURL = `file:${databasePath}`
 
-export const coversDirectory = `${slash(
-  app.getPath("userData")
-)}/covers/` as DirectoryPath
+export const coversDirectory = (slash(app.getPath("userData")) +
+  "/covers" +
+  (isDevelopment ? "Dev/" : "/")) as DirectoryPath
 
 export const electronPaths = [
   "home",
