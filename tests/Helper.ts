@@ -20,12 +20,13 @@ export async function launchElectron(): Promise<ElectronApplication> {
   const electronApp = await electron.launch({
     args: ["."],
     bypassCSP: true,
-    // executablePath,
+    env: {
+      ...process.env,
+      NODE_ENV: "testing", // Acts like dev but loads files from disk instead of Vite
+    },
   })
 
-  // electronApp.on("window", (page) => page.on("console", log))
-
-  // await electronApp.waitForEvent("window")
+  // electronApp.on("window", (page) => page.on("console", console.log))
 
   return electronApp
 }

@@ -6,7 +6,10 @@ import slash from "slash"
 import type { IElectronPaths } from "@sing-types/Types"
 import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"
 
-export const isDevelopment = process.env.NODE_ENV === "development"
+/** Used for loading the correct URL in the main window during testing. */
+export const isTesting = process.env.NODE_ENV === "testing"
+/** Is the current enviroment in development or testing */
+export const isDevelopment = isTesting || process.env.NODE_ENV === "development"
 
 export const developmentDBPath = slash(
   path.join(app.getPath("userData"), "devDB.db")
