@@ -6,85 +6,81 @@ import { pipe } from "fp-ts/lib/function"
 
 import { moveIndexToIndex } from "@sing-shared/Pures"
 
-import { notifiyError, sortAlphabetically } from "@/Helper"
+import { notifiyError } from "@/Helper"
+
+import { dispatch, mainStore } from "../../stores/mainStore"
 
 import { audioPlayer } from "./AudioPlayer"
-import { loopStateStore } from "./stores/LoopStateStore"
 import {
-  convertToQueueItem,
   getTracksFromSource,
+  goToRandomTracksPlayback,
+  handleSyncUpdate,
   initialiseMediaKeysHandler,
+  initialiseStores,
   setMediaSessionMetaData,
 } from "./Helper"
-import { queueStore } from "./stores/QueueStore"
 
-import type {
-  IPlayLoop,
-  IPlayState,
-  IQueueItem,
-  IQueueStore,
-} from "@/types/Types"
+import type { IPlayLoop, IPlayState, IQueueItem } from "@/types/Types"
 import type { IAlbum, IArtist, ITrack } from "@sing-types/DatabaseTypes"
-import type { INewPlayback, IPlayback, ISyncResult } from "@sing-types/Types"
-import type { IpcRendererEvent } from "electron"
+import type { INewPlayback, IPlayMeta } from "@sing-types/Types"
 
-export const removeIDFromManualQueue = queueStore.manualQueue.remove
-export const addTracksToManualQueueEnd = queueStore.manualQueue.addToEnd
-export const addTracksToManualQueueBeginning = queueStore.manualQueue.addToStart
+export const removeIDFromManualQueue = dispatch.playback.removeFromManualQueue
+export const addTracksToManualQueueEnd = dispatch.playback.addPlayLater
+export const addTracksToManualQueueBeginning = dispatch.playback.addPlayNext
 
 // Create stores / state
-const playStateStore = writable<IPlayState>("none")
 const volumeStore = writable(1)
 const currentTimeStore = writable(0)
 const durationStore = writable(0)
 const artistsStore = writable<readonly IArtist[]>([])
 const albumsStore = writable<readonly IAlbum[]>([])
 const tracksStore = writable<readonly ITrack[]>([])
-const playbackStore = writable<IPlayback>({
-  source: "allTracks",
-  sortBy: ["title", "ascending"],
-  isShuffleOn: false,
-})
 
 // Initialise stores with the music from the database
-await initialiseStores()
+await initialiseStores(tracksStore, albumsStore, artistsStore)
 
 // Now it makes sense to create and use the derived stores, as the base stores are initialised
 export const currentTrack: Readable<ITrack | undefined> = derived(
-  queueStore,
-  ({ autoQueue, index, manualQueue, isPlayingFromManualQueue }) =>
-    isPlayingFromManualQueue ? manualQueue[0].track : autoQueue.at(index)?.track
+  mainStore,
+  ({ playback }) =>
+    playback.isPlayingFromManualQueue
+      ? playback.manualQueue[0].track
+      : playback.autoQueue.at(playback.index)?.track
 )
 
 export const shuffleState = derived(
-  playbackStore,
-  ({ isShuffleOn }) => isShuffleOn
+  mainStore,
+  ({ playback }) => playback.meta.isShuffleOn
 )
 
-// Bind the values of the stores localy.
-let $autoQueue: IQueueStore["autoQueue"] = []
-let $currentIndex = -1
-let $currentTrack: ITrack | undefined
-let $manualQueue: IQueueStore["manualQueue"] = []
+export const playStateStore = derived(
+  mainStore,
+  ({ playback }) => playback.playState
+)
 
-let $isPlayingFromManualQueue = false
+const loopStore = derived(mainStore, ({ playback }) => playback.loop)
+const metaStore = derived(mainStore, ({ playback }) => playback.meta)
+const isAtEndStore = derived(mainStore, ({ playback }) => {
+  if (playback.loop !== "NONE") return false
+
+  return (
+    playback.index === playback.autoQueue.length - 1 &&
+    playback.manualQueue.length === 0
+  )
+})
+
+// Bind the values of the stores localy.
+let $currentTrack: ITrack | undefined
+
 let $isShuffleOn: boolean
-let $loopState: IPlayLoop
 let $playState: IPlayState = "none"
-let $playback: IPlayback
+let $loopState: IPlayLoop
+let $meta: IPlayMeta
+let $isAtEnd: boolean
 
 let $volume: number
 let seekbarProgressIntervalID: NodeJS.Timer
 let volumeBeforeMute: number | undefined
-
-queueStore.subscribe(
-  ({ autoQueue, manualQueue, index, isPlayingFromManualQueue }) => {
-    $currentIndex = index
-    $autoQueue = autoQueue
-    $manualQueue = manualQueue
-    $isPlayingFromManualQueue = isPlayingFromManualQueue
-  }
-)
 
 volumeStore.subscribe(($newVolume) => {
   $volume = $newVolume
@@ -93,6 +89,9 @@ volumeStore.subscribe(($newVolume) => {
 })
 
 playStateStore.subscribe(handlePlayStateUpdate)
+isAtEndStore.subscribe(($newIsAtEnd) => ($isAtEnd = $newIsAtEnd))
+loopStore.subscribe(($newLoop) => ($loopState = $newLoop))
+metaStore.subscribe(($newMeta) => ($meta = $newMeta))
 
 currentTrack.subscribe(($newCurrentTrack) => {
   if (dequal($currentTrack, $newCurrentTrack)) {
@@ -100,31 +99,31 @@ currentTrack.subscribe(($newCurrentTrack) => {
     return
   }
 
-  console.log({ $newCurrentTrack })
-
   $currentTrack = $newCurrentTrack
 
   setMediaSessionMetaData($newCurrentTrack)
 
   if ($newCurrentTrack) {
-    audioPlayer.setSource($newCurrentTrack.filepath)
-  }
-})
+    audioPlayer.resetCurrentTime()
 
-playbackStore.subscribe(($newPlayback) => {
-  $playback = $newPlayback
+    if ($playState === "playing") {
+      audioPlayer.play($newCurrentTrack.filepath)
+    } else {
+      audioPlayer.setSource($newCurrentTrack.filepath)
+      currentTimeStore.set(0) // Seekbar is not updating when paused
+    }
+  }
 })
 
 shuffleState.subscribe(($newShuffleState) => {
   $isShuffleOn = $newShuffleState
 })
 
-loopStateStore.subscribe(($newLoopState) => {
-  $loopState = $newLoopState
-})
-
 // Events
-window.api.on("syncedMusic", handleSyncUpdate)
+window.api.on(
+  "syncedMusic",
+  handleSyncUpdate(tracksStore, albumsStore, artistsStore)
+)
 audioPlayer.audio.addEventListener("ended", handleClickedNext)
 
 initialiseMediaKeysHandler({
@@ -137,80 +136,25 @@ initialiseMediaKeysHandler({
 // Functions
 
 export function handleClickedNext() {
-  console.log($currentIndex, $autoQueue)
-
-  // TODO Make this nicer, but how
-
-  // If the current track is set to loop, loop it
   if ($loopState === "LOOP_TRACK") {
-    durationStore.set(0)
-
-    if ($playState === "playing") {
-      startPlayingCurrentTrack()
-    }
+    audioPlayer.resetCurrentTime()
+    return
+  }
+  if ($isAtEnd) {
+    goToRandomTracksPlayback()
 
     return
   }
-
-  // If the manuell queue played, remove the played song
-  if ($isPlayingFromManualQueue) {
-    queueStore.manualQueue.removeFirst()
-  }
-
-  $manualQueue.length > 0
-    ? queueStore.setIsPlayingFromManualQueue(true)
-    : queueStore.setIsPlayingFromManualQueue(false)
-
-  // If there are tracks in the manualQueueStore
-  if ($isPlayingFromManualQueue) {
-    const source = $manualQueue[0].track.filepath
-    if ($playState === "playing") audioPlayer.play(source)
-
-    return
-  }
-
-  // If the auto queue reached the end
-  if (
-    $isPlayingFromManualQueue === false &&
-    $currentIndex === $autoQueue.length - 1
-  ) {
-    // Loop the playback if set
-
-    if ($loopState === "LOOP_QUEUE") {
-      queueStore.index.reset()
-
-      if ($playState === "playing") {
-        startPlayingCurrentTrack()
-      }
-      // Start a new playback state
-    } else if ($playState === "playing") {
-      playRandomTracksPlayback()
-    } else {
-      goToRandomTracksPlayback()
-    }
-
-    return
-  }
-
-  // If no manual queue is set, no looping etc. just play the next track in the auto queue.
-  if ($playState === "playing") playNext()
-  else goToNextTrack()
+  dispatch.playback.goToNext()
 }
 
 export function handleClickedPrevious() {
   // If the current track is set to loop, loop it
   if ($loopState === "LOOP_TRACK") {
-    durationStore.set(0)
-
-    if ($playState === "playing") {
-      startPlayingCurrentTrack()
-    }
-
+    audioPlayer.resetCurrentTime()
     return
   }
-
-  if ($playState === "playing") playPrevious()
-  else goToPreviousTrack()
+  dispatch.playback.goToPrevious()
 }
 
 /**
@@ -235,11 +179,7 @@ export function handleSeekingEnd() {
  * If the player is playing pause, otherwise resume playback.
  */
 export function togglePause() {
-  if ($playState === "playing") {
-    pausePlayback()
-  } else {
-    resumePlayback()
-  }
+  $playState === "playing" ? pausePlayback() : resumePlayback()
 }
 
 export async function toggleShuffle() {
@@ -247,7 +187,7 @@ export async function toggleShuffle() {
 
   pipe(
     await getTracksFromSource({
-      ...$playback,
+      ...$meta,
       isShuffleOn: newShuffleState,
     }),
     E.foldW(
@@ -285,10 +225,10 @@ export async function toggleShuffle() {
             }))
             .exhaustive()
 
-        setNewPlayback({
+        dispatch.playback.setNewPlayback({
           index,
           tracks,
-          playback: { ...$playback, isShuffleOn: newShuffleState },
+          meta: { ...$meta, isShuffleOn: newShuffleState },
         })
       }
     )
@@ -308,31 +248,13 @@ export function seekTo(percentage: number) {
 }
 
 export function resumePlayback() {
-  playStateStore.set("playing")
+  dispatch.playback.setPlayState("playing")
 
   audioPlayer.resume()
 }
 
-function goToPreviousTrack() {
-  queueStore.index.decrement()
-}
-
-function playPrevious() {
-  // Manually added tracks get removed after play, so there are no previous ones
-  if ($isPlayingFromManualQueue) {
-    queueStore.setIsPlayingFromManualQueue(false)
-  } else {
-    queueStore.index.decrement()
-  }
-  if ($currentTrack === undefined) {
-    throw new Error("No current track is defined after playing previous")
-  }
-
-  audioPlayer.play($currentTrack.filepath)
-}
-
 export function pausePlayback() {
-  playStateStore.set("paused")
+  dispatch.playback.setPlayState("paused")
   audioPlayer.pause()
 }
 
@@ -340,40 +262,21 @@ export function pausePlayback() {
  * Play a track from the queue and update the index according to the track index in the queue.
  */
 export function playFromAutoQueue(index: number): void {
-  queueStore.set({ isPlayingFromManualQueue: false, index })
-
-  startPlayingCurrentTrack()
+  dispatch.playback.playAutoQueueIndex(index)
 }
 
 /**
  * Play a track from the manual queue and if there are any, delete the other manual items before the played track.
  */
 export function playFromManualQueue(index: number): void {
-  queueStore.update(($state) => {
-    $state.isPlayingFromManualQueue = true
-    $state.manualQueue = $state.manualQueue.filter(
-      (item) => item.index >= index
-    )
-  })
-
-  startPlayingCurrentTrack()
+  dispatch.playback.playManualQueueIndex(index)
 }
 
 /**
  * Remove an item from the auto queue.
  */
 export function removeIndexFromQueue(index: number): void {
-  // Save the previous current index as `.removeItem` might change it
-  const lastCurrentIndex = $currentIndex
-
-  queueStore.autoQueue.removeItem(index)
-
-  // If the current track was removed while it was being played, play the next (the new current) one
-  if (lastCurrentIndex === index && $playState === "playing") {
-    console.log("Start playing _")
-
-    startPlayingCurrentTrack()
-  }
+  dispatch.playback.removeFromAutoQueue(index)
 }
 
 export function toggleMute() {
@@ -398,12 +301,12 @@ export async function playNewSource({
   index,
   ...data
 }: INewPlayback) {
-  queueStore.setIsPlayingFromManualQueue(false)
+  // queueStore.setIsPlayingFromManualQueue(false)
 
   const newShuffleState = data.isShuffleOn ?? $isShuffleOn
 
   // If the source stayed the same just go to the specified index of the queue.
-  if (newShuffleState === false && dequal($playback, data)) {
+  if (newShuffleState === false && dequal($meta, data)) {
     playFromAutoQueue(index)
     return
   }
@@ -425,14 +328,6 @@ export async function playNewSource({
           return
         }
 
-        console.log(
-          "🚀 ~ file: index.ts:427 ~ data.isShuffleOn && firstTrack",
-          {
-            isShuffleOn: newShuffleState,
-            firstTrack: firstTrack?.title ?? firstTrack?.filepath,
-          }
-        )
-
         const tracksToAdd =
           newShuffleState && firstTrack
             ? [
@@ -441,81 +336,14 @@ export async function playNewSource({
               ]
             : tracks
 
-        setNewPlayback({
+        dispatch.playback.playNewPlayback({
           tracks: tracksToAdd,
           index: newShuffleState ? 0 : index,
-          playback: newPlaybackState,
-        })
-
-        startPlayingCurrentTrack()
-      }
-    )
-  )
-}
-
-async function playRandomTracksPlayback() {
-  await goToRandomTracksPlayback()
-
-  startPlayingCurrentTrack()
-}
-
-/**
- * Sets a new playback with random tracks, but does not start playing.
- */
-async function goToRandomTracksPlayback() {
-  const playback: IPlayback = {
-    source: "allTracks",
-    sortBy: ["title", "ascending"],
-    isShuffleOn: true,
-  }
-
-  pipe(
-    await getTracksFromSource(playback),
-
-    E.foldW(
-      notifiyError("Error while trying to play selected music"),
-
-      (tracks) => {
-        setNewPlayback({
-          tracks,
-          index: 0,
-          playback,
+          meta: newPlaybackState,
         })
       }
     )
   )
-}
-
-/**
- * Sets a new playback. Does not pause or play.
- * Just updates the stores.
- */
-function setNewPlayback({
-  index,
-  tracks,
-  playback,
-}: {
-  index: number
-  tracks: readonly ITrack[]
-  playback: IPlayback
-}): void {
-  playbackStore.set(playback)
-  queueStore.set({ index, autoQueue: tracks.map(convertToQueueItem) })
-}
-
-function playNext() {
-  // Update index
-  queueStore.index.increment()
-
-  startPlayingCurrentTrack()
-}
-
-function goToNextTrack() {
-  queueStore.index.increment()
-
-  if ($currentTrack === undefined) {
-    throw new Error("Current track is undefined afer going to the next track")
-  }
 }
 
 function handlePlayStateUpdate(newState: IPlayState) {
@@ -523,7 +351,7 @@ function handlePlayStateUpdate(newState: IPlayState) {
 
   navigator.mediaSession.playbackState = newState
 
-  match($playState)
+  match(newState)
     .with("playing", () => {
       durationStore.set($currentTrack?.duration || 0)
       startProgressingSeekbar()
@@ -537,7 +365,6 @@ function handlePlayStateUpdate(newState: IPlayState) {
     .exhaustive()
 }
 
-// TODO make this use a much slower interval as currently it takes a lot of ressources
 function startProgressingSeekbar() {
   progressSeekbar()
 
@@ -553,119 +380,39 @@ function endProgressingSeekbar() {
   clearInterval(seekbarProgressIntervalID)
 }
 
-function startPlayingCurrentTrack() {
-  if ($currentTrack === undefined) {
-    throw new Error("Current track is undefined and cannot be played")
-  }
-
-  playStateStore.set("playing")
-  audioPlayer.play($currentTrack.filepath)
-}
-
-async function initialiseStores() {
-  pipe(
-    await window.api.getTracks(),
-
-    E.foldW(
-      notifiyError("Failed to get tracks"),
-
-      (newTracks) => {
-        if (newTracks.length === 0) return
-
-        tracksStore.set(newTracks)
-        queueStore.autoQueue.set(newTracks)
-      }
-    )
-  )
-
-  pipe(
-    await window.api.getAlbums(),
-
-    E.foldW(
-      notifiyError("Failed to get albums"),
-
-      albumsStore.set
-    )
-  )
-
-  pipe(
-    await window.api.getArtists(),
-
-    E.foldW(
-      notifiyError("Failed to get artists"),
-
-      artistsStore.set
-    )
-  )
-}
-
-async function handleSyncUpdate(
-  _event: IpcRendererEvent,
-  syncResult: ISyncResult
-) {
-  pipe(
-    syncResult,
-    E.foldW(
-      notifiyError("Failed to update the library. Please restart the app"),
-
-      ({ tracks, albums, artists }) => {
-        const sortedTracks = [...tracks].sort(sortAlphabetically)
-
-        if (tracks.length === 0) {
-          console.warn("Received tracks at tracksStore -> data is not valid:", {
-            tracks,
-            albums,
-            artists,
-          })
-        }
-
-        // Update the stores
-        tracksStore.set(sortedTracks)
-        albumsStore.set(albums)
-        artistsStore.set(artists)
-
-        queueStore.intersect(sortedTracks)
-      }
-    )
-  )
-}
-
 // Export some stores as read-only to prevent bugs
-export const playIndex = derived(queueStore, ($store) => $store.index)
 export const playState = { subscribe: playStateStore.subscribe }
 export const volume = { subscribe: volumeStore.subscribe }
 export const currentTime = { subscribe: currentTimeStore.subscribe }
 export const tracks = { subscribe: tracksStore.subscribe }
 export const albums = { subscribe: albumsStore.subscribe }
 export const artists = { subscribe: artistsStore.subscribe }
-export const autoQueue = derived(queueStore, ($store) => $store.autoQueue)
+// Display only the last 20 played tracks or less if there
+export const playIndex = derived(mainStore, ({ playback }) => playback.index)
 export const playedTracks = derived(
-  queueStore,
+  mainStore,
   // Display only the last 20 played tracks or less if there are no more
   // And if a track from the manualQueue is playing, also display the track at the current index of the autoQueue, as it is not the current track, but the previous to the manualQueue track.
-  ({ autoQueue: $autoQueue_, index, isPlayingFromManualQueue }) =>
-    $autoQueue_.slice(
-      index - 20 > 0 ? index - 20 : 0,
-      isPlayingFromManualQueue ? index + 1 : index
+  ({ playback }) =>
+    playback.autoQueue.slice(
+      playback.index - 20 > 0 ? playback.index - 20 : 0,
+      playback.isPlayingFromManualQueue ? playback.index + 1 : playback.index
     )
 )
 export const nextTracks: Readable<IQueueItem[]> = derived(
-  queueStore,
-  ({ autoQueue: $autoQueue_, index: currentIndex }) =>
-    $autoQueue_.slice(currentIndex + 1)
+  mainStore,
+  ({ playback }) => playback.autoQueue.slice(playback.index + 1)
 )
 /**
  * The manual queue for the UI to display.
  * Not to be used for anything else as it adjust some data for rendering.
  */
-export const manualQueue = derived(
-  queueStore,
-  ({ manualQueue: $newManualQueue, isPlayingFromManualQueue }) =>
-    // If the current track is from the manual queue, it would still show up in "manually added" section. So lets remove it from the queue for display purposes.
-    isPlayingFromManualQueue ? $newManualQueue.slice(1) : $newManualQueue
+export const manualQueue = derived(mainStore, ({ playback }) =>
+  // If the current track is from the manual queue, it would still show up in "manually added" section. So lets remove it from the queue for display purposes.
+  playback.isPlayingFromManualQueue
+    ? playback.manualQueue.slice(1)
+    : playback.manualQueue
 )
 
-export {
-  setNextLoopState,
-  loopStateStore as loopState,
-} from "./stores/LoopStateStore"
+export const loopState = derived(mainStore, ({ playback }) => playback.loop)
+export const setNextLoopState = dispatch.playback.setNextLoopState

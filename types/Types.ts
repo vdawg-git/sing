@@ -183,7 +183,7 @@ export type IPlaylistTrackSortKeys =
 
 // TODO makes albums sortable by release date. Low priority though
 
-export type IPlayback = validatePlayback<
+export type IPlayMeta = validatePlayback<
   | {
       readonly source: StrictExtract<IPlaySource, "album">
       // The queue only has tracks to be sorted
@@ -224,14 +224,8 @@ export type IPlayback = validatePlayback<
     }
 >
 
-export type INewPlayback = SetOptional<IPlayback, "isShuffleOn"> &
+export type INewPlayback = SetOptional<IPlayMeta, "isShuffleOn"> &
   Readonly<{ firstTrack?: ITrack; index: number }>
-
-// const _: INewPlayback = "" as unknown as INewPlayback
-
-// if (_.source === "playlist") {
-//   _.sortBy
-// }
 
 type validatePlayback<T extends { source: IPlaySource }> = T
 

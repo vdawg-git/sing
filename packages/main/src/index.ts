@@ -2,6 +2,7 @@
 import { app } from "electron"
 import debug from "electron-debug"
 import c from "ansicolor"
+import installExtension, { REDUX_DEVTOOLS } from "electron-devtools-installer"
 
 import { restoreOrCreateWindow } from "./mainWindow"
 import { ipcInit } from "./ipcMain"
@@ -49,6 +50,13 @@ checkDatabase().then(() => {
    */
   app
     .whenReady()
+    .then(() =>
+      installExtension
+        // @ts-expect-error IDK why this is not exporting the default correctly
+        .default(REDUX_DEVTOOLS)
+        .then((name: string) => console.log(`Added Extension:  ${name}`))
+        .catch((error: string) => console.log("An error occurred:", error))
+    )
     .then(restoreOrCreateWindow)
     // eslint-disable-next-line unicorn/prefer-top-level-await
     .catch((error) => console.log("Failed create window:", error))

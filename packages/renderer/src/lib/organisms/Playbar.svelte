@@ -179,7 +179,7 @@
           ? 'button-inactive'
           : 'button-active'}"
         disabled={!$currentTrack}
-        on:click={setNextLoopState}
+        on:click={() => setNextLoopState()}
       >
         {#if $loopState === "LOOP_TRACK"}
           <IconLoopSingle class="h-5 w-5" />

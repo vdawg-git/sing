@@ -86,8 +86,12 @@ function createPlayer() {
       return audio.duration
     },
 
-    setSeek(seekToPercentage: number) {
+    setSeekPercentage(seekToPercentage: number) {
       audio.currentTime = (audio.duration / 100) * seekToPercentage
+    },
+
+    resetCurrentTime() {
+      audio.currentTime = 0
     },
 
     getCurrentTime() {

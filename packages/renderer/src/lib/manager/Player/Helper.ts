@@ -1,15 +1,23 @@
 import * as E from "fp-ts/lib/Either"
 import { match } from "ts-pattern"
+import { pipe } from "fp-ts/lib/function"
 
-import { displayTrackMetadata } from "@/Helper"
+import {
+  displayTrackMetadata,
+  notifiyError,
+  sortAlphabetically,
+} from "@/Helper"
+import { dispatch } from "@/lib/stores/mainStore"
 
-import type { ITrack } from "@sing-types/DatabaseTypes"
-import type { IError, IPlayback } from "@sing-types/Types"
-import type { IQueueItem } from "@/types/Types"
+import type { IAlbum, IArtist, ITrack } from "@sing-types/DatabaseTypes"
+import type { IError, IPlayMeta, ISyncResult } from "@sing-types/Types"
+import type { IQueueID, IQueueItem } from "@/types/Types"
 import type { Either } from "fp-ts/lib/Either"
+import type { Writable } from "svelte/store"
+import type { IpcRendererEvent } from "electron"
 
 export async function getTracksFromSource(
-  playback: IPlayback
+  playback: IPlayMeta
 ): Promise<Either<IError, readonly ITrack[]>> {
   return match(playback)
     .with({ source: "artist" }, async ({ sourceID, sortBy, isShuffleOn }) =>
@@ -100,5 +108,109 @@ export async function initialiseMediaKeysHandler({
 }
 
 export function convertToQueueItem(track: ITrack, index: number): IQueueItem {
-  return { index, track, queueID: Symbol(track.title ?? track.filepath) }
+  return { index, track, queueID: (String(track.id) + index) as IQueueID }
+}
+
+/**
+ * Sets a new playback with random tracks.
+ */
+export async function goToRandomTracksPlayback() {
+  const playback: IPlayMeta = {
+    source: "allTracks",
+    sortBy: ["title", "ascending"],
+    isShuffleOn: true,
+  }
+
+  pipe(
+    await getTracksFromSource(playback),
+
+    E.foldW(
+      notifiyError("Error while trying to play selected music"),
+
+      (tracks) => {
+        dispatch.playback.setNewPlayback({
+          tracks,
+          index: 0,
+          meta: playback,
+        })
+      }
+    )
+  )
+}
+
+export async function initialiseStores(
+  tracksStore: Writable<readonly ITrack[]>,
+  albumsStore: Writable<readonly IAlbum[]>,
+  artistsStore: Writable<readonly IArtist[]>
+) {
+  pipe(
+    await window.api.getTracks(),
+
+    E.foldW(
+      notifiyError("Failed to get tracks"),
+
+      (newTracks) => {
+        if (newTracks.length === 0) return
+
+        tracksStore.set(newTracks)
+        dispatch.playback.setAutoQueue(newTracks)
+      }
+    )
+  )
+
+  pipe(
+    await window.api.getAlbums(),
+
+    E.foldW(
+      notifiyError("Failed to get albums"),
+
+      albumsStore.set
+    )
+  )
+
+  pipe(
+    await window.api.getArtists(),
+
+    E.foldW(
+      notifiyError("Failed to get artists"),
+
+      artistsStore.set
+    )
+  )
+}
+
+export function handleSyncUpdate(
+  tracksStore: Writable<readonly ITrack[]>,
+  albumsStore: Writable<readonly IAlbum[]>,
+  artistsStore: Writable<readonly IArtist[]>
+): (_event: IpcRendererEvent, syncResult: ISyncResult) => Promise<void> {
+  return async (_, syncResult) =>
+    pipe(
+      syncResult,
+      E.foldW(
+        notifiyError("Failed to update the library. Please restart the app"),
+
+        ({ tracks, albums, artists }) => {
+          const sortedTracks = [...tracks].sort(sortAlphabetically)
+
+          if (tracks.length === 0) {
+            console.warn(
+              "Received tracks at tracksStore -> data is not valid:",
+              {
+                tracks,
+                albums,
+                artists,
+              }
+            )
+          }
+
+          // Update the stores
+          tracksStore.set(sortedTracks)
+          albumsStore.set(albums)
+          artistsStore.set(artists)
+
+          dispatch.playback.intersect(sortedTracks)
+        }
+      )
+    )
 }
