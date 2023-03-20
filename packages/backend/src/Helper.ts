@@ -16,8 +16,6 @@ import { pipe } from "fp-ts/lib/function"
 import { omit } from "fp-ts-std/Struct"
 import { isDefined } from "ts-is-present"
 
-import { isKeyOfObject } from "@sing-types/TypeGuards"
-
 import { getLeftsRights, removeDuplicates } from "../../shared/Pures"
 
 import type { DirectoryPath, FilePath } from "@sing-types/Filesystem"
@@ -268,7 +266,7 @@ export function createError(
     if (typeof error !== "object" || error === null)
       return E.left({ type, error })
 
-    if (!isKeyOfObject(error, "message")) return E.left({ type, error })
+    if (!("message" in error)) return E.left({ type, error })
 
     return E.left({
       type,

@@ -1,16 +1,13 @@
 <script lang="ts">
   import * as E from "fp-ts/lib/Either"
   import { useNavigate, useParams } from "svelte-navigator"
-  import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
-  import IconPlay from "virtual:icons/heroicons/play"
   import { onMount } from "svelte"
 
   import { displayTypeWithCount } from "@sing-shared/Pures"
 
   import { addNotification } from "@/lib/stores/NotificationStore"
-  import { playNewSource } from "@/lib/manager/Player"
   import { playlistsStore } from "@/lib/stores/PlaylistsStore"
-  import { convertAlbumToCardData } from "@/Helper"
+  import { convertAlbumToCardData, createDefaultTitleButtons } from "@/Helper"
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
 
   import CardList from "../organisms/CardList.svelte"
@@ -19,9 +16,9 @@
 
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
 
-  import type { IHeroAction, IHeroMetaDataItem } from "@/types/Types"
+  import type { IHeroButton, IHeroMetaDataItem } from "@/types/Types"
   import type { IArtistWithAlbumsAndTracks } from "@sing-types/DatabaseTypes"
-  import type { IError, ISortOptions } from "@sing-types/Types"
+  import type { IError, IPlaySource } from "@sing-types/Types"
   import type { Either } from "fp-ts/lib/Either"
 
   export let artistID: string
@@ -30,8 +27,6 @@
 
   const navigate = useNavigate()
   const parameters = useParams<{ artistID: string }>()
-
-  const baseSource = { source: "artist" as const, sourceID: artistID }
 
   let artist: IArtistWithAlbumsAndTracks | undefined
 
@@ -46,6 +41,9 @@
   // This check is used as an (album)artist like "Various Artist" does not nessecarily have tracks on his owm, but albums
   $: hasTracks = artist !== undefined && tracks.length > 0
 
+  let source: IPlaySource
+  $: source = { origin: "artist", sourceID: artistID }
+
   onMount(
     parameters.subscribe(async ({ artistID: newArtistID }) => {
       // It always fires twice, idk why, so lets prevent the sideffects when it happens
@@ -55,51 +53,17 @@
     })
   )
 
-  const sortBy: ISortOptions["tracks"] = ["album", "ascending"]
-
-  let actions: IHeroAction[]
-  $: actions = hasTracks
-    ? [
-        {
-          label: "Play",
-          icon: IconPlay,
-          callback: async () =>
-            playNewSource({
-              ...baseSource,
-              sortBy: ["album", "ascending"],
-              isShuffleOn: false,
-              index: 0,
-            }),
-          primary: true,
-        },
-        {
-          label: "Shuffle",
-          icon: IconShuffle,
-          callback: async () =>
-            playNewSource({
-              ...baseSource,
-              sortBy: ["album", "ascending"],
-              isShuffleOn: true,
-              index: 0,
-            }),
-          primary: false,
-        },
-      ]
-    : []
+  let buttons: IHeroButton[]
+  $: buttons = hasTracks ? createDefaultTitleButtons(source) : []
 
   let metadata: readonly IHeroMetaDataItem[] = hasTracks
-    ? [
-        {
-          label: displayTypeWithCount("track", tracks.length),
-        },
-      ]
+    ? [{ label: displayTypeWithCount("track", tracks.length) }]
     : []
 
   // TODO get albums in which the artist is featured, too
   async function getArtist(albumID: string) {
     const artistEither = (await window.api.getArtist({
       where: { name: albumID },
-      sortBy,
       isShuffleOn: false,
     })) as Either<IError, IArtistWithAlbumsAndTracks>
 
@@ -113,29 +77,16 @@
 </script>
 
 {#if artist}
-  <HeroHeading
-    title={artistID}
-    {metadata}
-    type="Artist"
-    {actions}
-    titleTestID="artistHeroTitle"
-  />
+  <HeroHeading title={artistID} {metadata} type="Artist" {buttons} />
 
   {#if tracks.length > 0}
     <TrackList
       {tracks}
-      sort={sortBy}
+      {source}
       displayOptions={{ artist: false }}
       createContextMenuItems={createAddToPlaylistAndQueueMenuItems(
         $playlistsStore
       )}
-      on:play={async ({ detail }) =>
-        playNewSource({
-          ...baseSource,
-          sortBy,
-          index: detail.index,
-          firstTrack: detail.track,
-        })}
     />
     <h2 class="mb-8 -mt-16 text-4xl">Albums</h2>
   {/if}

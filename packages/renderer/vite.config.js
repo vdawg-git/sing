@@ -23,6 +23,13 @@ const config = {
       "@sing-types": `${path.join(PACKAGE_ROOT, "..", "..", "types")}/`,
       "@sing-main": `${path.join(PACKAGE_ROOT, "..", "main", "src")}/`,
       "@sing-shared": `${path.join(PACKAGE_ROOT, "..", "shared")}/`,
+      "@sing-player-manager": `${path.join(
+        PACKAGE_ROOT,
+        "src",
+        "lib",
+        "manager",
+        "player"
+      )}/`,
     },
   },
   plugins: [

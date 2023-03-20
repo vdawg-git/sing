@@ -7,48 +7,53 @@ import {
   notifiyError,
   sortAlphabetically,
 } from "@/Helper"
-import { dispatch } from "@/lib/stores/mainStore"
+import { dispatchToRedux } from "@/lib/stores/mainStore"
+
+import { playbackActions, type IPlaybackState } from "./playbackSlice"
 
 import type { IAlbum, IArtist, ITrack } from "@sing-types/DatabaseTypes"
-import type { IError, IPlayMeta, ISyncResult } from "@sing-types/Types"
-import type { IQueueID, IQueueItem } from "@/types/Types"
+import type {
+  IError,
+  IFetchPlaybackArgument,
+  ISyncResult,
+} from "@sing-types/Types"
+import type { IQueueItemID, IQueueItem } from "@/types/Types"
 import type { Either } from "fp-ts/lib/Either"
 import type { Writable } from "svelte/store"
 import type { IpcRendererEvent } from "electron"
 
-export async function getTracksFromSource(
-  playback: IPlayMeta
-): Promise<Either<IError, readonly ITrack[]>> {
-  return match(playback)
-    .with({ source: "artist" }, async ({ sourceID, sortBy, isShuffleOn }) =>
-      extractTracks(
-        await window.api.getArtist({
+export async function getTracksFromSource({
+  source,
+  isShuffleOn,
+}: IFetchPlaybackArgument): Promise<Either<IError, readonly ITrack[]>> {
+  return match(source)
+    .with({ origin: "artist" }, async ({ sourceID }) =>
+      window.api
+        .getArtist({
           where: { name: sourceID },
-          sortBy,
           isShuffleOn,
         })
-      )
+        .then(extractTracks)
     )
-    .with({ source: "album" }, async ({ sourceID, sortBy, isShuffleOn }) =>
-      extractTracks(
-        await window.api.getAlbum({
+
+    .with({ origin: "album" }, async ({ sourceID }) =>
+      window.api
+        .getAlbum({
           where: { id: sourceID },
-          sortBy,
           isShuffleOn,
         })
-      )
+        .then(extractTracks)
     )
-    .with({ source: "allTracks" }, ({ isShuffleOn, sortBy }) =>
-      window.api.getTracks({ isShuffleOn, sortBy })
-    )
-    .with({ source: "playlist" }, async ({ sourceID, sortBy, isShuffleOn }) =>
-      extractTracks(
-        await window.api.getPlaylist({
+
+    .with({ origin: "allTracks" }, () => window.api.getTracks({ isShuffleOn }))
+
+    .with({ origin: "playlist" }, async ({ sourceID }) =>
+      window.api
+        .getPlaylist({
           where: { id: sourceID },
-          sortBy,
           isShuffleOn,
         })
-      )
+        .then(extractTracks)
     )
     .exhaustive()
 
@@ -61,30 +66,22 @@ export async function getTracksFromSource(
 
 // Get the cover data and set the metadata for the OS.
 export async function setMediaSessionMetaData(track: ITrack | undefined) {
-  // fetch(track?.cover)
-  //   .then(({body}) => body)
-  //   .then((json) => {
-  //     if (!json) {
-  //       return
-  //     }
-  //     const blob = new Blob([json.buffer])
-  //     const img = new Image()
-  //     img.src = URL.createObjectURL(blob)
-  //     document.body.append(img)
-  //   })
+  if (track === undefined) {
+    // eslint-disable-next-line unicorn/no-null
+    navigator.mediaSession.metadata = null
+    return
+  }
 
   const coverData =
-    track?.cover &&
+    track.cover &&
     URL.createObjectURL(
-      await fetch((track as ITrack).cover as string).then((response) =>
-        response.blob()
-      )
+      await fetch(track.cover as string).then((response) => response.blob())
     )
 
   navigator.mediaSession.metadata = new MediaMetadata({
-    title: track && displayTrackMetadata("title", track),
-    album: track && displayTrackMetadata("album", track),
-    artist: track && displayTrackMetadata("artist", track),
+    title: displayTrackMetadata("title", track),
+    album: displayTrackMetadata("album", track),
+    artist: displayTrackMetadata("artist", track),
     artwork: (coverData as undefined) && [{ src: coverData }],
   })
 }
@@ -108,34 +105,7 @@ export async function initialiseMediaKeysHandler({
 }
 
 export function convertToQueueItem(track: ITrack, index: number): IQueueItem {
-  return { index, track, queueID: (String(track.id) + index) as IQueueID }
-}
-
-/**
- * Sets a new playback with random tracks.
- */
-export async function goToRandomTracksPlayback() {
-  const playback: IPlayMeta = {
-    source: "allTracks",
-    sortBy: ["title", "ascending"],
-    isShuffleOn: true,
-  }
-
-  pipe(
-    await getTracksFromSource(playback),
-
-    E.foldW(
-      notifiyError("Error while trying to play selected music"),
-
-      (tracks) => {
-        dispatch.playback.setNewPlayback({
-          tracks,
-          index: 0,
-          meta: playback,
-        })
-      }
-    )
-  )
+  return { index, track, queueID: (String(track.id) + index) as IQueueItemID }
 }
 
 export async function initialiseStores(
@@ -153,7 +123,7 @@ export async function initialiseStores(
         if (newTracks.length === 0) return
 
         tracksStore.set(newTracks)
-        dispatch.playback.setAutoQueue(newTracks)
+        dispatchToRedux(playbackActions.setAutoQueue(newTracks))
       }
     )
   )
@@ -209,8 +179,19 @@ export function handleSyncUpdate(
           albumsStore.set(albums)
           artistsStore.set(artists)
 
-          dispatch.playback.intersect(sortedTracks)
+          dispatchToRedux(playbackActions.intersect(sortedTracks))
         }
       )
     )
+}
+
+export function getCurrentTrack({
+  index,
+  manualQueue,
+  autoQueue,
+  isPlayingFromManualQueue,
+}: IPlaybackState) {
+  return isPlayingFromManualQueue
+    ? manualQueue[0].track
+    : autoQueue.at(index)?.track
 }

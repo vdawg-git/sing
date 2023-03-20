@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type { ISortOptions } from "./Types"
 import type { IPlaylistID, ITrackID } from "./Opaque"
 import type { DirectoryPath, FilePath } from "./Filesystem"
 import type {
@@ -138,66 +137,49 @@ export type IAlbumGetArgument =
 /**
  * Custom prisma findMany argument. Used instead of the default one
  */
-export type IPlaylistFindManyArgument = MakeCustomPrismaFindMany<
-  Prisma.PlaylistFindManyArgs,
-  ISortOptions["playlists"]
->
+export type IPlaylistFindManyArgument =
+  MakeCustomPrismaFindMany<Prisma.PlaylistFindManyArgs>
 
 /**
  * Custom prisma findUnique argument. Used instead of the default one
  */
-export type IPlaylistGetArgument = MakeCustomPrismaFindUnique<
-  Prisma.PlaylistFindUniqueArgs,
-  ISortOptions["playlist"]
->
+export type IPlaylistGetArgument =
+  MakeCustomPrismaFindUnique<Prisma.PlaylistFindUniqueArgs>
 
 /**
  * Custom prisma findMany argument. Used instead of the default one
  */
-export type IArtistFindManyArgument = MakeCustomPrismaFindMany<
-  Prisma.ArtistFindManyArgs,
-  ISortOptions["artists"]
->
+export type IArtistFindManyArgument =
+  MakeCustomPrismaFindMany<Prisma.ArtistFindManyArgs>
 
 /**
  * Custom prisma findMany argument. Used instead of the default one
  */
-export type IAlbumFindManyArgument = MakeCustomPrismaFindMany<
-  Prisma.AlbumFindManyArgs,
-  ISortOptions["albums"]
->
+export type IAlbumFindManyArgument =
+  MakeCustomPrismaFindMany<Prisma.AlbumFindManyArgs>
 
 /**
  * Custom prisma findMany argument. Used instead of the default one
  */
-export type ITrackFindManyArgument = MakeCustomPrismaFindMany<
-  Prisma.TrackFindManyArgs,
-  ISortOptions["tracks"]
->
+export type ITrackFindManyArgument =
+  MakeCustomPrismaFindMany<Prisma.TrackFindManyArgs>
 
 /**
  * Create the default structure for a an music item API call.
  *
  * The second argument is the sorting type, which defaults to `ISortOptions["tracks"]`.
  */
-type MakeCustomPrismaFindUnique<
-  T extends { where: unknown },
-  SortOptions extends ISortOptions[keyof ISortOptions] = ISortOptions["tracks"]
-> =
+type MakeCustomPrismaFindUnique<T extends { where: unknown }> =
   | Pick<T, "where"> & {
-      readonly sortBy?: SortOptions
       readonly isShuffleOn?: boolean
     }
 
 type MakeCustomPrismaFindMany<
   T extends {
     where?: unknown
-    orderBy?: Record<string, unknown> | Record<string, unknown>[]
-  },
-  Sort extends ISortOptions[keyof ISortOptions]
+  }
 > = Partial<
   Pick<T, "where"> & {
-    sortBy: Sort
     isShuffleOn: boolean
   }
 >

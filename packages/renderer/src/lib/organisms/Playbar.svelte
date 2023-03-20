@@ -21,13 +21,15 @@
     pausePlayback,
     resumePlayback,
     handleClickedNext,
-    shuffleState,
-    toggleShuffle,
+    isShuffleOn,
     toggleMute,
     volume,
     handleSeekingStart,
     handleSeekingEnd,
   } from "@/lib/manager/Player"
+
+  import { dispatchToRedux } from "../stores/mainStore"
+  import { playbackActions } from "../manager/Player/playbackSlice"
 
   import Seekbar from "@/lib/molecules/Seekbar.svelte"
   import VolumeControl from "@/lib/molecules/VolumeControl.svelte"
@@ -123,9 +125,9 @@
       <!---- Shuffle Button -->
       <button
         data-testid={TEST_IDS.playbarShuffleButton}
-        class="button {$shuffleState ? 'button-active' : 'button-inactive'}"
+        class="button {$isShuffleOn ? 'button-active' : 'button-inactive'}"
         disabled={!$currentTrack}
-        on:click={toggleShuffle}
+        on:click={() => dispatchToRedux(playbackActions.toggleShuffle())}
       >
         <IconShuffle class="h-5 w-5" />
       </button>

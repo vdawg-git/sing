@@ -10,11 +10,13 @@
   import { createArtistURI } from "@/Routes"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
-  import { artists, playNewSource } from "@/lib/manager/Player"
+  import { artists } from "@/lib/manager/Player"
   import { TEST_ATTRIBUTES } from "@/TestConsts"
   import { PAGE_TITLES } from "@/Constants"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
+  import { playbackActions } from "../manager/Player/playbackSlice"
+  import { dispatchToRedux } from "../stores/mainStore"
 
   import CardList from "@/lib/organisms/CardList.svelte"
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
@@ -44,13 +46,16 @@
       secondaryText: "Artist",
       onClickPrimary: () => navigate(createArtistURI(artist.name)),
       onPlay: () =>
-        playNewSource({
-          sourceID: artist.name,
-          source: "artist",
-          sortBy: ["album", "ascending"],
-          isShuffleOn: false,
-          index: 0,
-        }),
+        dispatchToRedux(
+          playbackActions.playNewPlayback({
+            source: {
+              sourceID: artist.name,
+              origin: "artist",
+            },
+            isShuffleOn: false,
+            index: 0,
+          })
+        ),
       contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)({
         type: "artist",
         name: artist.name,

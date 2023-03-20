@@ -20,11 +20,11 @@ export type IPlayLoop = "NONE" | "LOOP_QUEUE" | "LOOP_TRACK"
  */
 export type IQueueItem = {
   readonly index: number
-  readonly queueID: IQueueID
+  readonly queueID: IQueueItemID
   readonly track: ITrack
 }
 
-export type IQueueID = Opaque<string, "queueID">
+export type IQueueItemID = Opaque<string, "queueID">
 
 export type IHeroMetaDataItem = AsyncOrSync<{
   readonly label: string
@@ -38,7 +38,7 @@ export type ITrackListDisplayOptions = {
   readonly cover?: boolean
 }
 
-export type IHeroAction = {
+export type IHeroButton = {
   readonly icon: typeof SvelteComponentDev | undefined
   readonly label: string
   readonly callback: (...arguments_: any[]) => void

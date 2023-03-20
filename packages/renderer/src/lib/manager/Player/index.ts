@@ -1,32 +1,22 @@
 import { dequal } from "dequal"
-import * as E from "fp-ts/lib/Either"
 import { derived, writable, type Readable } from "svelte/store"
 import { match } from "ts-pattern"
-import { pipe } from "fp-ts/lib/function"
 
-import { moveIndexToIndex } from "@sing-shared/Pures"
-
-import { notifiyError } from "@/Helper"
-
-import { dispatch, mainStore } from "../../stores/mainStore"
+import { dispatchToRedux, mainStore } from "../../stores/mainStore"
 
 import { audioPlayer } from "./AudioPlayer"
 import {
-  getTracksFromSource,
-  goToRandomTracksPlayback,
+  getCurrentTrack,
   handleSyncUpdate,
   initialiseMediaKeysHandler,
   initialiseStores,
   setMediaSessionMetaData,
 } from "./Helper"
+import { playbackActions } from "./playbackSlice"
 
 import type { IPlayLoop, IPlayState, IQueueItem } from "@/types/Types"
 import type { IAlbum, IArtist, ITrack } from "@sing-types/DatabaseTypes"
-import type { INewPlayback, IPlayMeta } from "@sing-types/Types"
-
-export const removeIDFromManualQueue = dispatch.playback.removeFromManualQueue
-export const addTracksToManualQueueEnd = dispatch.playback.addPlayLater
-export const addTracksToManualQueueBeginning = dispatch.playback.addPlayNext
+import type { ICurrentPlayback } from "@sing-types/Types"
 
 // Create stores / state
 const volumeStore = writable(1)
@@ -42,15 +32,20 @@ await initialiseStores(tracksStore, albumsStore, artistsStore)
 // Now it makes sense to create and use the derived stores, as the base stores are initialised
 export const currentTrack: Readable<ITrack | undefined> = derived(
   mainStore,
-  ({ playback }) =>
-    playback.isPlayingFromManualQueue
-      ? playback.manualQueue[0].track
-      : playback.autoQueue.at(playback.index)?.track
+  ({ playback }) => getCurrentTrack(playback)
 )
 
-export const shuffleState = derived(
+export const currentPlayback: Readable<ICurrentPlayback> = derived(
   mainStore,
-  ({ playback }) => playback.meta.isShuffleOn
+  ({ playback }) => ({
+    ...playback.source,
+    index: playback.index,
+  })
+)
+
+export const isShuffleOn = derived(
+  mainStore,
+  ({ playback }) => playback.isShuffleOn
 )
 
 export const playStateStore = derived(
@@ -58,24 +53,22 @@ export const playStateStore = derived(
   ({ playback }) => playback.playState
 )
 
-const loopStore = derived(mainStore, ({ playback }) => playback.loop)
-const metaStore = derived(mainStore, ({ playback }) => playback.meta)
+export const loopState = derived(mainStore, ({ playback }) => playback.loop)
 const isAtEndStore = derived(mainStore, ({ playback }) => {
   if (playback.loop !== "NONE") return false
 
   return (
     playback.index === playback.autoQueue.length - 1 &&
-    playback.manualQueue.length === 0
+    (playback.manualQueue.length === 0 ||
+      (playback.manualQueue.length === 1 &&
+        playback.isPlayingFromManualQueue === true))
   )
 })
 
-// Bind the values of the stores localy.
 let $currentTrack: ITrack | undefined
 
-let $isShuffleOn: boolean
 let $playState: IPlayState = "none"
 let $loopState: IPlayLoop
-let $meta: IPlayMeta
 let $isAtEnd: boolean
 
 let $volume: number
@@ -90,8 +83,7 @@ volumeStore.subscribe(($newVolume) => {
 
 playStateStore.subscribe(handlePlayStateUpdate)
 isAtEndStore.subscribe(($newIsAtEnd) => ($isAtEnd = $newIsAtEnd))
-loopStore.subscribe(($newLoop) => ($loopState = $newLoop))
-metaStore.subscribe(($newMeta) => ($meta = $newMeta))
+loopState.subscribe(($newLoop) => ($loopState = $newLoop))
 
 currentTrack.subscribe(($newCurrentTrack) => {
   if (dequal($currentTrack, $newCurrentTrack)) {
@@ -113,10 +105,6 @@ currentTrack.subscribe(($newCurrentTrack) => {
       currentTimeStore.set(0) // Seekbar is not updating when paused
     }
   }
-})
-
-shuffleState.subscribe(($newShuffleState) => {
-  $isShuffleOn = $newShuffleState
 })
 
 // Events
@@ -141,11 +129,11 @@ export function handleClickedNext() {
     return
   }
   if ($isAtEnd) {
-    goToRandomTracksPlayback()
-
+    dispatchToRedux(playbackActions.goToRandomTracksPlayback())
     return
   }
-  dispatch.playback.goToNext()
+
+  dispatchToRedux(playbackActions.goToNext())
 }
 
 export function handleClickedPrevious() {
@@ -154,7 +142,7 @@ export function handleClickedPrevious() {
     audioPlayer.resetCurrentTime()
     return
   }
-  dispatch.playback.goToPrevious()
+  dispatchToRedux(playbackActions.goToPrevious())
 }
 
 /**
@@ -182,59 +170,6 @@ export function togglePause() {
   $playState === "playing" ? pausePlayback() : resumePlayback()
 }
 
-export async function toggleShuffle() {
-  const newShuffleState = !$isShuffleOn
-
-  pipe(
-    await getTracksFromSource({
-      ...$meta,
-      isShuffleOn: newShuffleState,
-    }),
-    E.foldW(
-      notifiyError("Failed to set shuffle. Could not retrieve tracks."),
-
-      async (receivedTracks) => {
-        const trackID = $currentTrack?.id
-
-        const { index, tracks }: { index: number; tracks: readonly ITrack[] } =
-          match(newShuffleState)
-            .with(true, () => {
-              const indexToMove = trackID
-                ? receivedTracks.findIndex((track) => track.id === trackID)
-                : 0 // If there is no current track
-
-              const newTracks = moveIndexToIndex({
-                index: indexToMove,
-                moveTo: 0,
-                array: receivedTracks,
-              })
-
-              if (!newTracks)
-                throw new Error("Could not move track to the beginning.")
-
-              return {
-                index: 0,
-                tracks: newTracks,
-              }
-            })
-            .with(false, () => ({
-              index: receivedTracks.findIndex(
-                (track) => track.id === trackID
-              ) as number,
-              tracks: receivedTracks,
-            }))
-            .exhaustive()
-
-        dispatch.playback.setNewPlayback({
-          index,
-          tracks,
-          meta: { ...$meta, isShuffleOn: newShuffleState },
-        })
-      }
-    )
-  )
-}
-
 export function setVolume(newVolume: number) {
   // For some reason the range input started returning a string onChange.
   volumeStore.set(Number(newVolume))
@@ -248,35 +183,21 @@ export function seekTo(percentage: number) {
 }
 
 export function resumePlayback() {
-  dispatch.playback.setPlayState("playing")
+  dispatchToRedux(playbackActions.setPlayState("playing"))
 
   audioPlayer.resume()
 }
 
 export function pausePlayback() {
-  dispatch.playback.setPlayState("paused")
+  dispatchToRedux(playbackActions.setPlayState("paused"))
   audioPlayer.pause()
-}
-
-/**
- * Play a track from the queue and update the index according to the track index in the queue.
- */
-export function playFromAutoQueue(index: number): void {
-  dispatch.playback.playAutoQueueIndex(index)
 }
 
 /**
  * Play a track from the manual queue and if there are any, delete the other manual items before the played track.
  */
 export function playFromManualQueue(index: number): void {
-  dispatch.playback.playManualQueueIndex(index)
-}
-
-/**
- * Remove an item from the auto queue.
- */
-export function removeIndexFromQueue(index: number): void {
-  dispatch.playback.removeFromAutoQueue(index)
+  dispatchToRedux(playbackActions.playManualQueueIndex(index))
 }
 
 export function toggleMute() {
@@ -291,59 +212,6 @@ export function toggleMute() {
     volumeBeforeMute = $volume
     volumeStore.set(0)
   }
-}
-
-/**
- * Starts playback and initializes a new queue
- */
-export async function playNewSource({
-  firstTrack,
-  index,
-  ...data
-}: INewPlayback) {
-  // queueStore.setIsPlayingFromManualQueue(false)
-
-  const newShuffleState = data.isShuffleOn ?? $isShuffleOn
-
-  // If the source stayed the same just go to the specified index of the queue.
-  if (newShuffleState === false && dequal($meta, data)) {
-    playFromAutoQueue(index)
-    return
-  }
-  const newPlaybackState = {
-    ...data,
-    isShuffleOn: newShuffleState,
-  }
-
-  pipe(
-    await getTracksFromSource(newPlaybackState),
-
-    E.foldW(
-      notifiyError("Error while trying to play selected music"),
-
-      (tracks) => {
-        if (tracks.length === 0) {
-          notifiyError("No tracks to play back")("")
-
-          return
-        }
-
-        const tracksToAdd =
-          newShuffleState && firstTrack
-            ? [
-                firstTrack,
-                ...tracks.filter((track) => track.id !== firstTrack.id),
-              ]
-            : tracks
-
-        dispatch.playback.playNewPlayback({
-          tracks: tracksToAdd,
-          index: newShuffleState ? 0 : index,
-          meta: newPlaybackState,
-        })
-      }
-    )
-  )
 }
 
 function handlePlayStateUpdate(newState: IPlayState) {
@@ -387,8 +255,10 @@ export const currentTime = { subscribe: currentTimeStore.subscribe }
 export const tracks = { subscribe: tracksStore.subscribe }
 export const albums = { subscribe: albumsStore.subscribe }
 export const artists = { subscribe: artistsStore.subscribe }
+
 // Display only the last 20 played tracks or less if there
 export const playIndex = derived(mainStore, ({ playback }) => playback.index)
+
 export const playedTracks = derived(
   mainStore,
   // Display only the last 20 played tracks or less if there are no more
@@ -403,16 +273,18 @@ export const nextTracks: Readable<IQueueItem[]> = derived(
   mainStore,
   ({ playback }) => playback.autoQueue.slice(playback.index + 1)
 )
+
 /**
  * The manual queue for the UI to display.
  * Not to be used for anything else as it adjust some data for rendering.
  */
 export const manualQueue = derived(mainStore, ({ playback }) =>
-  // If the current track is from the manual queue, it would still show up in "manually added" section. So lets remove it from the queue for display purposes.
+  // If the current track is from the manual queue, it would still show up in the "manually added" section. So lets remove it from the queue for display purposes.
   playback.isPlayingFromManualQueue
     ? playback.manualQueue.slice(1)
     : playback.manualQueue
 )
 
-export const loopState = derived(mainStore, ({ playback }) => playback.loop)
-export const setNextLoopState = dispatch.playback.setNextLoopState
+export const setNextLoopState = dispatchToRedux(
+  playbackActions.setNextLoopState
+)

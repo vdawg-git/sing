@@ -1,16 +1,14 @@
 <script lang="ts">
   import { either } from "fp-ts"
   import { useParams } from "svelte-navigator"
-  import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
-  import IconPlay from "virtual:icons/heroicons/play"
   import { onMount } from "svelte"
 
   import { displayTypeWithCount } from "@sing-shared/Pures"
 
   import { addNotification } from "@/lib/stores/NotificationStore"
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
-  import { playNewSource } from "@/lib/manager/Player"
   import { createArtistURI } from "@/Routes"
+  import { createDefaultTitleButtons } from "@/Helper"
 
   import { backgroundImages } from "../stores/BackgroundImages"
   import { playlistsStore } from "../stores/PlaylistsStore"
@@ -19,12 +17,12 @@
   import TrackList from "@/lib/organisms/TrackList.svelte"
 
   import type {
-    IHeroAction,
+    IHeroButton,
     IHeroMetaDataItem,
     ITrackListDisplayOptions,
   } from "@/types/Types"
   import type { IAlbum, ITrack } from "@sing-types/DatabaseTypes"
-  import type { IError, ISortOptions } from "@sing-types/Types"
+  import type { IError, IPlaySource } from "@sing-types/Types"
   import type { Either } from "fp-ts/lib/Either"
 
   /**
@@ -35,14 +33,15 @@
   // The parameters are always strings. So we convert it later
   const parameters = useParams<{ albumID: string }>()
 
-  const defaultSort: ISortOptions["tracks"] = ["trackNo", "ascending"]
-
   let album: IAlbum | undefined
   $: {
     getAlbum(Number(albumID)).then((newAlbum) => {
       album = newAlbum
     })
   }
+
+  let source: IPlaySource
+  $: source = { origin: "album", sourceID: Number(albumID) }
 
   // Update the page when the album is changed on navigation
   onMount(
@@ -68,35 +67,8 @@
     { label: displayTypeWithCount("track", tracks.length) },
   ]
 
-  let actions: readonly IHeroAction[]
-  $: actions = [
-    {
-      label: "Play",
-      icon: IconPlay,
-      callback: () =>
-        playNewSource({
-          source: "album",
-          sourceID: Number(albumID),
-          sortBy: defaultSort,
-          isShuffleOn: false,
-          index: 0,
-        }),
-      primary: true,
-    },
-    {
-      label: "Shuffle",
-      icon: IconShuffle,
-      callback: () =>
-        playNewSource({
-          source: "album",
-          sourceID: Number(albumID),
-          sortBy: defaultSort,
-          isShuffleOn: true,
-          index: 0,
-        }),
-      primary: false,
-    },
-  ]
+  let buttons: readonly IHeroButton[]
+  $: buttons = createDefaultTitleButtons(source)
 
   $: createContextMenuItems =
     createAddToPlaylistAndQueueMenuItems($playlistsStore)
@@ -109,7 +81,6 @@
   async function getAlbum(id: IAlbum["id"]): Promise<IAlbum | undefined> {
     const albumEither: Either<IError, IAlbum> = await window.api.getAlbum({
       where: { id },
-      sortBy: ["trackNo", "ascending"],
       isShuffleOn: false,
     })
 
@@ -128,22 +99,8 @@
     {metadata}
     image={album.cover}
     type="Album"
-    {actions}
-    titleTestID="albumHeroTitle"
+    {buttons}
   />
 
-  <TrackList
-    {tracks}
-    {displayOptions}
-    on:play={({ detail }) =>
-      playNewSource({
-        source: "album",
-        sourceID: Number(albumID),
-        sortBy: defaultSort,
-        index: detail.index,
-        firstTrack: detail.track,
-      })}
-    sort={defaultSort}
-    {createContextMenuItems}
-  />
+  <TrackList {tracks} {displayOptions} {source} {createContextMenuItems} />
 {/if}

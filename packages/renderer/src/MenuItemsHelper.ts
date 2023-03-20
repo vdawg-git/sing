@@ -1,12 +1,9 @@
 import { pipe } from "fp-ts/lib/function"
 import * as E from "fp-ts/lib/Either"
 
-import {
-  addTracksToManualQueueBeginning,
-  addTracksToManualQueueEnd,
-} from "@/lib/manager/Player"
-
 import { displayTrackMetadata, notifiyError } from "./Helper"
+import { dispatchToRedux } from "./lib/stores/mainStore"
+import { playbackActions } from "./lib/manager/Player/playbackSlice"
 
 import type {
   IPlaylist,
@@ -77,7 +74,7 @@ const createAddToQueueMenuItems: ICreateMenuOutOfMusic = (
           E.matchW(
             notifiyError("Failed to add to play next"),
 
-            addTracksToManualQueueBeginning
+            (track) => dispatchToRedux(playbackActions.addPlayNext(track))
           )
         )
       },
@@ -92,7 +89,7 @@ const createAddToQueueMenuItems: ICreateMenuOutOfMusic = (
           E.matchW(
             notifiyError("Failed to add to play later"),
 
-            addTracksToManualQueueEnd
+            (track) => dispatchToRedux(playbackActions.addPlayLater(track))
           )
         )
       },

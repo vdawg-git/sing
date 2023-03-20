@@ -11,15 +11,14 @@
     nextTracks,
     currentTrack,
     playIndex,
-    playFromAutoQueue,
-    removeIndexFromQueue,
     manualQueue,
-    removeIDFromManualQueue,
     togglePause,
     playFromManualQueue,
   } from "@/lib/manager/Player"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
+  import { dispatchToRedux } from "../stores/mainStore"
+  import { playbackActions } from "../manager/Player/playbackSlice"
 
   import QueueItem from "@/lib/atoms/QueueItem.svelte"
 
@@ -47,7 +46,7 @@
   }
 
   function handleRemoveFromAutoQueue(index: number) {
-    removeIndexFromQueue(index)
+    dispatchToRedux(playbackActions.removeFromAutoQueue(index))
   }
 
   function flipDuration(distance: number) {
@@ -118,8 +117,9 @@
                   TEST_ATTRIBUTES.queueItem,
                 ]}
                 {createContextMenuItems}
-                on:play={() => playFromAutoQueue(index)}
-                on:remove={async () => removeIndexFromQueue(index)}
+                on:play={() =>
+                  dispatchToRedux(playbackActions.playAutoQueueIndex(index))}
+                on:remove={async () => handleRemoveFromAutoQueue(index)}
               />
             </div>
           {/each}
@@ -155,7 +155,10 @@
               <QueueItem
                 {track}
                 {createContextMenuItems}
-                on:remove={async () => removeIDFromManualQueue(queueID)}
+                on:remove={async () =>
+                  dispatchToRedux(
+                    playbackActions.removeFromManualQueue(queueID)
+                  )}
                 on:play={() => playFromManualQueue(index)}
                 testattributes={[
                   TEST_ATTRIBUTES.queueManuallyAddedTracks,
@@ -189,7 +192,8 @@
                     TEST_ATTRIBUTES.queueItem,
                   ]}
                   {createContextMenuItems}
-                  on:play={() => playFromAutoQueue(index)}
+                  on:play={() =>
+                    dispatchToRedux(playbackActions.playAutoQueueIndex(index))}
                   on:remove={() => handleRemoveFromAutoQueue(index)}
                 />
               </div>

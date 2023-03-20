@@ -18,13 +18,6 @@ export function isBackendQueryResponse(
   return true
 }
 
-export function isKeyOfObject<T, Key extends string | number | symbol>(
-  object: T,
-  key: Key
-): object is T & { [key in Key]: unknown } {
-  return key in object
-}
-
 /**
  * Check if an array of Eithers contains only right values and narrow down the type.
  */

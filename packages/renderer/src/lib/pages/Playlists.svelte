@@ -4,12 +4,14 @@
   import { createPlaylistURI } from "@/Routes"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
   import { createAndNavigateToPlaylist } from "@/Helper"
-  import { playNewSource, tracks } from "@/lib/manager/Player"
+  import { tracks } from "@/lib/manager/Player"
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
   import { PAGE_TITLES } from "@/Constants"
 
   import { playlistsStore } from "../stores/PlaylistsStore"
   import Button from "../atoms/Button.svelte"
+  import { dispatchToRedux } from "../stores/mainStore"
+  import { playbackActions } from "../manager/Player/playbackSlice"
 
   import CardList from "@/lib/organisms/CardList.svelte"
   import HeroHeading from "@/lib/organisms/HeroHeading.svelte"
@@ -26,13 +28,16 @@
   $: items = $playlistsStore.map((playlist) => ({
     title: playlist.name,
     onPlay: () =>
-      playNewSource({
-        sourceID: playlist.id,
-        source: "playlist",
-        sortBy: ["trackNo", "ascending"],
-        isShuffleOn: false,
-        index: 0,
-      }),
+      dispatchToRedux(
+        playbackActions.playNewPlayback({
+          source: {
+            sourceID: playlist.id,
+            origin: "playlist",
+          },
+          isShuffleOn: false,
+          index: 0,
+        })
+      ),
     onClickPrimary: () => navigate(createPlaylistURI(playlist.id)),
     image: playlist.thumbnailCovers?.map(({ filepath }) => filepath),
     secondaryText: "Playlist",

@@ -1,18 +1,19 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte"
-
   import { TEST_IDS } from "@/TestConsts"
+  import { isThisSourceCurrentPlayback, playFromTracklist } from "@/Helper"
 
   import TrackItem from "../molecules/TrackItem.svelte"
+  import { currentPlayback, isShuffleOn } from "../manager/Player"
 
   import type { ITrack } from "@sing-types/DatabaseTypes"
-  import type { ISortOptions } from "@sing-types/Types"
   import type {
     ITrackListDisplayOptions,
     ICreateMenuOutOfTrack,
   } from "@/types/Types"
+  import type { IPlaySource, TrackAndIndex } from "@sing-types/Types"
 
   export let tracks: readonly ITrack[]
+  export let source: IPlaySource
 
   /**
    * Which colums should be displayed.
@@ -23,22 +24,13 @@
     album: true,
     artist: true,
   }
-  export let sort: ISortOptions["tracks"] | ISortOptions["playlist"]
   export let createContextMenuItems: ICreateMenuOutOfTrack
-
-  sort // Compiler dont cry for now
 
   // TODO make display options generic. Maybe using a hashmap to generate the html (having the title always rendered)
 
   // TODO if track is playing, pause on click
 
   // TODO how to do the sorting for playlists?
-
-  type TrackAndIndex = { track: ITrack; index: number }
-
-  const dispatch = createEventDispatcher<{
-    play: { index: number; track: ITrack }
-  }>()
 
   const usedDisplayOptions: ITrackListDisplayOptions = {
     cover: true,
@@ -47,16 +39,19 @@
     ...displayOptions,
   }
 
-  let listHeight: number // Gets set by the virtual list within it, buit Typescript does not know it
-  // let index: number // Gets set by the virtual list within it, buit Typescript does not know it
+  $: isCurrentPlayback = isThisSourceCurrentPlayback(source, $currentPlayback)
 
-  function dispatchPlay({ track, index }: TrackAndIndex) {
-    dispatch("play", { index, track })
+  function handlePlay({ track, index }: TrackAndIndex) {
+    playFromTracklist(
+      { source, firstTrack: track, index },
+      isCurrentPlayback,
+      $isShuffleOn
+    )
   }
 </script>
 
 <div data-testid={TEST_IDS.trackList} class="flex w-full flex-col">
-  <!---- Header -->
+  <!-- Header -->
   <div
     class="flex w-full py-4 text-left text-xs font-medium uppercase text-grey-300"
   >
@@ -72,24 +67,18 @@
     <div class="flex-1 grow-0 basis-12 text-right">Length</div>
   </div>
 
-  <!---- List -->
-  <div class="trackList z-0 mb-14 w-full" bind:clientHeight={listHeight}>
+  <!-- List -->
+  <div class="trackList z-0 mb-14 w-full">
     {#each tracks as track, index}
       <TrackItem
         {track}
         displayOptions={usedDisplayOptions}
         {createContextMenuItems}
-        on:dblclick={() => dispatchPlay({ index, track })}
+        on:dblclick={() => handlePlay({ index, track })}
       />
     {/each}
   </div>
 
-  <!---- Add an empty element to allow for scrolling elements which are behind the playbar -->
+  <!-- Add an empty element to allow for scrolling elements which are behind the playbar -->
   <div class="h-playbarPadded w-full" />
 </div>
-
-<style>
-  .trackList :global(.virtual-list-wrapper) {
-    overflow: visible;
-  }
-</style>

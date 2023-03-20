@@ -57,9 +57,9 @@ import type {
 } from "@sing-types/DatabaseTypes"
 import type { FilePath } from "@sing-types/Filesystem"
 import type { IPlaylistID, ITrackID } from "@sing-types/Opaque"
-import type { IError, ISortOptions } from "@sing-types/Types"
+import type { IError } from "@sing-types/Types"
 import type { IBackEndMessages, IPlaylistSetCoverArgument } from "@/types/Types"
-import type { PlaylistItem, Prisma, PrismaPromise } from "@sing-prisma"
+import type { PlaylistItem, Prisma } from "@sing-prisma"
 import type { Either } from "fp-ts/Either"
 import type { IBackMessagesHandler } from "./Messages"
 
@@ -76,13 +76,11 @@ export async function getPlaylists(
     },
   }
 
-  const defaultSort: ISortOptions["playlists"] = ["name", "ascending"]
-
   return (
     prisma.playlist
       .findMany(prismaOptions)
       .then(RA.map(removeNulledKeys))
-      .then((playlists) => sortByKey(options?.sortBy ?? defaultSort, playlists))
+      .then((playlists) => sortByKey("name", playlists))
 
       // ! Add tracks support
       .then((playlists) => E.right(playlists as IPlaylist[]))
@@ -116,16 +114,9 @@ async function getTracksFromPlaylists(
 
 export async function getPlaylist(
   _: IBackMessagesHandler | undefined,
-  { where, sortBy, isShuffleOn }: IPlaylistGetArgument
+  { where, isShuffleOn }: IPlaylistGetArgument
 ): Promise<Either<IError, IPlaylistWithTracks>> {
-  const defaultSort: ISortOptions["playlist"] = [
-    "manualOrderIndex",
-    "ascending",
-  ]
-
-  const usedSort: ISortOptions["playlist"] | ["RANDOM"] = isShuffleOn
-    ? ["RANDOM"]
-    : sortBy ?? defaultSort
+  const usedSort = isShuffleOn ? "RANDOM" : "manualOrderIndex"
 
   return (
     prisma.playlist
@@ -139,7 +130,11 @@ export async function getPlaylist(
       // Convert the item[] to ( ITrack & {playlistIndex: number} )[]
       .then(convertItemsPlaylistToTracksPlaylist)
       .then((playlist) =>
-        updateKeyValue("tracks", sortTracks(usedSort), playlist)
+        updateKeyValue(
+          "tracks",
+          (tracks) => sortByKey(usedSort, tracks),
+          playlist
+        )
       )
       .then(removeNulledKeys)
       .then((playlist) => E.right(playlist as IPlaylistWithTracks))
@@ -575,16 +570,14 @@ export async function getArtists(
     },
   }
 
-  const defaultSort: ISortOptions["artists"] = ["name", "ascending"]
+  const usedSort = options?.isShuffleOn ? "RANDOM" : "name"
 
-  const response = prisma.artist.findMany(prismaOptions) as PrismaPromise<
-    IArtist[]
-  >
+  const response = prisma.artist.findMany(prismaOptions) as Promise<IArtist[]>
 
   return response
     .then(RA.map(removeNulledKeys))
     .then(RA.map(addArtistImage))
-    .then((artists) => sortByKey(options?.sortBy ?? defaultSort, artists))
+    .then((artists) => sortByKey(usedSort, artists))
     .then((artists) => E.right(artists as readonly IArtist[]))
     .catch(createError("Failed to get artists from database"))
 }
@@ -594,7 +587,7 @@ export async function getArtists(
  */
 export async function getArtist(
   _: IBackMessagesHandler | undefined,
-  { where, sortBy, isShuffleOn }: IArtistGetArgument
+  { where, isShuffleOn }: IArtistGetArgument
 ): Promise<Either<IError, IArtist>> {
   const include: Prisma.ArtistInclude = {
     albums: {
@@ -606,16 +599,12 @@ export async function getArtist(
     tracks: true,
   } as const
 
-  const defaultSort: ISortOptions["tracks"] = ["album", "ascending"]
-
-  const usedSort: ISortOptions["tracks"] | ["RANDOM"] = isShuffleOn
-    ? ["RANDOM"]
-    : sortBy ?? defaultSort
+  const usedSort = isShuffleOn ? "RANDOM" : "album"
 
   const rawArtist = prisma.artist.findUniqueOrThrow({
     where,
     include,
-  }) as unknown as PrismaPromise<IArtist>
+  }) as unknown as Promise<IArtist>
 
   return rawArtist
     .then((artist) => updateKeyValue("tracks", sortTracks(usedSort), artist))
@@ -634,36 +623,34 @@ export async function getAlbums(
     include: { tracks: true },
   }
 
-  const defaultSort: ISortOptions["albums"] = ["name", "ascending"]
+  const usedSort = options?.isShuffleOn ? "RANDOM" : "name"
 
   return prisma.album
     .findMany(prismaOptions)
     .then(RA.map(removeNulledKeys))
-    .then((albums) => sortByKey(options?.sortBy ?? defaultSort, albums))
+    .then((albums) => sortByKey(usedSort, albums))
     .then((albums) => E.right(albums as unknown as IAlbum[]))
     .catch(createError("Failed to get albums from database"))
 }
 
 export async function getAlbum(
   _: IBackMessagesHandler | undefined,
-  { where, isShuffleOn, sortBy }: IAlbumGetArgument
+  { where, isShuffleOn }: IAlbumGetArgument
 ): Promise<Either<IError, IAlbum>> {
   const include: Prisma.AlbumInclude = {
     tracks: true,
     artistEntry: true,
   }
 
-  const sort: ISortOptions["tracks"] | ["RANDOM"] = isShuffleOn
-    ? ["RANDOM"]
-    : sortBy ?? ["trackNo", "ascending"]
+  const usedSort = isShuffleOn ? "RANDOM" : "trackNo"
 
   const rawResponse = prisma.album.findUniqueOrThrow({
     where,
     include,
-  }) as unknown as PrismaPromise<IAlbum>
+  }) as unknown as Promise<IAlbum>
 
   return rawResponse
-    .then((album) => updateKeyValue("tracks", sortTracks(sort), album))
+    .then((album) => updateKeyValue("tracks", sortTracks(usedSort), album))
     .then(removeNulledKeys)
     .then((album) => E.right(album as IAlbum))
     .catch(createError("Failed to get album from database"))
@@ -675,16 +662,12 @@ export async function getTracks(
 ): Promise<Either<IError, readonly ITrack[]>> {
   const prismaOptions: Prisma.TrackFindManyArgs = { where: options?.where }
 
-  const defaultSort: ISortOptions["tracks"] = ["title", "ascending"]
-
-  const usedSort: ISortOptions["tracks"] | ["RANDOM"] = options?.isShuffleOn
-    ? ["RANDOM"]
-    : options?.sortBy ?? defaultSort
+  const usedSort = options?.isShuffleOn ? "RANDOM" : "title"
 
   return prisma.track
     .findMany(prismaOptions)
     .then(RA.map(removeNulledKeys))
-    .then((tracks) => sortTracks(usedSort)(tracks))
+    .then((tracks) => sortTracks(usedSort)(tracks as ITrack[]))
     .then((tracks) => E.right(tracks as readonly ITrack[]))
     .catch(createError("Failed to get tracks from database"))
 }

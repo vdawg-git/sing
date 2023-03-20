@@ -1,4 +1,6 @@
 import { pipe } from "fp-ts/lib/function"
+import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
+import IconPlay from "virtual:icons/heroicons/play"
 import * as E from "fp-ts/lib/Either"
 import { createHashHistory } from "history"
 import { isDefined } from "ts-is-present"
@@ -12,11 +14,17 @@ import {
 
 import { addNotification } from "./lib/stores/NotificationStore"
 import { createAlbumURI, createArtistURI, ROUTES } from "./Routes"
-import { playNewSource } from "./lib/manager/Player"
 import { createAddToPlaylistAndQueueMenuItems } from "./MenuItemsHelper"
 import { TEST_ATTRIBUTES } from "./TestConsts"
+import { dispatchToRedux } from "./lib/stores/mainStore"
+import { playbackActions } from "./lib/manager/Player/playbackSlice"
 
-import type { IError } from "@sing-types/Types"
+import type {
+  ICurrentPlayback,
+  IError,
+  IPlaySource,
+  ISetPlaybackArgument,
+} from "@sing-types/Types"
 import type {
   ITrack,
   IPlaylistCreateArgument,
@@ -25,7 +33,7 @@ import type {
 } from "@sing-types/DatabaseTypes"
 import type { HistorySource, NavigateFn } from "svelte-navigator"
 import type AnyObject from "svelte-navigator/types/AnyObject"
-import type { ICardProperties } from "./types/Types"
+import type { ICardProperties, IHeroButton } from "./types/Types"
 
 export function titleToDisplay(track: ITrack): string {
   if (track?.title) return track.title
@@ -342,11 +350,15 @@ export function convertAlbumToCardData({
     image: cover,
     secondaryText: artist,
     onPlay: () =>
-      playNewSource({
-        sourceID: id,
-        source: "album",
-        sortBy: ["trackNo", "ascending"],
-      }),
+      dispatchToRedux(
+        playbackActions.playNewPlayback({
+          source: {
+            sourceID: id,
+            origin: "album",
+          },
+          index: 0,
+        })
+      ),
     onClickPrimary: () => navigate(createAlbumURI(id)),
     onClickSecondary: () => navigate(createArtistURI(artist)),
     contextMenuItems: createAddToPlaylistAndQueueMenuItems($playlistsStore)({
@@ -401,5 +413,73 @@ export function useCallbacks(
     destroy: () => {
       callbacks.onDestroy && callbacks.onDestroy()
     },
+  }
+}
+
+export function isThisSourceCurrentPlayback(
+  thisSource: IPlaySource,
+  currentPlayback: ICurrentPlayback
+): boolean {
+  if (thisSource.origin !== currentPlayback.origin) return false
+
+  if (
+    thisSource.origin !== "allTracks" &&
+    currentPlayback.origin !== "allTracks"
+  ) {
+    return thisSource.sourceID === currentPlayback.sourceID
+  }
+
+  return true
+}
+
+/**
+ * Returns the data for the default two `Play` and `Shuffle` buttons.
+ */
+export function createDefaultTitleButtons(source: IPlaySource): IHeroButton[] {
+  return [
+    {
+      label: "Play",
+      icon: IconPlay,
+      callback: () =>
+        dispatchToRedux(
+          playbackActions.playNewPlayback({
+            source,
+            isShuffleOn: false,
+            index: 0,
+          })
+        ),
+      primary: true,
+    },
+    {
+      label: "Shuffle",
+      icon: IconShuffle,
+      callback: () =>
+        dispatchToRedux(
+          playbackActions.playNewPlayback({
+            source,
+            isShuffleOn: true,
+            index: 0,
+          })
+        ),
+      primary: false,
+    },
+  ]
+}
+
+export function playFromTracklist(
+  { source, index, firstTrack }: ISetPlaybackArgument,
+  isCurrentPlayback: boolean,
+  isShuffleOn: boolean
+) {
+  if (isCurrentPlayback && !isShuffleOn) {
+    dispatchToRedux(playbackActions.playAutoQueueIndex(index))
+  } else {
+    dispatchToRedux(
+      playbackActions.playNewPlayback({
+        source,
+        index: isShuffleOn ? 0 : index,
+        firstTrack,
+      })
+    )
   }
 }

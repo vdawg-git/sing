@@ -9,7 +9,6 @@ import { match, P } from "ts-pattern"
 import { deleteAt } from "fp-ts/lib/Array"
 import { toUndefined } from "fp-ts/lib/Option"
 
-import { isKeyOfObject } from "../../types/TypeGuards"
 import {
   SUPPORTED_MUSIC_FORMATS,
   UNSUPPORTED_MUSIC_FORMATS,
@@ -18,16 +17,12 @@ import {
 import type { Option } from "fp-ts/lib/Option"
 import type { ITrackID } from "../../types/Opaque"
 import type { FilePath } from "../../types/Filesystem"
-import type {
-  IMusicItems,
-  IPlaylistTrack,
-  ITrack,
-} from "../../types/DatabaseTypes"
+import type { IMusicItems, ITrack } from "../../types/DatabaseTypes"
 import type {
   IRawAudioMetadata,
   IRawAudioMetadataWithPicture,
-  ISortOptions,
-  ISortOrder,
+  ITracksSortKeys,
+  RANDOM,
 } from "../../types/Types"
 import type {
   KeyOfConditional,
@@ -314,10 +309,10 @@ export function getErrorMessage(
   }
   if (typeof error !== "object" || error === null) return defaultMessage
 
-  if (isKeyOfObject(error, "message") && typeof error.message === "string") {
+  if ("message" in error && typeof error.message === "string") {
     return error.message
   }
-  if (isKeyOfObject(error, "error")) {
+  if ("error" in error) {
     return getErrorMessage(defaultMessage, error.error)
   }
 
@@ -338,14 +333,9 @@ export function hasCover(
   return true
 }
 
-export function sortTracks([sortBy, sortOrder]:
-  | ISortOptions["tracks"]
-  | ISortOptions["playlist"]
-  | ["RANDOM"]): <
-  A extends Partial<Record<keyof ITrack | keyof IPlaylistTrack, unknown>>
->(
-  tracks: readonly A[]
-) => readonly A[] {
+export function sortTracks(
+  sortBy: ITracksSortKeys | RANDOM
+): (tracks: readonly ITrack[]) => readonly ITrack[] {
   return (tracks) => {
     if (sortBy === "RANDOM") {
       return shuffleArray(tracks)
@@ -379,11 +369,11 @@ export function sortTracks([sortBy, sortOrder]:
     })
 
     // The sort was done in ascending order, reverse the array if it should be descending
-    return sortOrder === "ascending" ? sorted : sorted.reverse()
+    return sorted
 
     // eslint-disable-next-line unicorn/consistent-function-scoping
     function getSortValue(track: Record<string, unknown>) {
-      return sortBy === ("title" as ISortOptions["tracks"][0]) &&
+      return sortBy === ("title" as ITracksSortKeys) &&
         track[sortBy] === undefined
         ? convertFilepathToFilename((track as ITrack).filepath as FilePath)
         : track[sortBy]
@@ -395,9 +385,7 @@ export function sortTracks([sortBy, sortOrder]:
  * @param sortBy The key which values get sorted. Only numbers and strings are supported
  */
 export function sortByKey<T extends Record<string, unknown>>(
-  [sortBy, sortOrder]:
-    | readonly [KeyOfConditional<T, string | number>, ISortOrder]
-    | readonly ["RANDOM"],
+  sortBy: KeyOfConditional<T, string | number> | RANDOM,
   array: readonly T[]
 ): readonly T[] {
   if (sortBy === "RANDOM") {
@@ -422,7 +410,7 @@ export function sortByKey<T extends Record<string, unknown>>(
     )
   }) as unknown as T[]
 
-  return sortOrder === "ascending" ? sorted : sorted.reverse()
+  return sorted
 }
 
 export function shuffleArray<T>(array: readonly T[]): readonly T[] {

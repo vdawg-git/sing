@@ -5,12 +5,14 @@ import IconPlay from "virtual:icons/heroicons/play"
 import { convertFilepathToFilename } from "@sing-shared/Pures"
 
 import { createAlbumURI, createArtistURI } from "@/Routes"
-import { playNewSource } from "@/lib/manager/Player"
 import {
   convertAlbumToPlaylistCreateArgument,
   convertArtistToPlaylistCreateArgument,
   convertTrackToPlaylistCreateArgument,
 } from "@/MenuItemsHelper"
+
+import { dispatchToRedux } from "../stores/mainStore"
+import { playbackActions } from "../manager/Player/playbackSlice"
 
 import type { IAlbum, IArtist, ITrack } from "@sing-types/DatabaseTypes"
 import type {
@@ -77,13 +79,14 @@ function convertTrackToSearchItem(
     itemForContextMenu: convertTrackToPlaylistCreateArgument(track),
     icon: IconPlay,
     onClick: async () =>
-      playNewSource({
-        sortBy: ["title", "ascending"],
-        isShuffleOn: true,
-        source: "allTracks",
-        firstTrack: track,
-        index: 0,
-      }),
+      dispatchToRedux(
+        playbackActions.playNewPlayback({
+          isShuffleOn: true,
+          origin: "allTracks",
+          firstTrack: track,
+          index: 0,
+        })
+      ),
   }
 }
 

@@ -1,15 +1,12 @@
 <script lang="ts">
   import * as E from "fp-ts/Either"
   import { useParams } from "svelte-navigator"
-  import IconShuffle from "virtual:icons/eva/shuffle-2-outline"
-  import IconPlay from "virtual:icons/heroicons/play"
   import { onDestroy, onMount } from "svelte"
   import { isDefined } from "ts-is-present"
 
   import { displayTypeWithCount, removeDuplicates } from "@sing-shared/Pures"
 
-  import { notifiyError } from "@/Helper"
-  import { playNewSource } from "@/lib/manager/Player"
+  import { createDefaultTitleButtons, notifiyError } from "@/Helper"
   import { createAddToPlaylistAndQueueMenuItems } from "@/MenuItemsHelper"
 
   import { backgroundImages } from "../stores/BackgroundImages"
@@ -22,25 +19,20 @@
 
   import type {
     ICreateMenuOutOfTrack,
-    IHeroAction,
+    IHeroButton,
     IHeroMetaDataItem,
   } from "@/types/Types"
   import type { TypedIpcRenderer } from "@sing-main/types/Types"
   import type { IPlaylistID } from "@sing-types/Opaque"
-  import type { ISortOptions } from "@sing-types/Types"
   import type {
     IPlaylistTrack,
     IPlaylistWithTracks,
   } from "@sing-types/DatabaseTypes"
+  import type { IPlaySource } from "@sing-types/Types"
 
   export let playlistID: string
 
   const parameters = useParams<{ playlistID: string }>()
-
-  const defaultSort: ISortOptions["playlist"] = [
-    "manualOrderIndex",
-    "ascending",
-  ]
 
   let playlist: IPlaylistWithTracks | undefined
   $: {
@@ -51,6 +43,9 @@
   let isShowingEditModal = false
 
   $: covers = playlist?.thumbnailCovers?.map(({ filepath }) => filepath)
+
+  let source: IPlaySource
+  $: source = { origin: "playlist", sourceID: Number(playlistID) }
 
   // Update the playlist when the it is changed on navigation
   onMount(
@@ -103,35 +98,8 @@
     },
   ]
 
-  let heroButtons: readonly IHeroAction[]
-  $: heroButtons = [
-    {
-      label: "Play",
-      icon: IconPlay,
-      callback: () =>
-        playNewSource({
-          source: "playlist",
-          sourceID: Number(playlistID),
-          sortBy: defaultSort,
-          isShuffleOn: false,
-          index: 0,
-        }),
-      primary: true,
-    },
-    {
-      label: "Shuffle",
-      icon: IconShuffle,
-      callback: () =>
-        playNewSource({
-          source: "playlist",
-          sourceID: Number(playlistID),
-          sortBy: defaultSort,
-          isShuffleOn: true,
-          index: 0,
-        }),
-      primary: false,
-    },
-  ]
+  let heroButtons: readonly IHeroButton[]
+  $: heroButtons = createDefaultTitleButtons(source)
 
   let createContextMenuItems: ICreateMenuOutOfTrack
   $: createContextMenuItems = (item) => [
@@ -178,11 +146,10 @@
     {metadata}
     image={covers}
     type="Playlist"
-    actions={heroButtons}
+    buttons={heroButtons}
     description={playlist.description}
     handleClickTitle={toggleModal}
     handleClickDescription={toggleModal}
-    titleTestID="yourPlaylistsTitle"
     ><CoverPicker
       slot="cover"
       image={covers}
@@ -194,19 +161,7 @@
   </HeroHeading>
 
   {#if tracks && tracks?.length > 0}
-    <TrackList
-      {tracks}
-      on:play={({ detail }) =>
-        playNewSource({
-          source: "playlist",
-          sourceID: Number(playlistID),
-          sortBy: defaultSort,
-          index: detail.index,
-          firstTrack: detail.track,
-        })}
-      sort={defaultSort}
-      {createContextMenuItems}
-    />
+    <TrackList {tracks} {source} {createContextMenuItems} />
   {:else}
     No tracks
   {/if}

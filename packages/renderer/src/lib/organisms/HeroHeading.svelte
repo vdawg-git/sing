@@ -11,7 +11,7 @@
 
   import type { FilePath } from "@sing-types/Filesystem"
   import type { EventHandler } from "@sing-types/Utilities"
-  import type { IHeroAction, IHeroMetaDataItem } from "@/types/Types"
+  import type { IHeroButton, IHeroMetaDataItem } from "@/types/Types"
 
   /**
    * The cover(s) to display
@@ -20,7 +20,7 @@
   export let type: "Artist" | "Album" | "Playlist" | undefined = undefined
   export let title: string
   export let metadata: readonly IHeroMetaDataItem[]
-  export let actions: readonly IHeroAction[] | undefined = undefined
+  export let buttons: readonly IHeroButton[] | undefined = undefined
   export let description: string | undefined = undefined
   export let handleClickCover:
     | EventHandler<MouseEvent, HTMLDivElement>
@@ -29,7 +29,6 @@
   export let handleClickDescription: EventHandler | undefined = undefined
 
   const navigate = useNavigate()
-  // TODO disable focus indicator for now
 
   // TODO Make scrollbars vanish when user has not scrolled for a while
 
@@ -123,9 +122,9 @@
   </div>
 
   <!--- Actions -->
-  {#if actions}
+  {#if buttons}
     <div class="flex gap-6">
-      {#each actions as { label, callback, icon, primary }}
+      {#each buttons as { label, callback, icon, primary }}
         <Button {label} {icon} on:click={callback} {primary} />
       {/each}
     </div>

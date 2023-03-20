@@ -1,13 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type { ITestAttribute } from "@sing-renderer/TestConsts"
+import type { ITestAttribute } from "../packages/renderer/src/TestConsts"
 import type { FilePath } from "./Filesystem"
 import type {
   ITrack,
   IAlbum,
-  IPlaylist,
   IArtist,
-  IPlaylistTrack,
   IPlaylistCreateArgument,
 } from "./DatabaseTypes"
 import type { Prisma } from "../packages/generated/client"
@@ -15,8 +13,14 @@ import type { app } from "electron"
 import type { Either } from "fp-ts/lib/Either"
 import type * as mm from "music-metadata"
 import type { StrictExclude, StrictExtract } from "ts-essentials"
-import type { CamelCase, ReadonlyDeep, SetOptional } from "type-fest"
+import type {
+  CamelCase,
+  ReadonlyDeep,
+  SetOptional,
+  SetRequired,
+} from "type-fest"
 import type { SvelteComponentDev } from "svelte/internal"
+import type { IQueueItem } from "@/types/Types"
 
 export type ISyncResult = Either<
   IError,
@@ -132,102 +136,63 @@ export interface IErrorMMDParsingError extends IError {
 /**
  * The possible sources which can be used as a playback
  */
-export type IPlaySource =
+export type IPlaySourceOrigin =
   | CamelCase<StrictExtract<Prisma.ModelName, "Artist" | "Album" | "Playlist">>
   | `all${StrictExtract<Prisma.ModelName, "Track">}s`
 
 export type ISortOrder = "ascending" | "descending"
 
-/**
- * The sort options for the different pages.
- * Like albums can be sorted by name (in the future also by release data) and tracks can be sorted by a much bigger variety of options
- */
-export type ISortOptions = makeSortOptions<SortableMusicItems>
-
-/**
- * Which items can be sorted and how should they be able to be sorted.
- * Does not only include items meant for playback, but also just for display purposes.
- *
- * Like for example how can "artists" be sorted (currently there is no way to play back all artists)
- *
- * This is used by {@link ISortOptions}.
- */
-type SortableMusicItems = {
-  album: ITrackSortKeys
-  albums: StrictExtract<keyof IAlbum, "name">
-  artist: ITrackSortKeys
-  artists: StrictExtract<keyof IArtist, "name">
-  playlist: IPlaylistTrackSortKeys
-  playlists: StrictExtract<keyof IPlaylist, "name">
-  tracks: ITrackSortKeys
-}
-
-type makeSortOptions<T extends Record<string, string>> = {
-  readonly [key in keyof T]: readonly [T[key], ISortOrder]
-}
-
-/**
- * The keys of a track available to sort
- */
-export type ITrackSortKeys = StrictExtract<
-  keyof ITrack,
-  "album" | "artist" | "duration" | "title" | "trackNo"
->
-
-/**
- * The keys available to sort tracks in a playlist.
- */
-export type IPlaylistTrackSortKeys =
-  | ITrackSortKeys
-  | StrictExtract<keyof IPlaylistTrack, "manualOrderIndex">
-
 // TODO makes albums sortable by release date. Low priority though
 
-export type IPlayMeta = validatePlayback<
+export type IPlaySource = validatePlayback<
   | {
-      readonly source: StrictExtract<IPlaySource, "album">
-      // The queue only has tracks to be sorted
-      readonly sortBy: ISortOptions["tracks"]
-
+      readonly origin: StrictExtract<IPlaySourceOrigin, "album">
       // The ID of the source to be played. For example, an album id.
       readonly sourceID: StrictExclude<
         Prisma.AlbumWhereUniqueInput["id"],
         undefined
       >
-
-      readonly isShuffleOn: boolean
     }
   | {
-      readonly source: StrictExtract<IPlaySource, "allTracks">
-      readonly sortBy: ISortOptions["tracks"]
-      readonly isShuffleOn: boolean
-
+      readonly origin: StrictExtract<IPlaySourceOrigin, "allTracks">
       // Does not need an ID, as it is just all tracks
     }
   | {
-      readonly source: StrictExtract<IPlaySource, "playlist">
-      readonly sortBy: ISortOptions["playlist"]
+      readonly origin: StrictExtract<IPlaySourceOrigin, "playlist">
       readonly sourceID: StrictExclude<
         Prisma.PlaylistWhereUniqueInput["id"],
         undefined
       >
-      readonly isShuffleOn: boolean
     }
   | {
-      readonly source: StrictExtract<IPlaySource, "artist">
-      readonly sortBy: ISortOptions["artist"]
+      readonly origin: StrictExtract<IPlaySourceOrigin, "artist">
       readonly sourceID: StrictExclude<
         Prisma.ArtistWhereUniqueInput["name"],
         undefined
       >
-      readonly isShuffleOn: boolean
     }
 >
 
-export type INewPlayback = SetOptional<IPlayMeta, "isShuffleOn"> &
-  Readonly<{ firstTrack?: ITrack; index: number }>
+export type IFetchPlaybackArgument = SetRequired<
+  Pick<ISetPlaybackArgument, "isShuffleOn" | "source">,
+  "isShuffleOn"
+>
 
-type validatePlayback<T extends { source: IPlaySource }> = T
+export type ISetPlaybackArgument = Readonly<{
+  firstTrack?: ITrack
+  index: number
+  isShuffleOn?: boolean
+  source: IPlaySource
+}>
+
+export type ISetPlaybackArgumentWithItems = Readonly<{
+  items: readonly IQueueItem[]
+}> &
+  ISetPlaybackArgument
+
+type validatePlayback<T extends { origin: IPlaySourceOrigin }> = T
+
+export type ICurrentPlayback = IPlaySource & { index: number }
 
 /**
  * The search results from the backend to the renderer.
@@ -261,9 +226,11 @@ export type ISearchItemSubtext = {
 
 export type ISearchResultItem = {
   readonly image?: FilePath
-  readonly isImageCircle?: boolean // Only needed for artist currently
+  /** Only needed for artist currently */
+  readonly isImageCircle?: boolean
   readonly title: string
-  readonly label?: string // Only needed for topMatches "album" and "track"
+  /** Only needed for topMatches "album" and "track" */
+  readonly label?: string
   readonly subtexts: readonly ISearchItemSubtext[]
   readonly onClick: () => void
   readonly icon: typeof SvelteComponentDev
@@ -281,3 +248,10 @@ export type IConvertedSearchData = Readonly<
     undefined
   >
 >
+export type RANDOM = "RANDOM"
+
+export type ITracksSortKeys =
+  | StrictExtract<keyof ITrack, "title" | "trackNo" | "album">
+  | RANDOM
+
+export type TrackAndIndex = { track: ITrack; index: number }
