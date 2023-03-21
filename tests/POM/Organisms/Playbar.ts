@@ -52,6 +52,7 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
     seekTo,
     setVolume,
     waitForCurrentTrackToBecome,
+    waitForCurrentTrackToChange,
     waitForDurationToBecome,
     waitForProgressBarToProgress,
   }
@@ -117,6 +118,16 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
   async function waitForCurrentTrackToBecome(title: string) {
     await currentTrack
       .getByText(title + "_")
+      .waitFor({ state: "visible", timeout: 500 })
+  }
+
+  async function waitForCurrentTrackToChange() {
+    const currentTitle = await getCurrentTrack()
+
+    const regex = new RegExp(`^(?!.*${currentTitle}_).*$`)
+
+    await currentTrack
+      .getByText(regex)
       .waitFor({ state: "visible", timeout: 500 })
   }
 

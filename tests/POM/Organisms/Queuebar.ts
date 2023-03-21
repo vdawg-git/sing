@@ -38,6 +38,7 @@ export async function createQueuebarOrganism(electron: ElectronApplication) {
     getNextTrack,
     getNextTracks,
     getPreviousTrack,
+    getQueueLength,
     getTitles,
     open,
     playNextTrack,
@@ -137,6 +138,15 @@ export async function createQueuebarOrganism(electron: ElectronApplication) {
     await close()
 
     return items
+  }
+
+  async function getQueueLength() {
+    await open()
+    const count = allItems.count()
+
+    await close()
+
+    return count
   }
 
   async function getTitles() {

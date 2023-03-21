@@ -141,10 +141,6 @@ export function on<Key extends keyof IFrontendEventsConsume>(
   return () => ipcRenderer.removeListener(channel, listener)
 }
 
-export function resetMusic(): void {
-  ipcRenderer.send("resetMusic")
-}
-
 export function getListeners(event: keyof IFrontendEventsSend) {
   return ipcRenderer.listeners(event)
 }

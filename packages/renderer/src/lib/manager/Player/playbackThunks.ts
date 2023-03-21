@@ -77,13 +77,9 @@ export const toggleShuffle = createAsyncThunk(
     return fetchNewState(newPlayback, {
       isShuffleOn: !currentState.isShuffleOn,
     }).then(
-      E.foldW(
-        (error) => {
-          throw error
-        },
-
-        (items) => items
-      )
+      E.getOrElseW((error) => {
+        throw error
+      })
     )
   }
 )

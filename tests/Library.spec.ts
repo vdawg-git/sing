@@ -44,7 +44,7 @@ it("can add a folder", async () => {
 describe("When adding all folders", async () => {
   beforeEach(async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
-    await settingsPage.resetMusic()
+    await settingsPage.emptyLibrary()
 
     await settingsPage.setDefaultFolders()
     await settingsPage.closeAllNotifications()
@@ -75,8 +75,8 @@ describe("When adding all folders", async () => {
     const artistsPage = await settingsPage.goTo.artists()
 
     const artists = await Promise.all(
-      await artistsPage
-        .getArtists()
+      await artistsPage.cards
+        .getAll()
         .then(
           A.map((artistCard) => artistCard.getData().then((data) => data.title))
         )
@@ -94,7 +94,7 @@ describe("when removing all folders after having folders added", async () => {
     await settingsPage.closeAllNotifications()
     await settingsPage.saveAndSyncFolders()
 
-    await settingsPage.resetMusic()
+    await settingsPage.emptyLibrary()
   })
 
   it("has no current track", async () => {
@@ -108,9 +108,9 @@ describe("when removing all folders after having folders added", async () => {
   it("does not have a queue", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
-    const queue = await settingsPage.queuebar.getItems()
+    const queueLength = await settingsPage.queuebar.getQueueLength()
 
-    expect(queue.length).toBe(0)
+    expect(queueLength).toBe(0)
   })
 
   it("has no tracks in the tracks page", async () => {
@@ -128,7 +128,7 @@ describe("when removing all folders after having folders added", async () => {
 
     const albumsPage = await settingsPage.goTo.albums()
 
-    const hasAlbums = await albumsPage.hasAlbums()
+    const hasAlbums = await albumsPage.cards.hasCards()
 
     expect(hasAlbums).toBe(false)
   })
@@ -138,7 +138,7 @@ describe("when removing all folders after having folders added", async () => {
 
     const artistsPage = await settingsPage.goTo.artists()
 
-    const hasArtists = await artistsPage.hasArtists()
+    const hasArtists = await artistsPage.cards.hasCards()
 
     expect(hasArtists).toBe(false)
   })
@@ -147,7 +147,7 @@ describe("when removing all folders after having folders added", async () => {
 describe("when removing all folders and instead adding new ones", async () => {
   beforeEach(async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
-    await settingsPage.resetMusic()
+    await settingsPage.emptyLibrary()
 
     await settingsPage.removeAllFolders()
     await settingsPage.addFolder(1)
@@ -167,9 +167,9 @@ describe("when removing all folders and instead adding new ones", async () => {
     await settingsPage.closeAllNotifications()
     await settingsPage.saveAndSyncFolders()
 
-    const queue = await settingsPage.queuebar.getItems()
+    const queueLength = await settingsPage.queuebar.getQueueLength()
 
-    expect(queue.length).toBe(0)
+    expect(queueLength).toBe(0)
   })
 })
 
@@ -216,10 +216,15 @@ describe("when removing one folder", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     const tracksPage = await settingsPage.goTo.tracks()
 
-    await tracksPage.trackList.playTrack("10")
-    const oldCurrentTrack = await settingsPage.playbar.getCurrentTrack()
+    const trackToPlay = "10"
+    await tracksPage.trackList.playTrack(trackToPlay)
+    const waitForTrack =
+      settingsPage.playbar.waitForCurrentTrackToBecome(trackToPlay)
 
-    expect(oldCurrentTrack, "Is not playing clicked track").not.toBe(undefined)
+    await expect(
+      waitForTrack,
+      "Is not playing clicked track"
+    ).resolves.not.toThrow()
 
     await tracksPage.goTo.settingsLibrary()
 
@@ -228,17 +233,16 @@ describe("when removing one folder", async () => {
     await settingsPage.closeAllNotifications()
     await settingsPage.saveAndSyncFolders()
 
-    const newCurrentTrack = await settingsPage.playbar.getCurrentTrack()
+    const waitForChange2 = settingsPage.playbar.waitForCurrentTrackToChange()
 
-    expect(newCurrentTrack).not.toBe(oldCurrentTrack)
+    await expect(waitForChange2).resolves.not.toThrow()
   })
 })
 
 describe("when adding one folder from a clear state", async () => {
   beforeEach(async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
-    await settingsPage.resetMusic()
-    await settingsPage.reload()
+    await settingsPage.emptyLibrary()
     await settingsPage.addFolder(0)
     await settingsPage.closeAllNotifications()
     await settingsPage.saveAndSyncFolders()

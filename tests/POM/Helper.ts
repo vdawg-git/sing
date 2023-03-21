@@ -1,8 +1,3 @@
-import { TEST_ATTRIBUTES } from "../../packages/renderer/src/TestConsts"
-
-import type { ITestAttributeAsQuery } from "../../packages/renderer/src/TestConsts"
-import type { Page } from "playwright"
-
 /**
  * Return the folder name of the track title by taking its first letter
  */
@@ -45,45 +40,4 @@ export function getTrackTitle(trackTitle: string): string {
  */
 export function isE2ETrackTitle(trackTitle: string): boolean {
   return !!trackTitle.match(/^\d\d$/)?.length
-}
-
-/**
- *
- * @param cardSelector
- */
-export async function getCards({
-  page,
-  selector,
-}: {
-  page: Page
-  selector: ITestAttributeAsQuery
-}) {
-  const locators = await page.locator(selector).all()
-
-  return locators.map((card) => ({
-    async clickPlay() {
-      return card
-        .hover()
-        .then(() =>
-          card
-            .locator(TEST_ATTRIBUTES.asQuery.cardPlay)
-            .click({ timeout: 2000 })
-        )
-    },
-    /**
-     * Gets the data of the card as text.
-     */
-    async getData() {
-      const title =
-        (await card
-          .locator(TEST_ATTRIBUTES.asQuery.cardTitle)
-          .textContent({ timeout: 2000 })) ?? undefined
-      const subtext =
-        (await card
-          .locator(TEST_ATTRIBUTES.asQuery.cardSecondaryText)
-          .textContent({ timeout: 2000 })) ?? undefined
-
-      return { title, subtext }
-    },
-  }))
 }

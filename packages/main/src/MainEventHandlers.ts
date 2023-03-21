@@ -35,15 +35,6 @@ export const mainEventHandlers = Object.freeze({
     })
   },
 
-  resetMusic: async () => {
-    userSettingsStore.reset("musicFolders")
-
-    emitToBackend({
-      event: "syncMusic",
-      arguments_: [{ coversDirectory, directories: [""] as DirectoryPath[] }],
-    })
-  },
-
   addTracksToPlaylist: async (
     _: IpcMainInvokeEvent,
     options: IAddTracksToPlaylistArgument

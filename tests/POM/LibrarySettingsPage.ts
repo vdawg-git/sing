@@ -31,7 +31,8 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
   return {
     ...settingsBase,
 
-    addEmpyFolder,
+    addEmptyFolder,
+    emptyLibrary,
     addFolder,
     editFolder,
     getFolderNames,
@@ -44,11 +45,15 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
   }
 
   async function resetToDefault() {
-    await settingsBase.resetMusic()
-
     await setDefaultFolders()
     await saveAndSyncFolders()
     await settingsBase.reload()
+  }
+
+  async function emptyLibrary() {
+    await removeAllFolders()
+    await addEmptyFolder()
+    await saveAndSyncFolders()
   }
 
   /**
@@ -161,7 +166,6 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
   async function saveAndSyncFolders() {
     await saveButton.click({ timeout: 2000 })
     await settingsBase.waitForNotification(NOTIFICATION_LABEL.syncSuccess)
-    await page.waitForTimeout(1850) // Hack - Give the store time to complete to update. Need to think of a better way to do this
   }
 
   async function setFolderPath(
@@ -173,7 +177,7 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
     await folderLocator.click({ timeout: 2000 })
   }
 
-  async function addEmpyFolder() {
+  async function addEmptyFolder() {
     await addFolder(emptyFolder)
   }
 }

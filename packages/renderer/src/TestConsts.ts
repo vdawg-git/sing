@@ -2,11 +2,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const testIDNames = [
-  "albumCards",
-  "artistCards",
+  "albumCardsGrid",
+  "artistCardsGrid",
   "heroHeading", // The whole hero
   "heroHeadingTitle", // The title of the hero
   "menu", // ContextMenu or dropdown menu
+  "nothingHere",
   "playbar",
   "playbarAlbum",
   "playbarArtist",
@@ -20,7 +21,7 @@ const testIDNames = [
   "playbarShuffleButton",
   "playbarTitle",
   "playbarVolumeIcon",
-  "playlistCards",
+  "playlistCardsGrid",
   "queueBar",
   "queueBarNextTracks",
   "queueBarPlayedTracks",
@@ -54,7 +55,7 @@ const testIDNames = [
   "volumeSliderInner",
   "yourAlbumsTitle",
   "yourArtistsTitle",
-  "yourPlaylistsTitle",
+  "yourPlaylistsTitl e",
   "yourTracksTitle",
 ] as const
 
@@ -95,18 +96,18 @@ const testAttributeNames = [
 ] as const
 
 type testIDs = {
-  readonly [index in typeof testIDNames[number]]: index
+  readonly [index in (typeof testIDNames)[number]]: index
 } & {
   readonly asQuery: {
-    readonly [index in typeof testIDNames[number]]: `[data-testid=${index}]`
+    readonly [index in (typeof testIDNames)[number]]: `[data-testid=${index}]`
   }
 }
 
 type testAttributes = {
-  readonly [index in typeof testAttributeNames[number]]: index
+  readonly [index in (typeof testAttributeNames)[number]]: index
 } & {
   readonly asQuery: {
-    readonly [index in typeof testAttributeNames[number]]: `[data-testattribute~=${index}]`
+    readonly [index in (typeof testAttributeNames)[number]]: `[data-testattribute~=${index}]`
   }
 }
 
@@ -131,8 +132,8 @@ export const TEST_ATTRIBUTES: testAttributes = testAttributeNames.reduce(
   {} as any
 )
 
-export type ITestID = typeof testIDNames[number]
-export type ITestAttribute = typeof testAttributeNames[number]
+export type ITestID = (typeof testIDNames)[number]
+export type ITestAttribute = (typeof testAttributeNames)[number]
 export type ITestAttributeAsQuery =
   testAttributes["asQuery"][keyof testAttributes["asQuery"]]
 export type ITestIDAsQuery = testIDs["asQuery"][keyof testIDs["asQuery"]]

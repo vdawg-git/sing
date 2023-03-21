@@ -9,9 +9,7 @@ import {
 
 import type { TypedIpcRenderer } from "@sing-main/types/Types"
 
-export interface INotificationHandlers {
-  handleSyncSuccess: () => () => TypedIpcRenderer
-}
+export type INotificationHandlers = typeof notificationHandlers
 
 /**
  * The listeners to be called at app startup.
@@ -19,31 +17,27 @@ export interface INotificationHandlers {
  *
  * For example, the `handleSyncSuccess` manages the 'sync' notifications.
  */
-export const notificationHandlers: INotificationHandlers = {
-  handleSyncSuccess() {
-    const unsubsriber = window.api.on("syncedMusic", (_, syncResult) => {
-      if (E.isLeft(syncResult)) {
-        addNotification({
-          label: `${NOTIFICATION_LABEL.syncFailure}: ${
-            syncResult.left.message || syncResult.left.error
-          }`,
-          id: Symbol(`Failed to sync. Database send invalid data.`),
-          type: "danger",
-          duration: -1,
-        })
-
-        return
-      }
-
-      removeNotificationsByLabel(NOTIFICATION_LABEL.syncStarted)
-
-      addNotification({
-        label: NOTIFICATION_LABEL.syncSuccess,
-        id: Symbol("Sync success"),
-        type: "check",
-      })
-    })
-
-    return unsubsriber
-  },
+export const notificationHandlers = {
+  // handleSyncSuccess() {
+  //   const unsubsriber = window.api.on("syncedMusic", (_, syncResult) => {
+  //     if (E.isLeft(syncResult)) {
+  //       addNotification({
+  //         label: `${NOTIFICATION_LABEL.syncFailure}: ${
+  //           syncResult.left.message || syncResult.left.error
+  //         }`,
+  //         id: Symbol(`Failed to sync. Database send invalid data.`),
+  //         type: "danger",
+  //         duration: -1,
+  //       })
+  //       return
+  //     }
+  //     removeNotificationsByLabel(NOTIFICATION_LABEL.syncStarted)
+  //     addNotification({
+  //       label: NOTIFICATION_LABEL.syncSuccess,
+  //       id: Symbol("Sync success"),
+  //       type: "check",
+  //     })
+  //   })
+  //   return unsubsriber
+  // },
 }

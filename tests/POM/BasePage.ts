@@ -47,7 +47,6 @@ export async function createBasePage(electron: ElectronApplication) {
     mockDialog,
     pauseExecution: () => page.pause(),
     reload,
-    resetMusic,
     startVisualisingClicks,
     stopLoggingPressedKeys,
     stopVisualisingClicks,
@@ -75,11 +74,6 @@ export async function createBasePage(electron: ElectronApplication) {
       albums: gotoAlbums,
       artists: goToArtists,
     },
-  }
-
-  async function resetMusic() {
-    await page.evaluate(async () => window.api.resetMusic())
-    await reload()
   }
 
   async function gotoSettings(): Promise<

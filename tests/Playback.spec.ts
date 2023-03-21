@@ -315,8 +315,10 @@ it("should sort the tracks correctly by default by title even when title is not 
 
 describe("when playing a track after adding folders from a blank state", async () => {
   beforeEach(async () => {
-    const tracksPage = await createTracksPage(electron)
-    await tracksPage.resetMusic()
+    const page = await createBasePage(electron)
+    const settingsPage = await page.goTo.settingsLibrary()
+    await settingsPage.emptyLibrary()
+    await settingsPage.goTo.tracks()
   })
 
   it("does play the track correctly", async () => {

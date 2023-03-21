@@ -1,5 +1,7 @@
 import { writable } from "svelte/store"
 
+import { NOTIFICATION_LABEL } from "@/Constants"
+
 import type { INotificationBase, INotification } from "@sing-types/Types"
 
 const { subscribe, update } = writable<INotificationBase[]>([])
@@ -29,6 +31,18 @@ export function addNotification(
   update(($store) =>
     position === "top" ? [toAdd, ...$store] : [...$store, toAdd]
   )
+}
+
+export async function showSyncSussessNotification() {
+  removeNotificationsByLabel(NOTIFICATION_LABEL.syncStarted)
+  // For e2e tests
+  removeNotificationsByLabel(NOTIFICATION_LABEL.syncSuccess)
+
+  addNotification({
+    label: NOTIFICATION_LABEL.syncSuccess,
+    id: Symbol("Sync success"),
+    type: "check",
+  })
 }
 
 export function removeNotificationByID(notificationID: symbol): void {
