@@ -262,13 +262,16 @@ describe("when playing a track while shuffle is on", async () => {
 
     await tracksPage.trackList.playTrack(trackToPlay)
 
-    const playingTrack = await tracksPage.playbar.getCurrentTrack()
-    expect(playingTrack).toEqual(trackToPlay)
+    await expect(
+      tracksPage.playbar.waitForCurrentTrackToBecome(trackToPlay)
+    ).resolves.not.toThrow()
 
     const newTrackToPlay = "10"
     await tracksPage.trackList.playTrack(newTrackToPlay)
-    const newTrack = await tracksPage.playbar.getCurrentTrack()
-    expect(newTrack).toEqual(newTrackToPlay)
+
+    await expect(
+      tracksPage.playbar.waitForCurrentTrackToBecome(newTrackToPlay)
+    ).resolves.not.toThrow()
   })
 
   it("should set a new random queue from the source", async () => {

@@ -29,6 +29,11 @@ const config = {
 
     maxThreads: 1,
     minThreads: 1,
+
+    test: {
+      reporters: ["default", "html"],
+      outputFile: "./test_results.html",
+    },
   },
 }
 

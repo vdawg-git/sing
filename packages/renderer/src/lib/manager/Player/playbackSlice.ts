@@ -25,7 +25,7 @@ export type IPlaybackState = {
   manualQueue: readonly IQueueItem[]
   playState: IPlayState
   index: number
-  source: IPlaySource
+  source: IPlaySource | { origin: "NONE" }
   loop: IPlayLoop
   isShuffleOn: boolean
   isPlayingFromManualQueue: boolean

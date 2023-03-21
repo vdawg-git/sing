@@ -144,7 +144,13 @@ function intersect(
 
   state.autoQueue = newAutoQueue as IQueueItem[]
   state.manualQueue = newManualQueue as IQueueItem[]
+  state.playState = state.index === newIndex ? state.playState : "paused"
   state.index = newIndex
+  // The queue is now most likely out of sync with the current source
+  state.source = { origin: "NONE" }
+
+  if (newAutoQueue.length === 0 && newManualQueue.length === 0)
+    state.playState = "none"
 }
 
 function removeFromManualQueue(
@@ -236,6 +242,8 @@ function removeFromAutoQueue(
 }
 /**
  * The logic behind {@link intersect}.
+ *
+ * Returns the new queues and index.
  */
 function _intersectWithItems({
   currentIndex,
@@ -268,7 +276,7 @@ function _intersectWithItems({
     (deletedIndexes.includes(currentIndex) ? 1 : 0)
 
   const newIndex =
-    currentIndex - reduceIndexBy < -1 ? -1 : currentIndex - reduceIndexBy
+    currentIndex - reduceIndexBy < 0 ? 0 : currentIndex - reduceIndexBy
 
   return { newIndex, newAutoQueue, newManualQueue }
 

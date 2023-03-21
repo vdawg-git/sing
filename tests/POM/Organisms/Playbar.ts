@@ -51,6 +51,7 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
     isShuffleOn,
     seekTo,
     setVolume,
+    waitForCurrentTrackToBecome,
     waitForDurationToBecome,
     waitForProgressBarToProgress,
   }
@@ -110,8 +111,14 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
     return boundingBox?.width
   }
 
+  async function waitForCurrentTrackToBecome(title: string) {
+    await currentTrack
+      .getByText(title)
+      .waitFor({ state: "visible", timeout: 500 })
+  }
+
   /**
-   * Get the current track title like `01`. Returns `undefined` if there is none.
+   * Gets the current track title like `01`. Returns `undefined` if there is none.
    */
   async function getCurrentTrack(): Promise<string | undefined> {
     if ((await currentTrack.isVisible()) === false) return undefined

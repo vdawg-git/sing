@@ -21,8 +21,6 @@ export const playNewPlayback = createAsyncThunk(
   ): Promise<ISetPlaybackArgumentWithItems> => {
     const currentState = (thunkApi.getState() as IRootState).playback
 
-    console.log(currentState)
-
     return fetchNewState(newPlayback, currentState).then(
       E.foldW(
         (error) => {
@@ -66,14 +64,19 @@ export const toggleShuffle = createAsyncThunk(
   async (_ = undefined, thunkApi) => {
     const currentState = (thunkApi.getState() as IRootState).playback
 
-    console.log({ currentState })
+    if (currentState.source.origin === "NONE") {
+      throw new Error("Cannot toggle shuffle with `origin: NONE` ")
+    }
 
-    return fetchNewState(
-      { ...currentState, isShuffleOn: !currentState.isShuffleOn },
-      {
-        isShuffleOn: !currentState.isShuffleOn,
-      }
-    ).then(
+    const newPlayback: ISetPlaybackArgument = {
+      source: currentState.source,
+      isShuffleOn: !currentState.isShuffleOn,
+      index: currentState.index,
+    }
+
+    return fetchNewState(newPlayback, {
+      isShuffleOn: !currentState.isShuffleOn,
+    }).then(
       E.foldW(
         (error) => {
           throw error
