@@ -111,14 +111,21 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
     return boundingBox?.width
   }
 
+  /**
+   * @param title The title as a string number
+   */
   async function waitForCurrentTrackToBecome(title: string) {
     await currentTrack
-      .getByText(title)
+      .getByText(title + "_")
       .waitFor({ state: "visible", timeout: 500 })
   }
 
   /**
    * Gets the current track title like `01`. Returns `undefined` if there is none.
+   *
+   * *This might not work as expected, as this function does not wait for an UI update.*
+   *
+   * If this is the case, use {@link waitForCurrentTrackToBecome} instead.
    */
   async function getCurrentTrack(): Promise<string | undefined> {
     if ((await currentTrack.isVisible()) === false) return undefined

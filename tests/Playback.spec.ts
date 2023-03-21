@@ -330,9 +330,10 @@ describe("when playing a track after adding folders from a blank state", async (
 
     await tracksPage.trackList.playTrack(trackToPlay)
 
-    const currentTrack = await tracksPage.playbar.getCurrentTrack()
+    const waitingForTrack =
+      tracksPage.playbar.waitForCurrentTrackToBecome(trackToPlay)
 
-    expect(currentTrack).to.include(trackToPlay)
+    await expect(waitingForTrack).resolves.not.toThrow()
   })
 })
 
