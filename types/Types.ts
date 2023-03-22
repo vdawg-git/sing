@@ -171,6 +171,9 @@ export type IPlaySource = validatePlayback<
         undefined
       >
     }
+  | {
+      readonly origin: "NONE"
+    }
 >
 
 export type IFetchPlaybackArgument = SetRequired<
@@ -190,7 +193,7 @@ export type ISetPlaybackArgumentWithItems = Readonly<{
 }> &
   ISetPlaybackArgument
 
-type validatePlayback<T extends { origin: IPlaySourceOrigin }> = T
+type validatePlayback<T extends { origin: IPlaySourceOrigin | "NONE" }> = T
 
 export type ICurrentPlayback = IPlaySource & { index: number }
 

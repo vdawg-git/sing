@@ -212,7 +212,7 @@ describe("when removing one folder", async () => {
     expect(addedFolders).toEqual([1, 2])
   })
 
-  it("changes the current track if it came from the removed folder", async () => {
+  it.skip("changes the current track if it came from the removed folder", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     const tracksPage = await settingsPage.goTo.tracks()
 

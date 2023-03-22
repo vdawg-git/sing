@@ -1,7 +1,6 @@
 import * as E from "fp-ts/lib/Either"
 import { match } from "ts-pattern"
 import { pipe } from "fp-ts/lib/function"
-import { tick } from "svelte"
 
 import {
   displayTrackMetadata,
@@ -9,7 +8,6 @@ import {
   sortAlphabetically,
 } from "@/Helper"
 import { dispatchToRedux } from "@/lib/stores/mainStore"
-import { showSyncSussessNotification } from "@/lib/stores/NotificationStore"
 
 import { playbackActions, type IPlaybackState } from "./playbackSlice"
 
@@ -57,6 +55,9 @@ export async function getTracksFromSource({
         })
         .then(extractTracks)
     )
+    .with({ origin: "NONE" }, () => {
+      throw new Error("Cannot get tracks with not source origin")
+    })
     .exhaustive()
 
   function extractTracks(
@@ -182,8 +183,6 @@ export function handleSyncUpdate(
           artistsStore.set(artists)
 
           dispatchToRedux(playbackActions.intersect(sortedTracks))
-
-          tick().then(tick).then(showSyncSussessNotification) // Nessary for e2e
         }
       )
     )
