@@ -1,23 +1,28 @@
 /* eslint-disable unicorn/prefer-dom-node-text-content */
 import slash from "slash"
 
-import {
-  TEST_ATTRIBUTES,
-  TEST_IDS,
-} from "../../packages/renderer/src/TestConsts"
-import { ROUTES } from "../../packages/renderer/src/Routes"
+import { TEST_IDS } from "@sing-renderer/TestConsts"
+import { ROUTES } from "@sing-renderer/Routes"
 
-import { isE2ETrackTitle } from "./Helper"
-import { createLibrarySettingsPage } from "./LibrarySettingsPage"
-import { createTracksPage } from "./TracksPage"
-import { createPlaybarOrganism } from "./Organisms/Playbar"
-import { createQueuebarOrganism } from "./Organisms/Queuebar"
-import { createAlbumsPage } from "./AlbumsPage"
-import { createArtistsPage } from "./ArtistsPage"
-import { createSearchbarOrganism } from "./Organisms/Searchbar"
-import { createMenuOrganism } from "./Organisms/Menu"
-
+import type {
+  PlaywrightTestArgs,
+  PlaywrightTestOptions,
+  PlaywrightWorkerArgs,
+  PlaywrightWorkerOptions,
+  TestType,
+} from "@playwright/test"
 import type { ElectronApplication } from "playwright"
+
+import { createNotificationsOrganism } from "#organisms/Notifications"
+import { isE2ETrackTitle } from "#/Helper"
+import { createLibrarySettingsPage } from "#pages/LibrarySettingsPage"
+import { createTracksPage } from "#pages/TracksPage"
+import { createAlbumsPage } from "#pages/AlbumsPage"
+import { createArtistsPage } from "#pages/ArtistsPage"
+import { createPlaybarOrganism } from "#organisms/Playbar"
+import { createQueuebarOrganism } from "#organisms/Queuebar"
+import { createSearchbarOrganism } from "#organisms/Searchbar"
+import { createMenuOrganism } from "#organisms/Menu"
 
 export async function createBasePage(electron: ElectronApplication) {
   const page = await electron.firstWindow()
@@ -25,20 +30,18 @@ export async function createBasePage(electron: ElectronApplication) {
   const playbar = await createPlaybarOrganism(electron),
     queuebar = await createQueuebarOrganism(electron),
     searchbar = await createSearchbarOrganism(electron),
-    menu = await createMenuOrganism(electron)
+    menu = await createMenuOrganism(electron),
+    notifications = await createNotificationsOrganism(electron)
   const sidebar = page.getByTestId(TEST_IDS.sidebar),
     sidebarItemAlbums = sidebar.locator("text=Albums"),
     sidebarItemArtists = sidebar.locator("text=Artists"),
     sidebarItemTracks = sidebar.locator("text=Tracks"),
-    sidebarMenu = page.locator(TEST_IDS.asQuery.sidebarMenu),
-    sidebarMenuIcon = page.locator(TEST_IDS.asQuery.sidebarMenuIcon),
+    sidebarMenu = page.getByTestId(TEST_IDS.sidebarMenu),
+    sidebarMenuIcon = page.getByTestId(TEST_IDS.sidebarMenuIcon),
     sidebarMenuSettings = sidebarMenu.locator("text=Settings"),
-    testAudioElement = page.locator(TEST_IDS.asQuery.testAudioELement)
-
-  // const previousTracks = page.locator(TEST_IDS.asQuery.queuePlayedTracks)
+    testAudioElement = page.getByTestId(TEST_IDS.testAudioELement)
 
   return {
-    closeAllNotifications,
     createErrorListener,
     getMediaSessionMetaData: getMediaSessionData,
     isPlayingAudio,
@@ -46,17 +49,18 @@ export async function createBasePage(electron: ElectronApplication) {
     logPressedKeys,
     mockDialog,
     pauseExecution: () => page.pause(),
+    pauseOnFailure,
     reload,
     startVisualisingClicks,
     stopLoggingPressedKeys,
     stopVisualisingClicks,
     waitForCurrentTrackToChangeTo,
-    waitForNotification,
 
+    menu,
+    notifications,
     playbar,
     queuebar,
     searchbar,
-    menu,
 
     /**
      * Hard reload the page while setting it.
@@ -80,16 +84,16 @@ export async function createBasePage(electron: ElectronApplication) {
     ReturnType<typeof createLibrarySettingsPage>
   > {
     await openSidebarMenu()
-    await sidebarMenuSettings.click({ timeout: 3000, force: true })
+    await sidebarMenuSettings.click({ force: true })
 
     const settingsLibraryPage = await createLibrarySettingsPage(electron)
-    await settingsLibraryPage.waitToBeVisible()
+    await settingsLibraryPage.folders.waitFor({ state: "visible" })
 
     return settingsLibraryPage
   }
 
   async function gotoTracks() {
-    await sidebarItemTracks.click({ timeout: 2000, force: true })
+    await sidebarItemTracks.click({ force: true })
 
     const tracksPage = await createTracksPage(electron)
 
@@ -99,7 +103,7 @@ export async function createBasePage(electron: ElectronApplication) {
   }
 
   async function gotoAlbums() {
-    await sidebarItemAlbums.click({ timeout: 2000, force: true })
+    await sidebarItemAlbums.click({ force: true })
 
     const albumsPage = await createAlbumsPage(electron)
     await albumsPage.waitToBeVisible()
@@ -108,7 +112,7 @@ export async function createBasePage(electron: ElectronApplication) {
   }
 
   async function goToArtists() {
-    await sidebarItemArtists.click({ timeout: 500, force: true })
+    await sidebarItemArtists.click({ force: true })
 
     const artistsPage = await createArtistsPage(electron)
     await artistsPage.waitToBeVisible()
@@ -120,8 +124,8 @@ export async function createBasePage(electron: ElectronApplication) {
     const isVisible = await sidebarMenu.isVisible()
     if (isVisible) return
 
-    await sidebarMenuIcon.click({ timeout: 2000 })
-    await sidebarMenu.waitFor({ state: "visible", timeout: 2000 })
+    await sidebarMenuIcon.click()
+    await sidebarMenu.waitFor({ state: "visible" })
   }
 
   async function resetToTracks() {
@@ -141,18 +145,11 @@ export async function createBasePage(electron: ElectronApplication) {
 
     const path = `${protocol}//${pathname}#${location}${id ? `/${id}` : ""}`
 
-    return page.goto(path, { timeout: 2000 })
+    return page.goto(path)
   }
 
   async function reload() {
     await page.reload()
-  }
-
-  async function waitForNotification(label: string, timeout = 4000) {
-    return page.waitForSelector(
-      `${TEST_ATTRIBUTES.asQuery.notification}:has-text('${label}')`,
-      { timeout }
-    )
   }
 
   /**
@@ -201,14 +198,14 @@ export async function createBasePage(electron: ElectronApplication) {
     if (waitFor === "Next track" || waitFor === "Previous track") {
       const nextTitle =
         waitFor === "Next track"
-          ? await queuebar.getNextTrack().then((track) => track?.title)
-          : await queuebar.getPreviousTrack().then((track) => track?.title)
+          ? await queuebar.getNextTrackData().then((track) => track?.title)
+          : await queuebar.getPreviousTrackData().then((track) => track?.title)
       if (!nextTitle) throw new Error(`Could not find ${waitFor} element`)
 
       return waitCurrentTrackToBecome(nextTitle)
     }
 
-    if (!isE2ETrackTitle)
+    if (!isE2ETrackTitle(waitFor))
       throw new TypeError(
         `Invalid track title provided: ${waitFor} \nOnly e2e titles like "01" and "24" are allowed.`
       )
@@ -309,21 +306,6 @@ export async function createBasePage(electron: ElectronApplication) {
   }
 
   /**
-   * Closes all open notifications (which can be closed by the user).
-   *
-   * Useful when notifcations overlap a button and the test suite fails to click it because of that.
-   */
-  async function closeAllNotifications() {
-    const closeButtons = await page.$$(
-      TEST_ATTRIBUTES.asQuery.notificationCloseButton
-    )
-
-    for (const button of closeButtons) {
-      await button.click({ timeout: 1200, force: true })
-    }
-  }
-
-  /**
    * Listens to the audio player element for its `pause` event.
    * Not directly related to the UI, but nessecary to check if everything works.
    * @returns A function which returns if the audio was paused since invoking the `listenToPause` function
@@ -379,6 +361,19 @@ export async function createBasePage(electron: ElectronApplication) {
     }
   }
 
+  async function pauseOnFailure(
+    test: TestType<
+      PlaywrightTestArgs & PlaywrightTestOptions,
+      PlaywrightWorkerArgs & PlaywrightWorkerOptions
+    >
+  ) {
+    if (test.info().errors) {
+      await page.pause()
+
+      throw test.info().errors.at(0)
+    }
+  }
+
   // Media keys wont trigger anything as they will be emitted as untrusted events.
   // async function pressMediaKey(
   //   key:
@@ -418,5 +413,3 @@ export async function createBasePage(electron: ElectronApplication) {
     })
   }
 }
-
-// playbackstate: navigator.mediaSession.metadata,

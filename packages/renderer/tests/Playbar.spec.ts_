@@ -25,8 +25,8 @@ afterEach(() => {
   vi.resetModules()
 })
 
-describe("behaves correctly with valid queue", async () => {
-  beforeEach(async () => {
+test.describe("behaves correctly with valid queue", async () => {
+  test.beforeEach(async () => {
     vi.mocked(window.api.getTracks).mockImplementation(
       async () => mockedApiTracksResponse
     )
@@ -122,8 +122,8 @@ describe("behaves correctly with valid queue", async () => {
   })
 })
 
-describe("behaves correctly with no tracks", () => {
-  beforeEach(async () => {
+test.describe("behaves correctly with no tracks", () => {
+  test.beforeEach(async () => {
     vi.mocked(window.api.getTracks).mockImplementation(async () => E.right([]))
 
     Playbar = (await import(
@@ -131,9 +131,9 @@ describe("behaves correctly with no tracks", () => {
     )) as unknown as typeof SvelteComponentDev
   })
 
-  afterAll(async () => vi.unmock("@/lib/stores/TracksStore"))
+  test.afterAll(async () => vi.unmock("@/lib/stores/TracksStore"))
 
-  describe("displays no meta data", () => {
+  test.describe("displays no meta data", () => {
     it("does not display artist when store is undefined", () => {
       const playbar = render(Playbar)
 
@@ -153,7 +153,7 @@ describe("behaves correctly with no tracks", () => {
     })
   })
 
-  describe("does not have playback functionality", async () => {
+  test.describe("does not have playback functionality", async () => {
     it("Play button is disabled when store is undefined", () => {
       const playbar = render(Playbar)
       expect(
@@ -176,7 +176,7 @@ describe("behaves correctly with no tracks", () => {
     })
   })
 
-  describe("displays current time and duration correctly", async () => {
+  test.describe("displays current time and duration correctly", async () => {
     it("Track current time is empty when store returns undefined", () => {
       const playbar = render(Playbar)
       expect(
@@ -198,8 +198,8 @@ describe("behaves correctly with no tracks", () => {
   })
 })
 
-// describe("changes the playback state", async () => {
-//   beforeEach(async () => {
+// test.describe("changes the playback state", async () => {
+//   test.beforeEach(async () => {
 //     vi.mocked(window.api.getTracks).mockImplementation(
 //       async () => mockedApiTracksResponse
 //     )

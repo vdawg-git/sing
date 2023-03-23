@@ -65,10 +65,6 @@ export function createOpenMenu({
     }
 
     function toggleMenu() {
-      console.log({
-        isMenuOpen,
-      })
-
       if (isMenuOpen) {
         // Close the menu
         isMenuOpen = false
@@ -87,9 +83,6 @@ export function createOpenMenu({
           },
         })
       }
-      console.log({
-        isMenuOpen,
-      })
     }
   }
 }

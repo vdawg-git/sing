@@ -4,19 +4,9 @@ import type { Plugin } from "esbuild"
 export const externalizePrisma: Plugin = {
   name: "externalize-prisma",
   setup(bundle) {
-    bundle.onResolve({ filter: /@sing-prisma/ }, (_) => {
-      // const prismaPath = join(
-      //   process.cwd(),
-      //   "dist",
-      //   "generated",
-      //   "prismaClient"
-      // )
-      // const path = relative(argument_.resolveDir, prismaPath)
-      console.log("")
-      return {
-        path: "../../generated/client",
-        external: true,
-      }
-    })
+    bundle.onResolve({ filter: /@sing-prisma/ }, (_) => ({
+      path: "../../generated/client",
+      external: true,
+    }))
   },
 }

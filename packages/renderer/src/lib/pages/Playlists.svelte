@@ -85,5 +85,9 @@
     on:click={() => createAndNavigateToPlaylist(navigate)}
   />
 {:else}
-  <CardList {items} testID="playlistCards" cardTestAttributes="playlistCard" />
+  <CardList
+    {items}
+    testID="playlistCardsGrid"
+    cardTestAttributes="playlistCard"
+  />
 {/if}

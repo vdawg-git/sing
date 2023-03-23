@@ -1,9 +1,6 @@
 /* eslint-disable unicorn/prefer-dom-node-text-content */
 
-import {
-  TEST_ATTRIBUTES,
-  TEST_IDS,
-} from "../../../packages/renderer/src/TestConsts"
+import { TEST_ATTRIBUTES, TEST_IDS } from "@sing-renderer/TestConsts"
 
 import type { ElectronApplication, Locator } from "playwright"
 

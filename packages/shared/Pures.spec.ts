@@ -256,7 +256,7 @@ test("secondsToDuration", () => {
   expect(secondsToDuration(seconds)).toEqual(desiredResult)
 })
 
-describe("sortTracks", () => {
+test.describe("sortTracks", () => {
   test("happy", () => {
     const given: readonly StrictOmit<ITrack, "albumID" | "type">[] =
       // prettier-ignore

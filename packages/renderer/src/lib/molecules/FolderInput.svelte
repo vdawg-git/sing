@@ -11,11 +11,7 @@
   const dispatch = createEventDispatcher()
 
   async function handleClick() {
-    if (path === undefined) {
-      addNewFolder()
-    } else {
-      editFolder()
-    }
+    path ? editFolder() : addNewFolder()
   }
 
   async function addNewFolder() {
@@ -88,6 +84,3 @@
     </div>
   {/if}
 </button>
-
-<style lang="postcss">
-</style>

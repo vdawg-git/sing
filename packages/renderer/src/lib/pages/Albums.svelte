@@ -61,5 +61,5 @@
 {#if $albums.length === 0}
   <NothingHereYet />
 {:else}
-  <CardList {items} testID="albumCards" cardTestAttributes="albumCard" />
+  <CardList {items} testID="albumCardsGrid" cardTestAttributes="albumCard" />
 {/if}

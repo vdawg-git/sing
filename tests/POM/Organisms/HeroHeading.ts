@@ -16,7 +16,7 @@ export async function createHeroHeadingOrganism(electron: ElectronApplication) {
   }
 
   async function waitForTitle(title: string) {
-    return titleLocator.filter({ hasText: title }).waitFor({ timeout: 1000 })
+    await titleLocator.filter({ hasText: title }).waitFor({ state: "visible" })
   }
 
   async function getTitle(): Promise<string | undefined> {

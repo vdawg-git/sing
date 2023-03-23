@@ -1,53 +1,55 @@
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 
-import { NOTIFICATION_LABEL } from "../../packages/renderer/src/Constants"
-import {
-  TEST_ATTRIBUTES,
-  TEST_IDS as id,
-} from "../../packages/renderer/src/TestConsts"
-
-import { createBaseSettingsPage } from "./SettingsBasePage"
+import { NOTIFICATION_LABEL } from "@sing-renderer/Constants"
+import { TEST_ATTRIBUTES, TEST_IDS as id } from "@sing-renderer/TestConsts"
 
 /* eslint-disable unicorn/prefer-dom-node-text-content */
 /* eslint-disable no-await-in-loop */
 import type { ElectronApplication, Locator } from "playwright"
 import type { AllowedIndexes } from "@sing-types/Utilities"
+import type { EndToEndFolder } from "#/Types"
+
+import { createBaseSettingsPage } from "#pages/SettingsBasePage"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 export async function createLibrarySettingsPage(electron: ElectronApplication) {
   const defaultFolders = [
-    path.join(__dirname, "../testdata/folder0"),
-    path.join(__dirname, "../testdata/folder1"),
-    path.join(__dirname, "../testdata/folder2"),
+    path.join(__dirname, "../../testdata/folder0"),
+    path.join(__dirname, "../../testdata/folder1"),
+    path.join(__dirname, "../../testdata/folder2"),
   ] as const
-  const emptyFolder = path.join(__dirname, "../testdata/empty")
+  const emptyFolderPath = path.join(__dirname, "../../testdata/empty")
 
   const settingsBase = await createBaseSettingsPage(electron)
   const page = await electron.firstWindow()
 
-  const folders = page.locator(id.asQuery.settingsFolders)
-  const emptyInput = page.locator(id.asQuery.settingsFoldersEmptyInput)
-  const saveButton = page.locator(id.asQuery.settingsFoldersSaveButton)
+  const folders = page.getByTestId(id.settingsFolders),
+    emptyInput = page.getByTestId(id.settingsFoldersEmptyInput),
+    saveButton = page.getByTestId(id.settingsFoldersSaveButton)
 
   return {
     ...settingsBase,
 
     addEmptyFolder,
-    emptyLibrary,
     addFolder,
     editFolder,
-    getFolderNames,
+    emptyLibrary,
+    folders,
+    getFolderByLabel,
     removeAllFolders,
     removeFolder,
     resetToDefault,
     saveAndSyncFolders,
-    setDefaultFolders,
-    waitToBeVisible,
+    setDefaultFolders: addDefaultFolders,
   }
 
   async function resetToDefault() {
-    await setDefaultFolders()
+    await removeAllFolders()
+    await addDefaultFolders()
     await saveAndSyncFolders()
-    await settingsBase.reload()
   }
 
   async function emptyLibrary() {
@@ -57,9 +59,9 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
   }
 
   /**
-   * Adds all three test folders. `folder0, folder1, folder2)`
+   * Removes all folders and adds all three test folders. `folder0, folder1, folder2)`
    */
-  async function setDefaultFolders() {
+  async function addDefaultFolders() {
     await removeAllFolders()
 
     for (const folder of defaultFolders) {
@@ -79,7 +81,7 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
 
       if (!deleteIcon) return
 
-      await deleteIcon.click({ timeout: 2000, force: true })
+      await deleteIcon.click({ force: true })
 
       recursion()
     }
@@ -89,10 +91,6 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
     const folderElements = await page.$$(TEST_ATTRIBUTES.asQuery.folderInput)
 
     return folderElements
-  }
-
-  async function waitToBeVisible(): Promise<void> {
-    return folders.waitFor({ timeout: 1000 })
   }
 
   async function addFolder(
@@ -115,11 +113,11 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
 
     await settingsBase.mockDialog([folderpath])
 
-    await folder.click({ timeout: 2000 })
+    await folder.click()
   }
 
   async function removeFolder(
-    folderToRemove: number | "folder0" | "folder1" | "folder2"
+    folderToRemove: EndToEndFolder | "folder0" | "folder1" | "folder2"
   ): Promise<void> {
     if (typeof folderToRemove === "number") {
       const folderElements = await getFolderElements()
@@ -134,7 +132,7 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
         throw new Error(`could not find deleteIcon, it is: ${deleteIcon}`)
       }
 
-      await deleteIcon.click({ timeout: 2000, force: true })
+      await deleteIcon.click({ force: true })
     } else {
       const folder = await page.$(
         `${TEST_ATTRIBUTES.asQuery.folderInput}:has-text("${folderToRemove}")`
@@ -147,25 +145,25 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
         throw new Error(`could not find deleteIcon, it is: ${deleteIcon}`)
       }
 
-      await deleteIcon.click({ timeout: 2000, force: true })
+      await deleteIcon.click({ force: true })
     }
   }
 
-  async function getFolderNames(): Promise<string[]> {
-    const folderInputElements = await page.$$(
-      TEST_ATTRIBUTES.asQuery.folderInput
-    )
-
-    const folderNames = Promise.all(
-      folderInputElements.map((node) => node.innerText())
-    )
-
-    return folderNames
+  async function getFolderByLabel(label: string) {
+    return folders.locator(TEST_ATTRIBUTES.asQuery.folderInput, {
+      hasText: label,
+    })
   }
 
   async function saveAndSyncFolders() {
-    await saveButton.click({ timeout: 2000 })
-    await settingsBase.waitForNotification(NOTIFICATION_LABEL.syncSuccess)
+    await saveButton.click()
+
+    await settingsBase.notifications.closeAll()
+
+    await settingsBase.notifications.waitForNotification(
+      NOTIFICATION_LABEL.syncSuccess
+    )
+    await settingsBase.notifications.closeAll()
   }
 
   async function setFolderPath(
@@ -174,10 +172,15 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
   ): Promise<void> {
     await settingsBase.mockDialog(paths)
 
-    await folderLocator.click({ timeout: 2000 })
+    await folderLocator.click()
+
+    for (const folderPath of paths) {
+      const regex = new RegExp(folderPath.replace(/\\|\//g, "."))
+      await folders.getByText(regex).waitFor({ state: "visible" })
+    }
   }
 
   async function addEmptyFolder() {
-    await addFolder(emptyFolder)
+    await addFolder(emptyFolderPath)
   }
 }

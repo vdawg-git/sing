@@ -3,6 +3,7 @@
 
 const testIDNames = [
   "albumCardsGrid",
+  "artistAlbumsCardsGrid",
   "artistCardsGrid",
   "heroHeading", // The whole hero
   "heroHeadingTitle", // The title of the hero
@@ -64,6 +65,7 @@ const testAttributeNames = [
   "artistCard",
   "cardPlay",
   "cardSecondaryText",
+  "artistAlbumsCard",
   "cardTitle",
   "folderInput",
   "folderInputDeleteIcon",

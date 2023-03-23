@@ -96,8 +96,8 @@
       items={artist.albums.map(
         convertAlbumToCardData({ navigate, $playlistsStore })
       )}
-      testID="artistCards"
-      cardTestAttributes="artistCard"
+      testID="artistAlbumsCardsGrid"
+      cardTestAttributes="artistAlbumsCard"
     />
   {/if}
 {/if}

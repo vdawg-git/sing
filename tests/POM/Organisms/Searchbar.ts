@@ -1,13 +1,11 @@
 /* eslint-disable unicorn/prefer-dom-node-text-content */
 
-import { createAlbumPage } from "../AlbumPage"
-import { createArtistPage } from "../ArtistPage"
-import {
-  TEST_ATTRIBUTES,
-  TEST_IDS,
-} from "../../../packages/renderer/src/TestConsts"
+import { TEST_ATTRIBUTES, TEST_IDS } from "@sing-renderer/TestConsts"
 
 import type { ElectronApplication, Locator } from "playwright"
+
+import { createAlbumPage } from "#pages/AlbumPage"
+import { createArtistPage } from "#pages/ArtistPage"
 
 type E2ESearchResult = {
   title: string

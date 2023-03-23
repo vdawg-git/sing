@@ -86,7 +86,7 @@
 
     return either.getOrElseW((error) => {
       addNotification({ label: "Failed to get album", duration: 5 })
-      console.log(error)
+      console.error(error)
 
       return undefined
     })(albumEither)

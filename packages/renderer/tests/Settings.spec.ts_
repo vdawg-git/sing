@@ -20,7 +20,7 @@ afterEach(() => {
   vi.resetModules()
 })
 
-beforeEach(async () => {
+test.beforeEach(async () => {
   vitest.resetModules()
 
   Settings = (await import(

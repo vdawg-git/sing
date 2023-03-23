@@ -14,7 +14,7 @@ vi.stubGlobal("api", MockedApi)
 
 let FoldersPicker: typeof SvelteComponentDev
 
-beforeEach(async () => {
+test.beforeEach(async () => {
   FoldersPicker = (await import(
     "@/lib/organisms/FoldersPicker.svelte"
   )) as unknown as typeof SvelteComponentDev

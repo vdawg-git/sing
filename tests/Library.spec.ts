@@ -1,17 +1,16 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest"
-import * as A from "fp-ts/lib/Array"
+import { expect, test } from "@playwright/test"
 
-import { UNKNOWN_ARTIST } from "../packages/shared/Consts"
-
-import { launchElectron } from "./Helper"
-import { createBasePage } from "./POM/BasePage"
-import { createLibrarySettingsPage } from "./POM/LibrarySettingsPage"
+import { UNKNOWN_ARTIST } from "@sing-shared/Consts"
 
 import type { ElectronApplication } from "playwright"
 
+import { launchElectron } from "#/Helper"
+import { createBasePage } from "#pages/BasePage"
+import { createLibrarySettingsPage } from "#pages/LibrarySettingsPage"
+
 let electron: ElectronApplication
 
-beforeAll(async () => {
+test.beforeAll(async () => {
   electron = await launchElectron()
 
   const basePage = await createBasePage(electron)
@@ -19,16 +18,16 @@ beforeAll(async () => {
   basePage.resetTo.settingsLibrary()
 })
 
-afterAll(async () => {
+test.afterAll(async () => {
   await electron.close()
 })
 
-beforeEach(async () => {
+test.beforeEach(async () => {
   const basePage = await createBasePage(electron)
   await basePage.resetTo.settingsLibrary()
 })
 
-it("can add a folder", async () => {
+test("can add a folder", async () => {
   const nameToAdd = "testdata/folder"
 
   const settingsPage = await createLibrarySettingsPage(electron)
@@ -36,22 +35,20 @@ it("can add a folder", async () => {
 
   await settingsPage.addFolder(nameToAdd)
 
-  const folderNames = await settingsPage.getFolderNames()
-
-  expect(folderNames).to.contain(nameToAdd)
+  await expect(await settingsPage.getFolderByLabel(nameToAdd)).toBeVisible()
 })
 
-describe("When adding all folders", async () => {
-  beforeEach(async () => {
+test.describe("When adding all folders", async () => {
+  test.beforeEach(async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     await settingsPage.emptyLibrary()
 
     await settingsPage.setDefaultFolders()
-    await settingsPage.closeAllNotifications()
+
     await settingsPage.saveAndSyncFolders()
   })
 
-  it("should correctly add tracks with an unknown artist and album", async () => {
+  test("should correctly add tracks with an unknown artist and album", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     const tracksPage = await settingsPage.goTo.tracks()
 
@@ -61,202 +58,200 @@ describe("When adding all folders", async () => {
 
     const expectedTitles = ["00", "01", "02", "03"]
 
-    const allTitles = await tracksPage.trackList
-      .getTracks()
-      .then((tracks) => tracks.map((track) => track.title))
-
     for (const title of expectedTitles) {
-      expect(allTitles).to.be.an("array").that.includes(title)
+      await expect(
+        await tracksPage.trackList.getTrackItem(title + "_")
+      ).toBeVisible()
     }
   })
 
-  it("should add `Unknown artist` to artists", async () => {
+  test("should add `Unknown artist` to artists", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     const artistsPage = await settingsPage.goTo.artists()
 
-    const artists = await Promise.all(
-      await artistsPage.cards
-        .getAll()
-        .then(
-          A.map((artistCard) => artistCard.getData().then((data) => data.title))
-        )
-    )
+    const unknownCard = await artistsPage.cards.getCardByTitle(UNKNOWN_ARTIST)
 
-    expect(artists).to.be.an("array").that.includes(UNKNOWN_ARTIST)
+    await expect(unknownCard).toBeVisible()
   })
 })
 
-describe("when removing all folders after having folders added", async () => {
-  beforeEach(async () => {
-    const settingsPage = await createLibrarySettingsPage(electron)
+test.describe("when removing all folders after having folders added", async () => {
+  test.beforeEach(async () => {
+    const basePage = await createBasePage(electron)
+    const settingsPage = await basePage.resetTo.settingsLibrary()
 
-    await settingsPage.setDefaultFolders()
-    await settingsPage.closeAllNotifications()
-    await settingsPage.saveAndSyncFolders()
-
+    await settingsPage.resetToDefault()
     await settingsPage.emptyLibrary()
   })
 
-  it("has no current track", async () => {
+  test("has no current track", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
-    const currentTrack = await settingsPage.playbar.getCurrentTrack()
-
-    expect(currentTrack).toBe(undefined)
+    await expect(settingsPage.playbar.currentTrack).toBeHidden()
   })
 
-  it("does not have a queue", async () => {
+  test("does not have a queue", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
-    const queueLength = await settingsPage.queuebar.getQueueLength()
-
-    expect(queueLength).toBe(0)
+    await expect(settingsPage.queuebar.allItems).toHaveCount(0)
   })
 
-  it("has no tracks in the tracks page", async () => {
+  test("has no tracks in the tracks page", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
     const tracksPage = await settingsPage.goTo.tracks()
 
-    const hasTracks = await tracksPage.trackList.hasTracks()
+    await expect.soft(tracksPage.trackList.trackItems).toHaveCount(0)
 
-    expect(hasTracks).toBe(false)
+    await tracksPage.pauseOnFailure(test)
   })
 
-  it("has no albums in the albums page", async () => {
+  test("has no albums in the albums page", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
     const albumsPage = await settingsPage.goTo.albums()
 
-    const hasAlbums = await albumsPage.cards.hasCards()
+    await expect.soft(albumsPage.cards.allCards).toHaveCount(0)
 
-    expect(hasAlbums).toBe(false)
+    if (test.info().errors.length > 0) {
+      albumsPage.pauseExecution()
+    }
   })
 
-  it("has no artists in the artists page", async () => {
+  test("has no artists in the artists page", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
     const artistsPage = await settingsPage.goTo.artists()
 
-    const hasArtists = await artistsPage.cards.hasCards()
-
-    expect(hasArtists).toBe(false)
+    await expect(artistsPage.cards.allCards).toHaveCount(0)
   })
 })
 
-describe("when removing all folders and instead adding new ones", async () => {
-  beforeEach(async () => {
+test.describe("when removing all folders and instead adding new ones", async () => {
+  test.beforeEach(async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     await settingsPage.emptyLibrary()
 
     await settingsPage.removeAllFolders()
     await settingsPage.addFolder(1)
     await settingsPage.addFolder(2)
-    await settingsPage.closeAllNotifications()
+
     await settingsPage.saveAndSyncFolders()
   })
 
-  it("does not have a queue", async () => {
+  test("does not have a queue", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     const tracksPage = await settingsPage.goTo.tracks()
-    await tracksPage.trackList.playTrack("10")
+
+    await tracksPage.trackList.playTrack("10_")
     await tracksPage.goTo.settingsLibrary()
 
     await settingsPage.removeAllFolders()
     await settingsPage.addFolder(0)
-    await settingsPage.closeAllNotifications()
+
     await settingsPage.saveAndSyncFolders()
 
-    const queueLength = await settingsPage.queuebar.getQueueLength()
-
-    expect(queueLength).toBe(0)
+    await expect(tracksPage.queuebar.allItems).toHaveCount(0)
   })
 })
 
-describe("when removing one folder", async () => {
-  beforeEach(async () => {
+test.describe("when removing one folder", async () => {
+  test.beforeEach(async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     await settingsPage.setDefaultFolders()
-    await settingsPage.closeAllNotifications()
+
     await settingsPage.saveAndSyncFolders()
   })
 
-  it("does delete the tracks from the folder in the queue", async () => {
+  test("does delete the tracks from the folder in the queue", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
     const trackPage = await settingsPage.goTo.tracks()
-    await trackPage.trackList.playTrack("01")
+    await trackPage.trackList.playTrack("01_")
 
     await trackPage.goTo.settingsLibrary()
 
     await settingsPage.removeFolder(0)
-    await settingsPage.closeAllNotifications()
+
     await settingsPage.saveAndSyncFolders()
+    await settingsPage.queuebar.open()
 
-    const foldersAddedToQueue = await settingsPage.queuebar.getAddedFolders()
+    await expect
+      .soft(await settingsPage.queuebar.getItemByTitle("00"))
+      .toBeHidden()
+    await expect
+      .soft(await settingsPage.queuebar.getItemByTitle("05"))
+      .toBeHidden()
 
-    expect(foldersAddedToQueue.indexOf(0)).toBe(-1)
+    await settingsPage.queuebar.close()
   })
 
-  it("does delete the tracks from the folder in the tracks page", async () => {
+  test("does delete the tracks from the folder in the tracks page", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
     await settingsPage.removeFolder(0)
-    await settingsPage.closeAllNotifications()
+
     await settingsPage.saveAndSyncFolders()
 
     const tracksPage = await settingsPage.goTo.tracks()
 
-    const addedFolders = await tracksPage.trackList.getAddedFolders()
+    const tracksFolder0 = await tracksPage.trackList.getByFolder(0)
 
-    expect(addedFolders).toEqual([1, 2])
+    await expect(tracksFolder0).toBeHidden()
   })
 
-  it.skip("changes the current track if it came from the removed folder", async () => {
+  test("should change the current track correctly if it came from the removed folder", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     const tracksPage = await settingsPage.goTo.tracks()
 
-    const trackToPlay = "10"
+    const trackToPlay = "10_"
     await tracksPage.trackList.playTrack(trackToPlay)
-    const waitForTrack =
-      settingsPage.playbar.waitForCurrentTrackToBecome(trackToPlay)
 
-    await expect(
-      waitForTrack,
-      "Is not playing clicked track"
-    ).resolves.not.toThrow()
+    await expect
+      .soft(
+        tracksPage.playbar.currentTrack,
+        "Did not play the correct track on click"
+      )
+      .toContainText(trackToPlay)
+
+    if (test.info().errors.length > 0) {
+      await tracksPage.pauseExecution()
+    }
 
     await tracksPage.goTo.settingsLibrary()
 
-    await settingsPage.removeFolder(0)
+    await settingsPage.removeFolder(1)
 
-    await settingsPage.closeAllNotifications()
     await settingsPage.saveAndSyncFolders()
 
-    const waitForChange2 = settingsPage.playbar.waitForCurrentTrackToChange()
-
-    await expect(waitForChange2).resolves.not.toThrow()
+    await expect(tracksPage.playbar.currentTrack).toContainText("09_")
   })
 })
 
-describe("when adding one folder from a clear state", async () => {
-  beforeEach(async () => {
-    const settingsPage = await createLibrarySettingsPage(electron)
+test.describe("when adding one folder from a clear state", async () => {
+  test.beforeEach(async () => {
+    const basePage = await createBasePage(electron)
+    const settingsPage = await basePage.resetTo.settingsLibrary()
     await settingsPage.emptyLibrary()
     await settingsPage.addFolder(0)
-    await settingsPage.closeAllNotifications()
     await settingsPage.saveAndSyncFolders()
   })
 
-  it("adds just tracks from the newly added folder to the track page", async () => {
-    const expectedTitles = Array.from({ length: 10 }, (_, index) => `0${index}`)
+  test("adds just tracks from the newly added folder to the track page", async () => {
+    const expectedTitles = Array.from(
+      { length: 10 },
+      (_, index) => `0${index}_`
+    )
 
     const settingsPage = await createLibrarySettingsPage(electron)
 
     const tracksPage = await settingsPage.goTo.tracks()
 
-    const titles = await tracksPage.trackList.getTrackTitles()
+    for (const title of expectedTitles) {
+      await expect(await tracksPage.trackList.getTrackItem(title)).toBeVisible()
+    }
 
-    expect(titles).toStrictEqual(expectedTitles)
+    await expect(await tracksPage.trackList.getTrackItem("10_")).toBeHidden()
+    await expect(await tracksPage.trackList.getTrackItem("20_")).toBeHidden()
   })
 })

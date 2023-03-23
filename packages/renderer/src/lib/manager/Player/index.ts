@@ -14,9 +14,9 @@ import {
 } from "./Helper"
 import { playbackActions } from "./playbackSlice"
 
-import type { IPlayLoop, IPlayState, IQueueItem } from "@/types/Types"
+import type { IPlayLoop, IPlayState } from "@/types/Types"
 import type { IAlbum, IArtist, ITrack } from "@sing-types/DatabaseTypes"
-import type { ICurrentPlayback } from "@sing-types/Types"
+import type { ICurrentPlayback, IQueueItem } from "@sing-types/Types"
 
 // Create stores / state
 const volumeStore = writable(1)
@@ -87,7 +87,6 @@ loopState.subscribe(($newLoop) => ($loopState = $newLoop))
 
 currentTrack.subscribe(($newCurrentTrack) => {
   if (dequal($currentTrack, $newCurrentTrack)) {
-    console.log("Current track stayed same")
     return
   }
 

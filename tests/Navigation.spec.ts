@@ -1,31 +1,31 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest"
-
-import { launchElectron } from "./Helper"
-import { createBasePage } from "./POM/BasePage"
+import { expect, test } from "@playwright/test"
 
 import type { ElectronApplication } from "playwright"
 
+import { launchElectron } from "#/Helper"
+import { createBasePage } from "#pages/BasePage"
+
 let electronApp: ElectronApplication
 
-beforeAll(async () => {
+test.beforeAll(async () => {
   electronApp = await launchElectron()
 })
 
-afterAll(async () => {
+test.afterAll(async () => {
   await electronApp.close()
 })
 
-it("is possible to go to the settings page", async () => {
+test("is possible to go to the settings page", async () => {
   const basePage = await createBasePage(electronApp)
   const tracksPage = await basePage.resetTo.tracks()
 
   const settingsPage = await tracksPage.goTo.settingsLibrary()
 
-  await expect(settingsPage.waitToBeVisible()).resolves.toBeUndefined()
+  await expect(settingsPage.folders).toBeVisible()
 })
 
-describe("From Settings", async () => {
-  it("is possible to go to the tracks page", async () => {
+test.describe("From Settings", async () => {
+  test("is possible to go to the tracks page", async () => {
     const basePage = await createBasePage(electronApp)
     const settingsPage = await basePage.resetTo.settingsLibrary()
 

@@ -1,9 +1,11 @@
 /* eslint-disable unicorn/prefer-dom-node-text-content */
 
-import { TEST_IDS } from "../../../packages/renderer/src/TestConsts"
-import { convertDisplayTimeToSeconds, getTrackTitle } from "../Helper"
+import { TEST_IDS } from "@sing-renderer/TestConsts"
 
 import type { ElectronApplication } from "playwright"
+
+import { convertDisplayTimeToSeconds } from "#/Helper"
+
 
 /**
  * Interact with the playbar
@@ -13,7 +15,7 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
 
   const currentTime = page.getByTestId(TEST_IDS.seekbarCurrentTime),
     currentTrack = page.getByTestId(TEST_IDS.playbarTitle),
-    artistName = page.getByTestId(TEST_IDS.playbarArtist),
+    currentArtist = page.getByTestId(TEST_IDS.playbarArtist),
     volumeIcon = page.getByTestId(TEST_IDS.playbarVolumeIcon),
     backButton = page.getByTestId(TEST_IDS.playbarBackButton),
     cover = page.getByTestId(TEST_IDS.playbarCover),
@@ -37,10 +39,10 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
     clickPrevious,
     clickSeekbar,
     clickShuffle,
+    currentTrack,
+    currentArtist,
     getCoverPath,
-    getCurrentArtist,
     getCurrentProgress,
-    getCurrentTrack,
     getProgressBarWidth,
     getTotalDuration,
     getVolume,
@@ -52,7 +54,6 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
     seekTo,
     setVolume,
     waitForCurrentTrackToBecome,
-    waitForCurrentTrackToChange,
     waitForDurationToBecome,
     waitForProgressBarToProgress,
   }
@@ -119,29 +120,6 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
     await currentTrack
       .getByText(title + "_")
       .waitFor({ state: "visible", timeout: 500 })
-  }
-
-  async function waitForCurrentTrackToChange() {
-    const currentTitle = await getCurrentTrack()
-
-    const regex = new RegExp(`^(?!.*${currentTitle}_).*$`)
-
-    await currentTrack
-      .getByText(regex)
-      .waitFor({ state: "visible", timeout: 500 })
-  }
-
-  /**
-   * Gets the current track title like `01`. Returns `undefined` if there is none.
-   *
-   * *This might not work as expected, as this function does not wait for an UI update.*
-   *
-   * If this is the case, use {@link waitForCurrentTrackToBecome} instead.
-   */
-  async function getCurrentTrack(): Promise<string | undefined> {
-    if ((await currentTrack.isVisible()) === false) return undefined
-
-    return getTrackTitle(await currentTrack.innerText({ timeout: 2000 }))
   }
 
   async function clickSeekbar(seekPercentage: number) {
@@ -292,13 +270,6 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
    */
   async function clickPause() {
     await pauseButton.click({ timeout: 500 })
-  }
-
-  /**
-   * Returns the currently displayed artist name on the playbar.
-   */
-  async function getCurrentArtist(): Promise<string> {
-    return artistName.innerText({ timeout: 500 })
   }
 
   /**

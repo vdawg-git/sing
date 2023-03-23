@@ -18,14 +18,14 @@ vi.stubGlobal("api", mockElectronApi)
 let QueueBarComponent: typeof SvelteComponentDev
 let PlayBarComponent: typeof SvelteComponentDev
 
-beforeEach(() => {
+test.beforeEach(() => {
   vitest.resetModules()
 })
 
 afterEach(() => cleanup())
 
-describe("playbar and queuebar", async () => {
-  beforeEach(async () => {
+test.describe("playbar and queuebar", async () => {
+  test.beforeEach(async () => {
     vitest
       .mocked(window.api.getTracks)
       .mockImplementation(

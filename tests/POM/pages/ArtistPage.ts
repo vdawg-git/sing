@@ -1,11 +1,11 @@
 /* eslint-disable unicorn/prefer-dom-node-text-content */
 
-// import { TEST_IDS } from "../../packages/renderer/src/TestConsts"
-
-import { createBasePage } from "./BasePage"
-import { createHeroHeadingOrganism } from "./Organisms/HeroHeading"
+// import { TEST_IDS } from "@sing-renderer/TestConsts"
 
 import type { ElectronApplication } from "playwright"
+
+import { createBasePage } from "#pages/BasePage"
+import { createHeroHeadingOrganism } from "#organisms/HeroHeading"
 
 export async function createArtistPage(electron: ElectronApplication) {
   const basePage = await createBasePage(electron)

@@ -3,18 +3,22 @@
     "module": "esnext",
     "target": "esnext",
     "sourceMap": false,
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "skipLibCheck": true,
     "strict": true,
     "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
     "types": ["node"],
 
-    "baseUrl": ".",
+    "baseUrl": "..",
     "paths": {
-      "@sing-renderer/*": ["../packages/renderer/src/*"],
-      "@sing-main/*": ["../packages/main/src/*"],
-      "@sing-types/*": ["../types/*"]
+      "@sing-renderer/*": ["./packages/renderer/src/*"],
+      "@sing-shared/*": ["./packages/shared/*"],
+      "@sing-main/*": ["./packages/main/src/*"],
+      "@sing-types/*": ["./types/*"],
+      "#/*": ["./tests/*"],
+      "#pages/*": ["./tests/POM/pages/*"],
+      "#organisms/*": ["./tests/POM/organisms/*"]
     }
   },
   "include": ["./**/*", "../packages/main/src/types/api.d.ts"]

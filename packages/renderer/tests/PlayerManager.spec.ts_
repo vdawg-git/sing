@@ -26,8 +26,8 @@ it("load the source of the first track on load", async () => {
   expect(source).toContain(".") // Check if it is a filepath
 })
 
-describe("fn: playQueueIndex", async () => {
-  beforeEach(async () => {
+test.describe("fn: playQueueIndex", async () => {
+  test.beforeEach(async () => {
     queueItemFactory.rewindSequence()
     queue.set(queueItemFactory.buildList(50))
     playIndex.set(10)
@@ -54,7 +54,7 @@ describe("fn: playQueueIndex", async () => {
   })
 })
 
-describe("fn: removeIndexFromQueue", async () => {
+test.describe("fn: removeIndexFromQueue", async () => {
   it("keeps the current track when a previously played item gets removed", async () => {
     player.next()
     player.next()

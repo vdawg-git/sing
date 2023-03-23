@@ -2,15 +2,14 @@
 
 import { PAGE_TITLES } from "@sing-renderer/Constants"
 
-import { createBasePage } from "./BasePage"
-import { createTrackListOrganism } from "./Organisms/TrackList"
-import { createHeroHeadingOrganism } from "./Organisms/HeroHeading"
-
 import type { ElectronApplication } from "playwright"
+
+import { createBasePage } from "#pages/BasePage"
+import { createTrackListOrganism } from "#organisms/TrackList"
+import { createHeroHeadingOrganism } from "#organisms/HeroHeading"
 
 export async function createTracksPage(electron: ElectronApplication) {
   const basePage = await createBasePage(electron)
-  // const page = await electron.firstWindow()
 
   const trackList = await createTrackListOrganism(electron)
 
@@ -26,6 +25,6 @@ export async function createTracksPage(electron: ElectronApplication) {
   }
 
   async function waitToBeVisible() {
-    return heading.waitForTitle(PAGE_TITLES.tracks)
+    await heading.waitForTitle(PAGE_TITLES.tracks)
   }
 }

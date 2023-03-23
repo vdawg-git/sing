@@ -25,7 +25,7 @@ const { currentTrack, nextTracks } = await import("@/lib/manager/PlayerManager")
 
 let QueueBarComponent: typeof SvelteComponentDev
 
-beforeEach(async () => {
+test.beforeEach(async () => {
   vitest.resetModules()
 
   QueueBarComponent = (await import(
@@ -33,14 +33,14 @@ beforeEach(async () => {
   )) as unknown as typeof SvelteComponentDev
 })
 
-describe("with valid data", async () => {
-  beforeEach(async () => {
+test.describe("with valid data", async () => {
+  test.beforeEach(async () => {
     vitest
       .mocked(window.api.getTracks)
       .mockImplementation(async () => E.right(mockedTracks))
   })
 
-  describe("displays", async () => {
+  test.describe("displays", async () => {
     it("displays upcoming queue items", async () => {
       const { container } = render(QueueBarComponent)
       const elements = container.querySelectorAll(
@@ -157,8 +157,8 @@ describe("with valid data", async () => {
     })
   })
 
-  describe("does", async () => {
-    describe("play", async () => {
+  test.describe("does", async () => {
+    test.describe("play", async () => {
       it("switches to the track when it is double clicked", async () => {
         const component = render(QueueBarComponent)
 
@@ -187,7 +187,7 @@ describe("with valid data", async () => {
       })
     })
 
-    describe("click delete queue item", async () => {
+    test.describe("click delete queue item", async () => {
       it("removes queue item", async () => {
         const component = render(QueueBarComponent)
 
@@ -289,8 +289,8 @@ describe("with valid data", async () => {
   })
 })
 
-describe("behaves correctly when queue is empty", async () => {
-  beforeEach(async () => {
+test.describe("behaves correctly when queue is empty", async () => {
+  test.beforeEach(async () => {
     // Mock response to be empty and regenerate the import || clear its cache
     vitest
       .mocked(window.api.getTracks)

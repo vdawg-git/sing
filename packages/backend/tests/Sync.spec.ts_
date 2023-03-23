@@ -38,7 +38,7 @@ vi.mock("music-metadata")
 
 const prisma = createPrismaClient()
 
-beforeEach(async () => {
+test.beforeEach(async () => {
   await resetMockedPrisma()
   vol.reset()
   metaDataFactory.rewindSequence()
@@ -57,7 +57,7 @@ it("fs mocking works", async () => {
   expect(files).toEqual(expected)
 })
 
-describe("syncDirectories", async () => {
+test.describe("syncDirectories", async () => {
   it("should add the correct amount of tracks to the DB with nested folders", async () => {
     const expected = metaDataFactory.dbItem().hasID(true).buildList(4)
     const emitter = createMockedEmitter()

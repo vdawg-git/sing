@@ -9,7 +9,7 @@ import type { SvelteComponentDev } from "svelte/internal"
 
 let VolumeControl: typeof SvelteComponentDev
 
-beforeEach(async () => {
+test.beforeEach(async () => {
   VolumeControl = (await import(
     "@/lib/molecules/VolumeControl.svelte"
   )) as unknown as typeof SvelteComponentDev

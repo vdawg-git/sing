@@ -27,13 +27,13 @@ import type { IRawAudioMetadataWithPicture } from "@sing-types/Types"
 
 vi.mock("fs/promises")
 
-beforeEach(async () => {
+test.beforeEach(async () => {
   vol.reset()
   metaDataFactory.rewindSequence()
   rawMetaDataFactory.rewindSequence()
 })
 
-describe("getCover", async () => {
+test.describe("getCover", async () => {
   it("should return cover metadata", async () => {
     const data = rawMetaDataFactory.build()
     const coverData = getCoverNotCurried(
@@ -54,7 +54,7 @@ describe("getCover", async () => {
   })
 })
 
-describe("saveCovers", async () => {
+test.describe("saveCovers", async () => {
   it("saves the correct amount of covers", async () => {
     const uniqueCoversAmounts = 5
     const data = [
@@ -139,8 +139,8 @@ describe("saveCovers", async () => {
   })
 })
 
-describe("convertMetadata", async () => {
-  beforeEach(async () => {
+test.describe("convertMetadata", async () => {
+  test.beforeEach(async () => {
     rawMetaDataFactory.rewindSequence()
     metaDataFactory.rewindSequence()
   })

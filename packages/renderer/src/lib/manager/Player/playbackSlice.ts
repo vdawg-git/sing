@@ -14,9 +14,10 @@ import {
 } from "./playbackThunks"
 import { getCurrentTrack } from "./Helper"
 
-import type { IPlayLoop, IPlayState, IQueueItem } from "@/types/Types"
+import type { IPlayLoop, IPlayState } from "@/types/Types"
 import type {
   IPlaySource,
+  IQueueItem,
   ISetPlaybackArgumentWithItems,
 } from "@sing-types/Types"
 

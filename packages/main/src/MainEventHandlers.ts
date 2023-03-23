@@ -8,7 +8,6 @@ import type {
   IRemoveTracksFromPlaylistArgument,
   IAddTracksToPlaylistArgument,
 } from "@sing-types/DatabaseTypes"
-import type { DirectoryPath } from "@sing-types/Filesystem"
 import type { IpcMainInvokeEvent } from "electron"
 import type {
   IUserSettings,

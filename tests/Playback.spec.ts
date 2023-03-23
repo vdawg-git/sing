@@ -1,15 +1,15 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest"
+import { expect, test } from "@playwright/test"
 import * as A from "fp-ts/lib/Array"
 
 import { launchElectron } from "./Helper"
-import { createBasePage } from "./POM/BasePage"
-import { createTracksPage } from "./POM/TracksPage"
+import { createBasePage } from "#pages/BasePage"
+import { createTracksPage } from "#pages/TracksPage"
 
 import type { ElectronApplication } from "playwright"
 
 const electron: ElectronApplication = await launchElectron()
 
-beforeAll(async () => {
+test.beforeAll(async () => {
   const basePage = await createBasePage(electron)
 
   const libraryPage = await basePage.resetTo.settingsLibrary()
@@ -18,23 +18,23 @@ beforeAll(async () => {
   await libraryPage.resetTo.tracks()
 })
 
-afterAll(async () => {
+test.afterAll(async () => {
   await electron.close()
 })
 
-beforeEach(async () => {
+test.beforeEach(async () => {
   const page = await createBasePage(electron)
   await page.reload()
 })
 
-it("displays a cover", async () => {
+test("displays a cover", async () => {
   const tracksPage = await createTracksPage(electron)
   // TODO implement saving queue and play state and restoring it when reopening the app
 
   expect(await tracksPage.playbar.isRenderingPlaybarCover()).toBe(true)
 })
 
-it("does not throw an error when playing a queue item", async () => {
+test("does not throw an error when playing a queue item", async () => {
   const tracksPage = await createTracksPage(electron)
 
   const errorListener = await tracksPage.createErrorListener()
@@ -48,7 +48,7 @@ it("does not throw an error when playing a queue item", async () => {
   )
 })
 
-it("progresses the seekbar when playing first song", async () => {
+test("progresses the seekbar when playing first song", async () => {
   const tracksPage = await createTracksPage(electron)
 
   const oldWidth = await tracksPage.playbar.getProgressBarWidth()
@@ -69,7 +69,7 @@ it("progresses the seekbar when playing first song", async () => {
   expect(newWidth).toBeGreaterThan(oldWidth)
 })
 
-it("progresses the seekbar when playing second song", async () => {
+test("progresses the seekbar when playing second song", async () => {
   const tracksPage = await createTracksPage(electron)
 
   const oldWidth = await tracksPage.playbar.getProgressBarWidth()
@@ -91,7 +91,7 @@ it("progresses the seekbar when playing second song", async () => {
   expect(newWidth).toBeGreaterThan(oldWidth)
 })
 
-it("changes the current time when when clicking on the seekbar", async () => {
+test("changes the current time when when clicking on the seekbar", async () => {
   const tracksPage = await createTracksPage(electron)
 
   const oldTime = await tracksPage.playbar.getCurrentProgress()
@@ -103,7 +103,7 @@ it("changes the current time when when clicking on the seekbar", async () => {
   expect(newTime).toBeGreaterThan(oldTime)
 })
 
-it("displays the current time when hovering the seekbar", async () => {
+test("displays the current time when hovering the seekbar", async () => {
   const tracksPage = await createTracksPage(electron)
 
   await tracksPage.playbar.hoverSeekbar()
@@ -111,7 +111,7 @@ it("displays the current time when hovering the seekbar", async () => {
   expect(await tracksPage.playbar.getCurrentProgress()).toBe(0)
 })
 
-it("displays the total time when hovering the seekbar", async () => {
+test("displays the total time when hovering the seekbar", async () => {
   const tracksPage = await createTracksPage(electron)
 
   await tracksPage.playbar.hoverSeekbar()
@@ -119,7 +119,7 @@ it("displays the total time when hovering the seekbar", async () => {
   expect(await tracksPage.playbar.getTotalDuration()).toBeGreaterThan(0)
 })
 
-it("goes to the next track in queue after the current has finished", async () => {
+test("goes to the next track in queue after the current has finished", async () => {
   const tracksPage = await createTracksPage(electron)
   await tracksPage.queuebar.open()
 
@@ -137,7 +137,7 @@ it("goes to the next track in queue after the current has finished", async () =>
   expect(oldNextTrack).toEqual(newCurrentTrack)
 })
 
-it("changes the volume when clicking the slider", async () => {
+test("changes the volume when clicking the slider", async () => {
   const tracksPage = await createTracksPage(electron)
 
   const oldVolume = await tracksPage.playbar.getVolume()
@@ -149,7 +149,7 @@ it("changes the volume when clicking the slider", async () => {
   expect(newVolume).toBeCloseTo(0.5, 1)
 })
 
-it("visualizes the volume correctly", async () => {
+test("visualizes the volume correctly", async () => {
   const tracksPage = await createTracksPage(electron)
 
   const internalVolume = await tracksPage.playbar.getVolumeState()
@@ -158,7 +158,7 @@ it("visualizes the volume correctly", async () => {
   expect(internalVolume).toBeCloseTo(sliderHeight, 1)
 })
 
-it("does not play music when paused and going to the previous track", async () => {
+test("does not play music when paused and going to the previous track", async () => {
   const tracksPage = await createTracksPage(electron)
 
   await tracksPage.playbar.clickNext()
@@ -169,7 +169,7 @@ it("does not play music when paused and going to the previous track", async () =
   expect(isPlaying).toBe(false)
 })
 
-it("does not play music when paused and going to the next track", async () => {
+test("does not play music when paused and going to the next track", async () => {
   const tracksPage = await createTracksPage(electron)
 
   await tracksPage.playbar.clickNext()
@@ -179,7 +179,7 @@ it("does not play music when paused and going to the next track", async () => {
   expect(isPlaying).toBe(false)
 })
 
-it("does not play music when just opened", async () => {
+test("does not play music when just opened", async () => {
   const tracksPage = await createTracksPage(electron)
 
   const isPlaying = await tracksPage.isPlayingAudio()
@@ -187,7 +187,7 @@ it("does not play music when just opened", async () => {
   expect(isPlaying).toBe(false)
 })
 
-it("sets the queue correctly when (un)shuffling", async () => {
+test("sets the queue correctly when (un)shuffling", async () => {
   const tracksPage = await createTracksPage(electron)
 
   await tracksPage.playbar.clickNext()
@@ -222,7 +222,7 @@ it("sets the queue correctly when (un)shuffling", async () => {
   expect(latestQueue[1]).toEqual(startingTrackPlaybar)
 })
 
-it("does not interuppt playback when clicking shuffle", async () => {
+test("does not interuppt playback when clicking shuffle", async () => {
   const tracksPage = await createTracksPage(electron)
 
   // If shuffle is already on, unset it
@@ -238,7 +238,7 @@ it("does not interuppt playback when clicking shuffle", async () => {
   expect(isPlaying).toBe(true)
 })
 
-it("does not interuppt playback when unshuffle", async () => {
+test("does not interuppt playback when unshuffle", async () => {
   const tracksPage = await createTracksPage(electron)
 
   const isShuffleOn = await tracksPage.playbar.isShuffleOn()
@@ -253,11 +253,11 @@ it("does not interuppt playback when unshuffle", async () => {
   expect(isPlaying).toBe(true)
 })
 
-describe("when playing a track while shuffle is on", async () => {
+test.describe("when playing a track while shuffle is on", async () => {
   const tracksPage = await createTracksPage(electron)
-  const trackToPlay = "01"
+  const trackToPlay = "01_"
 
-  it("should play a track correctly and another on another too", async () => {
+  test("should play a track correctly and another on another too", async () => {
     await tracksPage.playbar.clickShuffle()
 
     await tracksPage.trackList.playTrack(trackToPlay)
@@ -266,7 +266,7 @@ describe("when playing a track while shuffle is on", async () => {
       tracksPage.playbar.waitForCurrentTrackToBecome(trackToPlay)
     ).resolves.not.toThrow()
 
-    const newTrackToPlay = "10"
+    const newTrackToPlay = "10_"
     await tracksPage.trackList.playTrack(newTrackToPlay)
 
     await expect(
@@ -274,7 +274,7 @@ describe("when playing a track while shuffle is on", async () => {
     ).resolves.not.toThrow()
   })
 
-  it("should set a new random queue from the source", async () => {
+  test("should set a new random queue from the source", async () => {
     const oldQueue = await tracksPage.queuebar.getItems()
 
     await tracksPage.playbar.clickShuffle()
@@ -285,7 +285,7 @@ describe("when playing a track while shuffle is on", async () => {
     expect(newQueue.slice(0, 10)).not.toEqual(oldQueue.slice(0, 10))
   })
 
-  it("should not interrupt playback when removing a previous track in the queue", async () => {
+  test("should not interrupt playback when removing a previous track in the queue", async () => {
     await tracksPage.playbar.clickShuffle()
     await tracksPage.playbar.clickNext()
     await tracksPage.playbar.clickNext()
@@ -304,7 +304,7 @@ describe("when playing a track while shuffle is on", async () => {
   })
 })
 
-it("should sort the tracks correctly by default by title even when title is not set and the filename is used", async () => {
+test("should sort the tracks correctly by default by title even when title is not set and the filename is used", async () => {
   const tracksPage = await createTracksPage(electron)
   await tracksPage.reload()
 
@@ -313,15 +313,15 @@ it("should sort the tracks correctly by default by title even when title is not 
   expect(tracks).toEqual(tracks.sort())
 })
 
-describe("when playing a track after adding folders from a blank state", async () => {
-  beforeEach(async () => {
+test.describe("when playing a track after adding folders from a blank state", async () => {
+  test.beforeEach(async () => {
     const page = await createBasePage(electron)
     const settingsPage = await page.goTo.settingsLibrary()
     await settingsPage.emptyLibrary()
     await settingsPage.goTo.tracks()
   })
 
-  it("does play the track correctly", async () => {
+  test("does play the track correctly", async () => {
     const trackToPlay = "10"
 
     const tracksPage = await createTracksPage(electron)
@@ -339,8 +339,8 @@ describe("when playing a track after adding folders from a blank state", async (
   })
 })
 
-describe("When seeking", async () => {
-  beforeEach(async () => {
+test.describe("When seeking", async () => {
+  test.beforeEach(async () => {
     const page = await createTracksPage(electron)
     const settings = await page.resetTo.settingsLibrary()
     await settings.removeAllFolders()
@@ -348,11 +348,11 @@ describe("When seeking", async () => {
     await settings.saveAndSyncFolders()
     await page.resetTo.tracks()
 
-    await page.trackList.playTrack("01")
+    await page.trackList.playTrack("01_")
     await page.playbar.clickPause()
   })
 
-  it("does not switch track when seeking to the end while paused", async () => {
+  test("does not switch track when seeking to the end while paused", async () => {
     const tracksPage = await createTracksPage(electron)
 
     const currentTrack = await tracksPage.playbar.getCurrentTrack()
@@ -366,7 +366,7 @@ describe("When seeking", async () => {
     expect(newTrack).to.equal(currentTrack)
   })
 
-  it("does not switch track when seeking to the start while paused", async () => {
+  test("does not switch track when seeking to the start while paused", async () => {
     const tracksPage = await createTracksPage(electron)
 
     const currentTrack = await tracksPage.playbar.getCurrentTrack()
@@ -381,7 +381,7 @@ describe("When seeking", async () => {
     expect(newTrack).to.equal(currentTrack)
   })
 
-  it("updates the current duration", async () => {
+  test("updates the current duration", async () => {
     const tracksPage = await createTracksPage(electron)
 
     const currentProgress = await tracksPage.playbar.getCurrentProgress()
@@ -393,7 +393,7 @@ describe("When seeking", async () => {
     expect(newProgress).not.to.equal(currentProgress)
   })
 
-  it("pauses the playback while seeking", async () => {
+  test("pauses the playback while seeking", async () => {
     const tracksPage = await createTracksPage(electron)
 
     await tracksPage.playbar.clickPlay()
@@ -407,7 +407,7 @@ describe("When seeking", async () => {
     expect(hasPaused).toBe(true)
   })
 
-  it("continues the playback after seeking", async () => {
+  test("continues the playback after seeking", async () => {
     const tracksPage = await createTracksPage(electron)
 
     await tracksPage.playbar.clickPlay()
@@ -420,8 +420,8 @@ describe("When seeking", async () => {
   })
 })
 
-describe("Queue", async () => {
-  it("correctly removes tracks from the queue on user interaction", async () => {
+test.describe("Queue", async () => {
+  test("correctly removes tracks from the queue on user interaction", async () => {
     const tracksPage = await createTracksPage(electron)
 
     const toRemoveIndexes = [1, 1, 1, 1, 1]
@@ -441,17 +441,17 @@ describe("Queue", async () => {
   })
 })
 
-describe("Mediakey handler", async () => {
-  beforeEach(async () => {
+test.describe("Mediakey handler", async () => {
+  test.beforeEach(async () => {
     const page = await createTracksPage(electron)
     await page.resetTo.tracks()
   })
 
-  it("correctly sets the mediaSession metadata", async () => {
+  test("correctly sets the mediaSession metadata", async () => {
     const tracksPage = await createTracksPage(electron)
     await tracksPage.reload()
 
-    const titleToPlay = "01"
+    const titleToPlay = "01_"
 
     await tracksPage.trackList.playTrack(titleToPlay)
 
@@ -470,10 +470,10 @@ describe("Mediakey handler", async () => {
   })
 })
 
-describe("Manual queue", async () => {
+test.describe("Manual queue", async () => {
   const tracksPage = await createTracksPage(electron)
 
-  it("should manipulate the items correctly", async () => {
+  test("should manipulate the items correctly", async () => {
     const firstTitle = "01"
 
     await tracksPage.trackList
@@ -540,7 +540,7 @@ describe("Manual queue", async () => {
 
 //   await tracksPage.logPressedKeys()
 
-//   await tracksPage.trackList.playTrack("01")
+//   await tracksPage.trackList.playTrack("01_")
 
 //   const oldTrack = await tracksPage.playbar.getCurrentTrack()
 

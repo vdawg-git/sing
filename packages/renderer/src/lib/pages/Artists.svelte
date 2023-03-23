@@ -86,7 +86,7 @@
   <CardList
     {items}
     isImageCircle={true}
-    testID="artistCards"
+    testID="artistCardsGrid"
     cardTestAttributes="artistCard"
   />
 {/if}

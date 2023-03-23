@@ -210,8 +210,6 @@ export async function syncMusic(
     }),
     shouldForwardToRenderer: true,
   })
-
-  console.log("Finished syncing music")
 }
 
 function logDeleteResult(

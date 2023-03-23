@@ -20,13 +20,13 @@ afterEach(() => {
   vi.resetModules()
 })
 
-beforeEach(async () => {
+test.beforeEach(async () => {
   Seekbar = (await import(
     "@/lib/molecules/Seekbar.svelte"
   )) as unknown as typeof SvelteComponentDev
 })
 
-describe("check testids", async () => {
+test.describe("check testids", async () => {
   it("has the knob id", async () => {
     const dom = render(Seekbar, { currentTime: 0, duration: 100 })
     expect(dom.getByTestId(id.seekbarProgressbarKnob))
@@ -49,7 +49,7 @@ describe("check testids", async () => {
   })
 })
 
-describe("displays the progress", async () => {
+test.describe("displays the progress", async () => {
   it("displays the correct width for the progressbar when track is at the end", async () => {
     const dom = render(Seekbar, { currentTime: 100, duration: 100 })
 

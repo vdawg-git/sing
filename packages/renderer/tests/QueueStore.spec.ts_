@@ -17,20 +17,20 @@ afterEach(async () => {
   vi.resetModules()
 })
 
-beforeEach(async () => {
+test.beforeEach(async () => {
   // Set up mock data
   queueStore.set(queueItemFactory.buildList(25))
   queueItemFactory.rewindSequence()
   trackFactory.rewindSequence()
 })
 
-// describe("fn: setUpcomingFromSource", async () => {
+// test.describe("fn: setUpcomingFromSource", async () => {
 //   it.todo("keeps the old played songs", async () => {})
 //   it.todo("adds the new items properly", async () => {})
 //   it.todo("keeps the old played songs", async () => {})
 // })
 
-describe("fn: mapTracks", async () => {
+test.describe("fn: mapTracks", async () => {
   const tracks = trackFactory.buildList(10)
 
   it("maps the indexes of the new tracks correctly", async () => {
@@ -42,7 +42,7 @@ describe("fn: mapTracks", async () => {
   })
 })
 
-describe("fn: remapIndexes", async () => {
+test.describe("fn: remapIndexes", async () => {
   it("returns an array with the correct length", async () => {
     expect(_remapIndexes(queueItemFactory.buildList(20), 10)).to.be.lengthOf(20)
   })
@@ -72,7 +72,7 @@ describe("fn: remapIndexes", async () => {
   })
 })
 
-describe("fn: deleteIndex", async () => {
+test.describe("fn: deleteIndex", async () => {
   it("does return an array with the correct length", async () => {
     const queueItems = queueItemFactory.buildList(20)
     const indexes = [0, 1, 2, 3]
@@ -114,7 +114,7 @@ describe("fn: deleteIndex", async () => {
   })
 })
 
-describe("fn: deleteObseleteItemsFromNewTracks", async () => {
+test.describe("fn: deleteObseleteItemsFromNewTracks", async () => {
   it("deletes the correct items - happy", async () => {
     const indexesToDelete = [4, 8, 9, 15]
 

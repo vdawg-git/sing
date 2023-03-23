@@ -57,8 +57,6 @@ function createPlayer() {
     },
 
     pauseWithoutFadeOut() {
-      console.log("Pausing audio player - without fade out")
-
       previousVolume = audio.volume
 
       audio.pause()

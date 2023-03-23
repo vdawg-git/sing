@@ -36,7 +36,6 @@
 
   $: {
     if (isSeeking === true) {
-      console.log("Seeking")
       dispatch("startedSeeking")
     } else {
       dispatch("endedSeeking")

@@ -1,15 +1,15 @@
-import { beforeEach, afterAll, beforeAll, describe, expect, it } from "vitest"
+import { expect, test } from "@playwright/test"
 
-import { UNKNOWN_ALBUM, UNKNOWN_ARTIST } from "../packages/shared/Consts"
-
-import { launchElectron } from "./Helper"
-import { createBasePage } from "./POM/BasePage"
+import { UNKNOWN_ALBUM, UNKNOWN_ARTIST } from "@sing-shared/Consts"
 
 import type { ElectronApplication } from "playwright"
 
+import { launchElectron } from "#/Helper"
+import { createBasePage } from "#pages/BasePage"
+
 let electronApp: ElectronApplication
 
-beforeAll(async () => {
+test.beforeAll(async () => {
   electronApp = await launchElectron()
   const basePage = await createBasePage(electronApp)
   const settingsPage = await basePage.resetTo.settingsLibrary()
@@ -18,16 +18,16 @@ beforeAll(async () => {
   await settingsPage.saveAndSyncFolders()
 })
 
-afterAll(async () => {
+test.afterAll(async () => {
   await electronApp.close()
 })
 
-beforeEach(async () => {
+test.beforeEach(async () => {
   const basePage = await createBasePage(electronApp)
   await basePage.reload()
 })
 
-it("should display the correct search result", async () => {
+test("should display the correct search result", async () => {
   const basePage = await createBasePage(electronApp)
 
   const expectedTitle = "01"
@@ -42,8 +42,8 @@ it("should display the correct search result", async () => {
   expect(resultTitle).toBe(expectedTitle)
 })
 
-describe("navigation", async () => {
-  it("should navigate to the artist of a found track", async () => {
+test.describe("navigation", async () => {
+  test("should navigate to the artist of a found track", async () => {
     const basePage = await createBasePage(electronApp)
 
     const expectedTitle = "01"
@@ -60,7 +60,7 @@ describe("navigation", async () => {
     expect(artistName).toEqual(UNKNOWN_ARTIST)
   })
 
-  it("should navigate to the album of a found track", async () => {
+  test("should navigate to the album of a found track", async () => {
     const basePage = await createBasePage(electronApp)
 
     const expectedTitle = "01"

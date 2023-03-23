@@ -11,7 +11,7 @@ import type { SvelteComponentDev } from "svelte/internal"
 
 let SlotWrapper: typeof SvelteComponentDev
 
-beforeEach(async () => {
+test.beforeEach(async () => {
   SlotWrapper = (await import(
     "./helpers/SlotTest.svelte"
   )) as unknown as typeof SvelteComponentDev

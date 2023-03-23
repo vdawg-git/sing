@@ -12,7 +12,7 @@ vi.stubGlobal("api", MockedApi)
 
 let FolderInput: typeof SvelteComponentDev
 
-beforeEach(async () => {
+test.beforeEach(async () => {
   FolderInput = (await import(
     "@/lib/molecules/FolderInput.svelte"
   )) as unknown as typeof SvelteComponentDev

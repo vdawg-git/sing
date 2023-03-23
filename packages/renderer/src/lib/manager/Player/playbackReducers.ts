@@ -7,12 +7,13 @@ import { moveIndexToIndex, removeFromArray } from "@sing-shared/Pures"
 import { convertToQueueItem } from "./Helper"
 
 import type { PayloadAction } from "@reduxjs/toolkit"
-import type { IPlayLoop, IQueueItem, IQueueItemID } from "@/types/Types"
+import type { IPlayLoop } from "@/types/Types"
 import type { ITrack } from "@sing-types/DatabaseTypes"
 import type { WritableDraft } from "immer/dist/internal"
 import type { RequireAtLeastOne } from "type-fest"
 import type { IPlaybackState } from "./playbackSlice"
 import type { ITrackID } from "@sing-types/Opaque"
+import type { IQueueItem, IQueueItemID } from "@sing-types/Types"
 
 // Export like that to prevent polluting IntelliSense imports
 export const playbackReducers = {
@@ -258,32 +259,23 @@ function _intersectWithItems({
 }) {
   const newTrackIDs = new Set(newTracks.map((track) => track.id))
 
-  const deletedIndexes: number[] = []
-
-  const newAutoQueue = autoQueue
-    .map(({ track }) => track)
-    .filter(removeNotIntersectingTracks)
-    .map(convertToQueueItem)
-  const newManualQueue = manualQueue
-    .map((item) => item.track)
-    .filter(removeNotIntersectingTracks)
-    .map(convertToQueueItem)
+  const newAutoQueue = autoQueue.filter(isIntersectingTrack)
+  const newManualQueue = manualQueue.filter(isIntersectingTrack)
 
   // If tracks before the current one are deleted, the index needs to be adjusted
   // so that it still points to the current track
-  const reduceIndexBy =
-    deletedIndexes.filter((index) => index <= currentIndex).length +
-    (deletedIndexes.includes(currentIndex) ? 1 : 0)
+  const reduceIndexBy = autoQueue
+    .filter((_, index) => index <= currentIndex)
+    .filter((track) => !isIntersectingTrack(track)).length
+  // +(deletedIndexes.includes(currentIndex) ? 1 : 0)
 
-  const newIndex =
-    currentIndex - reduceIndexBy < 0 ? 0 : currentIndex - reduceIndexBy
+  const newIndex = Math.max(currentIndex - reduceIndexBy, 0)
 
   return { newIndex, newAutoQueue, newManualQueue }
 
-  function removeNotIntersectingTracks(track: ITrack, index: number) {
-    if (newTrackIDs.has(track.id)) return true
+  function isIntersectingTrack(item: IQueueItem) {
+    if (newTrackIDs.has(item.track.id)) return true
 
-    deletedIndexes.push(index)
     return false
   }
 }

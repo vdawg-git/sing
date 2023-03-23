@@ -44,7 +44,6 @@
             console.error("No paths to sync specified, they are", paths)
             return
           }
-          console.log("Syncing paths: " + paths)
           await window.api.setUserSettings({
             setting: "musicFolders",
             value: paths,
