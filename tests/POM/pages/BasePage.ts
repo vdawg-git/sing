@@ -87,7 +87,7 @@ export async function createBasePage(electron: ElectronApplication) {
     await sidebarMenuSettings.click({ force: true })
 
     const settingsLibraryPage = await createLibrarySettingsPage(electron)
-    await settingsLibraryPage.foldersWrapper.waitFor({ state: "visible" })
+    await settingsLibraryPage.folder.first().waitFor({ state: "visible" })
 
     return settingsLibraryPage
   }

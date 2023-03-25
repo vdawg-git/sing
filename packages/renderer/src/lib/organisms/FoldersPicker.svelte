@@ -1,6 +1,6 @@
 <script lang="ts">
   import { isSubdirectory } from "@/Helper"
-  import { TEST_IDS as id } from "@/TestConsts"
+  import { TEST_IDS } from "@/TestConsts"
 
   import FolderInput from "@/lib/molecules/FolderInput.svelte"
 
@@ -53,7 +53,7 @@
 </script>
 
 <div
-  data-testid={id.settingsFolders}
+  data-testid={TEST_IDS.settingsFoldersWrapper}
   class="flex w-full flex-col gap-4 text-grey-200"
 >
   {#each paths as path (path)}
@@ -68,7 +68,7 @@
     <FolderInput on:folderAdded={(event) => handleFolderAdded(event.detail)} />
   {/each}
   <FolderInput
-    testID={id.settingsFoldersEmptyInput}
+    testID={TEST_IDS.settingsFoldersEmptyInput}
     on:folderAdded={(event) => handleFolderAdded(event.detail)}
   />
 </div>

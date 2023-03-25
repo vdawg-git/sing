@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte"
 
-  import { TEST_IDS as id } from "@/TestConsts"
+  import { TEST_IDS } from "@/TestConsts"
   import { backgroundImages } from "@/lib/stores/BackgroundImages"
 
   import Button from "@/lib/atoms/Button.svelte"
@@ -25,7 +25,6 @@
 <main class="h-max w-full p-6 pb-24">
   <div
     class="mx-auto mt-20 flex h-full max-w-[640px] flex-col items-center justify-center"
-    data-testid="noContentMessage"
   >
     <div class="min-h-[18rem] w-full max-w-xl">
       <h1 class="mb-2 text-2xl">Add folders</h1>
@@ -37,7 +36,7 @@
 
       <Button
         label="Save and sync"
-        testid={id.settingsFoldersSaveButton}
+        testid={TEST_IDS.settingsFoldersSaveButton}
         classes="w-full mt-8"
         on:click={async () => {
           if (paths === undefined || paths.length === 0) {

@@ -21,7 +21,7 @@ test("is possible to go to the settings page", async () => {
 
   const settingsPage = await tracksPage.goTo.settingsLibrary()
 
-  await expect(settingsPage.folders).toBeVisible()
+  await expect(settingsPage.foldersWrapper).toBeVisible()
 })
 
 test.describe("From Settings", async () => {
@@ -31,6 +31,6 @@ test.describe("From Settings", async () => {
 
     const tracksPage = await settingsPage.goTo.tracks()
 
-    await expect(tracksPage.waitToBeVisible()).resolves.toBeUndefined()
+    await tracksPage.waitToBeVisible()
   })
 })

@@ -27,7 +27,7 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
   const settingsBase = await createBaseSettingsPage(electron)
   const page = await electron.firstWindow()
 
-  const foldersWrapper = page.getByTestId(id.settingsFolders),
+  const foldersWrapper = page.getByTestId(id.settingsFoldersWrapper),
     emptyInput = page.getByTestId(id.settingsFoldersEmptyInput),
     saveButton = page.getByTestId(id.settingsFoldersSaveButton),
     folderLocator = foldersWrapper.locator(TEST_ATTRIBUTES.asQuery.folderInput),
