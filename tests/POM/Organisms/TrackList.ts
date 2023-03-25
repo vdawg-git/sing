@@ -60,7 +60,7 @@ export async function createTrackListOrganism(electron: ElectronApplication) {
    */
   async function playTrack(title: string) {
     const trackItem = await getTrackItem(title)
-    await trackItem.dblclick({ timeout: 1000, position: { x: 4, y: 4 } })
+    await trackItem.dblclick({ position: { x: 4, y: 4 } })
   }
 
   // async function convertLocatorTotrackItem(trackLocator: Locator) {

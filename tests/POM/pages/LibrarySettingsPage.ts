@@ -1,14 +1,15 @@
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+import slash from "slash"
+
 import { NOTIFICATION_LABEL } from "@sing-renderer/Constants"
 import { TEST_ATTRIBUTES, TEST_IDS as id } from "@sing-renderer/TestConsts"
 
 /* eslint-disable unicorn/prefer-dom-node-text-content */
 /* eslint-disable no-await-in-loop */
-import type { ElectronApplication, Locator } from "playwright"
-import type { AllowedIndexes } from "@sing-types/Utilities"
 import type { EndToEndFolder } from "#/Types"
+import type { ElectronApplication, Locator } from "playwright"
 
 import { createBaseSettingsPage } from "#pages/SettingsBasePage"
 
@@ -20,30 +21,36 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
     path.join(__dirname, "../../testdata/folder0"),
     path.join(__dirname, "../../testdata/folder1"),
     path.join(__dirname, "../../testdata/folder2"),
-  ] as const
+  ]
   const emptyFolderPath = path.join(__dirname, "../../testdata/empty")
 
   const settingsBase = await createBaseSettingsPage(electron)
   const page = await electron.firstWindow()
 
-  const folders = page.getByTestId(id.settingsFolders),
+  const foldersWrapper = page.getByTestId(id.settingsFolders),
     emptyInput = page.getByTestId(id.settingsFoldersEmptyInput),
-    saveButton = page.getByTestId(id.settingsFoldersSaveButton)
+    saveButton = page.getByTestId(id.settingsFoldersSaveButton),
+    folderLocator = foldersWrapper.locator(TEST_ATTRIBUTES.asQuery.folderInput),
+    deleteButton = folderLocator.locator(
+      TEST_ATTRIBUTES.asQuery.folderInputDeleteIcon
+    )
 
   return {
     ...settingsBase,
 
+    addDefaultFolders,
     addEmptyFolder,
     addFolder,
     editFolder,
     emptyLibrary,
-    folders,
+    folder: folderLocator,
+    foldersWrapper,
     getFolderByLabel,
     removeAllFolders,
     removeFolder,
     resetToDefault,
     saveAndSyncFolders,
-    setDefaultFolders: addDefaultFolders,
+    waitToBeVisible,
   }
 
   async function resetToDefault() {
@@ -58,99 +65,74 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
     await saveAndSyncFolders()
   }
 
+  async function waitToBeVisible() {
+    await folderLocator.first().waitFor({ state: "visible" })
+  }
+
   /**
    * Removes all folders and adds all three test folders. `folder0, folder1, folder2)`
    */
   async function addDefaultFolders() {
     await removeAllFolders()
 
-    for (const folder of defaultFolders) {
-      await addFolder(folder)
+    for (const folder_ of defaultFolders) {
+      await addFolder(folder_)
     }
   }
 
+  /**
+   * Does only work when there are folders to delete.
+   *
+   * Otherwise it will time out and throw an error
+   */
   async function removeAllFolders() {
-    await page.waitForSelector(TEST_ATTRIBUTES.asQuery.folderInput)
+    await folderLocator.first().waitFor({ state: "visible" })
 
-    await recursion()
-
-    async function recursion() {
-      const deleteIcon = await page.$(
-        TEST_ATTRIBUTES.asQuery.folderInputDeleteIcon
-      )
-
-      if (!deleteIcon) return
-
-      await deleteIcon.click({ force: true })
-
-      recursion()
+    for (const _ of await deleteButton.all()) {
+      await deleteButton.first().click()
     }
-  }
-
-  async function getFolderElements() {
-    const folderElements = await page.$$(TEST_ATTRIBUTES.asQuery.folderInput)
-
-    return folderElements
+    await folderLocator
+      .getByText(/testdata/)
+      .first()
+      .waitFor({ state: "hidden" })
   }
 
   async function addFolder(
-    folder: string | AllowedIndexes<typeof defaultFolders>
+    folderToAdd: EndToEndFolder | string
   ): Promise<void> {
-    if (typeof folder === "string") {
-      return setFolderPath(emptyInput, [folder])
+    if (typeof folderToAdd === "string") {
+      return setFolderPath(emptyInput, [folderToAdd])
     }
 
-    const pathToAdd = defaultFolders[folder]
+    const pathToAdd = defaultFolders[folderToAdd]
     return setFolderPath(emptyInput, [pathToAdd])
   }
 
   async function editFolder(
     folderpath: string,
-    folderIndex = 0
+    folderIndex: EndToEndFolder = 0
   ): Promise<void> {
-    const folderElements = await getFolderElements()
-    const folder = folderElements[folderIndex]
-
     await settingsBase.mockDialog([folderpath])
 
-    await folder.click()
+    await folderLocator.nth(folderIndex).click()
   }
 
   async function removeFolder(
-    folderToRemove: EndToEndFolder | "folder0" | "folder1" | "folder2"
+    folderToRemove: EndToEndFolder | "empty"
   ): Promise<void> {
-    if (typeof folderToRemove === "number") {
-      const folderElements = await getFolderElements()
+    const folderPath =
+      typeof folderToRemove === "string"
+        ? folderToRemove
+        : slash(defaultFolders[folderToRemove])
 
-      const folder = folderElements[folderToRemove]
-
-      const deleteIcon = await folder.$(
-        TEST_ATTRIBUTES.asQuery.folderInputDeleteIcon
-      )
-
-      if (!deleteIcon) {
-        throw new Error(`could not find deleteIcon, it is: ${deleteIcon}`)
-      }
-
-      await deleteIcon.click({ force: true })
-    } else {
-      const folder = await page.$(
-        `${TEST_ATTRIBUTES.asQuery.folderInput}:has-text("${folderToRemove}")`
-      )
-      const deleteIcon = await folder?.$(
-        TEST_ATTRIBUTES.asQuery.folderInputDeleteIcon
-      )
-
-      if (!deleteIcon) {
-        throw new Error(`could not find deleteIcon, it is: ${deleteIcon}`)
-      }
-
-      await deleteIcon.click({ force: true })
-    }
+    await folderLocator
+      .filter({ hasText: folderPath })
+      .locator(TEST_ATTRIBUTES.asQuery.folderInputDeleteIcon)
+      .click({ force: true })
   }
 
   async function getFolderByLabel(label: string) {
-    return folders.locator(TEST_ATTRIBUTES.asQuery.folderInput, {
+    return foldersWrapper.locator(TEST_ATTRIBUTES.asQuery.folderInput, {
       hasText: label,
     })
   }
@@ -164,19 +146,22 @@ export async function createLibrarySettingsPage(electron: ElectronApplication) {
       NOTIFICATION_LABEL.syncSuccess
     )
     await settingsBase.notifications.closeAll()
+
+    // Sometimes it is a bit to fast for the backend to catch up. Not sure why this is
+    await page.waitForTimeout(100)
   }
 
   async function setFolderPath(
-    folderLocator: Locator,
+    folderToSet: Locator,
     paths: string[]
   ): Promise<void> {
     await settingsBase.mockDialog(paths)
 
-    await folderLocator.click()
+    await folderToSet.click()
 
     for (const folderPath of paths) {
       const regex = new RegExp(folderPath.replace(/\\|\//g, "."))
-      await folders.getByText(regex).waitFor({ state: "visible" })
+      await foldersWrapper.getByText(regex).waitFor({ state: "visible" })
     }
   }
 

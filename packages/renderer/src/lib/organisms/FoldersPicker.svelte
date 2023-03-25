@@ -11,7 +11,7 @@
 
     for (const newPath of newPaths) {
       if (paths.includes(newPath)) {
-        console.error("path already exists: " + newPath)
+        console.error("Cannot add folder - path already exists: " + newPath)
         return
       }
 
@@ -60,15 +60,15 @@
     <div>
       <FolderInput
         {path}
-        on:folderRemoved={(e) => handleFolderRemoved(e.detail)}
-        on:folderEdited={(e) => handleFolderEdited(e.detail)}
+        on:folderRemoved={(event) => handleFolderRemoved(event.detail)}
+        on:folderEdited={(event) => handleFolderEdited(event.detail)}
       />
     </div>
   {:else}
-    <FolderInput on:folderAdded={(e) => handleFolderAdded(e.detail)} />
+    <FolderInput on:folderAdded={(event) => handleFolderAdded(event.detail)} />
   {/each}
   <FolderInput
     testID={id.settingsFoldersEmptyInput}
-    on:folderAdded={(e) => handleFolderAdded(e.detail)}
+    on:folderAdded={(event) => handleFolderAdded(event.detail)}
   />
 </div>

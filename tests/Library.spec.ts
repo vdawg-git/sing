@@ -28,7 +28,7 @@ test.beforeEach(async () => {
 })
 
 test("can add a folder", async () => {
-  const nameToAdd = "testdata/folder"
+  const nameToAdd = "folderToAdd/Here/"
 
   const settingsPage = await createLibrarySettingsPage(electron)
   await settingsPage.removeAllFolders()
@@ -40,11 +40,10 @@ test("can add a folder", async () => {
 
 test.describe("When adding all folders", async () => {
   test.beforeEach(async () => {
-    const settingsPage = await createLibrarySettingsPage(electron)
+    const basePage = await createBasePage(electron)
+    const settingsPage = await basePage.resetTo.settingsLibrary()
     await settingsPage.emptyLibrary()
-
-    await settingsPage.setDefaultFolders()
-
+    await settingsPage.addDefaultFolders()
     await settingsPage.saveAndSyncFolders()
   })
 
@@ -93,7 +92,9 @@ test.describe("when removing all folders after having folders added", async () =
   test("does not have a queue", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
-    await expect(settingsPage.queuebar.allItems).toHaveCount(0)
+    await expect(settingsPage.queuebar.allItems).toHaveCount(0, {
+      timeout: 2000,
+    })
   })
 
   test("has no tracks in the tracks page", async () => {
@@ -101,9 +102,11 @@ test.describe("when removing all folders after having folders added", async () =
 
     const tracksPage = await settingsPage.goTo.tracks()
 
-    await expect.soft(tracksPage.trackList.trackItems).toHaveCount(0)
+    await expect(tracksPage.trackList.trackItems).toHaveCount(0, {
+      timeout: 2000,
+    })
 
-    await tracksPage.pauseOnFailure(test)
+    // await tracksPage.pauseOnFailure(test)
   })
 
   test("has no albums in the albums page", async () => {
@@ -111,7 +114,7 @@ test.describe("when removing all folders after having folders added", async () =
 
     const albumsPage = await settingsPage.goTo.albums()
 
-    await expect.soft(albumsPage.cards.allCards).toHaveCount(0)
+    await expect(albumsPage.cards.allCards).toHaveCount(0, { timeout: 2000 })
 
     if (test.info().errors.length > 0) {
       albumsPage.pauseExecution()
@@ -123,13 +126,15 @@ test.describe("when removing all folders after having folders added", async () =
 
     const artistsPage = await settingsPage.goTo.artists()
 
-    await expect(artistsPage.cards.allCards).toHaveCount(0)
+    await expect(artistsPage.cards.allCards).toHaveCount(0, { timeout: 2000 })
   })
 })
 
 test.describe("when removing all folders and instead adding new ones", async () => {
   test.beforeEach(async () => {
-    const settingsPage = await createLibrarySettingsPage(electron)
+    const basePage = await createBasePage(electron)
+    const settingsPage = await basePage.resetTo.settingsLibrary()
+
     await settingsPage.emptyLibrary()
 
     await settingsPage.removeAllFolders()
@@ -151,14 +156,15 @@ test.describe("when removing all folders and instead adding new ones", async () 
 
     await settingsPage.saveAndSyncFolders()
 
-    await expect(tracksPage.queuebar.allItems).toHaveCount(0)
+    await expect(tracksPage.queuebar.allItems).toHaveCount(0, { timeout: 2000 })
   })
 })
 
 test.describe("when removing one folder", async () => {
   test.beforeEach(async () => {
-    const settingsPage = await createLibrarySettingsPage(electron)
-    await settingsPage.setDefaultFolders()
+    const basePage = await createBasePage(electron)
+    const settingsPage = await basePage.resetTo.settingsLibrary()
+    await settingsPage.addDefaultFolders()
 
     await settingsPage.saveAndSyncFolders()
   })
@@ -176,12 +182,8 @@ test.describe("when removing one folder", async () => {
     await settingsPage.saveAndSyncFolders()
     await settingsPage.queuebar.open()
 
-    await expect
-      .soft(await settingsPage.queuebar.getItemByTitle("00"))
-      .toBeHidden()
-    await expect
-      .soft(await settingsPage.queuebar.getItemByTitle("05"))
-      .toBeHidden()
+    await expect(await settingsPage.queuebar.getItemByTitle("00")).toBeHidden()
+    await expect(await settingsPage.queuebar.getItemByTitle("05")).toBeHidden()
 
     await settingsPage.queuebar.close()
   })
@@ -204,19 +206,15 @@ test.describe("when removing one folder", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
     const tracksPage = await settingsPage.goTo.tracks()
 
+    // await tracksPage.pauseExecution()
+
     const trackToPlay = "10_"
     await tracksPage.trackList.playTrack(trackToPlay)
 
-    await expect
-      .soft(
-        tracksPage.playbar.currentTrack,
-        "Did not play the correct track on click"
-      )
-      .toContainText(trackToPlay)
-
-    if (test.info().errors.length > 0) {
-      await tracksPage.pauseExecution()
-    }
+    await expect(
+      tracksPage.playbar.currentTrack,
+      "Did not play the correct track on click"
+    ).toContainText(trackToPlay)
 
     await tracksPage.goTo.settingsLibrary()
 
@@ -232,6 +230,7 @@ test.describe("when adding one folder from a clear state", async () => {
   test.beforeEach(async () => {
     const basePage = await createBasePage(electron)
     const settingsPage = await basePage.resetTo.settingsLibrary()
+
     await settingsPage.emptyLibrary()
     await settingsPage.addFolder(0)
     await settingsPage.saveAndSyncFolders()
@@ -248,10 +247,16 @@ test.describe("when adding one folder from a clear state", async () => {
     const tracksPage = await settingsPage.goTo.tracks()
 
     for (const title of expectedTitles) {
-      await expect(await tracksPage.trackList.getTrackItem(title)).toBeVisible()
+      await expect(await tracksPage.trackList.getTrackItem(title)).toBeVisible({
+        timeout: 2000,
+      })
     }
 
-    await expect(await tracksPage.trackList.getTrackItem("10_")).toBeHidden()
-    await expect(await tracksPage.trackList.getTrackItem("20_")).toBeHidden()
+    await expect(await tracksPage.trackList.getTrackItem("10_")).toBeHidden({
+      timeout: 2000,
+    })
+    await expect(await tracksPage.trackList.getTrackItem("20_")).toBeHidden({
+      timeout: 2000,
+    })
   })
 })

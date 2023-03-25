@@ -87,7 +87,7 @@ export async function createBasePage(electron: ElectronApplication) {
     await sidebarMenuSettings.click({ force: true })
 
     const settingsLibraryPage = await createLibrarySettingsPage(electron)
-    await settingsLibraryPage.folders.waitFor({ state: "visible" })
+    await settingsLibraryPage.foldersWrapper.waitFor({ state: "visible" })
 
     return settingsLibraryPage
   }
@@ -131,13 +131,19 @@ export async function createBasePage(electron: ElectronApplication) {
   async function resetToTracks() {
     await resetTo(ROUTES.tracks)
 
-    return createTracksPage(electron)
+    const tracksPage = await createTracksPage(electron)
+
+    await tracksPage.waitToBeVisible()
+    return tracksPage
   }
 
   async function resetToLibrarySettings() {
     await resetTo(ROUTES.settingsLibrary)
 
-    return createLibrarySettingsPage(electron)
+    const librarySettingsPage = await createLibrarySettingsPage(electron)
+    await librarySettingsPage.waitToBeVisible()
+
+    return librarySettingsPage
   }
 
   async function resetTo(location: string, id?: number | undefined) {

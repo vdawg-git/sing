@@ -3,16 +3,6 @@
 import type { ReadonlyNonEmptyArray } from "fp-ts/lib/ReadonlyNonEmptyArray"
 import type { ReadonlyDeep, Exact, Merge } from "type-fest"
 
-export type AllowedIndexes<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  T extends readonly any[],
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Result extends any[] = []
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-> = T extends readonly [infer _, ...infer Rest]
-  ? AllowedIndexes<Rest, [...Result, Result["length"]]>
-  : Result[number]
-
 /**
  * Transfrom `[[[nestedType]]]` to `nestedType`
  * @example type x = [[[[string]]]]
