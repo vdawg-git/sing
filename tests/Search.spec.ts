@@ -14,7 +14,7 @@ test.beforeAll(async () => {
   const basePage = await createBasePage(electronApp)
   const settingsPage = await basePage.resetTo.settingsLibrary()
 
-  await settingsPage.setDefaultFolders()
+  await settingsPage.addDefaultFolders()
   await settingsPage.saveAndSyncFolders()
 })
 
