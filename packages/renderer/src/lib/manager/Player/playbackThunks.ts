@@ -8,10 +8,10 @@ import type {
   IError,
   ISetPlaybackArgument,
   ISetPlaybackArgumentWithItems,
+  IQueueItem,
 } from "@sing-types/Types"
 import type { IPlaybackState } from "./playbackSlice"
 import type { IRootState } from "@/lib/stores/mainStore"
-import type { IQueueItem } from "@/types/Types"
 
 export const playNewPlayback = createAsyncThunk(
   "playNewPlayback",

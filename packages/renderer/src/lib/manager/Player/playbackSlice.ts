@@ -131,7 +131,10 @@ export const playbackSlice = createSlice({
 
             return {
               index: 0,
-              newItems,
+              newItems: newItems.map((item, index_) => ({
+                ...item,
+                index: index_,
+              })),
             }
           })
           .with(false, () => ({

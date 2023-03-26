@@ -11,8 +11,10 @@ export async function createQueuebarOrganism(electron: ElectronApplication) {
 
   // prettier-ignore
   const queueBar = page.getByTestId(TEST_IDS.queueBar),
-    allItems = queueBar.locator( TEST_ATTRIBUTES.asQuery.queueItem),
+    allItems = queueBar.locator( TEST_ATTRIBUTES.asQuery.queueItem ),
     currentTrack = queueBar.getByTestId(TEST_IDS.queueCurrentTrack),
+    currentTrackTitle = currentTrack.getByTestId(TEST_IDS.queueCurrentTrackTitle),
+    itemTitles = allItems.locator(TEST_ATTRIBUTES.asQuery.queueItemTitle),
     manuallyAddedItems = queueBar.locator(TEST_ATTRIBUTES.asQuery.queueManuallyAddedTracks),
     nextTrack = queueBar.getByTestId(TEST_IDS.queueNextTrack),
     nextTracks = queueBar.getByTestId(TEST_IDS.queueBarNextTracks),
@@ -23,15 +25,55 @@ export async function createQueuebarOrganism(electron: ElectronApplication) {
     allItems,
     close,
     currentTrack,
+    currentTrackTitle,
     getItemByTitle,
+    getItemTitles,
+    getItemsData,
     getNextTrackData,
+    getNextTrackTitle,
     getPreviousTrackData,
+    getPreviousTrackTitle,
+    getTitles,
     manuallyAddedItems,
     nextTrack,
     nextTracks,
     open,
     playNextTrack,
     previousTrack,
+    removeManuallyAddedItemByIndex,
+  }
+
+  async function getItemsData() {
+    const allItemsLocators = await allItems.all()
+    return await Promise.all(allItemsLocators.map(convertLocatorToQueueItem))
+  }
+
+  async function getItemTitles() {
+    await open()
+
+    const allItemTitles = await itemTitles.all()
+
+    const rawTitles = await Promise.all(
+      allItemTitles.map((item) => item.textContent())
+    )
+
+    return (rawTitles as string[]).map(getTrackTitle)
+  }
+
+  async function getTitles() {
+    await open()
+
+    const all = await allItems
+      .locator(TEST_ATTRIBUTES.asQuery.queueItemTitle)
+      .all()
+    return Promise.all(
+      all.map(async (item) => {
+        const rawTitle = await item.textContent()
+        if (!rawTitle) return undefined
+
+        return getTrackTitle(rawTitle)
+      })
+    )
   }
 
   async function getItemByTitle(title: string) {
@@ -40,8 +82,7 @@ export async function createQueuebarOrganism(electron: ElectronApplication) {
 
   async function playNextTrack() {
     await open()
-    await nextTrack.dblclick({ timeout: 2000 })
-    await close()
+    await nextTrack.dblclick()
   }
 
   async function isQueueOpen() {
@@ -54,15 +95,21 @@ export async function createQueuebarOrganism(electron: ElectronApplication) {
     await open()
     const data = await convertLocatorToQueueItem(nextTrack)
 
-    await close()
-
     return data
   }
+
+  async function getNextTrackTitle() {
+    await open()
+    return getNextTrackData().then((track) => track.getTitle())
+  }
+
+  async function getPreviousTrackTitle() {
+    return getPreviousTrackData().then((track) => track.getTitle())
+  }
+
   async function getPreviousTrackData() {
     await open()
     const data = await convertLocatorToQueueItem(previousTrack)
-
-    await close()
 
     return data
   }
@@ -70,45 +117,59 @@ export async function createQueuebarOrganism(electron: ElectronApplication) {
   async function open() {
     if (await isQueueOpen()) return
 
-    await playbarQueueIcon.click({ timeout: 1500 })
-    await queueBar.waitFor({ state: "visible", timeout: 5000 })
+    await playbarQueueIcon.click()
+    await queueBar.waitFor({ state: "visible" })
   }
 
   async function close() {
-    if (!isQueueOpen()) return
+    if (!(await isQueueOpen())) return
 
-    await playbarQueueIcon.click({ timeout: 1500 })
-    await queueBar.waitFor({ state: "detached", timeout: 5000 })
+    await playbarQueueIcon.click()
+    await queueBar.waitFor({ state: "detached" })
+  }
+
+  async function removeManuallyAddedItemByIndex(index: number) {
+    await manuallyAddedItems
+      .nth(index)
+      .locator(TEST_ATTRIBUTES.asQuery.queueItemDeleteIcon)
+      .click({ force: true })
   }
 
   async function convertLocatorToQueueItem(wrapper: Locator) {
-    const title = await wrapper
-      .locator(TEST_ATTRIBUTES.asQuery.queueItemTitle)
-      .innerText()
-      .then(getTrackTitle)
-    const cover = await wrapper
-      .locator(TEST_ATTRIBUTES.asQuery.queueItemCover)
-      .innerText()
-    const artist = await wrapper
-      .locator(TEST_ATTRIBUTES.asQuery.queueItemArtist)
-      .innerText()
+    const title = wrapper.locator(TEST_ATTRIBUTES.asQuery.queueItemTitle)
+    async function getTitle() {
+      const trackTitle = await title.innerText()
+      return getTrackTitle(trackTitle)
+    }
+
+    const cover = wrapper.locator(TEST_ATTRIBUTES.asQuery.queueItemCover)
+    function getCover() {
+      return cover.innerText()
+    }
+
+    const artist = wrapper.locator(TEST_ATTRIBUTES.asQuery.queueItemArtist)
+    function getArtist() {
+      return artist.innerText()
+    }
 
     return {
-      title,
-      cover,
       artist,
+      cover,
+      getArtist,
+      getCover,
+      getTitle,
+      locator: wrapper,
+      titleLocator: title,
 
       async play() {
         await open()
-        await wrapper.click({ timeout: 600, force: true })
-        await close()
+        await wrapper.click({ force: true })
       },
       async remove() {
         await open()
         await wrapper
           .locator(TEST_ATTRIBUTES.asQuery.queueItemDeleteIcon)
-          .click({ timeout: 600, force: true })
-        await close()
+          .click({ force: true })
       },
     }
   }

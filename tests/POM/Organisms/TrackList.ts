@@ -2,12 +2,11 @@
 
 import { TEST_ATTRIBUTES, TEST_IDS } from "@sing-renderer/TestConsts"
 
-// import { createMenuOrganism } from "./Menu"
-
 import type { EndToEndFolder } from "#/Types"
-import type { ElectronApplication } from "playwright"
+import type { ElectronApplication, Locator } from "playwright"
 
-import { makeE2ETitle } from "#/Helper"
+import { createMenuOrganism } from "#organisms/Menu"
+import { getTrackTitle, makeE2ETitle } from "#/Helper"
 
 export async function createTrackListOrganism(electron: ElectronApplication) {
   const page = await electron.firstWindow()
@@ -16,10 +15,26 @@ export async function createTrackListOrganism(electron: ElectronApplication) {
     trackItems = trackList.locator(TEST_ATTRIBUTES.asQuery.trackItem)
 
   return {
-    getTrackItem,
-    getByFolder,
-    playTrack,
     trackItems,
+    getByFolder,
+    getTrackItem,
+    getTrackTitles,
+    getTracks,
+    playTrack,
+  }
+
+  async function getTracks() {
+    return Promise.all(
+      await trackItems
+        .all()
+        .then((items) => items.map(convertLocatorTotrackItem))
+    )
+  }
+
+  async function getTrackTitles() {
+    return Promise.all(
+      await getTracks().then((items) => items.map((item) => item.getTitle()))
+    )
   }
 
   /**
@@ -30,11 +45,13 @@ export async function createTrackListOrganism(electron: ElectronApplication) {
   async function getTrackItem(title: string) {
     const trackTitle = makeE2ETitle(title)
 
-    return trackItems.filter({
-      has: page.locator(TEST_ATTRIBUTES.asQuery.trackItemTitle, {
-        hasText: trackTitle,
-      }),
-    })
+    return convertLocatorTotrackItem(
+      trackItems.filter({
+        has: page.locator(TEST_ATTRIBUTES.asQuery.trackItemTitle, {
+          hasText: trackTitle,
+        }),
+      })
+    )
   }
 
   /**
@@ -60,55 +77,59 @@ export async function createTrackListOrganism(electron: ElectronApplication) {
    */
   async function playTrack(title: string) {
     const trackItem = await getTrackItem(title)
-    await trackItem.dblclick({ position: { x: 4, y: 4 } })
+    await trackItem.play()
   }
 
-  // async function convertLocatorTotrackItem(trackLocator: Locator) {
-  //   const title = await trackLocator
-  //     .locator(TEST_ATTRIBUTES.asQuery.trackItemTitle)
-  //     .textContent({ timeout: 500 })
-  //     .then((titleRaw) => (titleRaw ? getTrackTitle(titleRaw) : undefined))
-  //   const album =
-  //     (await trackLocator
-  //       .locator(TEST_ATTRIBUTES.asQuery.trackItemAlbum)
-  //       .textContent({ timeout: 500 })) ?? undefined
-  //   const artist =
-  //     (await trackLocator
-  //       .locator(TEST_ATTRIBUTES.asQuery.trackItemArtist)
-  //       .textContent({ timeout: 500 })) ?? undefined
-  //   const duration =
-  //     (await trackLocator
-  //       .locator(TEST_ATTRIBUTES.asQuery.trackItemDuration)
-  //       .textContent({ timeout: 500 })) ?? undefined
+  async function convertLocatorTotrackItem(trackLocator: Locator) {
+    const title = trackLocator.locator(TEST_ATTRIBUTES.asQuery.trackItemTitle)
 
-  //   return {
-  //     title,
-  //     album,
-  //     artist,
-  //     duration,
+    const album = trackLocator.locator(TEST_ATTRIBUTES.asQuery.trackItemAlbum)
+    const artist = trackLocator.locator(TEST_ATTRIBUTES.asQuery.trackItemArtist)
 
-  //     async play() {
-  //       return trackLocator.dblclick({ timeout: 1000 })
-  //     },
-  //     async openContextMenu() {
-  //       await trackLocator.click({ button: "right", timeout: 1000 })
+    const duration = trackLocator.locator(
+      TEST_ATTRIBUTES.asQuery.trackItemDuration
+    )
 
-  //       return createMenuOrganism(electron)
-  //     },
-  //     /**
-  //      * Add to a playlist via the context menu.
-  //      *
-  //      * When `playlist` is `"NEW"` create a new one.
-  //      */
-  //     async addToPlaylist(playlist: string | "NEW") {
-  //       await trackLocator.click({ button: "right", timeout: 1000 })
+    return {
+      title,
+      album,
+      artist,
+      duration,
+      locator: trackLocator,
 
-  //       await createMenuOrganism(electron).then((menu) =>
-  //         playlist === "NEW"
-  //           ? menu.addToNewPlaylist()
-  //           : menu.addToExistingPlaylist(playlist)
-  //       )
-  //     },
-  //   }
-  // }
+      getTitle: () =>
+        title
+          .textContent()
+          .then((titleRaw) => (titleRaw ? getTrackTitle(titleRaw) : undefined)),
+
+      getAlbum: async () => (await album.textContent()) ?? undefined,
+
+      getArtist: async () => (await artist.textContent()) ?? undefined,
+
+      getDurartion: async () => (await duration.textContent()) ?? undefined,
+
+      play: () => trackLocator.dblclick({ position: { x: 4, y: 4 } }),
+
+      openContextMenu: async () => {
+        await trackLocator.click({ button: "right" })
+
+        return createMenuOrganism(electron)
+      },
+
+      /**
+       * Add to a playlist via the context menu.
+       *
+       * When `playlist` is `"NEW"` create a new one.
+       */
+      addToPlaylist: async (playlist: string | "NEW") => {
+        await trackLocator.click({ button: "right" })
+
+        await createMenuOrganism(electron).then((menu) =>
+          playlist === "NEW"
+            ? menu.addToNewPlaylist()
+            : menu.addToExistingPlaylist(playlist)
+        )
+      },
+    }
+  }
 }

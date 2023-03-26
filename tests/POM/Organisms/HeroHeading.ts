@@ -20,8 +20,6 @@ export async function createHeroHeadingOrganism(electron: ElectronApplication) {
   }
 
   async function getTitle(): Promise<string | undefined> {
-    return titleLocator
-      .textContent({ timeout: 500 })
-      .then((title) => title ?? undefined)
+    return titleLocator.textContent().then((title) => title ?? undefined)
   }
 }

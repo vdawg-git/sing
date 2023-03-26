@@ -34,7 +34,7 @@ export async function createSearchbarOrganism(electron: ElectronApplication) {
    * Generally search for a query
    */
   async function search(query: string) {
-    await searchInput.type(query, { timeout: 1000 })
+    await searchInput.type(query)
   }
 
   /**
@@ -102,14 +102,14 @@ export async function createSearchbarOrganism(electron: ElectronApplication) {
   async function goToAlbum(resultLocator: Locator) {
     await resultLocator
       .locator(TEST_ATTRIBUTES.asQuery.searchbarResultAlbum)
-      .click({ timeout: 1000 })
+      .click()
 
     return createAlbumPage(electron)
   }
   async function goToArtist(resultLocator: Locator) {
     await resultLocator
       .locator(TEST_ATTRIBUTES.asQuery.searchbarResultArtist)
-      .click({ timeout: 1000 })
+      .click()
 
     return createArtistPage(electron)
   }

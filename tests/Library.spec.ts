@@ -59,7 +59,7 @@ test.describe("When adding all folders", async () => {
 
     for (const title of expectedTitles) {
       await expect(
-        await tracksPage.trackList.getTrackItem(title + "_")
+        tracksPage.trackList.trackItems.filter({ hasText: `${title}_` })
       ).toBeVisible()
     }
   })
@@ -86,7 +86,7 @@ test.describe("when removing all folders after having folders added", async () =
   test("has no current track", async () => {
     const settingsPage = await createLibrarySettingsPage(electron)
 
-    await expect(settingsPage.playbar.currentTrack).toBeHidden()
+    await expect(settingsPage.playbar.currentTrackTitle).toBeHidden()
   })
 
   test("does not have a queue", async () => {
@@ -212,7 +212,7 @@ test.describe("when removing one folder", async () => {
     await tracksPage.trackList.playTrack(trackToPlay)
 
     await expect(
-      tracksPage.playbar.currentTrack,
+      tracksPage.playbar.currentTrackTitle,
       "Did not play the correct track on click"
     ).toContainText(trackToPlay)
 
@@ -222,7 +222,7 @@ test.describe("when removing one folder", async () => {
 
     await settingsPage.saveAndSyncFolders()
 
-    await expect(tracksPage.playbar.currentTrack).toContainText("09_")
+    await expect(tracksPage.playbar.currentTrackTitle).toContainText("09_")
   })
 })
 
@@ -247,15 +247,19 @@ test.describe("when adding one folder from a clear state", async () => {
     const tracksPage = await settingsPage.goTo.tracks()
 
     for (const title of expectedTitles) {
-      await expect(await tracksPage.trackList.getTrackItem(title)).toBeVisible({
-        timeout: 2000,
-      })
+      await expect(
+        tracksPage.trackList.trackItems.filter({ hasText: title })
+      ).toBeVisible()
     }
 
-    await expect(await tracksPage.trackList.getTrackItem("10_")).toBeHidden({
+    await expect(
+      tracksPage.trackList.trackItems.filter({ hasText: "10_" })
+    ).toBeHidden({
       timeout: 2000,
     })
-    await expect(await tracksPage.trackList.getTrackItem("20_")).toBeHidden({
+    await expect(
+      tracksPage.trackList.trackItems.filter({ hasText: "20_" })
+    ).toBeHidden({
       timeout: 2000,
     })
   })

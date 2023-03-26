@@ -6,7 +6,6 @@ import type { ElectronApplication } from "playwright"
 
 import { convertDisplayTimeToSeconds } from "#/Helper"
 
-
 /**
  * Interact with the playbar
  */
@@ -14,7 +13,8 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
   const page = await electron.firstWindow()
 
   const currentTime = page.getByTestId(TEST_IDS.seekbarCurrentTime),
-    currentTrack = page.getByTestId(TEST_IDS.playbarTitle),
+    currentTrackTitle = page.getByTestId(TEST_IDS.playbarTitle),
+    currentTrackArtist = page.getByTestId(TEST_IDS.playbarArtist),
     currentArtist = page.getByTestId(TEST_IDS.playbarArtist),
     volumeIcon = page.getByTestId(TEST_IDS.playbarVolumeIcon),
     backButton = page.getByTestId(TEST_IDS.playbarBackButton),
@@ -34,15 +34,17 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
 
   return {
     clickNext,
+    currentTrackTitle,
+    currentTrackArtist,
     clickPause,
     clickPlay,
     clickPrevious,
     clickSeekbar,
     clickShuffle,
-    currentTrack,
     currentArtist,
+    currentTime,
     getCoverPath,
-    getCurrentProgress,
+    getCurrentTime: getCurrentProgress,
     getProgressBarWidth,
     getTotalDuration,
     getVolume,
@@ -53,8 +55,7 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
     isShuffleOn,
     seekTo,
     setVolume,
-    waitForCurrentTrackToBecome,
-    waitForDurationToBecome,
+    waitForProgessToBecome: waitForDurationToBecome,
     waitForProgressBarToProgress,
   }
 
@@ -77,7 +78,9 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
   async function waitForDurationToBecome(duration: number) {
     await hoverSeekbar()
 
-    return currentTime.filter({ hasText: String(duration) }).waitFor()
+    return currentTime
+      .filter({ hasText: String(duration) })
+      .waitFor({ state: "visible" })
   }
 
   async function getCoverPath() {
@@ -93,37 +96,28 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
   }
 
   async function clickPlay() {
-    return playButton.click({ timeout: 2000 })
+    return playButton.click()
   }
 
   /**
    * Go to the next track by clicking the `next` button.
    */
   async function clickNext() {
-    return nextButton.click({ timeout: 2000 })
+    await nextButton.click()
   }
 
   async function clickPrevious() {
-    return backButton.click({ timeout: 2000 })
+    return backButton.click()
   }
 
   async function getProgressBarWidth() {
-    const boundingBox = await progressbar.boundingBox({ timeout: 3000 })
+    const boundingBox = await progressbar.boundingBox()
 
     return boundingBox?.width
   }
 
-  /**
-   * @param title The title as a string number
-   */
-  async function waitForCurrentTrackToBecome(title: string) {
-    await currentTrack
-      .getByText(title + "_")
-      .waitFor({ state: "visible", timeout: 500 })
-  }
-
   async function clickSeekbar(seekPercentage: number) {
-    const boundingBox = await seekbar.boundingBox({ timeout: 1000 })
+    const boundingBox = await seekbar.boundingBox()
 
     if (!boundingBox?.height || !boundingBox?.width) {
       throw new Error(
@@ -137,7 +131,6 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
 
     return seekbar.click({
       position: { x, y },
-      timeout: 1000,
       force: true,
     })
   }
@@ -161,7 +154,6 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
 
     await seekbar.dragTo(seekbar, {
       targetPosition: { x: width * (progress / 100), y: 0 },
-      timeout: 1000,
       force: true,
     })
   }
@@ -171,9 +163,7 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
    */
   async function getCurrentProgress(): Promise<number> {
     await hoverSeekbar()
-    const time = convertDisplayTimeToSeconds(
-      await currentTime.innerText({ timeout: 3000 })
-    )
+    const time = convertDisplayTimeToSeconds(await currentTime.innerText())
 
     return time
   }
@@ -186,11 +176,11 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
   }
 
   async function hoverSeekbar() {
-    await seekbar.hover({ timeout: 2000 })
+    await seekbar.hover()
   }
 
   async function hoverVolumeIcon() {
-    await volumeIcon.hover({ timeout: 2500, force: true })
+    await volumeIcon.hover({ force: true })
   }
 
   async function getVolumeState(): Promise<number> {
@@ -220,9 +210,10 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
   async function setVolume(volume: number): Promise<void> {
     await hoverVolumeIcon()
 
-    const { height, width } = (await volumeSlider.boundingBox({
-      timeout: 1000,
-    })) || { height: undefined, width: undefined }
+    const { height, width } = (await volumeSlider.boundingBox()) || {
+      height: undefined,
+      width: undefined,
+    }
 
     if (height === undefined) {
       throw new Error("height of volume slider is undefined")
@@ -239,7 +230,6 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
         y: heightToReach,
         x,
       },
-      timeout: 1000,
       force: true,
     })
 
@@ -269,20 +259,19 @@ export async function createPlaybarOrganism(electron: ElectronApplication) {
    * Pause the playback by clicking the pause button.
    */
   async function clickPause() {
-    await pauseButton.click({ timeout: 500 })
+    await pauseButton.click()
   }
 
   /**
    * Press the shuffle button
    */
   async function clickShuffle() {
-    await shuffleButton.click({ timeout: 500 })
+    await shuffleButton.click()
   }
 
   async function isShuffleOn() {
-    return shuffleButton.evaluate(
-      (element) => element.classList.contains("button-active"),
-      { timeout: 500 }
+    return shuffleButton.evaluate((element) =>
+      element.classList.contains("button-active")
     )
   }
 }

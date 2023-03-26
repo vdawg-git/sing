@@ -30,34 +30,30 @@ export async function createMenuOrganism(electron: ElectronApplication) {
   }
 
   async function clickItem(label: string) {
-    const item = await getItem(label)
+    const item = getItem(label)
 
     await item.click()
   }
 
-  async function getItem(label: string): Promise<Locator> {
+  function getItem(label: string): Locator {
     return menuItems.filter({ hasText: label })
   }
 
   async function hasItem(label: string): Promise<boolean> {
-    return getItem(label).then((item) => item.isVisible())
+    return getItem(label).isVisible()
   }
 
   /**
    * Add to queue as "Play next"
    */
   async function clickPlayNext() {
-    return getItem("Play next").then((item) =>
-      item.click({ timeout: 500, position: { x: 8, y: 8 } })
-    )
+    return getItem("Play next").click({ position: { x: 8, y: 8 } })
   }
 
   /**
    * Add to queue as "Play later"
    */
   async function clickPlayLater() {
-    return getItem("Play later").then((item) =>
-      item.click({ timeout: 500, position: { x: 8, y: 8 } })
-    )
+    return getItem("Play later").click({ position: { x: 8, y: 8 } })
   }
 }
