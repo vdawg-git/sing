@@ -36,7 +36,7 @@
 >
   <div
     class="_effects flex w-[220px] flex-col gap-3   rounded-lg bg-grey-600/60
-    p-4 backdrop-blur transition-all ease-out group-hover:bg-grey-500/60
+    p-4 transition-all ease-out group-hover:bg-grey-500/60
     "
   >
     <!--- Cover -->
@@ -87,7 +87,7 @@
   {#if data.image}
     <div class="glow_ transition-opacity ">
       <img
-        class="absolute -bottom-1/3 -right-1/4 h-72 w-72 rounded-full object-cover"
+        class="absolute inset-0 -bottom-2 h-72 w-72 rounded-2xl object-cover"
         src={`file://${data.image}`}
       />
     </div>
@@ -98,6 +98,7 @@
   /* The background image blur */
   .glow_ {
     opacity: 0;
+    filter: blur(10px) saturate(2);
     @apply absolute inset-0 -z-10 overflow-hidden  rounded-lg;
 
     .group:hover & {
@@ -143,7 +144,8 @@
 
   ._effects {
     &:hover {
-      box-shadow: inset 0.2px 0.5px 1px rgba(255, 255, 255, 0.2);
+      box-shadow: inset 0.2px 0.5px 1px rgba(255, 255, 255, 0.2),
+        inset -0.1px -0.9px 1px rgba(255, 255, 255, 0.1);
     }
   }
 </style>
