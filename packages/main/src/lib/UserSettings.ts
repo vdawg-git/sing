@@ -1,5 +1,7 @@
 import ElectronStore from "electron-store"
 
+import { isDevelopment } from "@/Constants"
+
 import type { DirectoryPath } from "../../../../types/Filesystem"
 
 export interface IUserSettings {
@@ -19,5 +21,10 @@ const schema = {
   },
 }
 
-// @ts-expect-error
-export const userSettingsStore = new ElectronStore<IUserSettings>({ schema })
+const name = isDevelopment ? "devConfig" : "config"
+
+export const userSettingsStore = new ElectronStore<IUserSettings>({
+  // @ts-expect-error
+  schema,
+  name,
+})
