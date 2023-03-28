@@ -12,11 +12,12 @@ export async function createMenuOrganism(electron: ElectronApplication) {
 
   return {
     addToExistingPlaylist,
+    addToNewPlaylist,
+    clickPlayLater,
+    clickPlayNext,
     getItem,
     hasItem,
-    addToNewPlaylist,
-    clickPlayNext,
-    clickPlayLater,
+    menuLocator: menu,
   }
 
   async function addToExistingPlaylist(playlistName: string) {

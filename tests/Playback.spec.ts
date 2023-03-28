@@ -312,7 +312,7 @@ test.describe("when playing a track while shuffle is on", async () => {
 
     await expect(async () => {
       const items = await tracksPage.queuebar.getItemTitles()
-      console.log({ items })
+
       expect(items).not.toEqual(oldQueue)
     }, "Failed to set shuffle. Queue titles stayed in the same order.").toPass({
       timeout: 3000,
@@ -543,7 +543,7 @@ test.describe("Manual queue", async () => {
       tracksPage.queuebar.manuallyAddedItems
         .nth(0)
         .filter({ hasText: secondTitle }),
-      "`Play next` failed to add to the manual queue correctly"
+      "`Play next` failed to add to the manual queue correctly when done twice"
     ).toBeVisible({ timeout: 2000 })
 
     const thirdTitle = "03"
@@ -566,8 +566,6 @@ test.describe("Manual queue", async () => {
       tracksPage.queuebar.manuallyAddedItems.filter({ hasText: firstTitle }),
       "Failed to remove a manual queue item."
     ).toBeHidden({ timeout: 2000 })
-
-    await tracksPage.queuebar.close()
   })
 })
 

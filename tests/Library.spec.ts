@@ -224,6 +224,46 @@ test.describe("when removing one folder", async () => {
 
     await expect(tracksPage.playbar.currentTrackTitle).toContainText("09_")
   })
+
+  test("should delete the albums from the deleted folder - Folder 0", async () => {
+    const settingsPage = await createLibrarySettingsPage(electron)
+
+    await settingsPage.removeFolder(0)
+
+    const albumsPage = await settingsPage.goTo.albums()
+
+    await expect(albumsPage.getAlbumsByFolder(0).first()).toBeHidden()
+  })
+
+  test("should delete the artists from the deleted folder - Folder 0", async () => {
+    const settingsPage = await createLibrarySettingsPage(electron)
+
+    await settingsPage.removeFolder(0)
+
+    const artistsPage = await settingsPage.goTo.artists()
+
+    await expect(artistsPage.getArtistsByFolder(0).first()).toBeHidden()
+  })
+
+  test("should delete the albums from the deleted folder - Folder 1", async () => {
+    const settingsPage = await createLibrarySettingsPage(electron)
+
+    await settingsPage.removeFolder(1)
+
+    const albumsPage = await settingsPage.goTo.albums()
+
+    await expect(albumsPage.getAlbumsByFolder(1).first()).toBeHidden()
+  })
+
+  test("should delete the artists from the deleted folder - Folder 1", async () => {
+    const settingsPage = await createLibrarySettingsPage(electron)
+
+    await settingsPage.removeFolder(1)
+
+    const artistsPage = await settingsPage.goTo.artists()
+
+    await expect(artistsPage.getArtistsByFolder(1).first()).toBeHidden()
+  })
 })
 
 test.describe("when adding one folder from a clear state", async () => {

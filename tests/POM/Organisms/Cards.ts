@@ -16,7 +16,7 @@ export async function createCardsOrganism(
     getCardByTitle,
   }
 
-  async function getCardByTitle(title: string) {
+  function getCardByTitle(title: string | RegExp) {
     return allCards.filter({
       has: page.locator(TEST_ATTRIBUTES.asQuery.cardTitle, {
         hasText: title,

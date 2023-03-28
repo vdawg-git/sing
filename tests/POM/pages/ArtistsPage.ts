@@ -2,8 +2,10 @@
 
 import { PAGE_TITLES } from "@sing-renderer/Constants"
 import { TEST_ATTRIBUTES, TEST_IDS } from "@sing-renderer/TestConsts"
+import { UNKNOWN_ARTIST } from "@sing-shared/Consts"
 
-import type { ElectronApplication } from "playwright"
+import type { ElectronApplication, Locator } from "playwright"
+import type { EndToEndFolder } from "#/Types"
 
 import { createBasePage } from "#pages/BasePage"
 import { createHeroHeadingOrganism } from "#organisms/HeroHeading"
@@ -11,7 +13,6 @@ import { createCardsOrganism } from "#organisms/Cards"
 
 export async function createArtistsPage(electron: ElectronApplication) {
   const basePage = await createBasePage(electron)
-  // const page = await electron.firstWindow()
 
   const heading = await createHeroHeadingOrganism(electron)
   const cards = await createCardsOrganism(electron, {
@@ -19,16 +20,27 @@ export async function createArtistsPage(electron: ElectronApplication) {
     allCardsAttribute: TEST_ATTRIBUTES.asQuery.artistCard,
   })
 
-  // const artistItems = page.locator(TEST_IDS.asQuery.artistCards)
-
   return {
     ...basePage,
     cards,
 
     waitToBeVisible,
+    getArtistsByFolder,
   }
 
   async function waitToBeVisible(): Promise<void> {
     await heading.waitForTitle(PAGE_TITLES.artists)
   }
+
+  function getArtistsByFolder(folder: EndToEndFolder): Locator {
+    const regex = createArtistRegex(folder)
+
+    return cards.getCardByTitle(regex)
+  }
+}
+
+function createArtistRegex(folder: EndToEndFolder) {
+  const regex = `^${folder}/d_.*$`
+
+  return new RegExp(folder === 0 ? regex + "|" + UNKNOWN_ARTIST : regex)
 }

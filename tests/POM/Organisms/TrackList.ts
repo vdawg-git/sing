@@ -111,9 +111,12 @@ export async function createTrackListOrganism(electron: ElectronApplication) {
       play: () => trackLocator.dblclick({ position: { x: 4, y: 4 } }),
 
       openContextMenu: async () => {
-        await trackLocator.click({ button: "right" })
+        await trackLocator.click({ button: "right", position: { x: 8, y: 8 } })
 
-        return createMenuOrganism(electron)
+        const menu = await createMenuOrganism(electron)
+        await menu.menuLocator.waitFor({ state: "visible" })
+
+        return menu
       },
 
       /**
