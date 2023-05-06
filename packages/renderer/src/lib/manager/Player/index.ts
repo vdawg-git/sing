@@ -2,6 +2,8 @@ import { dequal } from "dequal"
 import { derived, writable, type Readable } from "svelte/store"
 import { match } from "ts-pattern"
 
+import { notifiyError } from "@/Helper"
+
 import { dispatchToRedux, mainStore } from "../../stores/mainStore"
 
 import { audioPlayer } from "./AudioPlayer"
@@ -86,23 +88,27 @@ isAtEndStore.subscribe(($newIsAtEnd) => ($isAtEnd = $newIsAtEnd))
 loopState.subscribe(($newLoop) => ($loopState = $newLoop))
 
 currentTrack.subscribe(($newCurrentTrack) => {
-  if (dequal($currentTrack, $newCurrentTrack)) {
-    return
-  }
+  if (dequal($currentTrack, $newCurrentTrack)) return
 
   $currentTrack = $newCurrentTrack
 
   setMediaSessionMetaData($newCurrentTrack)
 
-  if ($newCurrentTrack) {
+  if (!$newCurrentTrack) return
+
+  try {
     audioPlayer.resetCurrentTime()
 
     if ($playState === "playing") {
-      audioPlayer.play($newCurrentTrack.filepath)
+      audioPlayer
+        .play($newCurrentTrack.filepath)
+        .catch(notifiyError("Failed to play track"))
     } else {
       audioPlayer.setSource($newCurrentTrack.filepath)
       currentTimeStore.set(0) // Seekbar is not updating when paused
     }
+  } catch (error) {
+    notifiyError("Failed to load new track")(error)
   }
 })
 
@@ -111,6 +117,7 @@ window.api.on(
   "syncedMusic",
   handleSyncUpdate(tracksStore, albumsStore, artistsStore)
 )
+
 audioPlayer.audio.addEventListener("ended", handleClickedNext)
 
 initialiseMediaKeysHandler({
@@ -157,9 +164,11 @@ export function handleSeekingStart() {
  * Used with {@link handleSeekingStart}.
  */
 export function handleSeekingEnd() {
-  if ($playState === "playing") {
-    audioPlayer.resume()
-  }
+  if ($playState !== "playing") return
+
+  audioPlayer
+    .resume()
+    .catch(notifiyError("Failed to resume audio after seeking"))
 }
 
 /**
@@ -184,7 +193,7 @@ export function seekTo(percentage: number) {
 export function resumePlayback() {
   dispatchToRedux(playbackActions.setPlayState("playing"))
 
-  audioPlayer.resume()
+  audioPlayer.resume().catch(notifiyError("Failed to resume playback"))
 }
 
 export function pausePlayback() {

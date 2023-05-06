@@ -21,25 +21,17 @@ function createPlayer() {
 
   return {
     audio,
-
     play,
-
     setSource,
-
     getSource,
 
-    resume() {
+    async resume() {
       // Clear the interval of the pause (nessecary if the play/pause button gets spammed)
       // And restore the volume to before the pause
       clearInterval(fadeInterval)
-      try {
-        restoreVolume()
+      restoreVolume()
 
-        audio.play()
-      } catch (error) {
-        console.error(error)
-        console.error(`filepath: \t ${audio.src}`)
-      }
+      return audio.play()
     },
 
     pause() {
@@ -100,16 +92,11 @@ function createPlayer() {
     destroy,
   }
 
-  function play(source: string): void {
+  async function play(source: string) {
     setSource(source)
-    try {
-      restoreVolume()
+    restoreVolume()
 
-      audio.play()
-    } catch (error) {
-      console.error(error)
-      console.error(`filepath: \t ${source}`)
-    }
+    return audio.play()
   }
 
   function setVolume(volume: number) {

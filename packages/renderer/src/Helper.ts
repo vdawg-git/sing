@@ -424,7 +424,9 @@ export function isThisSourceCurrentPlayback(
 
   if (
     thisSource.origin !== "allTracks" &&
-    currentPlayback.origin !== "allTracks"
+    currentPlayback.origin !== "allTracks" &&
+    thisSource.origin !== "NONE" &&
+    currentPlayback.origin !== "NONE"
   ) {
     return thisSource.sourceID === currentPlayback.sourceID
   }
